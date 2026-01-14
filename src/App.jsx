@@ -3,6 +3,39 @@ import './index.css'
 
 const POSTS = [
   {
+    id: 'agent-battle-2026',
+    date: 'January 14, 2026',
+    readTime: '7 min read',
+    title: 'Antigravity vs Cursor vs Claude Code: The Battle for the Developer\'s Soul',
+    subtitle: 'Value propositions, hardware moats, and the road to 2027.',
+    content: (
+      <>
+        <p>It’s 2026, and the "AI coding assistant" is no longer a novelty—it’s the oxygen in the room. I’ve spent the last few weeks trialing the big three: <strong>Antigravity</strong>, <strong>Cursor</strong>, and <strong>Claude Code</strong> (both the CLI and the IDE integration). The verdict? They are all incredible. Seriously. If you told me three years ago I’d have tools this capable, I would have laughed.</p>
+        
+        <p>But "incredible" doesn't help me decide where to put my subscription money. The real question is: <em>How do they actually impact our work?</em></p>
+
+        <h2>The Value Proposition: Quantifying the Unquantifiable</h2>
+        <p>We’re past the point of "this one writes better boilterplate." Now we’re in the realm of agentic behavior. Quantifying the value of these tools is tricky. Is it lines of code per hour? Bugs prevented? Or is it something softer, like "mental energy conserved"?</p>
+
+        <p>To me, the differentiator is how they handle <strong>context</strong> and <strong>intent</strong>. Antigravity feels like it’s pair-programming with a senior engineer who knows the whole codebase. Cursor is the speed demon, predicting my next move before I even make it. Claude Code offers this deep, thoughtful analysis that feels like a code review from a patient mentor.</p>
+
+        <p className="highlight">
+           The profound shift isn't in typing faster; it's in thinking bigger.
+        </p>
+
+        <h2>The Long-Term Angle: Google's Hardware Moat</h2>
+        <p>Here’s an angle I can’t shake: <strong>Infrastructure</strong>. We often look at the software layer, but the models running these agents are hungry. They need compute. Massive, specialized, localized compute.</p>
+        
+        <p>This is where I think Google has a tremendous, almost unfair advantage. They own the hardware (TPUs) and the datacenters. They control the atoms that move the bits. In the long run, as models get larger and context windows effectively become infinite, the cost of inference will be the defining factor.</p>
+
+        <p>If Google can run a model 10x larger for 10% of the cost because they own the vertical stack, does that make them the inevitable winner? Maybe. Does it mean we should ignore the others? Absolutely not. Innovation often comes from constraints, and the competition is fierce.</p>
+
+        <h2>Excited for 2026</h2>
+        <p>One thing is sure: I’ve tried all three, and the results are mind-blowing. We are standing at the precipice of a new era in software engineering. I am genuinely excited to see what the rest of 2026 brings. If the models improve this much in another year, we won't just be writing code; we'll be conducting symphonies of logic.</p>
+      </>
+    )
+  },
+  {
     id: 'coros-apex-4',
     date: 'January 14, 2026',
     readTime: '6 min read',
