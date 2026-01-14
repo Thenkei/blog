@@ -91,7 +91,33 @@ const POSTS = [
             </p>
       </>
     )
-  }
+  },
+  {
+    id: 'joining-rockfi',
+    date: 'December 1, 2025',
+    readTime: '3 min read',
+    title: 'New Chapter: Joining RockFi as Staff Back-end Engineer',
+    subtitle: 'Structuring the tech capable of revolutionizing private wealth management.',
+    content: (
+      <>
+        <p>I am thrilled to announce my arrival at <strong>RockFi</strong> to strengthen the tech team! It marks a significant new step in my career, and I couldn't be more excited about the challenges ahead.</p>
+
+        <h2>A Look Back</h2>
+        <p>My career began in the startup world at <strong>Polymagine</strong>, where I dedicated myself to R&D for additive manufacturing and augmented reality visualization. I then moved to <strong>Michelin</strong>, contributing to IT projects serving industrial production.</p>
+        
+        <p>In 2021, I joined <strong>Forest Admin</strong>, where I spent four years evolving from Full Stack Engineer to Staff Engineer and leading a tech team as Engineering Manager. During this time, I played a key role in structuring and growing the team, helping it double in size to reach over 20 engineers.</p>
+
+        <h2>The Mission at RockFi</h2>
+        <p>At RockFi, my focus will be on the <strong>interconnection with key partners</strong>. The goal is to centralize client data and enable real-time visualization of asset portfolios. It's a technical challenge that sits right at the intersection of complex data integration and user-centric product value.</p>
+        
+        <p className="highlight">
+          "I have the ambition to help structure a technical team capable of responding to the challenges demanded by the revolution of 'The new private management'."
+        </p>
+        
+        <p>RockFi is tackling "The new private wealth management," and building the robust technical foundation to support that vision is exactly where I want to be. 🚀</p>
+      </>
+    )
+  },
 ]
 
 function App() {
