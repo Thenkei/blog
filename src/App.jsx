@@ -106,8 +106,8 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const getStyle = (speed) => ({
-    transform: `translateY(${scrollY * speed}px)`
+  const getStyle = (speed, offset = 0) => ({
+    transform: `translateY(${scrollY * speed + offset}px)`
   })
 
   const currentPost = POSTS.find(p => p.id === currentPostId)
@@ -119,7 +119,7 @@ function App() {
       <section className="parallax-container">
         <div className="parallax-layer layer-mountain-1" style={getStyle(0.2)}></div>
         <div className="parallax-layer layer-mountain-2" style={getStyle(0.4)}></div>
-        <div className="parallax-layer layer-mountain-3" style={getStyle(0.6)}></div>
+        <div className="parallax-layer layer-mountain-3" style={getStyle(0.8, 50)}></div>
         
         <div className="hero-content">
           <h1 className="hero-title" onClick={() => {setCurrentPostId(null); window.scrollTo(0,0)}} style={{cursor: 'pointer'}}>
