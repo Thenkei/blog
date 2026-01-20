@@ -6,7 +6,9 @@
     "ui": {
         "latestPosts": "Derniers Articles",
         "backToHome": "Retour à l'accueil",
-        "readTime": "{{count}} min de lecture"
+        "readTime": "{{count}} min de lecture",
+        "darkTheme": "Sombre",
+        "lightTheme": "Clair"
     },
     "posts": [
         {

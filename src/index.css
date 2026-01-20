@@ -9,6 +9,26 @@
   --mountain-front: #4a5568;
   --font-main: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
+  --gradient-start: #020617;
+  --gradient-end: #0b0e14;
+  --card-bg: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.05);
+  --card-hover-bg: rgba(255, 255, 255, 0.05);
+  --code-bg: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] {
+  --bg-color: #fafafa;
+  --text-primary: #1a1a2e;
+  --text-secondary: #64748b;
+  --accent-cyan: #0891b2;
+  --accent-green: #059669;
+  --gradient-start: #f8fafc;
+  --gradient-end: #fafafa;
+  --card-bg: rgba(0, 0, 0, 0.02);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --card-hover-bg: rgba(0, 0, 0, 0.04);
+  --code-bg: rgba(0, 0, 0, 0.05);
 }
 
 * {
@@ -33,7 +53,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(to bottom, #020617 0%, #0b0e14 100%);
+  background: linear-gradient(to bottom, var(--gradient-start) 0%, var(--gradient-end) 100%);
 }
 
 .parallax-layer {
@@ -143,7 +163,7 @@ p {
 
 code {
   font-family: var(--font-mono);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--code-bg);
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
   font-size: 0.9em;
@@ -182,15 +202,15 @@ code {
 
 .post-card {
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .post-card:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--card-hover-bg);
   border-color: var(--accent-cyan);
   transform: translateY(-5px);
 }
@@ -262,6 +282,49 @@ li {
 }
 
 .lang-separator {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+/* Light theme: hide mountains and circuit overlay for clean minimalist look */
+[data-theme="light"] .layer-mountain-1,
+[data-theme="light"] .layer-mountain-2,
+[data-theme="light"] .layer-mountain-3,
+[data-theme="light"] .circuit-overlay {
+  display: none;
+}
+
+/* Theme toggle button styles */
+.theme-switcher-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+  font-family: var(--font-mono);
+}
+
+.theme-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 5px 10px;
+  transition: all 0.3s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.theme-btn:hover {
+  color: var(--text-primary);
+}
+
+.theme-btn.active {
+  color: var(--accent-cyan);
+  border-bottom: 2px solid var(--accent-cyan);
+}
+
+.theme-separator {
   color: var(--text-secondary);
   opacity: 0.5;
 }

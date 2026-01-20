@@ -6,7 +6,9 @@
     "ui": {
         "latestPosts": "Latest Posts",
         "backToHome": "Back to home",
-        "readTime": "{{count}} min read"
+        "readTime": "{{count}} min read",
+        "darkTheme": "Dark",
+        "lightTheme": "Light"
     },
     "posts": [
         {

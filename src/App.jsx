@@ -614,6 +614,7 @@ const POST_CONTENTS_FR = {
 function App() {
   const [scrollY, setScrollY] = useState(0);
   const [currentPostId, setCurrentPostId] = useState(null);
+  const [theme, setTheme] = useState("dark");
   const { t, i18n } = useTranslation();
 
   useEffect(() => {
@@ -623,6 +624,18 @@ function App() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme") || "dark";
+    setTheme(saved);
+    document.documentElement.setAttribute("data-theme", saved);
+  }, []);
+
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+  };
 
   const getStyle = (speed, offset = 0) => ({
     transform: `translateY(${scrollY * speed + offset}px)`,
@@ -658,6 +671,21 @@ function App() {
         ></div>
 
         <div className="hero-content">
+          <div className="theme-switcher-container">
+            <button
+              className={`theme-btn ${theme === "dark" ? "active" : ""}`}
+              onClick={() => handleThemeChange("dark")}
+            >
+              {t("ui.darkTheme")}
+            </button>
+            <span className="theme-separator">|</span>
+            <button
+              className={`theme-btn ${theme === "light" ? "active" : ""}`}
+              onClick={() => handleThemeChange("light")}
+            >
+              {t("ui.lightTheme")}
+            </button>
+          </div>
           <div className="lang-switcher-container">
             <button
               className={`lang-btn ${i18n.language === "en" ? "active" : ""}`}
