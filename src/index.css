@@ -7,8 +7,8 @@
   --mountain-back: #1a202c;
   --mountain-mid: #2d3748;
   --mountain-front: #4a5568;
-  --font-main: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-main: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
 * {
@@ -54,17 +54,17 @@ body {
 
 .layer-mountain-1 {
   z-index: 2;
-  background-image: url('./assets/images/mountain_layer_1_back.png');
+  background-image: url("./assets/images/mountain_layer_1_back.png");
 }
 
 .layer-mountain-2 {
   z-index: 3;
-  background-image: url('./assets/images/mountain_layer_2_mid.png');
+  background-image: url("./assets/images/mountain_layer_2_mid.png");
 }
 
 .layer-mountain-3 {
   z-index: 4;
-  background-image: url('./assets/images/mountain_layer_3_front.png');
+  background-image: url("./assets/images/mountain_layer_3_front.png");
   /* Let zoom a bit on this one */
   zoom: 1.2;
   overflow: hidden;
@@ -76,7 +76,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('./assets/images/circuit_pattern_overlay_1768397274823.png');
+  background-image: url("./assets/images/circuit_pattern_overlay_1768397274823.png");
   background-size: cover;
   opacity: 0.15;
   pointer-events: none;
@@ -94,7 +94,11 @@ body {
   font-size: 4rem;
   font-weight: 800;
   margin-bottom: 1rem;
-  background: linear-gradient(to right, var(--accent-cyan), var(--accent-green));
+  background: linear-gradient(
+    to right,
+    var(--accent-cyan),
+    var(--accent-green)
+  );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -162,7 +166,11 @@ code {
 .trail-line {
   height: 4px;
   width: 100px;
-  background: linear-gradient(to right, var(--accent-cyan), var(--accent-green));
+  background: linear-gradient(
+    to right,
+    var(--accent-cyan),
+    var(--accent-green)
+  );
   margin: 2rem 0;
 }
 
@@ -224,3 +232,36 @@ li {
   margin-bottom: 0.5rem;
 }
 
+.lang-switcher-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2rem;
+  font-family: var(--font-mono);
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 5px 10px;
+  transition: all 0.3s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.lang-btn:hover {
+  color: var(--text-primary);
+}
+
+.lang-btn.active {
+  color: var(--accent-cyan);
+  border-bottom: 2px solid var(--accent-cyan);
+}
+
+.lang-separator {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}

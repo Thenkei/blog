@@ -1,0 +1,45 @@
+{
+    "header": {
+        "title": "Le Blog de Morgan",
+        "subtitle": "Ingénierie / Course à pied / Évolution"
+    },
+    "ui": {
+        "latestPosts": "Derniers Articles",
+        "backToHome": "Retour à l'accueil",
+        "readTime": "{{count}} min de lecture"
+    },
+    "posts": [
+        {
+            "id": "agent-battle-2026",
+            "date": "14 Janvier 2026",
+            "readTime": "7",
+            "title": "Antigravity vs Cursor vs Claude Code : La bataille pour l'âme du développeur",
+            "subtitle": "Propositions de valeur, douves matérielles et route vers 2027.",
+            "content": "agent_battle_content"
+        },
+        {
+            "id": "coros-apex-4",
+            "date": "14 Janvier 2026",
+            "readTime": "6",
+            "title": "Du Intelligent au Sportif : Pourquoi j'ai échangé mon Apple Watch pour la COROS APEX 4",
+            "subtitle": "Préparation pour 100 km de poussière, de sueur et de données.",
+            "content": "coros_apex_content"
+        },
+        {
+            "id": "ai-force-multiplier",
+            "date": "10 Janvier 2026",
+            "readTime": "8",
+            "title": "Le multiplicateur de force : L'IA comme nouveau substrat de l'ingénierie",
+            "subtitle": "De l'exécution à l'orchestration.",
+            "content": "ai_force_multiplier_content"
+        },
+        {
+            "id": "joining-rockfi",
+            "date": "1 Décembre 2025",
+            "readTime": "3",
+            "title": "Nouveau chapitre : Je rejoins RockFi en tant que Staff Back-end Engineer",
+            "subtitle": "Structurer la tech capable de révolutionner la gestion de fortune privée.",
+            "content": "joining_rockfi_content"
+        }
+    ]
+}
