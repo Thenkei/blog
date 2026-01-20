@@ -7,8 +7,11 @@
         "latestPosts": "Derniers Articles",
         "backToHome": "Retour à l'accueil",
         "readTime": "{{count}} min de lecture",
+        "systemTheme": "Système",
+        "systemThemeTooltip": "Suivre la préférence système",
         "darkTheme": "Sombre",
-        "lightTheme": "Clair"
+        "lightTheme": "Clair",
+        "tableOfContents": "Sommaire"
     },
     "posts": [
         {

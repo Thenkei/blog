@@ -7,8 +7,11 @@
         "latestPosts": "Latest Posts",
         "backToHome": "Back to home",
         "readTime": "{{count}} min read",
+        "systemTheme": "System",
+        "systemThemeTooltip": "Follow system preference",
         "darkTheme": "Dark",
-        "lightTheme": "Light"
+        "lightTheme": "Light",
+        "tableOfContents": "Table of Contents"
     },
     "posts": [
         {

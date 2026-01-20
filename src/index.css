@@ -209,10 +209,15 @@ code {
   transition: all 0.3s ease;
 }
 
-.post-card:hover {
+.post-card:hover,
+.post-card.focused {
   background: var(--card-hover-bg);
   border-color: var(--accent-cyan);
   transform: translateY(-5px);
+}
+
+.post-card.focused {
+  box-shadow: 0 0 0 2px var(--accent-cyan), 0 10px 40px rgba(0, 242, 255, 0.15);
 }
 
 .post-card h3 {
@@ -222,7 +227,8 @@ code {
   transition: color 0.3s ease;
 }
 
-.post-card:hover h3 {
+.post-card:hover h3,
+.post-card.focused h3 {
   color: var(--accent-cyan);
 }
 
@@ -327,4 +333,140 @@ li {
 .theme-separator {
   color: var(--text-secondary);
   opacity: 0.5;
+}
+
+/* Table of Contents styles */
+.toc {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.toc-title {
+  font-size: 0.9rem;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.toc-list li {
+  margin-bottom: 0.5rem;
+}
+
+.toc-list li:last-child {
+  margin-bottom: 0;
+}
+
+.toc-link {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+  display: inline-block;
+  padding: 0.25rem 0;
+  border-left: 2px solid transparent;
+  padding-left: 0.75rem;
+}
+
+.toc-link:hover {
+  color: var(--accent-cyan);
+  border-left-color: var(--accent-cyan);
+}
+
+/* =====================================================
+   ANIMATIONS
+   ===================================================== */
+
+/* Fade-in keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Post card animations - staggered fade-in */
+.post-card {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.post-card:nth-child(1) { animation-delay: 0.1s; }
+.post-card:nth-child(2) { animation-delay: 0.2s; }
+.post-card:nth-child(3) { animation-delay: 0.3s; }
+.post-card:nth-child(4) { animation-delay: 0.4s; }
+.post-card:nth-child(5) { animation-delay: 0.5s; }
+.post-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* Page transition - post list */
+.post-list {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Page transition - article */
+article {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Hero content fade-in on load */
+.hero-content {
+  animation: fadeIn 1s ease-out;
+}
+
+/* Table of contents fade-in */
+.toc {
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out 0.3s forwards;
+}
+
+/* Back button subtle animation */
+.back-btn {
+  opacity: 0;
+  animation: fadeIn 0.4s ease-out 0.2s forwards;
+}
+
+/* Smooth transitions for theme changes */
+body,
+.blog-content,
+.post-card,
+.toc,
+article {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .post-card,
+  .post-list,
+  article,
+  .hero-content,
+  .toc,
+  .back-btn {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }

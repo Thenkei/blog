@@ -1,7 +1,59 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import "./i18n/config";
 import "./index.css";
+
+function TableOfContents({ articleRef }) {
+  const [headings, setHeadings] = useState([]);
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    if (!articleRef.current) return;
+
+    const h2Elements = articleRef.current.querySelectorAll("h2");
+    const items = Array.from(h2Elements).map((h2, index) => {
+      const text = h2.textContent;
+      const id = `heading-${index}-${text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "")
+        .slice(0, 30)}`;
+      h2.id = id;
+      return { id, text };
+    });
+
+    setHeadings(items);
+  }, [articleRef]);
+
+  if (headings.length < 2) return null;
+
+  const handleClick = (e, id) => {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  return (
+    <nav className="toc">
+      <h4 className="toc-title">{t("ui.tableOfContents")}</h4>
+      <ul className="toc-list">
+        {headings.map((heading) => (
+          <li key={heading.id}>
+            <a
+              href={`#${heading.id}`}
+              onClick={(e) => handleClick(e, heading.id)}
+              className="toc-link"
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
 
 const POST_CONTENTS = {
   "agent-battle-2026": (
@@ -611,11 +663,30 @@ const POST_CONTENTS_FR = {
   ),
 };
 
+// Helper functions for theme management
+function getSystemTheme() {
+  if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    return "dark";
+  }
+  return "light";
+}
+
+function computeAppliedTheme(themeMode) {
+  if (themeMode === "system") {
+    return getSystemTheme();
+  }
+  return themeMode;
+}
+
 function App() {
   const [scrollY, setScrollY] = useState(0);
   const [currentPostId, setCurrentPostId] = useState(null);
-  const [theme, setTheme] = useState("dark");
+  const [themeMode, setThemeMode] = useState("system"); // User's preference ("system" | "dark" | "light")
+  const [appliedTheme, setAppliedTheme] = useState("dark"); // Actual theme rendered ("dark" | "light")
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const { t, i18n } = useTranslation();
+  const articleRef = useRef(null);
+  const postCardsRef = useRef([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -625,16 +696,111 @@ function App() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Theme initialization with migration from old "theme" key
   useEffect(() => {
-    const saved = localStorage.getItem("theme") || "dark";
-    setTheme(saved);
-    document.documentElement.setAttribute("data-theme", saved);
+    // Check for new key first
+    let savedMode = localStorage.getItem("themeMode");
+
+    // Migration: if old "theme" key exists but not new one, migrate it
+    if (!savedMode) {
+      const oldTheme = localStorage.getItem("theme");
+      if (oldTheme === "dark" || oldTheme === "light") {
+        savedMode = oldTheme;
+        localStorage.setItem("themeMode", savedMode);
+        localStorage.removeItem("theme"); // Clean up old key
+      } else {
+        savedMode = "system"; // Default for new users
+      }
+    }
+
+    setThemeMode(savedMode);
+    const applied = computeAppliedTheme(savedMode);
+    setAppliedTheme(applied);
+    document.documentElement.setAttribute("data-theme", applied);
   }, []);
 
-  const handleThemeChange = (newTheme) => {
-    setTheme(newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
-    localStorage.setItem("theme", newTheme);
+  // Listen to system theme changes when mode is "system"
+  useEffect(() => {
+    if (themeMode !== "system") return;
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const handleSystemThemeChange = (e) => {
+      const newTheme = e.matches ? "dark" : "light";
+      setAppliedTheme(newTheme);
+      document.documentElement.setAttribute("data-theme", newTheme);
+    };
+
+    // Use the modern addEventListener if available, fallback to addListener
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener("change", handleSystemThemeChange);
+    } else {
+      // Fallback for older browsers
+      mediaQuery.addListener(handleSystemThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener("change", handleSystemThemeChange);
+      } else {
+        // Fallback for older browsers
+        mediaQuery.removeListener(handleSystemThemeChange);
+      }
+    };
+  }, [themeMode]);
+
+  // Keyboard navigation for posts
+  useEffect(() => {
+    if (currentPostId) return; // Only active on post list view
+
+    const handleKeyDown = (e) => {
+      const posts = t("posts", { returnObjects: true });
+      const postCount = posts.length;
+
+      if (e.key === "ArrowDown" || e.key === "j") {
+        e.preventDefault();
+        setFocusedIndex((prev) => {
+          const next = prev < postCount - 1 ? prev + 1 : 0;
+          postCardsRef.current[next]?.scrollIntoView({ behavior: "smooth", block: "center" });
+          return next;
+        });
+      } else if (e.key === "ArrowUp" || e.key === "k") {
+        e.preventDefault();
+        setFocusedIndex((prev) => {
+          const next = prev > 0 ? prev - 1 : postCount - 1;
+          postCardsRef.current[next]?.scrollIntoView({ behavior: "smooth", block: "center" });
+          return next;
+        });
+      } else if (e.key === "Enter" && focusedIndex >= 0) {
+        e.preventDefault();
+        const selectedPost = posts[focusedIndex];
+        if (selectedPost) {
+          setCurrentPostId(selectedPost.id);
+          window.scrollTo(0, window.innerHeight * 0.8);
+        }
+      } else if (e.key === "Escape") {
+        setFocusedIndex(-1);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentPostId, focusedIndex, t]);
+
+  // Reset focus when returning to post list
+  useEffect(() => {
+    if (!currentPostId) {
+      setFocusedIndex(-1);
+    }
+  }, [currentPostId]);
+
+  const handleThemeChange = (newMode) => {
+    setThemeMode(newMode);
+    localStorage.setItem("themeMode", newMode);
+
+    const applied = computeAppliedTheme(newMode);
+    setAppliedTheme(applied);
+    document.documentElement.setAttribute("data-theme", applied);
   };
 
   const getStyle = (speed, offset = 0) => ({
@@ -673,14 +839,22 @@ function App() {
         <div className="hero-content">
           <div className="theme-switcher-container">
             <button
-              className={`theme-btn ${theme === "dark" ? "active" : ""}`}
+              className={`theme-btn ${themeMode === "system" ? "active" : ""}`}
+              onClick={() => handleThemeChange("system")}
+              title={t("ui.systemThemeTooltip")}
+            >
+              {t("ui.systemTheme")}
+            </button>
+            <span className="theme-separator">|</span>
+            <button
+              className={`theme-btn ${themeMode === "dark" ? "active" : ""}`}
               onClick={() => handleThemeChange("dark")}
             >
               {t("ui.darkTheme")}
             </button>
             <span className="theme-separator">|</span>
             <button
-              className={`theme-btn ${theme === "light" ? "active" : ""}`}
+              className={`theme-btn ${themeMode === "light" ? "active" : ""}`}
               onClick={() => handleThemeChange("light")}
             >
               {t("ui.lightTheme")}
@@ -718,14 +892,15 @@ function App() {
       <main className="blog-content">
         <div className="container">
           {!currentPost ? (
-            <div className="post-list">
+            <div className="post-list" key="post-list">
               <h2 style={{ marginTop: 0, marginBottom: "3rem" }}>
                 {t("ui.latestPosts")}
               </h2>
-              {posts.map((post) => (
+              {posts.map((post, index) => (
                 <div
                   key={post.id}
-                  className="post-card"
+                  ref={(el) => (postCardsRef.current[index] = el)}
+                  className={`post-card ${focusedIndex === index ? "focused" : ""}`}
                   onClick={() => {
                     setCurrentPostId(post.id);
                     window.scrollTo(0, window.innerHeight * 0.8);
@@ -750,7 +925,7 @@ function App() {
               ))}
             </div>
           ) : (
-            <article>
+            <article ref={articleRef} key={currentPostId}>
               <button
                 className="back-btn"
                 onClick={() => setCurrentPostId(null)}
@@ -776,6 +951,8 @@ function App() {
               </h1>
 
               <div className="trail-line"></div>
+
+              <TableOfContents articleRef={articleRef} />
 
               {currentPost.content}
 
