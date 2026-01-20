@@ -11,7 +11,12 @@
         "systemThemeTooltip": "Follow system preference",
         "darkTheme": "Dark",
         "lightTheme": "Light",
-        "tableOfContents": "Table of Contents"
+        "tableOfContents": "Table of Contents",
+        "footer": {
+            "copyright": "© {{year}} Morgan's Blog.",
+            "github": "GitHub",
+            "linkedin": "LinkedIn"
+        }
     },
     "posts": [
         {
