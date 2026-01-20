@@ -194,6 +194,23 @@ code {
   margin: 2rem 0;
 }
 
+/* Reading Progress Bar */
+.reading-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    var(--accent-cyan),
+    var(--accent-green)
+  );
+  z-index: 100;
+  transition: width 0.15s ease-out;
+  will-change: width;
+  pointer-events: none;
+}
+
 .post-list {
   display: flex;
   flex-direction: column;
@@ -468,5 +485,9 @@ article {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  .reading-progress-bar {
+    transition: none;
   }
 }
