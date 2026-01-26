@@ -18,17 +18,21 @@
 }
 
 [data-theme="light"] {
-  --bg-color: #fafafa;
-  --text-primary: #1a1a2e;
-  --text-secondary: #64748b;
-  --accent-cyan: #0891b2;
-  --accent-green: #059669;
-  --gradient-start: #f8fafc;
-  --gradient-end: #fafafa;
-  --card-bg: rgba(0, 0, 0, 0.02);
-  --card-border: rgba(0, 0, 0, 0.08);
-  --card-hover-bg: rgba(0, 0, 0, 0.04);
-  --code-bg: rgba(0, 0, 0, 0.05);
+  --bg-color: #f8fafc;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --accent-cyan: #0ea5e9;
+  --accent-green: #10b981;
+  --gradient-start: #f1f5f9;
+  --gradient-end: #f8fafc;
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --card-border: rgba(15, 23, 42, 0.08);
+  --card-hover-bg: rgba(255, 255, 255, 0.9);
+  --code-bg: rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 * {
@@ -53,7 +57,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(to bottom, var(--gradient-start) 0%, var(--gradient-end) 100%);
+  background: linear-gradient(
+    to bottom,
+    var(--gradient-start) 0%,
+    var(--gradient-end) 100%
+  );
 }
 
 .parallax-layer {
@@ -138,6 +146,11 @@ body {
   z-index: 6;
   background-color: var(--bg-color);
   padding: 100px 0;
+  box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .blog-content {
+  box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.05);
 }
 
 .container {
@@ -218,23 +231,28 @@ code {
 }
 
 .post-card {
-  padding: 2rem;
+  padding: 2.5rem;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 12px;
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .post-card:hover,
 .post-card.focused {
   background: var(--card-hover-bg);
   border-color: var(--accent-cyan);
-  transform: translateY(-5px);
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
 }
 
 .post-card.focused {
-  box-shadow: 0 0 0 2px var(--accent-cyan), 0 10px 40px rgba(0, 242, 255, 0.15);
+  box-shadow:
+    0 0 0 2px var(--accent-cyan),
+    0 10px 40px rgba(0, 242, 255, 0.15);
 }
 
 .post-card h3 {
@@ -309,12 +327,17 @@ li {
   opacity: 0.5;
 }
 
-/* Light theme: hide mountains and circuit overlay for clean minimalist look */
+/* Light theme adjustments for parallax layers */
 [data-theme="light"] .layer-mountain-1,
 [data-theme="light"] .layer-mountain-2,
-[data-theme="light"] .layer-mountain-3,
+[data-theme="light"] .layer-mountain-3 {
+  filter: brightness(1.2) contrast(0.9) saturate(0.8);
+  opacity: 0.6;
+}
+
 [data-theme="light"] .circuit-overlay {
-  display: none;
+  opacity: 0.05;
+  filter: invert(1);
 }
 
 /* Theme toggle button styles */
@@ -356,9 +379,11 @@ li {
 .toc {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .toc-title {
@@ -431,12 +456,24 @@ li {
   animation: fadeInUp 0.6s ease-out forwards;
 }
 
-.post-card:nth-child(1) { animation-delay: 0.1s; }
-.post-card:nth-child(2) { animation-delay: 0.2s; }
-.post-card:nth-child(3) { animation-delay: 0.3s; }
-.post-card:nth-child(4) { animation-delay: 0.4s; }
-.post-card:nth-child(5) { animation-delay: 0.5s; }
-.post-card:nth-child(6) { animation-delay: 0.6s; }
+.post-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.post-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.post-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.post-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.post-card:nth-child(5) {
+  animation-delay: 0.5s;
+}
+.post-card:nth-child(6) {
+  animation-delay: 0.6s;
+}
 
 /* Page transition - post list */
 .post-list {
@@ -471,7 +508,10 @@ body,
 .post-card,
 .toc,
 article {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 /* Reduced motion preference */
@@ -521,7 +561,7 @@ article {
 }
 
 .footer-copyright {
-  font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
+  font-family: "JetBrains Mono", "Courier New", Courier, monospace;
   font-size: 0.9rem;
   color: var(--text-secondary);
 }
