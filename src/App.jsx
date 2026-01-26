@@ -25,11 +25,30 @@ function computeAppliedTheme(themeMode) {
   return themeMode;
 }
 
+// Initialize theme from localStorage (runs once at module load)
+function getInitialThemeMode() {
+  if (typeof window === "undefined") return "system";
+  let savedMode = localStorage.getItem("themeMode");
+  if (!savedMode) {
+    const oldTheme = localStorage.getItem("theme");
+    if (oldTheme === "dark" || oldTheme === "light") {
+      savedMode = oldTheme;
+      localStorage.setItem("themeMode", savedMode);
+      localStorage.removeItem("theme");
+    } else {
+      savedMode = "system";
+    }
+  }
+  // Apply theme to DOM immediately
+  const applied = computeAppliedTheme(savedMode);
+  document.documentElement.setAttribute("data-theme", applied);
+  return savedMode;
+}
+
 function App() {
   const [scrollY, setScrollY] = useState(0);
   const [currentPostId, setCurrentPostId] = useState(null);
-  const [themeMode, setThemeMode] = useState("system");
-  const [appliedTheme, setAppliedTheme] = useState("dark");
+  const [themeMode, setThemeMode] = useState(getInitialThemeMode);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const { t, i18n } = useTranslation();
   const articleRef = useRef(null);
@@ -48,27 +67,6 @@ function App() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Theme initialization with migration from old "theme" key
-  useEffect(() => {
-    let savedMode = localStorage.getItem("themeMode");
-
-    if (!savedMode) {
-      const oldTheme = localStorage.getItem("theme");
-      if (oldTheme === "dark" || oldTheme === "light") {
-        savedMode = oldTheme;
-        localStorage.setItem("themeMode", savedMode);
-        localStorage.removeItem("theme");
-      } else {
-        savedMode = "system";
-      }
-    }
-
-    setThemeMode(savedMode);
-    const applied = computeAppliedTheme(savedMode);
-    setAppliedTheme(applied);
-    document.documentElement.setAttribute("data-theme", applied);
-  }, []);
-
   // Listen to system theme changes when mode is "system"
   useEffect(() => {
     if (themeMode !== "system") return;
@@ -77,7 +75,6 @@ function App() {
 
     const handleSystemThemeChange = (e) => {
       const newTheme = e.matches ? "dark" : "light";
-      setAppliedTheme(newTheme);
       document.documentElement.setAttribute("data-theme", newTheme);
     };
 
@@ -139,20 +136,16 @@ function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentPostId, focusedIndex, posts]);
 
-  // Reset focus when returning to post list
-  useEffect(() => {
-    if (!currentPostId) {
-      setFocusedIndex(-1);
-    }
-  }, [currentPostId]);
+  // Helper to navigate back to post list
+  const navigateToPostList = () => {
+    setCurrentPostId(null);
+    setFocusedIndex(-1);
+  };
 
   const handleThemeChange = (newMode) => {
     setThemeMode(newMode);
     localStorage.setItem("themeMode", newMode);
-
-    const applied = computeAppliedTheme(newMode);
-    setAppliedTheme(applied);
-    document.documentElement.setAttribute("data-theme", applied);
+    document.documentElement.setAttribute("data-theme", computeAppliedTheme(newMode));
   };
 
   const getStyle = (speed, offset = 0) => ({
@@ -219,7 +212,7 @@ function App() {
           <h1
             className="hero-title"
             onClick={() => {
-              setCurrentPostId(null);
+              navigateToPostList();
               window.scrollTo(0, 0);
             }}
             style={{ cursor: "pointer" }}
@@ -271,7 +264,7 @@ function App() {
               <article ref={articleRef} key={currentPostId}>
                 <button
                   className="back-btn"
-                  onClick={() => setCurrentPostId(null)}
+                  onClick={navigateToPostList}
                 >
                   ← {t("ui.backToHome")}
                 </button>
@@ -305,7 +298,7 @@ function App() {
                 <button
                   className="back-btn"
                   onClick={() => {
-                    setCurrentPostId(null);
+                    navigateToPostList();
                     window.scrollTo(0, 0);
                   }}
                 >
