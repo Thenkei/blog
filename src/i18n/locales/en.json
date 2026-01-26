@@ -20,6 +20,14 @@
     },
     "posts": [
         {
+            "id": "postgresql-unique-nulls",
+            "date": "January 26, 2026",
+            "readTime": "2",
+            "title": "Quick feedback: ON CONFLICT DO UPDATE with nullable columns",
+            "subtitle": "Warning: By default, PostgreSQL considers that NULL ≠ NULL.",
+            "content": "postgresql_unique_nulls_content"
+        },
+        {
             "id": "agent-battle-2026",
             "date": "January 14, 2026",
             "readTime": "7",

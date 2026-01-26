@@ -20,6 +20,14 @@
     },
     "posts": [
         {
+            "id": "postgresql-unique-nulls",
+            "date": "26 Janvier 2026",
+            "readTime": "2",
+            "title": "Petit retour d'expérience : ON CONFLICT DO UPDATE avec des colonnes nullable",
+            "subtitle": "Attention : Par défaut, PostgreSQL considère que NULL ≠ NULL.",
+            "content": "postgresql_unique_nulls_content"
+        },
+        {
             "id": "agent-battle-2026",
             "date": "14 Janvier 2026",
             "readTime": "7",
