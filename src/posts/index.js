@@ -15,10 +15,12 @@ import * as agentBattle2026 from "./agent-battle-2026.jsx";
 import * as corosApex4 from "./coros-apex-4.jsx";
 import * as aiForceMultiplier from "./ai-force-multiplier.jsx";
 import * as joiningRockfi from "./joining-rockfi.jsx";
+import * as nexusTsVision from "./nexus-ts-vision.jsx";
 
 // Post modules mapped by their ID (filename without extension)
 // ORDER MATTERS: Posts are displayed in this order (newest first)
 const postModules = {
+  "nexus-ts-vision": nexusTsVision,
   "postgresql-unique-nulls": postgresqlUniqueNulls,
   "agent-battle-2026": agentBattle2026,
   "coros-apex-4": corosApex4,
