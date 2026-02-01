@@ -35,6 +35,20 @@
     0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
+[data-theme="rocket"] {
+  --bg-color: #020617;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --accent-cyan: #d946ef; /* Magenta-ish */
+  --accent-green: #fb923c; /* Rocket Orange */
+  --gradient-start: #020617;
+  --gradient-end: #0f172a;
+  --card-bg: rgba(217, 70, 239, 0.03);
+  --card-border: rgba(217, 70, 239, 0.05);
+  --card-hover-bg: rgba(217, 70, 239, 0.05);
+  --code-bg: rgba(217, 70, 239, 0.05);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -98,17 +112,24 @@ body {
   overflow: hidden;
 }
 
-.circuit-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url("./assets/images/circuit_pattern_overlay_1768397274823.png");
-  background-size: cover;
-  opacity: 0.15;
-  pointer-events: none;
-  z-index: 10;
+[data-theme="rocket"] .layer-mountain-1 {
+  background-image: url("./assets/images/rocket_layer_1_back.png");
+}
+
+[data-theme="rocket"] .layer-mountain-2 {
+  background-image: url("./assets/images/rocket_layer_2_mid.png");
+  mix-blend-mode: screen;
+}
+
+[data-theme="rocket"] .layer-mountain-3 {
+  background-image: url("./assets/images/rocket_layer_3_front.png");
+  zoom: 1;
+  mix-blend-mode: screen;
+}
+
+[data-theme="rocket"] .circuit-overlay {
+  opacity: 0.05;
+  filter: hue-rotate(280deg) brightness(1.5);
 }
 
 .hero-content {

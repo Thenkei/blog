@@ -145,7 +145,10 @@ function App() {
   const handleThemeChange = (newMode) => {
     setThemeMode(newMode);
     localStorage.setItem("themeMode", newMode);
-    document.documentElement.setAttribute("data-theme", computeAppliedTheme(newMode));
+    document.documentElement.setAttribute(
+      "data-theme",
+      computeAppliedTheme(newMode),
+    );
   };
 
   const getStyle = (speed, offset = 0) => ({
@@ -192,6 +195,13 @@ function App() {
               onClick={() => handleThemeChange("light")}
             >
               {t("ui.lightTheme")}
+            </button>
+            <span className="theme-separator">|</span>
+            <button
+              className={`theme-btn ${themeMode === "rocket" ? "active" : ""}`}
+              onClick={() => handleThemeChange("rocket")}
+            >
+              {t("ui.rocketTheme")}
             </button>
           </div>
           <div className="lang-switcher-container">
@@ -262,10 +272,7 @@ function App() {
             <>
               <ReadingProgressBar />
               <article ref={articleRef} key={currentPostId}>
-                <button
-                  className="back-btn"
-                  onClick={navigateToPostList}
-                >
+                <button className="back-btn" onClick={navigateToPostList}>
                   ← {t("ui.backToHome")}
                 </button>
                 <div className="meta">
