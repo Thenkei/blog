@@ -11,6 +11,7 @@
     "systemThemeTooltip": "Suivre la préférence système",
     "darkTheme": "Sombre",
     "lightTheme": "Clair",
+    "rocketTheme": "Rocket",
     "tableOfContents": "Sommaire",
     "footer": {
       "copyright": "© {{year}} Le Blog de Morgan.",
