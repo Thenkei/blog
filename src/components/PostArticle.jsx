@@ -1,5 +1,20 @@
+import { useEffect } from "react";
+import hljs from "highlight.js/lib/core";
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import sql from "highlight.js/lib/languages/sql";
+import json from "highlight.js/lib/languages/json";
+import bash from "highlight.js/lib/languages/bash";
 import TableOfContents from "./TableOfContents";
 import ReadingProgressBar from "./ReadingProgressBar";
+
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("js", javascript);
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("ts", typescript);
+hljs.registerLanguage("sql", sql);
+hljs.registerLanguage("json", json);
+hljs.registerLanguage("bash", bash);
 
 export default function PostArticle({
   currentPost,
@@ -8,6 +23,16 @@ export default function PostArticle({
   onBackToTop,
   t,
 }) {
+  useEffect(() => {
+    if (!articleRef?.current) return;
+
+    const codeBlocks = articleRef.current.querySelectorAll("pre code");
+    codeBlocks.forEach((block) => {
+      block.removeAttribute("data-highlighted");
+      hljs.highlightElement(block);
+    });
+  }, [articleRef, currentPost.id, currentPost.content]);
+
   return (
     <>
       <ReadingProgressBar articleRef={articleRef} />

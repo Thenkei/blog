@@ -15,6 +15,7 @@ import * as agentBattle2026 from "./agent-battle-2026.jsx";
 import * as corosApex4 from "./coros-apex-4.jsx";
 import * as aiForceMultiplier from "./ai-force-multiplier.jsx";
 import * as joiningRockfi from "./joining-rockfi.jsx";
+import * as nodejsStreamBackpressureHistoryExport from "./nodejs-stream-backpressure-history-export.jsx";
 
 // Post modules mapped by their ID (filename without extension)
 // ORDER MATTERS: Posts are displayed in this order (newest first)
@@ -24,6 +25,8 @@ const postModules = {
   "coros-apex-4": corosApex4,
   "ai-force-multiplier": aiForceMultiplier,
   "joining-rockfi": joiningRockfi,
+  "nodejs-stream-backpressure-history-export":
+    nodejsStreamBackpressureHistoryExport,
 };
 
 /**
