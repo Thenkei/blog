@@ -1,34 +1,34 @@
 :root {
-  --bg-color: #0b0e14;
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --accent-cyan: #00f2ff;
-  --accent-green: #39ff14;
-  --mountain-back: #1a202c;
-  --mountain-mid: #2d3748;
-  --mountain-front: #4a5568;
+  --bg-color: #0f172a;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5f5;
+  --accent-cyan: #22d3ee;
+  --accent-green: #7cfc9a;
+  --mountain-back: #273247;
+  --mountain-mid: #364463;
+  --mountain-front: #4d5f87;
   --font-main: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
-  --gradient-start: #020617;
-  --gradient-end: #0b0e14;
-  --card-bg: rgba(255, 255, 255, 0.03);
-  --card-border: rgba(255, 255, 255, 0.05);
-  --card-hover-bg: rgba(255, 255, 255, 0.05);
-  --code-bg: rgba(255, 255, 255, 0.05);
+  --gradient-start: #111827;
+  --gradient-end: #0f172a;
+  --card-bg: rgba(255, 255, 255, 0.06);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-hover-bg: rgba(255, 255, 255, 0.08);
+  --code-bg: rgba(255, 255, 255, 0.08);
 }
 
 [data-theme="light"] {
-  --bg-color: #f8fafc;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --accent-cyan: #0ea5e9;
-  --accent-green: #10b981;
-  --gradient-start: #f1f5f9;
-  --gradient-end: #f8fafc;
-  --card-bg: rgba(255, 255, 255, 0.7);
-  --card-border: rgba(15, 23, 42, 0.08);
-  --card-hover-bg: rgba(255, 255, 255, 0.9);
-  --code-bg: rgba(15, 23, 42, 0.05);
+  --bg-color: #fcfdff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --accent-cyan: #38bdf8;
+  --accent-green: #34d399;
+  --gradient-start: #f7faff;
+  --gradient-end: #ffffff;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(30, 41, 59, 0.08);
+  --card-hover-bg: rgba(255, 255, 255, 0.95);
+  --code-bg: rgba(30, 41, 59, 0.06);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg:
@@ -92,6 +92,19 @@ body {
 
 .layer-bg {
   z-index: 1;
+  background-image:
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(255, 255, 255, 0.12),
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 80% 10%,
+      rgba(255, 255, 255, 0.08),
+      transparent 40%
+    ),
+    linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+  opacity: 0.9;
 }
 
 .layer-mountain-1 {
@@ -351,17 +364,253 @@ code {
 .reading-progress-bar {
   position: fixed;
   top: 0;
+  right: 18px;
+  width: 14px;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  z-index: 90;
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.12);
+  overflow: visible;
+  will-change: height;
+  pointer-events: none;
+}
+
+.reading-progress-track {
+  content: "";
+  position: absolute;
+  top: 0;
   left: 0;
-  height: 3px;
+  width: 100%;
+  height: 100%;
   background: linear-gradient(
-    to right,
+    to bottom,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0)
+  );
+  opacity: 0.5;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.reading-progress-track::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(var(--reading-progress, 0) * 1%);
+  background: linear-gradient(
+    180deg,
     var(--accent-cyan),
     var(--accent-green)
   );
-  z-index: 100;
-  transition: width 0.15s ease-out;
-  will-change: width;
-  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    0 0 18px rgba(34, 211, 238, 0.25),
+    0 0 40px rgba(124, 252, 154, 0.12);
+}
+
+.reading-progress-runner {
+  position: absolute;
+  right: -10px;
+  top: calc(var(--reading-progress, 0) * 1%);
+  width: 42px;
+  height: 42px;
+  transform: translateY(-50%) rotate(-90deg) skewY(-4deg);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 35%,
+    #ffffff,
+    rgba(255, 255, 255, 0.6) 40%,
+    rgba(255, 255, 255, 0.15) 70%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  box-shadow:
+    0 8px 20px rgba(34, 211, 238, 0.2),
+    0 0 24px rgba(124, 252, 154, 0.18);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+}
+
+.reading-progress-runner-icon {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: #0f172a;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+  filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.2));
+  animation: runner-bounce 0.8s ease-in-out infinite;
+  transform-origin: 50% 80%;
+}
+
+.runner-headband {
+  stroke: #22d3ee;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.reading-progress-runner::after {
+  content: "";
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  width: var(--runner-trail, 18px);
+  height: 8px;
+  transform: translateY(-50%);
+  background: linear-gradient(
+    to right,
+    rgba(56, 189, 248, 0.45),
+    rgba(56, 189, 248, 0)
+  );
+  filter: blur(1px);
+  opacity: var(--runner-trail-opacity, 0.45);
+}
+
+.reading-progress-bar[data-direction="up"] .reading-progress-runner {
+  transform: translateY(-50%) rotate(90deg) skewY(4deg);
+}
+
+.reading-progress-bar[data-direction="up"] .reading-progress-runner::after {
+  right: auto;
+  left: -20px;
+  background: linear-gradient(
+    to left,
+    rgba(56, 189, 248, 0.45),
+    rgba(56, 189, 248, 0)
+  );
+}
+
+.runner-torso {
+  fill: #60a5fa;
+  stroke: #0f172a;
+  stroke-width: 2.5;
+}
+
+.runner-pack {
+  fill: #fb923c;
+  stroke: #0f172a;
+  stroke-width: 2;
+}
+
+.runner-arm,
+.runner-leg {
+  stroke: #0f172a;
+  stroke-width: 3.2;
+}
+
+.runner-head {
+  fill: #fde68a;
+  stroke: #0f172a;
+  stroke-width: 2.5;
+}
+
+.runner-shoe {
+  fill: #111827;
+  stroke: #0f172a;
+  stroke-width: 2;
+}
+
+.runner-arm,
+.runner-leg,
+.runner-torso {
+  transform-origin: 32px 30px;
+}
+
+.runner-arm-front {
+  animation: runner-arm 0.6s ease-in-out infinite;
+}
+
+.runner-arm-back {
+  animation: runner-arm 0.6s ease-in-out infinite reverse;
+}
+
+.runner-leg-front {
+  animation: runner-leg 0.6s ease-in-out infinite;
+}
+
+.runner-leg-back {
+  animation: runner-leg 0.6s ease-in-out infinite reverse;
+}
+
+@keyframes runner-bounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-6deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(4deg);
+  }
+}
+
+@keyframes runner-leg {
+  0%,
+  100% {
+    transform: rotate(12deg);
+  }
+  50% {
+    transform: rotate(-18deg);
+  }
+}
+
+@keyframes runner-arm {
+  0%,
+  100% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(18deg);
+  }
+}
+
+
+[data-theme="light"] .reading-progress-bar {
+  background: rgba(15, 23, 42, 0.06);
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.12);
+}
+
+[data-theme="light"] .reading-progress-track::after {
+  box-shadow:
+    0 0 16px rgba(56, 189, 248, 0.18),
+    0 0 32px rgba(52, 211, 153, 0.14);
+}
+
+[data-theme="light"] .reading-progress-runner {
+  background: radial-gradient(
+    circle at 35% 35%,
+    #ffffff,
+    rgba(255, 255, 255, 0.7) 40%,
+    rgba(255, 255, 255, 0.2) 70%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+[data-theme="light"] .reading-progress-runner-icon {
+  stroke: #1f2937;
+}
+
+[data-theme="light"] .runner-torso {
+  fill: #7dd3fc;
+  stroke: #1f2937;
+}
+
+[data-theme="light"] .runner-pack {
+  fill: #fbbf24;
+  stroke: #1f2937;
+}
+
+[data-theme="light"] .runner-head {
+  fill: #fde68a;
+  stroke: #1f2937;
+}
+
+[data-theme="light"] .runner-headband {
+  stroke: #0ea5e9;
 }
 
 /* Rocket progress (rocket theme only) */
@@ -396,6 +645,13 @@ code {
   top: 18px;
   bottom: 18px;
   width: 120px;
+  transition:
+    top 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    right 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    bottom 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .rocket-orbit .rocket {
@@ -404,9 +660,7 @@ code {
   right: 0;
   width: 70px;
   filter: drop-shadow(0 14px 20px rgba(217, 70, 239, 0.2));
-  transition:
-    top 0.35s ease,
-    transform 0.35s ease;
+  transition: none;
 }
 
 .rocket-orbit .rocket svg {
@@ -443,7 +697,9 @@ code {
   top: 50%;
   right: -10px;
   transform: translateY(-50%) rotate(18deg);
-  transition: none;
+  transition:
+    top 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes orbit {
@@ -451,7 +707,7 @@ code {
     transform: rotate(0deg);
   }
   to {
-    transform: rotate(360deg);
+    transform: rotate(-360deg);
   }
 }
 

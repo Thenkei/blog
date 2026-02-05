@@ -15,6 +15,7 @@ export default function ParallaxHero({
 
   return (
     <section className="parallax-container">
+      <div className="parallax-layer layer-bg" style={getStyle(0.1)} />
       <div className="parallax-layer layer-mountain-1" style={getStyle(0.2)} />
       <div className="parallax-layer layer-mountain-2" style={getStyle(0.4)} />
       <div
