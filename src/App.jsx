@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import "./i18n/config";
 import "./index.css";
@@ -48,9 +48,31 @@ function getInitialThemeMode() {
   return savedMode;
 }
 
+function getPostIdFromUrl() {
+  if (typeof window === "undefined") return null;
+
+  const postId = new URLSearchParams(window.location.search).get("post");
+  if (!postId) return null;
+
+  return getPost(postId, "en") ? postId : null;
+}
+
+function syncUrlWithPost(postId) {
+  if (typeof window === "undefined") return;
+
+  const url = new URL(window.location.href);
+  if (postId) {
+    url.searchParams.set("post", postId);
+  } else {
+    url.searchParams.delete("post");
+  }
+
+  window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
 function App() {
   const [scrollY, setScrollY] = useState(0);
-  const [currentPostId, setCurrentPostId] = useState(null);
+  const [currentPostId, setCurrentPostId] = useState(getPostIdFromUrl);
   const [themeMode, setThemeMode] = useState(getInitialThemeMode);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const { t, i18n } = useTranslation();
@@ -61,6 +83,12 @@ function App() {
   const lang = i18n.language === "fr" ? "fr" : "en";
   const posts = getPosts(lang);
   const currentPost = currentPostId ? getPost(currentPostId, lang) : null;
+
+  const openPost = useCallback((postId) => {
+    setCurrentPostId(postId);
+    setFocusedIndex(-1);
+    syncUrlWithPost(postId);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -96,6 +124,17 @@ function App() {
     };
   }, [themeMode]);
 
+  // Keep the selected post in sync with browser navigation.
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPostId(getPostIdFromUrl());
+      setFocusedIndex(-1);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   // Keyboard navigation for posts
   useEffect(() => {
     if (currentPostId) return;
@@ -127,7 +166,7 @@ function App() {
         e.preventDefault();
         const selectedPost = posts[focusedIndex];
         if (selectedPost) {
-          setCurrentPostId(selectedPost.id);
+          openPost(selectedPost.id);
         }
       } else if (e.key === "Escape") {
         setFocusedIndex(-1);
@@ -136,12 +175,11 @@ function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentPostId, focusedIndex, posts]);
+  }, [currentPostId, focusedIndex, openPost, posts]);
 
   // Helper to navigate back to post list
   const navigateToPostList = () => {
-    setCurrentPostId(null);
-    setFocusedIndex(-1);
+    openPost(null);
   };
 
   const handleThemeChange = (newMode) => {
@@ -212,7 +250,7 @@ function App() {
                 postCardsRef={postCardsRef}
                 t={t}
                 onSelectPost={(post) => {
-                  setCurrentPostId(post.id);
+                  openPost(post.id);
                 }}
               />
             ) : (

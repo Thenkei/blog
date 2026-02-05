@@ -27,6 +27,29 @@ export const content = {
         processor registration, timeouts, retries, tracing, and sequencing.
       </p>
 
+      <p className="highlight">Series: Async Workloads at Scale (Part 2/3)</p>
+      <p>
+        This post is the architecture layer between the two other posts in this
+        series:
+      </p>
+      <ul>
+        <li>
+          Part 1 -{" "}
+          <a href="?post=nodejs-stream-backpressure-history-export">
+            Node.js backpressure, streams, and S3 multipart exports
+          </a>
+        </li>
+        <li>
+          Part 2 (current) - Jobify over BullMQ for worker/queue contracts.
+        </li>
+        <li>
+          Part 3 -{" "}
+          <a href="?post=idempotency-debounce-jobify-bullmq">
+            idempotency and debounce strategies (reschedule vs time-frame)
+          </a>
+        </li>
+      </ul>
+
       <p className="highlight">
         NestJS is the framework integration point. Jobify is the execution
         contract.
@@ -302,6 +325,18 @@ export class JobifyFactory {
         operational determinism: same queue semantics, same monitoring contract,
         same error surface, across every background workflow.
       </p>
+
+      <h2>Series navigation</h2>
+      <ul>
+        <li>
+          Want the stream/export reliability context first? Read{" "}
+          <a href="?post=nodejs-stream-backpressure-history-export">Part 1</a>.
+        </li>
+        <li>
+          Want debounce/idempotency hardening patterns next? Read{" "}
+          <a href="?post=idempotency-debounce-jobify-bullmq">Part 3</a>.
+        </li>
+      </ul>
     </>
   ),
   fr: (
@@ -313,6 +348,30 @@ export class JobifyFactory {
         enqueue, registration des processors, timeouts, retries, tracing et
         execution sequentielle.
       </p>
+
+      <p className="highlight">Serie: Async Workloads at Scale (Partie 2/3)</p>
+      <p>
+        Ce post est la couche d'architecture entre les deux autres articles de
+        la serie :
+      </p>
+      <ul>
+        <li>
+          Partie 1 -{" "}
+          <a href="?post=nodejs-stream-backpressure-history-export">
+            backpressure Node.js, streams et exports S3 multipart
+          </a>
+        </li>
+        <li>
+          Partie 2 (courante) - Jobify sur BullMQ pour les contrats
+          worker/queue.
+        </li>
+        <li>
+          Partie 3 -{" "}
+          <a href="?post=idempotency-debounce-jobify-bullmq">
+            strategies idempotence/debounce (reschedule vs time-frame)
+          </a>
+        </li>
+      </ul>
 
       <p className="highlight">
         NestJS est le point d'integration framework. Jobify est le contrat
@@ -451,6 +510,18 @@ export class ExportsService {
         Le principal gain n'est pas seulement le debit. C'est la determinisme
         operationnelle sur l'ensemble des workflows asynchrones.
       </p>
+
+      <h2>Navigation dans la serie</h2>
+      <ul>
+        <li>
+          Besoin du contexte stream/export en amont ? Lire{" "}
+          <a href="?post=nodejs-stream-backpressure-history-export">Partie 1</a>.
+        </li>
+        <li>
+          Besoin des patterns idempotence/debounce ensuite ? Lire{" "}
+          <a href="?post=idempotency-debounce-jobify-bullmq">Partie 3</a>.
+        </li>
+      </ul>
     </>
   ),
 };

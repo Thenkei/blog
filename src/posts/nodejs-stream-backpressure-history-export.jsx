@@ -34,6 +34,29 @@ export const content = {
         handling very large datasets with predictable memory usage.
       </p>
 
+      <p className="highlight">Series: Async Workloads at Scale (Part 1/3)</p>
+      <p>
+        This post opens a 3-part series:
+      </p>
+      <ul>
+        <li>
+          Part 1 (current) - backpressure, streaming transforms, and multipart
+          exports.
+        </li>
+        <li>
+          Part 2 -{" "}
+          <a href="?post=jobify-workers-queues-nestjs">
+            Jobify + BullMQ + worker/queue contracts in NestJS
+          </a>
+        </li>
+        <li>
+          Part 3 -{" "}
+          <a href="?post=idempotency-debounce-jobify-bullmq">
+            idempotency + debounce hardening (reschedule vs time-frame)
+          </a>
+        </li>
+      </ul>
+
       <p className="highlight">
         Backpressure was the core control mechanism, not an implementation
         detail.
@@ -453,6 +476,18 @@ logger.info({
         workers, and predictable export completion time even on very large
         tenants.
       </p>
+
+      <h2>Series navigation</h2>
+      <ul>
+        <li>
+          Continue with architecture and worker contracts in{" "}
+          <a href="?post=jobify-workers-queues-nestjs">Part 2</a>.
+        </li>
+        <li>
+          Then harden dedupe and trigger storms in{" "}
+          <a href="?post=idempotency-debounce-jobify-bullmq">Part 3</a>.
+        </li>
+      </ul>
     </>
   ),
   fr: (
@@ -470,6 +505,29 @@ logger.info({
         contrainte principale n'etait pas seulement la justesse fonctionnelle,
         mais la disponibilite des workers avec une memoire previsible.
       </p>
+
+      <p className="highlight">Serie: Async Workloads at Scale (Partie 1/3)</p>
+      <p>
+        Ce post ouvre une serie en 3 parties :
+      </p>
+      <ul>
+        <li>
+          Partie 1 (courante) - backpressure, transforms stream et exports
+          multipart.
+        </li>
+        <li>
+          Partie 2 -{" "}
+          <a href="?post=jobify-workers-queues-nestjs">
+            Jobify + BullMQ + contrats worker/queue dans NestJS
+          </a>
+        </li>
+        <li>
+          Partie 3 -{" "}
+          <a href="?post=idempotency-debounce-jobify-bullmq">
+            durcissement idempotence + debounce (reschedule vs time-frame)
+          </a>
+        </li>
+      </ul>
 
       <p className="highlight">
         Le backpressure etait le mecanisme de controle principal.
@@ -702,6 +760,18 @@ await pipeline(
         isolation de queue + concurrence bornee. C'est ce qui a rendu le systeme
         stable sur les gros volumes.
       </p>
+
+      <h2>Navigation dans la serie</h2>
+      <ul>
+        <li>
+          Continuer avec les contrats d'architecture worker/queue dans{" "}
+          <a href="?post=jobify-workers-queues-nestjs">Partie 2</a>.
+        </li>
+        <li>
+          Puis durcir dedupe et tempetes de triggers dans{" "}
+          <a href="?post=idempotency-debounce-jobify-bullmq">Partie 3</a>.
+        </li>
+      </ul>
     </>
   ),
 };

@@ -32,6 +32,28 @@ export const content = {
         creation and worker execution.
       </p>
 
+      <p className="highlight">Series: Async Workloads at Scale (Part 3/3)</p>
+      <p>
+        This post closes a 3-part series:
+      </p>
+      <ul>
+        <li>
+          Part 1 -{" "}
+          <a href="?post=nodejs-stream-backpressure-history-export">
+            Node.js backpressure, streaming, and multipart exports
+          </a>
+        </li>
+        <li>
+          Part 2 -{" "}
+          <a href="?post=jobify-workers-queues-nestjs">
+            Jobify + BullMQ + workers + queues in a NestJS architecture
+          </a>
+        </li>
+        <li>
+          Part 3 (current) - Idempotency and debounce strategy design.
+        </li>
+      </ul>
+
       <p className="highlight">
         Idempotency answers "can this be triggered multiple times safely?"
         Debounce answers "when should we actually execute under trigger storms?"
@@ -245,6 +267,18 @@ export const content = {
         jobs, bounded queue pressure, and a stable worker runtime under trigger
         storms.
       </p>
+
+      <h2>Series navigation</h2>
+      <ul>
+        <li>
+          Need stream-level reliability first? Go to{" "}
+          <a href="?post=nodejs-stream-backpressure-history-export">Part 1</a>.
+        </li>
+        <li>
+          Need a production queue/worker contract next? Go to{" "}
+          <a href="?post=jobify-workers-queues-nestjs">Part 2</a>.
+        </li>
+      </ul>
     </>
   ),
   fr: (
@@ -260,6 +294,28 @@ export const content = {
         plan. BullMQ reste en place, mais avec un contrat
         <code>jobify</code> autour de la creation et de l'execution des jobs.
       </p>
+
+      <p className="highlight">Serie: Async Workloads at Scale (Partie 3/3)</p>
+      <p>
+        Ce post clot une serie en 3 parties :
+      </p>
+      <ul>
+        <li>
+          Partie 1 -{" "}
+          <a href="?post=nodejs-stream-backpressure-history-export">
+            backpressure Node.js, streaming et exports multipart
+          </a>
+        </li>
+        <li>
+          Partie 2 -{" "}
+          <a href="?post=jobify-workers-queues-nestjs">
+            Jobify + BullMQ + workers + queues dans une architecture NestJS
+          </a>
+        </li>
+        <li>
+          Partie 3 (courante) - conception idempotence et debounce.
+        </li>
+      </ul>
 
       <p className="highlight">
         Idempotence: execution sure meme avec triggers multiples. Debounce:
@@ -395,6 +451,18 @@ export const content = {
         Le resultat attendu est un runtime asynchrone plus deterministe: moins
         de doublons, pression queue bornee, et workers stables sous charge.
       </p>
+
+      <h2>Navigation dans la serie</h2>
+      <ul>
+        <li>
+          Besoin de fiabilite stream en premier ? Lire{" "}
+          <a href="?post=nodejs-stream-backpressure-history-export">Partie 1</a>.
+        </li>
+        <li>
+          Besoin du contrat queue/worker ensuite ? Lire{" "}
+          <a href="?post=jobify-workers-queues-nestjs">Partie 2</a>.
+        </li>
+      </ul>
     </>
   ),
 };
