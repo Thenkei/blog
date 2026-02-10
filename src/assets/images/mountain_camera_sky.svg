@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="skyGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f2b44" />
+      <stop offset="55%" stop-color="#1f4d63" />
+      <stop offset="100%" stop-color="#2f6a67" />
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="72%" cy="22%" r="32%">
+      <stop offset="0%" stop-color="#fbe5a6" stop-opacity="0.95" />
+      <stop offset="45%" stop-color="#f8c96d" stop-opacity="0.45" />
+      <stop offset="100%" stop-color="#f8c96d" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="haze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#skyGradient)" />
+  <circle cx="1400" cy="230" r="360" fill="url(#sunGlow)" />
+
+  <path d="M0 380 C220 300 510 290 760 350 C1010 410 1230 360 1530 300 C1700 268 1820 258 1920 280 L1920 580 L0 580 Z" fill="url(#haze)" />
+  <path d="M0 520 C260 450 550 450 790 510 C1000 560 1240 560 1450 510 C1650 464 1780 460 1920 490 L1920 760 L0 760 Z" fill="#6ca39a" fill-opacity="0.14" />
+</svg>

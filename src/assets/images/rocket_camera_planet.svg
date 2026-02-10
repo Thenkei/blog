@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="planetBody" cx="34%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#7fe6ff" />
+      <stop offset="45%" stop-color="#3fa9f8" />
+      <stop offset="100%" stop-color="#24449e" />
+    </radialGradient>
+    <linearGradient id="planetBand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#b9f5ff" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#6cd3ff" stop-opacity="0.3" />
+    </linearGradient>
+    <radialGradient id="planetGlow" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#9f8eff" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#9f8eff" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <circle cx="1320" cy="420" r="300" fill="url(#planetGlow)" />
+  <circle cx="1320" cy="420" r="210" fill="url(#planetBody)" />
+  <ellipse cx="1290" cy="390" rx="130" ry="36" transform="rotate(-18 1290 390)" fill="url(#planetBand)" opacity="0.8" />
+  <ellipse cx="1358" cy="470" rx="108" ry="28" transform="rotate(-20 1358 470)" fill="#2658bc" opacity="0.42" />
+  <circle cx="1244" cy="338" r="26" fill="#9ff2ff" opacity="0.45" />
+  <circle cx="1388" cy="500" r="34" fill="#1f2c76" opacity="0.35" />
+
+  <ellipse cx="1320" cy="420" rx="340" ry="95" transform="rotate(-16 1320 420)" fill="none" stroke="#a7b0ff" stroke-opacity="0.55" stroke-width="14" />
+  <ellipse cx="1320" cy="420" rx="340" ry="95" transform="rotate(-16 1320 420)" fill="none" stroke="#f8a2ff" stroke-opacity="0.38" stroke-width="6" />
+</svg>

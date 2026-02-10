@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../../app/providers/ThemeProvider";
@@ -33,7 +33,6 @@ export function PostListPage({ locale }: PostListPageProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { themeMode, setThemeMode } = useTheme();
-  const [scrollY, setScrollY] = useState(0);
   const [query, setQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
@@ -71,12 +70,6 @@ export function PostListPage({ locale }: PostListPageProps) {
     },
   });
 
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
     <>
       <PageMeta
@@ -85,7 +78,6 @@ export function PostListPage({ locale }: PostListPageProps) {
         path={`/${locale}`}
       />
       <ParallaxHero
-        scrollY={scrollY}
         themeMode={themeMode}
         onThemeChange={setThemeMode}
         title={t("header.title")}

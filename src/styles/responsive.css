@@ -1,12 +1,13 @@
 @media (max-width: 1024px) {
-  .rocket-progress {
+  .rocket-progress[data-progress-placement="right"] {
     right: 0;
-    width: 140px;
+    width: 96px;
   }
 
-  .mountain-progress,
-  .clean-progress {
-    right: 10px;
+  .mountain-progress[data-progress-placement="top"],
+  .clean-progress[data-progress-placement="top"] {
+    left: 12px;
+    right: 12px;
   }
 }
 
@@ -29,12 +30,55 @@
 }
 
 @media (max-width: 720px) {
-  .parallax-container {
-    height: min(82vh, 760px);
+  .mountain-camera-shell {
+    height: 190vh;
   }
 
-  .parallax-layer {
-    transition: none;
+  .mountain-camera-stage.parallax-container {
+    height: 100vh;
+  }
+
+  .mountain-camera-stage::before {
+    opacity: 0.75;
+  }
+
+  .mountain-camera-stage::after {
+    opacity: calc(var(--trail-speed) * 0.42);
+  }
+
+  .mountain-layer {
+    inset: -2% -2% -6%;
+  }
+
+  .mountain-camera-stage.mountain-camera-clearance .mountain-layer-near {
+    opacity: 0.35;
+    filter: saturate(0.92) blur(1px);
+  }
+
+  .rocket-camera-shell {
+    height: 190vh;
+  }
+
+  .rocket-camera-stage.parallax-container {
+    height: 100vh;
+  }
+
+  .rocket-layer {
+    inset: -2% -2% -6%;
+  }
+
+  .rocket-layer-ship {
+    width: clamp(110px, 24vw, 150px);
+    top: 42%;
+  }
+
+  .rocket-camera-stage.rocket-camera-clearance .rocket-layer-asteroids {
+    opacity: 0.4;
+    filter: none;
+  }
+
+  .parallax-container {
+    height: min(82vh, 760px);
   }
 
   .hero-content {
@@ -72,13 +116,22 @@
     padding-top: 68px;
   }
 
-  .mountain-progress-altitude,
-  .rocket-progress-readout {
-    display: none;
+  .mountain-progress[data-progress-placement="top"],
+  .clean-progress[data-progress-placement="top"] {
+    left: 10px;
+    right: 10px;
   }
 }
 
 @media (max-width: 600px) {
+  .mountain-camera-shell {
+    height: 175vh;
+  }
+
+  .rocket-camera-shell {
+    height: 175vh;
+  }
+
   .post-card {
     border-radius: 18px;
     padding: 1.6rem;
@@ -94,11 +147,19 @@
     justify-content: center;
   }
 
-  .clean-progress,
-  .mountain-progress,
-  .rocket-progress {
-    right: 4px;
-    transform: scale(0.9);
-    transform-origin: top right;
+  .clean-progress[data-progress-placement="top"],
+  .mountain-progress[data-progress-placement="top"] {
+    left: 8px;
+    right: 8px;
+  }
+
+  .mountain-progress-runner {
+    width: 86px;
+    height: 50px;
+  }
+
+  .rocket-progress[data-progress-placement="right"] {
+    right: 2px;
+    width: 84px;
   }
 }

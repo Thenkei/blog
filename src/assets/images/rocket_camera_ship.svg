@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 420" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="shipBody" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="55%" stop-color="#c5d1ff" />
+      <stop offset="100%" stop-color="#7f8eb8" />
+    </linearGradient>
+    <linearGradient id="shipGlow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ca67ff" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#ff9a57" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="flame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff6c2" />
+      <stop offset="45%" stop-color="#ffb765" />
+      <stop offset="100%" stop-color="#ff6a4d" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(30 10)">
+    <path d="M180 18 C126 70 104 136 104 232 L104 290 C104 326 136 360 180 384 C224 360 256 326 256 290 L256 232 C256 136 234 70 180 18 Z" fill="url(#shipBody)" />
+    <path d="M180 18 C126 70 104 136 104 232 L104 268 C146 284 214 284 256 268 L256 232 C256 136 234 70 180 18 Z" fill="url(#shipGlow)" opacity="0.6" />
+    <circle cx="180" cy="194" r="38" fill="#0c1639" opacity="0.72" />
+    <circle cx="180" cy="194" r="22" fill="#7de4ff" />
+    <path d="M104 262 L58 314 L104 314 Z" fill="#ff9452" opacity="0.88" />
+    <path d="M256 262 L302 314 L256 314 Z" fill="#ff9452" opacity="0.88" />
+    <path d="M180 384 L150 416 L180 402 L210 416 Z" fill="#ff7f45" />
+    <path d="M180 404 L160 500 L180 472 L200 500 Z" fill="url(#flame)" opacity="0.92" />
+  </g>
+</svg>

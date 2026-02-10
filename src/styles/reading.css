@@ -2,43 +2,50 @@
 .mountain-progress,
 .rocket-progress {
   position: fixed;
-  top: 0;
-  right: 18px;
-  height: 100vh;
   pointer-events: none;
-  z-index: 90;
+}
+
+.clean-progress[data-progress-placement="top"],
+.mountain-progress[data-progress-placement="top"] {
+  top: calc(env(safe-area-inset-top) + 6px);
+  left: clamp(10px, 2vw, 24px);
+  right: clamp(10px, 2vw, 24px);
 }
 
 .clean-progress {
-  width: 14px;
+  z-index: 92;
+  height: 18px;
 }
 
 .clean-progress-track,
 .clean-progress-fill {
   position: absolute;
   left: 0;
-  width: 100%;
+  right: 0;
+  top: 50%;
   border-radius: 999px;
+  transform: translateY(-50%);
 }
 
 .clean-progress-track {
-  inset: 0;
-  background: var(--progress-rail-bg);
+  height: 8px;
+  background: color-mix(in srgb, var(--progress-rail-bg) 88%, transparent);
 }
 
 .clean-progress-fill {
-  bottom: 0;
-  height: calc(var(--reading-progress, 0) * 1%);
+  right: auto;
+  height: 8px;
+  width: calc(var(--reading-progress, 0) * 1%);
   background: var(--progress-fill);
   box-shadow: var(--progress-glow);
 }
 
 .clean-progress-marker {
   position: absolute;
-  left: 50%;
-  top: calc((100 - var(--reading-progress, 0)) * 1%);
-  width: 18px;
-  height: 18px;
+  left: clamp(0%, calc(var(--reading-progress, 0) * 1%), 100%);
+  top: 50%;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   background: var(--progress-marker-bg);
@@ -51,231 +58,133 @@
   backdrop-filter: blur(2px);
 }
 
-.clean-progress-light {
-  right: 16px;
-}
-
 .clean-progress-light .clean-progress-marker {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
 }
 
 .mountain-progress {
-  width: 18px;
-}
-
-.mountain-progress-track,
-.mountain-progress-fill,
-.mountain-progress-glow {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  border-radius: 999px;
-}
-
-.mountain-progress-track {
-  inset: 0;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0)),
-    var(--progress-rail-bg);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-.mountain-progress-fill {
-  bottom: 0;
-  height: calc(var(--reading-progress, 0) * 1%);
-  background: var(--progress-fill);
-  box-shadow: var(--progress-glow);
-}
-
-.mountain-progress-glow {
-  bottom: 0;
-  height: calc(var(--reading-progress, 0) * 1%);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(125, 224, 191, 0.32));
-  filter: blur(4px);
-  opacity: 0.55;
-}
-
-.mountain-progress-checkpoints {
-  position: absolute;
-  inset: 0;
-}
-
-.mountain-checkpoint {
-  position: absolute;
-  left: 50%;
-  width: 10px;
-  height: 10px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  transition:
-    background var(--motion-base) var(--motion-ease-standard),
-    transform var(--motion-base) var(--motion-ease-emphasis);
-}
-
-.mountain-checkpoint.reached {
-  background: var(--accent-secondary);
-  transform: translate(-50%, -50%) scale(1.08);
-}
-
-.mountain-progress-altitude {
-  position: absolute;
-  right: 26px;
-  top: calc((100 - var(--reading-progress, 0)) * 1%);
-  transform: translateY(-50%);
-  padding: 0.15rem 0.42rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--surface-2) 80%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 24%, var(--card-border));
-  color: var(--text-secondary);
-  font: 600 0.66rem/1 var(--font-mono);
-  letter-spacing: 0.01em;
+  z-index: 96;
+  height: 56px;
 }
 
 .mountain-progress-runner {
   position: absolute;
-  right: -16px;
-  top: calc((100 - var(--reading-progress, 0)) * 1%);
-  width: 40px;
-  height: 40px;
-  transform: translateY(-50%) rotate(-90deg) skewY(-4deg);
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
-  box-shadow: 0 10px 20px rgb(1 16 13 / 0.3);
-  display: grid;
-  place-items: center;
+  left: clamp(0%, calc(var(--reading-progress, 0) * 1%), 100%);
+  top: 50%;
+  width: 98px;
+  height: 58px;
+  transform: translate(-50%, -50%) rotate(-2.5deg);
+  transform-origin: 58% 84%;
+  transition: transform var(--motion-base) var(--motion-ease-standard);
+  filter: drop-shadow(0 8px 12px rgb(0 0 0 / 0.22));
 }
 
 .mountain-progress[data-direction="up"] .mountain-progress-runner {
-  transform: translateY(-50%) rotate(90deg) skewY(4deg);
+  transform: translate(-50%, -50%) rotate(3deg);
 }
 
 .mountain-runner-icon {
-  width: 29px;
-  height: 29px;
+  width: 100%;
+  height: 100%;
+  display: block;
+  transform: scaleX(-1);
+  animation: runnerStride var(--runner-stride-duration, 0.84s) ease-in-out infinite;
+  animation-play-state: paused;
+  transform-origin: 58% 84%;
+}
+
+.mountain-runner-icon .runner-leg-front,
+.mountain-runner-icon .runner-leg-back,
+.mountain-runner-icon .runner-leg-front-foot,
+.mountain-runner-icon .runner-leg-back-foot {
+  transform-box: view-box;
+  will-change: transform;
+  animation-duration: var(--runner-stride-duration, 0.84s);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  animation-play-state: paused;
+}
+
+.mountain-runner-icon .runner-leg-front {
+  transform-origin: 72px 79px;
+  animation-name: runnerFrontLegSwing;
+}
+
+.mountain-runner-icon .runner-leg-back {
+  transform-origin: 75px 69px;
+  animation-name: runnerBackLegSwing;
+}
+
+.mountain-runner-icon .runner-leg-front-foot {
+  transform-origin: 45px 113px;
+  animation-name: runnerFrontFootStrike;
+}
+
+.mountain-runner-icon .runner-leg-back-foot {
+  transform-origin: 98px 83px;
+  animation-name: runnerBackFootStrike;
+}
+
+.mountain-progress[data-running="true"] .mountain-runner-icon,
+.mountain-progress[data-running="true"] .mountain-runner-icon .runner-leg-front,
+.mountain-progress[data-running="true"] .mountain-runner-icon .runner-leg-back,
+.mountain-progress[data-running="true"] .mountain-runner-icon .runner-leg-front-foot,
+.mountain-progress[data-running="true"] .mountain-runner-icon .runner-leg-back-foot {
+  animation-play-state: running;
+}
+
+.runner-ground {
+  fill: color-mix(in srgb, var(--surface-2) 72%, transparent);
+  opacity: 0.9;
+}
+
+.runner-grass {
   fill: none;
-  stroke: #0b1c1a;
-  stroke-width: 2.8;
+  stroke: color-mix(in srgb, var(--text-primary) 44%, var(--surface-2));
+  stroke-width: 2.4;
   stroke-linecap: round;
-  stroke-linejoin: round;
-  animation: runnerBounce 0.78s ease-in-out infinite;
-  transform-origin: 50% 80%;
+  opacity: 0.8;
 }
 
-.runner-headband {
-  stroke: var(--accent-primary);
-  stroke-width: 2.3;
-  fill: none;
+.runner-silhouette {
+  fill: color-mix(in srgb, var(--text-primary) 95%, #010101);
 }
 
-.runner-torso {
-  fill: color-mix(in srgb, var(--accent-tertiary) 58%, white);
-  stroke: #0b1c1a;
-  stroke-width: 2.3;
+.runner-backpack {
+  fill: color-mix(in srgb, var(--text-primary) 90%, var(--surface-1));
 }
 
-.runner-pack {
-  fill: var(--accent-secondary);
-  stroke: #0b1c1a;
-  stroke-width: 2;
+.runner-dust {
+  fill: color-mix(in srgb, var(--surface-2) 78%, var(--text-secondary));
+  opacity: 0.78;
 }
 
-.runner-arm,
-.runner-leg {
-  stroke: #0b1c1a;
-  stroke-width: 3.05;
-}
-
-.runner-head {
-  fill: #f7ddb2;
-  stroke: #0b1c1a;
-  stroke-width: 2.2;
-}
-
-.runner-shoe {
-  fill: #132f2b;
-  stroke: #0b1c1a;
-  stroke-width: 1.8;
-}
-
-.runner-arm-front {
-  animation: runnerArm 0.58s ease-in-out infinite;
-}
-
-.runner-arm-back {
-  animation: runnerArm 0.58s ease-in-out infinite reverse;
-}
-
-.runner-leg-front {
-  animation: runnerLeg 0.58s ease-in-out infinite;
-}
-
-.runner-leg-back {
-  animation: runnerLeg 0.58s ease-in-out infinite reverse;
-}
-
-.rocket-progress {
-  width: 170px;
-  right: 6px;
+.rocket-progress[data-progress-placement="right"] {
+  top: calc(env(safe-area-inset-top) + 8px);
+  right: clamp(4px, 1vw, 10px);
+  width: 104px;
+  height: calc(100vh - env(safe-area-inset-top) - 16px);
   z-index: 120;
-}
-
-.rocket-progress-track,
-.rocket-progress-fill {
-  position: absolute;
-  right: 32px;
-  width: 10px;
-  border-radius: 999px;
-}
-
-.rocket-progress-track {
-  top: 0;
-  bottom: 0;
-  background: color-mix(in srgb, var(--progress-rail-bg) 88%, transparent);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-.rocket-progress-fill {
-  bottom: 0;
-  height: calc(var(--reading-progress, 0) * 1%);
-  background: var(--progress-fill);
-  box-shadow: var(--progress-glow);
-}
-
-.rocket-progress-checkpoints {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 28px;
-  width: 20px;
-}
-
-.rocket-checkpoint {
-  position: absolute;
-  right: 0;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  transition: transform var(--motion-base) var(--motion-ease-emphasis);
-}
-
-.rocket-checkpoint.reached {
-  background: var(--accent-primary);
-  transform: translateY(-50%) scale(1.12);
 }
 
 .rocket-progress .moon {
   position: absolute;
-  width: 76px;
-  height: 76px;
-  right: 0;
-  top: 10px;
-  filter: drop-shadow(0 0 20px rgba(255, 202, 123, 0.35));
+  width: 58px;
+  height: 58px;
+  right: 20px;
+  top: 6px;
+  filter: drop-shadow(0 0 10px rgba(255, 210, 138, 0.28));
+}
+
+.moon-disc {
+  fill: #f3d587;
+}
+
+.moon-crater {
+  fill: #d8b263;
+  opacity: 0.72;
 }
 
 .rocket-orbit {
@@ -283,55 +192,81 @@
   right: 0;
   top: 0;
   bottom: 0;
-  width: 110px;
+  width: 92px;
   transition: width var(--motion-slow) var(--motion-ease-enter);
 }
 
 .rocket-orbit .rocket {
   position: absolute;
   top: 50%;
-  right: 10px;
-  width: 66px;
-  transform: translateY(-50%) rotate(5deg);
-  filter: drop-shadow(0 16px 20px rgba(202, 120, 255, 0.26));
+  right: 12px;
+  width: 52px;
+  transform: translateY(-50%) rotate(7deg);
+  filter: drop-shadow(0 8px 12px rgb(27 42 73 / 0.24));
 }
 
 .rocket-orbit .rocket svg {
+  display: block;
   width: 100%;
   height: auto;
+}
+
+.rocket-body {
+  fill: color-mix(in srgb, var(--progress-marker-bg) 88%, white);
+  stroke: color-mix(in srgb, var(--text-primary) 68%, #111827);
+  stroke-width: 2.6;
+}
+
+.rocket-fin {
+  fill: color-mix(in srgb, var(--accent-secondary) 82%, #ff9f68);
+  stroke: color-mix(in srgb, var(--text-primary) 62%, #111827);
+  stroke-width: 2.6;
+}
+
+.rocket-stripe {
+  fill: color-mix(in srgb, var(--accent-primary) 76%, #ca78ff);
+}
+
+.rocket-window-ring {
+  fill: color-mix(in srgb, var(--text-primary) 88%, #0f172a);
+}
+
+.rocket-window-core {
+  fill: color-mix(in srgb, #8fd8ff 82%, white);
+}
+
+.rocket-nozzle {
+  fill: color-mix(in srgb, var(--accent-secondary) 88%, #ff8f5e);
 }
 
 .rocket-trail {
   position: absolute;
   left: 50%;
-  top: 82%;
-  width: 11px;
-  height: 88px;
+  top: 84%;
+  width: 7px;
+  height: 58px;
   transform: translateX(-50%);
-  background: linear-gradient(to bottom, rgba(255, 143, 94, 0.92), rgba(202, 120, 255, 0));
-  filter: blur(4px);
+  background: linear-gradient(to bottom, rgba(255, 159, 104, 0.88), rgba(255, 159, 104, 0));
+  filter: blur(1px);
 }
 
 .rocket-orbit.active {
   top: 8px;
   bottom: auto;
-  width: 132px;
-  height: 132px;
-  transform-origin: 72px 72px;
-  animation: orbitSpin 8.8s linear infinite;
+  right: 8px;
+  width: 90px;
+  height: 90px;
+  transform-origin: 42px 42px;
+  animation: orbitSpin 9.4s linear infinite;
 }
 
 .rocket-orbit.active .rocket {
   top: 50%;
-  right: -8px;
-  transform: translateY(-50%) rotate(18deg);
+  right: -2px;
+  transform: translateY(-50%) rotate(14deg);
 }
 
-.rocket-progress-readout {
-  position: absolute;
-  right: 52px;
-  top: 6px;
-  font: 650 0.72rem/1 var(--font-mono);
-  color: var(--text-secondary);
-  letter-spacing: 0.02em;
+.rocket-orbit.active .rocket-trail {
+  height: 34px;
+  opacity: 0.58;
 }

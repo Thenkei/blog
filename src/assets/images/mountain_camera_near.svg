@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="nearLayer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#254f48" />
+      <stop offset="100%" stop-color="#122d2d" />
+    </linearGradient>
+    <linearGradient id="trailGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e8d095" />
+      <stop offset="100%" stop-color="#ceaa64" />
+    </linearGradient>
+  </defs>
+
+  <path d="M0 1080 L0 730 L140 640 L300 700 L450 570 L640 740 L820 600 L1040 780 L1260 640 L1500 780 L1720 620 L1920 740 L1920 1080 Z" fill="url(#nearLayer)" />
+  <path d="M1130 1080 C1090 990 1080 930 1096 870 C1112 816 1170 760 1260 726 C1365 686 1478 680 1608 704 C1684 718 1748 746 1800 794 C1664 736 1552 730 1452 756 C1330 790 1244 866 1200 962 C1178 1010 1168 1050 1164 1080 Z" fill="#0e2224" fill-opacity="0.8" />
+  <path d="M1128 1080 C1092 1002 1086 938 1102 886 C1118 836 1172 786 1248 756 C1338 720 1450 712 1588 732 C1668 744 1744 770 1828 814 C1698 766 1578 764 1472 788 C1360 812 1264 872 1218 958 C1194 1002 1180 1042 1172 1080 Z" fill="url(#trailGlow)" fill-opacity="0.6" />
+</svg>

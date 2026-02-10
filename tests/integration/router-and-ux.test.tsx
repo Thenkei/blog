@@ -116,6 +116,7 @@ describe("routing and UX", () => {
 
     await user.click(screen.getByRole("radio", { name: "Mountain" }));
     expect(document.documentElement).toHaveAttribute("data-theme", "mountain");
+    expect(document.querySelector(".mountain-camera-shell")).toBeTruthy();
 
     const cardLink = await screen.findByRole("link", {
       name: /2017: When We Built the Future of Eyewear in Less Than a Second - Read post/i,
@@ -124,5 +125,28 @@ describe("routing and UX", () => {
 
     expect(document.documentElement).toHaveAttribute("data-theme", "mountain");
     expect(screen.getByRole("radio", { name: "Mountain" })).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("renders simple hero on home for light and dark themes", async () => {
+    renderApp("/en");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("radio", { name: "Light" }));
+    expect(document.documentElement).toHaveAttribute("data-theme", "light");
+    expect(document.querySelector(".simple-theme-hero")).toBeTruthy();
+
+    await user.click(screen.getByRole("radio", { name: "Dark" }));
+    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+    expect(document.querySelector(".simple-theme-hero")).toBeTruthy();
+  });
+
+  it("renders rocket camera shell on home when rocket theme is selected", async () => {
+    renderApp("/en");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("radio", { name: "Rocket" }));
+
+    expect(document.documentElement).toHaveAttribute("data-theme", "rocket");
+    expect(document.querySelector(".rocket-camera-shell")).toBeTruthy();
   });
 });

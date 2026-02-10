@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="farMountains" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#375d67" />
+      <stop offset="100%" stop-color="#1f3f4e" />
+    </linearGradient>
+  </defs>
+
+  <path d="M0 660 L220 520 L350 590 L520 450 L710 615 L880 510 L1040 620 L1240 420 L1430 620 L1620 520 L1780 620 L1920 560 L1920 1080 L0 1080 Z" fill="url(#farMountains)" />
+  <path d="M0 740 L220 620 L340 670 L520 560 L730 700 L920 610 L1120 700 L1320 560 L1520 710 L1720 620 L1920 700 L1920 1080 L0 1080 Z" fill="#183443" fill-opacity="0.55" />
+</svg>

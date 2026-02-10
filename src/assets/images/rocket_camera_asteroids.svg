@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="rockA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d7b688" />
+      <stop offset="100%" stop-color="#8a6443" />
+    </linearGradient>
+    <linearGradient id="rockB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#b89ad8" />
+      <stop offset="100%" stop-color="#5d4a78" />
+    </linearGradient>
+  </defs>
+
+  <path d="M270 650 L318 614 L374 634 L356 690 L300 702 Z" fill="url(#rockA)" />
+  <path d="M430 560 L462 530 L516 542 L504 594 L444 604 Z" fill="url(#rockB)" />
+  <path d="M610 720 L670 676 L732 694 L706 760 L640 772 Z" fill="url(#rockA)" />
+  <path d="M860 615 L908 582 L956 596 L938 648 L888 658 Z" fill="url(#rockB)" />
+  <path d="M1040 690 L1084 652 L1140 670 L1118 726 L1064 738 Z" fill="url(#rockA)" />
+  <path d="M1240 760 L1298 720 L1354 742 L1326 804 L1264 816 Z" fill="url(#rockB)" />
+  <path d="M1500 650 L1552 612 L1608 634 L1588 692 L1530 708 Z" fill="url(#rockA)" />
+  <path d="M1680 730 L1722 700 L1772 714 L1758 762 L1708 772 Z" fill="url(#rockB)" />
+
+  <circle cx="542" cy="834" r="13" fill="#f8bf85" opacity="0.68" />
+  <circle cx="814" cy="784" r="11" fill="#b79ddf" opacity="0.64" />
+  <circle cx="1420" cy="850" r="15" fill="#f8bf85" opacity="0.66" />
+</svg>

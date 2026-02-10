@@ -63,6 +63,47 @@ Design intent:
 - `mountain`: trail-focused environmental mood
 - `rocket`: space/engineering mood with stronger glow/star treatment
 
+### Mountain Multiplane Camera
+The mountain homepage hero uses a dedicated multiplane camera path inspired by theatrical staged depth.
+
+Core architecture:
+- sticky camera shell (`~240vh`) with a sticky stage viewport (`100vh`)
+- three SVG depth planes:
+  - `mountain_camera_sky.svg` (background, ~`0.1x` speed)
+  - `mountain_camera_far.svg` (midground, ~`0.3x` speed)
+  - `mountain_camera_near.svg` (foreground/trail, `0.8x` baseline with late boost toward `1.0x`)
+- progress timeline and CSS vars are driven by `/Users/sinkneath/github/blog/src/shared/components/parallax/useMultiplaneCamera.ts` using `requestAnimationFrame` and passive scroll listeners
+
+Scene choreography:
+- near-plane horizontal drift and scale for running/flying sensation
+- atmospheric shift tied to camera progress
+- reveal threshold at `progress >= 0.78`, toggling `.mountain-camera-clearance` to lift/fade foreground and expose content
+
+Fallbacks:
+- mobile (`<=720px`): reduced amplitudes and shorter timeline intensity
+- `prefers-reduced-motion: reduce`: static composition, no camera choreography
+
+### Rocket Multiplane Camera
+The rocket homepage hero uses a separate sticky multiplane camera with SVG layers and a trajectory-driven ship pass.
+
+Core architecture:
+- sticky camera shell (`~240vh`) with a sticky stage viewport (`100vh`)
+- layered SVG scene:
+  - `rocket_camera_space.svg` (deep space background, ~`0.1x`)
+  - `rocket_camera_planet.svg` (planet/rings midground, ~`0.3x`)
+  - `rocket_camera_asteroids.svg` (foreground asteroid field, `0.82x` baseline with late boost toward `1.0x`)
+  - `rocket_camera_ship.svg` (ship element on animated trajectory)
+- progress timeline and CSS vars are driven by `/Users/sinkneath/github/blog/src/shared/components/parallax/useRocketCamera.ts` via `requestAnimationFrame` + passive scroll listeners
+
+Scene choreography:
+- rocket crosses the scene on a curved path while rotating through the pass
+- asteroid drift adds lateral depth against vertical camera motion
+- reveal threshold at `progress >= 0.8` toggles `.rocket-camera-clearance` to fade foreground/ship and hand off to content
+
+Fallbacks:
+- mobile (`<=720px`): reduced travel, reduced drift amplitudes, smaller ship footprint
+- `prefers-reduced-motion: reduce`: static layered scene with no camera choreography
+
 ### Reading Progress Variants
 Implemented in `/Users/sinkneath/github/blog/src/features/reading/ReadingProgressBar.tsx` and `/Users/sinkneath/github/blog/src/styles/reading.css`.
 
