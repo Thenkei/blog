@@ -1,0 +1,15 @@
+---
+title: "Quick feedback: ON CONFLICT DO UPDATE with nullable columns"
+subtitle: "Warning: By default, PostgreSQL considers that NULL ≠ NULL."
+summary: "How to use NULLS NOT DISTINCT to make ON CONFLICT and unique indexes behave as expected with nullable columns."
+publishedAt: "2026-01-26"
+readTimeMinutes: 2
+tags:
+  - postgresql
+  - database
+  - backend
+---
+
+import { content as legacyContent } from "../../../src/legacy-posts/postgresql-unique-nulls.tsx";
+
+{legacyContent.en}

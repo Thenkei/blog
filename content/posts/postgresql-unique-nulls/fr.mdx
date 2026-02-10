@@ -1,0 +1,15 @@
+---
+title: "Petit retour d'expérience : ON CONFLICT DO UPDATE avec des colonnes nullable"
+subtitle: "Attention : Par défaut, PostgreSQL considère que NULL ≠ NULL."
+summary: "Comment utiliser NULLS NOT DISTINCT pour rendre les upserts et l'unicité cohérents avec des colonnes nullable."
+publishedAt: "2026-01-26"
+readTimeMinutes: 2
+tags:
+  - postgresql
+  - base-de-donnees
+  - backend
+---
+
+import { content as legacyContent } from "../../../src/legacy-posts/postgresql-unique-nulls.tsx";
+
+{legacyContent.fr}

@@ -1,0 +1,43 @@
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .post-header {
+    padding-top: var(--post-header-pad, 3rem);
+    padding-bottom: calc(var(--post-header-pad, 3rem) + 0.5rem);
+  }
+
+  .post-header-actions {
+    align-items: flex-start;
+  }
+
+  .breadcrumb {
+    flex-wrap: wrap;
+  }
+
+  .post-hero-title {
+    font-size: 2.25rem;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .footer-links {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 900px) {
+  .post-controls-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .article-title {
+    font-size: 2.5rem;
+  }
+
+  .post-nav {
+    flex-direction: column;
+  }
+}

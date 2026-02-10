@@ -1,0 +1,89 @@
+import { describe, expect, it, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { HelmetProvider } from "react-helmet-async";
+import { MemoryRouter } from "react-router-dom";
+import "../../src/i18n/config";
+import { ThemeProvider } from "../../src/app/providers/ThemeProvider";
+import { AppRouter } from "../../src/app/router";
+
+function renderApp(initialPath: string) {
+  return render(
+    <HelmetProvider>
+      <ThemeProvider>
+        <MemoryRouter initialEntries={[initialPath]}>
+          <AppRouter />
+        </MemoryRouter>
+      </ThemeProvider>
+    </HelmetProvider>,
+  );
+}
+
+describe("routing and UX", () => {
+  it("resolves /en route", async () => {
+    renderApp("/en");
+    expect(await screen.findByText(/Latest Posts/i)).toBeInTheDocument();
+  });
+
+  it("redirects legacy ?post query to canonical post route", async () => {
+    renderApp("/en?post=postgresql-unique-nulls");
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: /ON CONFLICT DO UPDATE with nullable columns/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("updates post content and table of contents on locale switch", async () => {
+    renderApp("/en/posts/postgresql-unique-nulls");
+
+    expect(
+      await screen.findByRole("heading", { level: 2, name: "The Thing" }),
+    ).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "FR" }));
+
+    expect(
+      await screen.findByRole("heading", { level: 2, name: "Le truc" }),
+    ).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Le truc" })).toBeInTheDocument();
+  });
+
+  it("supports keyboard navigation on post list", async () => {
+    renderApp("/en");
+    await screen.findByText(/Latest Posts/i);
+
+    window.scrollTo = vi.fn();
+    const user = userEvent.setup();
+    await user.keyboard("j");
+    await user.keyboard("{Enter}");
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: /ON CONFLICT DO UPDATE with nullable columns/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("filters posts with local search", async () => {
+    renderApp("/en");
+    const user = userEvent.setup();
+
+    const input = await screen.findByPlaceholderText(
+      /Search by title, summary, or tag/i,
+    );
+    await user.type(input, "BullMQ");
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Idempotency and Debounce in BullMQ/i),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(/From Smart to Sport: Why I Traded My Apple Watch/i),
+      ).not.toBeInTheDocument();
+    });
+  });
+});

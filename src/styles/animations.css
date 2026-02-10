@@ -1,0 +1,124 @@
+/* =====================================================
+   ANIMATIONS
+   ===================================================== */
+
+/* Fade-in keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes viewSwap {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Post card animations - staggered fade-in */
+.post-card {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.post-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.post-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.post-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.post-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.post-card:nth-child(5) {
+  animation-delay: 0.5s;
+}
+.post-card:nth-child(6) {
+  animation-delay: 0.6s;
+}
+
+/* Page transition - post list */
+.post-list {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Page transition - article */
+article {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Hero content fade-in on load */
+.hero-content {
+  animation: fadeIn 1s ease-out;
+}
+
+/* Table of contents fade-in */
+.toc {
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out 0.3s forwards;
+}
+
+/* Back button subtle animation */
+.back-btn {
+  opacity: 0;
+  animation: fadeIn 0.4s ease-out 0.2s forwards;
+}
+
+/* Smooth transitions for theme changes */
+body,
+.blog-content,
+.post-card,
+.toc,
+article {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .post-card,
+  .post-list,
+  article,
+  .hero-content,
+  .toc,
+  .back-btn,
+  .view-transition {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .reading-progress-bar {
+    transition: none;
+  }
+
+  .footer {
+    animation: none;
+    opacity: 1;
+  }
+}
+

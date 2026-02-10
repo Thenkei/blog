@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+<title>Morgan's Blog</title>
+<link>https://thenkei.github.io/blog</link>
+<description>Engineering deep dives, architecture notes, and backend lessons.</description>
+<item>
+<title>Quick feedback: ON CONFLICT DO UPDATE with nullable columns</title>
+<link>https://thenkei.github.io/blog/en/posts/postgresql-unique-nulls</link>
+<guid>https://thenkei.github.io/blog/en/posts/postgresql-unique-nulls</guid>
+<description>How to use NULLS NOT DISTINCT to make ON CONFLICT and unique indexes behave as expected with nullable columns.</description>
+<pubDate>Mon, 26 Jan 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Antigravity vs Cursor vs Claude Code: The Battle for the Developer&apos;s Soul</title>
+<link>https://thenkei.github.io/blog/en/posts/agent-battle-2026</link>
+<guid>https://thenkei.github.io/blog/en/posts/agent-battle-2026</guid>
+<description>A comparative analysis of developer AI agents through value, workflow impact, and infrastructure economics.</description>
+<pubDate>Wed, 14 Jan 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>From Smart to Sport: Why I Traded My Apple Watch for the COROS APEX 4</title>
+<link>https://thenkei.github.io/blog/en/posts/coros-apex-4</link>
+<guid>https://thenkei.github.io/blog/en/posts/coros-apex-4</guid>
+<description>A field review of endurance-watch tradeoffs for ultra trail training and race-day reliability.</description>
+<pubDate>Wed, 14 Jan 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>The Force Multiplier: AI as the New Engineering Substrate</title>
+<link>https://thenkei.github.io/blog/en/posts/ai-force-multiplier</link>
+<guid>https://thenkei.github.io/blog/en/posts/ai-force-multiplier</guid>
+<description>Why staff-level engineering shifts from raw implementation to orchestration when AI acceleration becomes ubiquitous.</description>
+<pubDate>Sat, 10 Jan 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>New Chapter: Joining RockFi as Staff Back-end Engineer</title>
+<link>https://thenkei.github.io/blog/en/posts/joining-rockfi</link>
+<guid>https://thenkei.github.io/blog/en/posts/joining-rockfi</guid>
+<description>Career update and technical mission context for building a scalable wealth-management platform.</description>
+<pubDate>Mon, 01 Dec 2025 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Idempotency and Debounce in BullMQ: hardening jobs with a jobify contract</title>
+<link>https://thenkei.github.io/blog/en/posts/idempotency-debounce-jobify-bullmq</link>
+<guid>https://thenkei.github.io/blog/en/posts/idempotency-debounce-jobify-bullmq</guid>
+<description>How to implement idempotent, debounced queue execution semantics with deterministic identifiers in BullMQ.</description>
+<pubDate>Mon, 19 Feb 2024 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Jobify over BullMQ: a production pattern for jobs, workers, and queues (with NestJS)</title>
+<link>https://thenkei.github.io/blog/en/posts/jobify-workers-queues-nestjs</link>
+<guid>https://thenkei.github.io/blog/en/posts/jobify-workers-queues-nestjs</guid>
+<description>A production-ready queue orchestration pattern over BullMQ with stricter worker contracts and safer operations.</description>
+<pubDate>Mon, 12 Feb 2024 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Node.js Backpressure for Massive History Exports: Streams, Async Generators, and S3 Multipart</title>
+<link>https://thenkei.github.io/blog/en/posts/nodejs-stream-backpressure-history-export</link>
+<guid>https://thenkei.github.io/blog/en/posts/nodejs-stream-backpressure-history-export</guid>
+<description>Production patterns for exporting massive historical datasets with bounded memory and resilient throughput.</description>
+<pubDate>Mon, 05 Feb 2024 00:00:00 GMT</pubDate>
+</item>
+</channel>
+</rss>
