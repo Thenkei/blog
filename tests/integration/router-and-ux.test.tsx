@@ -63,7 +63,25 @@ describe("routing and UX", () => {
     expect(
       await screen.findByRole("heading", {
         level: 1,
-        name: /ON CONFLICT DO UPDATE with nullable columns/i,
+        name: /2017: When We Built the Future of Eyewear in Less Than a Second/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens post when clicking anywhere on a post card", async () => {
+    renderApp("/en");
+    const user = userEvent.setup();
+
+    const cardLink = await screen.findByRole("link", {
+      name: /2017: When We Built the Future of Eyewear in Less Than a Second - Read post/i,
+    });
+
+    await user.click(cardLink);
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: /2017: When We Built the Future of Eyewear in Less Than a Second/i,
       }),
     ).toBeInTheDocument();
   });

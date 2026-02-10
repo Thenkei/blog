@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../../app/providers/ThemeProvider";
 import { getAvailableTags, getPostSummaries, type PostLocale } from "./content";
 import { usePostKeyboardNavigation } from "./hooks/usePostKeyboardNavigation";
@@ -160,23 +160,16 @@ export function PostListPage({ locale }: PostListPageProps) {
               <p className="post-empty">{t("ui.noResults")}</p>
             ) : (
               filteredPosts.map((post, index) => (
-                <article
+                <Link
                   key={post.slug}
+                  to={`/${locale}/posts/${post.slug}`}
+                  aria-label={`${post.title} - ${t("ui.readPost")}`}
                   ref={(element) => {
                     cardRefs.current[index] = element;
                   }}
                   className={`post-card ${focusedIndex === index ? "focused" : ""}`}
                   onMouseEnter={() => setFocusedIndex(index)}
                   onFocus={() => setFocusedIndex(index)}
-                  onClick={() => openPost(post.slug)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      openPost(post.slug);
-                    }
-                  }}
-                  role="link"
-                  tabIndex={0}
                 >
                   <div className="meta">
                     <span>{formatDate(post.publishedAt, locale)}</span>
@@ -195,7 +188,7 @@ export function PostListPage({ locale }: PostListPageProps) {
                   </ul>
                   <span className="post-card-link">{t("ui.readPost")}</span>
                   <div className="trail-line trail-line-small" />
-                </article>
+                </Link>
               ))
             )}
           </div>

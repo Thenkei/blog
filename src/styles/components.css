@@ -5,11 +5,14 @@
 }
 
 .post-card {
+  display: block;
   padding: 2.5rem;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 16px;
   cursor: pointer;
+  color: inherit;
+  text-decoration: none;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -27,6 +30,11 @@
   box-shadow:
     0 0 0 2px var(--accent-cyan),
     0 10px 40px rgba(0, 242, 255, 0.15);
+}
+
+.post-card:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 3px;
 }
 
 .post-card h3 {

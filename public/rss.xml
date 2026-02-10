@@ -5,6 +5,13 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
+<title>2017: When We Built the Future of Eyewear in Less Than a Second</title>
+<link>https://thenkei.github.io/blog/en/posts/polymagine-industry-4-eyewear-2017</link>
+<guid>https://thenkei.github.io/blog/en/posts/polymagine-industry-4-eyewear-2017</guid>
+<description>A retrospective on building biometric scanning, real-time 3D mesh generation, and AR/VR eyewear fitting in 2017.</description>
+<pubDate>Tue, 10 Feb 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>Quick feedback: ON CONFLICT DO UPDATE with nullable columns</title>
 <link>https://thenkei.github.io/blog/en/posts/postgresql-unique-nulls</link>
 <guid>https://thenkei.github.io/blog/en/posts/postgresql-unique-nulls</guid>
