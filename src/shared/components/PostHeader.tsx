@@ -7,11 +7,11 @@ type PostHeaderProps = {
   themeMode: ThemeMode;
   onThemeChange: (mode: ThemeMode) => void;
   labels: {
-    systemTheme: string;
-    systemThemeTooltip: string;
-    darkTheme: string;
     lightTheme: string;
+    darkTheme: string;
+    mountainTheme: string;
     rocketTheme: string;
+    themeSwitcher: string;
     backToHome: string;
   };
   siteTitle: string;

@@ -82,11 +82,11 @@ export function PostPage({ locale, slug }: PostPageProps) {
         themeMode={themeMode}
         onThemeChange={setThemeMode}
         labels={{
-          systemTheme: t("ui.systemTheme"),
-          systemThemeTooltip: t("ui.systemThemeTooltip"),
-          darkTheme: t("ui.darkTheme"),
           lightTheme: t("ui.lightTheme"),
+          darkTheme: t("ui.darkTheme"),
+          mountainTheme: t("ui.mountainTheme"),
           rocketTheme: t("ui.rocketTheme"),
+          themeSwitcher: t("ui.themeSwitcher"),
           backToHome: t("ui.backToHome"),
         }}
         siteTitle={t("header.title")}

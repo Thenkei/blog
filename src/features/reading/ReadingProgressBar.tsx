@@ -13,6 +13,9 @@ type ReadingProgressBarProps = {
   contentKey: string;
 };
 
+const MOUNTAIN_CHECKPOINTS = [14, 32, 52, 74, 92];
+const ROCKET_CHECKPOINTS = [10, 28, 48, 68, 88];
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
@@ -70,6 +73,8 @@ export function ReadingProgressBar({ articleRef, contentKey }: ReadingProgressBa
     () => ({
       "--reading-progress": progress,
       "--rocket-progress": 100 - progress,
+      "--reading-progress-value": `${progress}%`,
+      "--reading-progress-rounded": Math.round(progress),
     }) as CSSProperties,
     [progress],
   );
@@ -77,6 +82,17 @@ export function ReadingProgressBar({ articleRef, contentKey }: ReadingProgressBa
   if (appliedTheme === "rocket") {
     return (
       <div className="rocket-progress" aria-hidden="true" style={cssVars}>
+        <span className="rocket-progress-track" />
+        <span className="rocket-progress-fill" />
+        <div className="rocket-progress-checkpoints">
+          {ROCKET_CHECKPOINTS.map((checkpoint) => (
+            <span
+              key={checkpoint}
+              className={`rocket-checkpoint ${progress >= checkpoint ? "reached" : ""}`}
+              style={{ top: `${100 - checkpoint}%` }}
+            />
+          ))}
+        </div>
         <div className="moon">
           <svg viewBox="0 0 120 120" role="presentation">
             <defs>
@@ -96,7 +112,7 @@ export function ReadingProgressBar({ articleRef, contentKey }: ReadingProgressBa
           ref={rocketOrbitRef}
           className={`rocket-orbit ${orbitActive ? "active" : ""}`}
         >
-          <div className="rocket" style={{ top: `${100 - progress}%` }}>
+          <div className="rocket" style={orbitActive ? undefined : { top: `${100 - progress}%` }}>
             <svg viewBox="0 0 120 220" role="presentation">
               <defs>
                 <linearGradient id="rocketBody" x1="0" y1="0" x2="1" y2="1">
@@ -127,6 +143,52 @@ export function ReadingProgressBar({ articleRef, contentKey }: ReadingProgressBa
             <span className="rocket-trail" />
           </div>
         </div>
+        <span className="rocket-progress-readout">{Math.round(progress)}%</span>
+      </div>
+    );
+  }
+
+  if (appliedTheme === "mountain") {
+    return (
+      <div
+        ref={progressBarRef}
+        className="mountain-progress"
+        style={cssVars}
+        data-direction={direction}
+        aria-hidden="true"
+      >
+        <span className="mountain-progress-track" />
+        <span className="mountain-progress-fill" />
+        <span className="mountain-progress-glow" />
+        <div className="mountain-progress-checkpoints">
+          {MOUNTAIN_CHECKPOINTS.map((checkpoint) => (
+            <span
+              key={checkpoint}
+              className={`mountain-checkpoint ${progress >= checkpoint ? "reached" : ""}`}
+              style={{ top: `${100 - checkpoint}%` }}
+            />
+          ))}
+        </div>
+        <span className="mountain-progress-altitude">{Math.round(progress)}%</span>
+        <span className="mountain-progress-runner">
+          <svg
+            className="mountain-runner-icon"
+            viewBox="0 0 64 64"
+            role="presentation"
+            aria-hidden="true"
+          >
+            <circle className="runner-head" cx="40" cy="14" r="6" />
+            <path className="runner-headband" d="M35 14 Q40 10 45 14" />
+            <path className="runner-torso" d="M30 22 Q40 18 46 26 Q50 32 46 36 Q38 40 30 34 Z" />
+            <path className="runner-pack" d="M28 24 L30 32 L24 34 L22 26 Z" />
+            <path className="runner-arm runner-arm-front" d="M34 26 L20 30 L12 36" />
+            <path className="runner-arm runner-arm-back" d="M40 26 L54 20" />
+            <path className="runner-leg runner-leg-front" d="M36 36 L28 50 L18 56" />
+            <path className="runner-leg runner-leg-back" d="M40 36 L52 48 L60 52" />
+            <circle className="runner-shoe runner-shoe-front" cx="18" cy="56" r="3" />
+            <circle className="runner-shoe runner-shoe-back" cx="60" cy="52" r="3" />
+          </svg>
+        </span>
       </div>
     );
   }
@@ -134,31 +196,14 @@ export function ReadingProgressBar({ articleRef, contentKey }: ReadingProgressBa
   return (
     <div
       ref={progressBarRef}
-      className="reading-progress-bar"
+      className={`clean-progress clean-progress-${appliedTheme}`}
       style={cssVars}
       data-direction={direction}
       aria-hidden="true"
     >
-      <span className="reading-progress-track" />
-      <span className="reading-progress-runner">
-        <svg
-          className="reading-progress-runner-icon"
-          viewBox="0 0 64 64"
-          role="presentation"
-          aria-hidden="true"
-        >
-          <circle className="runner-head" cx="40" cy="14" r="6" />
-          <path className="runner-headband" d="M35 14 Q40 10 45 14" />
-          <path className="runner-torso" d="M30 22 Q40 18 46 26 Q50 32 46 36 Q38 40 30 34 Z" />
-          <path className="runner-pack" d="M28 24 L30 32 L24 34 L22 26 Z" />
-          <path className="runner-arm runner-arm-front" d="M34 26 L20 30 L12 36" />
-          <path className="runner-arm runner-arm-back" d="M40 26 L54 20" />
-          <path className="runner-leg runner-leg-front" d="M36 36 L28 50 L18 56" />
-          <path className="runner-leg runner-leg-back" d="M40 36 L52 48 L60 52" />
-          <circle className="runner-shoe runner-shoe-front" cx="18" cy="56" r="3" />
-          <circle className="runner-shoe runner-shoe-back" cx="60" cy="52" r="3" />
-        </svg>
-      </span>
+      <span className="clean-progress-track" />
+      <span className="clean-progress-fill" />
+      <span className="clean-progress-marker" />
     </div>
   );
 }

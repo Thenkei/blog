@@ -1,50 +1,230 @@
 :root {
-  --bg-color: #0f172a;
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5f5;
-  --accent-cyan: #22d3ee;
-  --accent-green: #7cfc9a;
-  --mountain-back: #273247;
-  --mountain-mid: #364463;
-  --mountain-front: #4d5f87;
-  --font-main: "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
-  --gradient-start: #111827;
-  --gradient-end: #0f172a;
-  --card-bg: rgba(255, 255, 255, 0.06);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-hover-bg: rgba(255, 255, 255, 0.08);
-  --code-bg: rgba(255, 255, 255, 0.08);
+  --font-main: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", "SFMono-Regular", monospace;
+
+  --motion-fast: 0.18s;
+  --motion-base: 0.28s;
+  --motion-slow: 0.55s;
+  --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --bg-color: #0b1221;
+  --surface-1: #111a2e;
+  --surface-2: #162038;
+  --surface-3: #1d2b4a;
+  --text-primary: #e5edf8;
+  --text-secondary: #acbfdc;
+  --text-muted: #7e92b5;
+  --accent-primary: #61dafb;
+  --accent-secondary: #8bf4cc;
+  --accent-tertiary: #9f7aea;
+
+  --gradient-start: #0d1426;
+  --gradient-end: #090f1e;
+  --hero-atmosphere: rgba(97, 218, 251, 0.15);
+  --hero-stars-opacity: 0.45;
+  --hero-grid-color: rgba(229, 237, 248, 0.04);
+  --hero-layer-filter: saturate(1) brightness(1);
+
+  --card-bg: rgba(17, 26, 46, 0.72);
+  --card-border: rgba(172, 191, 220, 0.2);
+  --card-hover-bg: rgba(22, 32, 56, 0.9);
+  --card-elevated-bg: rgba(22, 32, 56, 0.86);
+  --code-bg: rgba(172, 191, 220, 0.12);
+
+  --shadow-sm: 0 8px 20px rgb(2 8 20 / 0.25);
+  --shadow-md: 0 18px 34px rgb(2 8 20 / 0.32);
+  --shadow-lg: 0 28px 52px rgb(2 8 20 / 0.38);
+  --focus-ring: 0 0 0 3px rgb(97 218 251 / 0.35);
+
+  --progress-rail-bg: rgba(229, 237, 248, 0.12);
+  --progress-fill: linear-gradient(180deg, #61dafb 0%, #8bf4cc 100%);
+  --progress-glow: 0 0 18px rgb(97 218 251 / 0.35);
+  --progress-marker-bg: #e5edf8;
+  --progress-marker-shadow: 0 8px 22px rgb(97 218 251 / 0.28);
+
+  --switcher-bg: rgba(17, 26, 46, 0.82);
+  --switcher-border: rgba(172, 191, 220, 0.25);
+  --switcher-indicator: linear-gradient(135deg, rgba(97, 218, 251, 0.22), rgba(139, 244, 204, 0.3));
+
+  --circuit-opacity: 0.1;
+  --circuit-filter: none;
 }
 
 [data-theme="light"] {
-  --bg-color: #fcfdff;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --accent-cyan: #38bdf8;
-  --accent-green: #34d399;
-  --gradient-start: #f7faff;
-  --gradient-end: #ffffff;
-  --card-bg: rgba(255, 255, 255, 0.85);
-  --card-border: rgba(30, 41, 59, 0.08);
-  --card-hover-bg: rgba(255, 255, 255, 0.95);
-  --code-bg: rgba(30, 41, 59, 0.06);
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg:
-    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --bg-color: #f6f9ff;
+  --surface-1: #ffffff;
+  --surface-2: #edf3ff;
+  --surface-3: #dfeaff;
+  --text-primary: #12243f;
+  --text-secondary: #486189;
+  --text-muted: #6480ab;
+  --accent-primary: #1d8fe1;
+  --accent-secondary: #17aa7b;
+  --accent-tertiary: #5e6ad2;
+
+  --gradient-start: #f7fbff;
+  --gradient-end: #ecf4ff;
+  --hero-atmosphere: rgba(29, 143, 225, 0.12);
+  --hero-stars-opacity: 0.06;
+  --hero-grid-color: rgba(18, 36, 63, 0.05);
+  --hero-layer-filter: saturate(0.78) brightness(1.08);
+
+  --card-bg: rgb(255 255 255 / 0.9);
+  --card-border: rgba(18, 36, 63, 0.12);
+  --card-hover-bg: rgb(255 255 255 / 1);
+  --card-elevated-bg: rgb(248 251 255 / 0.96);
+  --code-bg: rgba(18, 36, 63, 0.08);
+
+  --shadow-sm: 0 10px 20px rgb(13 41 75 / 0.08);
+  --shadow-md: 0 16px 36px rgb(13 41 75 / 0.12);
+  --shadow-lg: 0 24px 52px rgb(13 41 75 / 0.16);
+  --focus-ring: 0 0 0 3px rgb(29 143 225 / 0.24);
+
+  --progress-rail-bg: rgba(18, 36, 63, 0.12);
+  --progress-fill: linear-gradient(180deg, #1d8fe1 0%, #17aa7b 100%);
+  --progress-glow: 0 0 14px rgb(29 143 225 / 0.24);
+  --progress-marker-bg: #ffffff;
+  --progress-marker-shadow: 0 8px 20px rgb(29 143 225 / 0.2);
+
+  --switcher-bg: rgba(255, 255, 255, 0.92);
+  --switcher-border: rgba(18, 36, 63, 0.14);
+  --switcher-indicator: linear-gradient(135deg, rgba(29, 143, 225, 0.18), rgba(23, 170, 123, 0.2));
+
+  --circuit-opacity: 0.04;
+  --circuit-filter: invert(1) saturate(0.2) brightness(0.9);
+}
+
+[data-theme="dark"] {
+  --bg-color: #0b1221;
+  --surface-1: #111a2e;
+  --surface-2: #162038;
+  --surface-3: #1d2b4a;
+  --text-primary: #e5edf8;
+  --text-secondary: #acbfdc;
+  --text-muted: #7e92b5;
+  --accent-primary: #61dafb;
+  --accent-secondary: #8bf4cc;
+  --accent-tertiary: #9f7aea;
+
+  --gradient-start: #0d1426;
+  --gradient-end: #090f1e;
+  --hero-atmosphere: rgba(97, 218, 251, 0.15);
+  --hero-stars-opacity: 0.45;
+  --hero-grid-color: rgba(229, 237, 248, 0.04);
+  --hero-layer-filter: saturate(1) brightness(1);
+
+  --card-bg: rgba(17, 26, 46, 0.72);
+  --card-border: rgba(172, 191, 220, 0.2);
+  --card-hover-bg: rgba(22, 32, 56, 0.9);
+  --card-elevated-bg: rgba(22, 32, 56, 0.86);
+  --code-bg: rgba(172, 191, 220, 0.12);
+
+  --shadow-sm: 0 8px 20px rgb(2 8 20 / 0.25);
+  --shadow-md: 0 18px 34px rgb(2 8 20 / 0.32);
+  --shadow-lg: 0 28px 52px rgb(2 8 20 / 0.38);
+  --focus-ring: 0 0 0 3px rgb(97 218 251 / 0.35);
+
+  --progress-rail-bg: rgba(229, 237, 248, 0.12);
+  --progress-fill: linear-gradient(180deg, #61dafb 0%, #8bf4cc 100%);
+  --progress-glow: 0 0 18px rgb(97 218 251 / 0.35);
+  --progress-marker-bg: #e5edf8;
+  --progress-marker-shadow: 0 8px 22px rgb(97 218 251 / 0.28);
+
+  --switcher-bg: rgba(17, 26, 46, 0.82);
+  --switcher-border: rgba(172, 191, 220, 0.25);
+  --switcher-indicator: linear-gradient(135deg, rgba(97, 218, 251, 0.22), rgba(139, 244, 204, 0.3));
+
+  --circuit-opacity: 0.08;
+  --circuit-filter: hue-rotate(3deg) saturate(1.1);
+}
+
+[data-theme="mountain"] {
+  --bg-color: #0b1c1a;
+  --surface-1: #102623;
+  --surface-2: #17322e;
+  --surface-3: #22423d;
+  --text-primary: #ecf3ee;
+  --text-secondary: #b8d1c8;
+  --text-muted: #8cad9f;
+  --accent-primary: #7de0bf;
+  --accent-secondary: #f0c277;
+  --accent-tertiary: #82b8ff;
+
+  --gradient-start: #102622;
+  --gradient-end: #081211;
+  --hero-atmosphere: rgba(125, 224, 191, 0.2);
+  --hero-stars-opacity: 0.18;
+  --hero-grid-color: rgba(236, 243, 238, 0.03);
+  --hero-layer-filter: saturate(1.15) brightness(1.02);
+
+  --card-bg: rgba(16, 38, 35, 0.76);
+  --card-border: rgba(184, 209, 200, 0.18);
+  --card-hover-bg: rgba(23, 50, 46, 0.92);
+  --card-elevated-bg: rgba(22, 49, 45, 0.9);
+  --code-bg: rgba(184, 209, 200, 0.12);
+
+  --shadow-sm: 0 10px 22px rgb(1 16 13 / 0.28);
+  --shadow-md: 0 22px 38px rgb(1 16 13 / 0.36);
+  --shadow-lg: 0 32px 56px rgb(1 16 13 / 0.42);
+  --focus-ring: 0 0 0 3px rgb(125 224 191 / 0.28);
+
+  --progress-rail-bg: rgba(236, 243, 238, 0.14);
+  --progress-fill: linear-gradient(180deg, #7de0bf 0%, #f0c277 100%);
+  --progress-glow: 0 0 20px rgb(125 224 191 / 0.3);
+  --progress-marker-bg: #f4f8f6;
+  --progress-marker-shadow: 0 8px 24px rgb(125 224 191 / 0.3);
+
+  --switcher-bg: rgba(16, 38, 35, 0.88);
+  --switcher-border: rgba(184, 209, 200, 0.2);
+  --switcher-indicator: linear-gradient(135deg, rgba(125, 224, 191, 0.24), rgba(240, 194, 119, 0.3));
+
+  --circuit-opacity: 0.05;
+  --circuit-filter: hue-rotate(110deg) saturate(0.65) brightness(0.9);
 }
 
 [data-theme="rocket"] {
-  --bg-color: #020617;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --accent-cyan: #d946ef; /* Magenta-ish */
-  --accent-green: #fb923c; /* Rocket Orange */
-  --gradient-start: #020617;
-  --gradient-end: #0f172a;
-  --card-bg: rgba(217, 70, 239, 0.03);
-  --card-border: rgba(217, 70, 239, 0.05);
-  --card-hover-bg: rgba(217, 70, 239, 0.05);
-  --code-bg: rgba(217, 70, 239, 0.05);
+  --bg-color: #040710;
+  --surface-1: #0b1020;
+  --surface-2: #11172c;
+  --surface-3: #1a2242;
+  --text-primary: #f5f7ff;
+  --text-secondary: #b2bedf;
+  --text-muted: #7f8aaf;
+  --accent-primary: #8be4ff;
+  --accent-secondary: #ff8f5e;
+  --accent-tertiary: #ca78ff;
+
+  --gradient-start: #060914;
+  --gradient-end: #050712;
+  --hero-atmosphere: rgba(202, 120, 255, 0.22);
+  --hero-stars-opacity: 0.85;
+  --hero-grid-color: rgba(245, 247, 255, 0.05);
+  --hero-layer-filter: saturate(1.2) brightness(1.08);
+
+  --card-bg: rgba(11, 16, 32, 0.78);
+  --card-border: rgba(178, 190, 223, 0.24);
+  --card-hover-bg: rgba(17, 23, 44, 0.94);
+  --card-elevated-bg: rgba(19, 26, 49, 0.9);
+  --code-bg: rgba(202, 120, 255, 0.14);
+
+  --shadow-sm: 0 10px 24px rgb(0 3 12 / 0.35);
+  --shadow-md: 0 24px 44px rgb(0 3 12 / 0.45);
+  --shadow-lg: 0 36px 64px rgb(0 3 12 / 0.52);
+  --focus-ring: 0 0 0 3px rgb(202 120 255 / 0.35);
+
+  --progress-rail-bg: rgba(245, 247, 255, 0.16);
+  --progress-fill: linear-gradient(180deg, #ca78ff 0%, #ff8f5e 100%);
+  --progress-glow: 0 0 24px rgb(202 120 255 / 0.42);
+  --progress-marker-bg: #f5f7ff;
+  --progress-marker-shadow: 0 10px 26px rgb(202 120 255 / 0.38);
+
+  --switcher-bg: rgba(11, 16, 32, 0.9);
+  --switcher-border: rgba(178, 190, 223, 0.24);
+  --switcher-indicator: linear-gradient(135deg, rgba(202, 120, 255, 0.28), rgba(255, 143, 94, 0.32));
+
+  --circuit-opacity: 0.08;
+  --circuit-filter: hue-rotate(280deg) saturate(1.2) brightness(1.25);
 }

@@ -91,11 +91,11 @@ export function PostListPage({ locale }: PostListPageProps) {
         title={t("header.title")}
         subtitle={t("header.subtitle")}
         labels={{
-          systemTheme: t("ui.systemTheme"),
-          systemThemeTooltip: t("ui.systemThemeTooltip"),
-          darkTheme: t("ui.darkTheme"),
           lightTheme: t("ui.lightTheme"),
+          darkTheme: t("ui.darkTheme"),
+          mountainTheme: t("ui.mountainTheme"),
           rocketTheme: t("ui.rocketTheme"),
+          themeSwitcher: t("ui.themeSwitcher"),
         }}
         onTitleClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       />

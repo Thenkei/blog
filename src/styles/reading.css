@@ -1,304 +1,299 @@
-/* Reading Progress Bar */
-.reading-progress-bar {
+.clean-progress,
+.mountain-progress,
+.rocket-progress {
   position: fixed;
   top: 0;
   right: 18px;
-  width: 14px;
   height: 100vh;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 999px;
-  z-index: 90;
-  box-shadow: 0 0 20px rgba(34, 211, 238, 0.12);
-  overflow: visible;
-  will-change: height;
   pointer-events: none;
+  z-index: 90;
 }
 
-.reading-progress-track {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.06),
-    rgba(255, 255, 255, 0)
-  );
-  opacity: 0.5;
-  border-radius: inherit;
-  overflow: hidden;
+.clean-progress {
+  width: 14px;
 }
 
-.reading-progress-track::after {
-  content: "";
+.clean-progress-track,
+.clean-progress-fill {
   position: absolute;
-  top: 0;
   left: 0;
   width: 100%;
+  border-radius: 999px;
+}
+
+.clean-progress-track {
+  inset: 0;
+  background: var(--progress-rail-bg);
+}
+
+.clean-progress-fill {
+  bottom: 0;
   height: calc(var(--reading-progress, 0) * 1%);
-  background: linear-gradient(
-    180deg,
-    var(--accent-cyan),
-    var(--accent-green)
-  );
-  border-radius: inherit;
-  box-shadow:
-    0 0 18px rgba(34, 211, 238, 0.25),
-    0 0 40px rgba(124, 252, 154, 0.12);
+  background: var(--progress-fill);
+  box-shadow: var(--progress-glow);
 }
 
-.reading-progress-runner {
+.clean-progress-marker {
   position: absolute;
-  right: -10px;
-  top: calc(var(--reading-progress, 0) * 1%);
-  width: 42px;
-  height: 42px;
+  left: 50%;
+  top: calc((100 - var(--reading-progress, 0)) * 1%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--progress-marker-bg);
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--accent-primary) 36%, transparent),
+    var(--progress-marker-shadow);
+}
+
+.clean-progress-dark .clean-progress-track {
+  backdrop-filter: blur(2px);
+}
+
+.clean-progress-light {
+  right: 16px;
+}
+
+.clean-progress-light .clean-progress-marker {
+  width: 16px;
+  height: 16px;
+}
+
+.mountain-progress {
+  width: 18px;
+}
+
+.mountain-progress-track,
+.mountain-progress-fill,
+.mountain-progress-glow {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  border-radius: 999px;
+}
+
+.mountain-progress-track {
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0)),
+    var(--progress-rail-bg);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.mountain-progress-fill {
+  bottom: 0;
+  height: calc(var(--reading-progress, 0) * 1%);
+  background: var(--progress-fill);
+  box-shadow: var(--progress-glow);
+}
+
+.mountain-progress-glow {
+  bottom: 0;
+  height: calc(var(--reading-progress, 0) * 1%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(125, 224, 191, 0.32));
+  filter: blur(4px);
+  opacity: 0.55;
+}
+
+.mountain-progress-checkpoints {
+  position: absolute;
+  inset: 0;
+}
+
+.mountain-checkpoint {
+  position: absolute;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  transition:
+    background var(--motion-base) var(--motion-ease-standard),
+    transform var(--motion-base) var(--motion-ease-emphasis);
+}
+
+.mountain-checkpoint.reached {
+  background: var(--accent-secondary);
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.mountain-progress-altitude {
+  position: absolute;
+  right: 26px;
+  top: calc((100 - var(--reading-progress, 0)) * 1%);
+  transform: translateY(-50%);
+  padding: 0.15rem 0.42rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 24%, var(--card-border));
+  color: var(--text-secondary);
+  font: 600 0.66rem/1 var(--font-mono);
+  letter-spacing: 0.01em;
+}
+
+.mountain-progress-runner {
+  position: absolute;
+  right: -16px;
+  top: calc((100 - var(--reading-progress, 0)) * 1%);
+  width: 40px;
+  height: 40px;
   transform: translateY(-50%) rotate(-90deg) skewY(-4deg);
   border-radius: 50%;
-  background: radial-gradient(
-    circle at 35% 35%,
-    #ffffff,
-    rgba(255, 255, 255, 0.6) 40%,
-    rgba(255, 255, 255, 0.15) 70%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  box-shadow:
-    0 8px 20px rgba(34, 211, 238, 0.2),
-    0 0 24px rgba(124, 252, 154, 0.18);
-  z-index: 2;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
+  box-shadow: 0 10px 20px rgb(1 16 13 / 0.3);
   display: grid;
   place-items: center;
 }
 
-.reading-progress-runner-icon {
-  width: 30px;
-  height: 30px;
+.mountain-progress[data-direction="up"] .mountain-progress-runner {
+  transform: translateY(-50%) rotate(90deg) skewY(4deg);
+}
+
+.mountain-runner-icon {
+  width: 29px;
+  height: 29px;
   fill: none;
-  stroke: #0f172a;
-  stroke-width: 3;
+  stroke: #0b1c1a;
+  stroke-width: 2.8;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.9;
-  filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.2));
-  animation: runner-bounce 0.8s ease-in-out infinite;
+  animation: runnerBounce 0.78s ease-in-out infinite;
   transform-origin: 50% 80%;
 }
 
 .runner-headband {
-  stroke: #22d3ee;
-  stroke-width: 2.5;
-  stroke-linecap: round;
+  stroke: var(--accent-primary);
+  stroke-width: 2.3;
   fill: none;
 }
 
-.reading-progress-runner::after {
-  content: "";
-  position: absolute;
-  right: -20px;
-  top: 50%;
-  width: var(--runner-trail, 18px);
-  height: 8px;
-  transform: translateY(-50%);
-  background: linear-gradient(
-    to right,
-    rgba(56, 189, 248, 0.45),
-    rgba(56, 189, 248, 0)
-  );
-  filter: blur(1px);
-  opacity: var(--runner-trail-opacity, 0.45);
-}
-
-.reading-progress-bar[data-direction="up"] .reading-progress-runner {
-  transform: translateY(-50%) rotate(90deg) skewY(4deg);
-}
-
-.reading-progress-bar[data-direction="up"] .reading-progress-runner::after {
-  right: auto;
-  left: -20px;
-  background: linear-gradient(
-    to left,
-    rgba(56, 189, 248, 0.45),
-    rgba(56, 189, 248, 0)
-  );
-}
-
 .runner-torso {
-  fill: #60a5fa;
-  stroke: #0f172a;
-  stroke-width: 2.5;
+  fill: color-mix(in srgb, var(--accent-tertiary) 58%, white);
+  stroke: #0b1c1a;
+  stroke-width: 2.3;
 }
 
 .runner-pack {
-  fill: #fb923c;
-  stroke: #0f172a;
+  fill: var(--accent-secondary);
+  stroke: #0b1c1a;
   stroke-width: 2;
 }
 
 .runner-arm,
 .runner-leg {
-  stroke: #0f172a;
-  stroke-width: 3.2;
+  stroke: #0b1c1a;
+  stroke-width: 3.05;
 }
 
 .runner-head {
-  fill: #fde68a;
-  stroke: #0f172a;
-  stroke-width: 2.5;
+  fill: #f7ddb2;
+  stroke: #0b1c1a;
+  stroke-width: 2.2;
 }
 
 .runner-shoe {
-  fill: #111827;
-  stroke: #0f172a;
-  stroke-width: 2;
-}
-
-.runner-arm,
-.runner-leg,
-.runner-torso {
-  transform-origin: 32px 30px;
+  fill: #132f2b;
+  stroke: #0b1c1a;
+  stroke-width: 1.8;
 }
 
 .runner-arm-front {
-  animation: runner-arm 0.6s ease-in-out infinite;
+  animation: runnerArm 0.58s ease-in-out infinite;
 }
 
 .runner-arm-back {
-  animation: runner-arm 0.6s ease-in-out infinite reverse;
+  animation: runnerArm 0.58s ease-in-out infinite reverse;
 }
 
 .runner-leg-front {
-  animation: runner-leg 0.6s ease-in-out infinite;
+  animation: runnerLeg 0.58s ease-in-out infinite;
 }
 
 .runner-leg-back {
-  animation: runner-leg 0.6s ease-in-out infinite reverse;
+  animation: runnerLeg 0.58s ease-in-out infinite reverse;
 }
 
-@keyframes runner-bounce {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-6deg);
-  }
-  50% {
-    transform: translateY(-2px) rotate(4deg);
-  }
-}
-
-@keyframes runner-leg {
-  0%,
-  100% {
-    transform: rotate(12deg);
-  }
-  50% {
-    transform: rotate(-18deg);
-  }
-}
-
-@keyframes runner-arm {
-  0%,
-  100% {
-    transform: rotate(-10deg);
-  }
-  50% {
-    transform: rotate(18deg);
-  }
-}
-
-
-[data-theme="light"] .reading-progress-bar {
-  background: rgba(15, 23, 42, 0.06);
-  box-shadow: 0 0 18px rgba(56, 189, 248, 0.12);
-}
-
-[data-theme="light"] .reading-progress-track::after {
-  box-shadow:
-    0 0 16px rgba(56, 189, 248, 0.18),
-    0 0 32px rgba(52, 211, 153, 0.14);
-}
-
-[data-theme="light"] .reading-progress-runner {
-  background: radial-gradient(
-    circle at 35% 35%,
-    #ffffff,
-    rgba(255, 255, 255, 0.7) 40%,
-    rgba(255, 255, 255, 0.2) 70%,
-    rgba(255, 255, 255, 0) 100%
-  );
-}
-
-[data-theme="light"] .reading-progress-runner-icon {
-  stroke: #1f2937;
-}
-
-[data-theme="light"] .runner-torso {
-  fill: #7dd3fc;
-  stroke: #1f2937;
-}
-
-[data-theme="light"] .runner-pack {
-  fill: #fbbf24;
-  stroke: #1f2937;
-}
-
-[data-theme="light"] .runner-head {
-  fill: #fde68a;
-  stroke: #1f2937;
-}
-
-[data-theme="light"] .runner-headband {
-  stroke: #0ea5e9;
-}
-
-/* Rocket progress (rocket theme only) */
 .rocket-progress {
-  position: fixed;
-  inset: 0;
+  width: 170px;
+  right: 6px;
   z-index: 120;
-  pointer-events: none;
-  display: none;
 }
 
-[data-theme="rocket"] .rocket-progress {
-  display: block;
+.rocket-progress-track,
+.rocket-progress-fill {
+  position: absolute;
+  right: 32px;
+  width: 10px;
+  border-radius: 999px;
 }
 
-[data-theme="rocket"] .reading-progress-bar {
-  opacity: 0;
+.rocket-progress-track {
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--progress-rail-bg) 88%, transparent);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.rocket-progress-fill {
+  bottom: 0;
+  height: calc(var(--reading-progress, 0) * 1%);
+  background: var(--progress-fill);
+  box-shadow: var(--progress-glow);
+}
+
+.rocket-progress-checkpoints {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 28px;
+  width: 20px;
+}
+
+.rocket-checkpoint {
+  position: absolute;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  transition: transform var(--motion-base) var(--motion-ease-emphasis);
+}
+
+.rocket-checkpoint.reached {
+  background: var(--accent-primary);
+  transform: translateY(-50%) scale(1.12);
 }
 
 .rocket-progress .moon {
   position: absolute;
-  width: 90px;
-  height: 90px;
-  right: 24px;
-  top: 24px;
-  filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.35));
+  width: 76px;
+  height: 76px;
+  right: 0;
+  top: 10px;
+  filter: drop-shadow(0 0 20px rgba(255, 202, 123, 0.35));
 }
 
 .rocket-orbit {
   position: absolute;
-  right: 18px;
-  top: 18px;
-  bottom: 18px;
-  width: 120px;
-  transition:
-    top 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    right 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    bottom 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 110px;
+  transition: width var(--motion-slow) var(--motion-ease-enter);
 }
 
 .rocket-orbit .rocket {
   position: absolute;
-  top: calc(var(--rocket-progress) * 1%);
-  right: 0;
-  width: 70px;
-  filter: drop-shadow(0 14px 20px rgba(217, 70, 239, 0.2));
-  transition: none;
+  top: 50%;
+  right: 10px;
+  width: 66px;
+  transform: translateY(-50%) rotate(5deg);
+  filter: drop-shadow(0 16px 20px rgba(202, 120, 255, 0.26));
 }
 
 .rocket-orbit .rocket svg {
@@ -309,43 +304,34 @@
 .rocket-trail {
   position: absolute;
   left: 50%;
-  top: 80%;
-  width: 10px;
-  height: 90px;
+  top: 82%;
+  width: 11px;
+  height: 88px;
   transform: translateX(-50%);
-  background: linear-gradient(
-    to bottom,
-    rgba(251, 146, 60, 0.9),
-    rgba(217, 70, 239, 0)
-  );
+  background: linear-gradient(to bottom, rgba(255, 143, 94, 0.92), rgba(202, 120, 255, 0));
   filter: blur(4px);
 }
 
 .rocket-orbit.active {
-  top: 12px;
-  right: 12px;
+  top: 8px;
   bottom: auto;
-  width: 140px;
-  height: 140px;
-  animation: orbit 8s linear infinite;
-  transform-origin: 70px 70px;
+  width: 132px;
+  height: 132px;
+  transform-origin: 72px 72px;
+  animation: orbitSpin 8.8s linear infinite;
 }
 
 .rocket-orbit.active .rocket {
   top: 50%;
-  right: -10px;
+  right: -8px;
   transform: translateY(-50%) rotate(18deg);
-  transition:
-    top 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@keyframes orbit {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(-360deg);
-  }
+.rocket-progress-readout {
+  position: absolute;
+  right: 52px;
+  top: 6px;
+  font: 650 0.72rem/1 var(--font-mono);
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
 }
-

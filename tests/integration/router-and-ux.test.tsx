@@ -104,4 +104,25 @@ describe("routing and UX", () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  it("supports four explicit themes and keeps selection across navigation", async () => {
+    renderApp("/en");
+    const user = userEvent.setup();
+
+    expect(await screen.findByRole("radio", { name: "Light" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Dark" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Mountain" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Rocket" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("radio", { name: "Mountain" }));
+    expect(document.documentElement).toHaveAttribute("data-theme", "mountain");
+
+    const cardLink = await screen.findByRole("link", {
+      name: /2017: When We Built the Future of Eyewear in Less Than a Second - Read post/i,
+    });
+    await user.click(cardLink);
+
+    expect(document.documentElement).toHaveAttribute("data-theme", "mountain");
+    expect(screen.getByRole("radio", { name: "Mountain" })).toHaveAttribute("aria-checked", "true");
+  });
 });

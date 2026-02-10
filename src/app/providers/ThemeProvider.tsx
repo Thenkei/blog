@@ -2,14 +2,14 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type PropsWithChildren,
 } from "react";
 
-export type ThemeMode = "system" | "dark" | "light" | "rocket";
-export type AppliedTheme = "dark" | "light" | "rocket";
+export type ThemeMode = "light" | "dark" | "mountain" | "rocket";
+export type AppliedTheme = ThemeMode;
 
 type ThemeContextValue = {
   themeMode: ThemeMode;
@@ -19,7 +19,7 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function getSystemTheme(): Exclude<AppliedTheme, "rocket"> {
+function getSystemTheme(): "dark" | "light" {
   if (
     typeof window !== "undefined" &&
     window.matchMedia &&
@@ -31,73 +31,63 @@ function getSystemTheme(): Exclude<AppliedTheme, "rocket"> {
   return "light";
 }
 
-function computeAppliedTheme(mode: ThemeMode): AppliedTheme {
-  if (mode === "system") {
-    return getSystemTheme();
-  }
-  return mode;
-}
-
 function getInitialThemeMode(): ThemeMode {
   if (typeof window === "undefined") {
-    return "system";
+    return "light";
   }
 
   const savedMode = localStorage.getItem("themeMode");
-  if (savedMode === "system" || savedMode === "dark" || savedMode === "light" || savedMode === "rocket") {
+  if (
+    savedMode === "dark" ||
+    savedMode === "light" ||
+    savedMode === "mountain" ||
+    savedMode === "rocket"
+  ) {
     return savedMode;
   }
 
+  if (savedMode === "system") {
+    const migratedMode = getSystemTheme();
+    localStorage.setItem("themeMode", migratedMode);
+    return migratedMode;
+  }
+
   const oldTheme = localStorage.getItem("theme");
-  if (oldTheme === "dark" || oldTheme === "light") {
+  if (
+    oldTheme === "dark" ||
+    oldTheme === "light" ||
+    oldTheme === "mountain" ||
+    oldTheme === "rocket"
+  ) {
     localStorage.setItem("themeMode", oldTheme);
     localStorage.removeItem("theme");
     return oldTheme;
   }
 
-  return "system";
+  const inferredMode = getSystemTheme();
+  localStorage.setItem("themeMode", inferredMode);
+  return inferredMode;
 }
 
 export function ThemeProvider({ children }: PropsWithChildren) {
   const [themeMode, setThemeModeState] = useState<ThemeMode>(getInitialThemeMode);
-  const [appliedTheme, setAppliedTheme] = useState<AppliedTheme>(() =>
-    computeAppliedTheme(getInitialThemeMode()),
-  );
 
   const setThemeMode = useCallback((mode: ThemeMode) => {
     setThemeModeState(mode);
     localStorage.setItem("themeMode", mode);
   }, []);
 
-  useEffect(() => {
-    const nextAppliedTheme = computeAppliedTheme(themeMode);
-    setAppliedTheme(nextAppliedTheme);
-    document.documentElement.setAttribute("data-theme", nextAppliedTheme);
-  }, [themeMode]);
-
-  useEffect(() => {
-    if (themeMode !== "system") {
-      return;
-    }
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = (event: MediaQueryListEvent) => {
-      const nextAppliedTheme: AppliedTheme = event.matches ? "dark" : "light";
-      setAppliedTheme(nextAppliedTheme);
-      document.documentElement.setAttribute("data-theme", nextAppliedTheme);
-    };
-
-    mediaQuery.addEventListener("change", handler);
-    return () => mediaQuery.removeEventListener("change", handler);
+  useLayoutEffect(() => {
+    document.documentElement.setAttribute("data-theme", themeMode);
   }, [themeMode]);
 
   const value = useMemo(
     () => ({
       themeMode,
-      appliedTheme,
+      appliedTheme: themeMode,
       setThemeMode,
     }),
-    [appliedTheme, setThemeMode, themeMode],
+    [setThemeMode, themeMode],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
