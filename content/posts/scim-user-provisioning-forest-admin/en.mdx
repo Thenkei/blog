@@ -1,0 +1,71 @@
+---
+title: "SCIM Provisioning: The Illusion of Standards and the Reality of RFC 7644"
+subtitle: "Building enterprise user management at Forest Admin in 2022 (and surviving IdP quirks)."
+summary: "How we implemented SCIM for user provisioning across Okta, Azure AD, and Google, while discovering that standard RFCs are more like loose guidelines."
+publishedAt: "2026-02-21"
+readTimeMinutes: 7
+tags:
+  - scim
+  - identity
+  - enterprise
+  - security
+---
+
+## Introduction: The Enterprise Checkbox
+
+If you want to sell SaaS to companies like Qonto, Mastercard, or Swan, there's a certain enterprise checklist you must go through. Single Sign-On (SSO) is step one. But eventually, IT admins get tired of manually mapping permissions for 500 new hires every month.
+
+That’s when they demand **User Provisioning via SCIM**.
+
+For the uninitiated, SCIM (System for Cross-domain Identity Management) is a way to manage your users at scale directly from your Identity Provider (IdP). The promise? Set it up once, and any user added in Okta automatically appears in your Forest Admin project with the correct permission level, role, and tags. When they leave, their access is revoked in real-time.
+
+In 2022 at Forest Admin, we tackled this beast. What we didn't know yet was that every IdP views RFC 7644 as "more of what you'd call guidelines than actual rules."
+
+## The "Standard": RFC 7644 (aka The Buffet)
+
+In theory, the SCIM protocol is elegant. You expose a `/Users` and `/Groups` endpoint, handle some standardized JSON payloads with a few specific verbs, and boom, seamless synchronization.
+
+In practice? Every major provider—Okta, OneLogin, Google Workspace, Microsoft Azure Active Directory, AWS SSO—read the RFC and decided to only implement the parts they liked. It's like a potluck where Okta brings the salad, Azure AD brings the soup, and Google brings dessert, but nobody brought the main course.
+
+- **Microsoft Azure AD:** Likes to be "creative" with how it issues PATCH operations for group memberships.
+- **Google:** Only syncs users, but asks you to kindly figure out roles on your own sometimes.
+- **Validation Quirks:** One IdP will send a strict schema, while another casually drops undocumented boolean fields.
+
+```javascript
+// A totally authentic glimpse into our SCIM normalizer
+const handleScimPatch = (payload, provider) => {
+  if (provider === "azure_ad") {
+    // Microsoft sends modifications inside an array of nested "values"
+    // that doesn't strictly match the standard, because why not?
+    return extractAzureAdCraziness(payload);
+  }
+  if (provider === "okta") {
+    // Okta is closer to the RFC, but we still don't trust it.
+    return safeOktaParse(payload);
+  }
+  // Let's hope for the best.
+  return standardParsing(payload);
+};
+```
+
+We had to build a robust SCIM normalizer that could gracefully digest five different dialects of "standards-compliant" payloads.
+
+## The Audit Trail: Who Did What When the Bots Take Over?
+
+With SCIM, automation now creates, updates, and manages your entire user base for a project. This creates a terrifying new dynamic: when something goes wrong with user onboarding or offboarding, who do you blame? The IT admin? The IdP? Our backend?
+
+We needed a **bulletproof Audit System**. If a user suddenly receives global admin rights, we needed a hyper-clear, undeniable view of who (or what machine) made the change.
+
+Internally, we already had a massive, system-wide activity log (which is a whole other story for another day). But for enterprise admin features, we wanted something significantly sharper.
+
+We built a specialized audit trail that treats every SCIM operation as a high-stakes transaction:
+
+- **Timestamping** (down to the millisecond)
+- **Actor differentiation** (was it an Okta bot, a Forest Admin API call, or John from IT?)
+- **Diffing** (not just "user updated," but "Role changed from _Viewer_ to _Admin_ via SCIM sync").
+
+## Conclusion
+
+Building SCIM is one of those features that looks like a 2-week task on a Jira board, but ends up being a month of deciphering IdP quirks.
+
+But once you nail it? The payoff is massive. When you can seamlessly drop a new Qonto engineer into the exact right environment on day one, without a single IT ticket, you finally feel like a proper enterprise platform. And when something does break, at least our new audit log tells us exactly which IdP decided to creatively interpret the RFC today.
