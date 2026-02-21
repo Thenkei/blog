@@ -22,8 +22,11 @@
       .agent { fill: #e0f2fe; stroke: #0369a1; }
       .nodeTitle { font: 700 22px 'Segoe UI', Roboto, Arial, sans-serif; fill: #0f172a; }
       .nodeText { font: 500 16px 'Segoe UI', Roboto, Arial, sans-serif; fill: #334155; }
-      .flow { stroke: #355070; stroke-width: 3; fill: none; marker-end: url(#arrow); }
-      .flowLabel { font: 600 15px 'Segoe UI', Roboto, Arial, sans-serif; fill: #1e293b; }
+      .flowLabel { font: 700 16px 'Segoe UI', Roboto, Arial, sans-serif; fill: #ffffff; }
+      .circleBadge { fill: #355070; }
+      .legendBox { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 8; ry: 8; }
+      .legendTitle { font: 700 18px 'Segoe UI', Roboto, Arial, sans-serif; fill: #0f172a; }
+      .legendText { font: 500 15px 'Segoe UI', Roboto, Arial, sans-serif; fill: #334155; }
     </style>
   </defs>
 
@@ -58,23 +61,47 @@
   <text x="1042" y="600" class="nodeText">Hides behind firewall</text>
 
   <path d="M334 364 L508 364" class="flow" />
-  <text x="362" y="346" class="flowLabel">1. User opens admin app</text>
+  <circle cx="421" cy="364" r="12" class="circleBadge" />
+  <text x="421" y="369" class="flowLabel" text-anchor="middle">1</text>
 
   <path d="M854 330 C924 286 960 242 1018 204" class="flow" />
-  <text x="860" y="268" class="flowLabel">2a. Auth request (state, nonce)</text>
+  <circle cx="936" cy="265" r="12" class="circleBadge" />
+  <text x="936" y="270" class="flowLabel" text-anchor="middle">2a</text>
 
   <path d="M1018 246 C958 288 924 324 854 380" class="flow" />
-  <text x="864" y="408" class="flowLabel">2b. Assertion or ID token</text>
+  <circle cx="936" cy="305" r="12" class="circleBadge" />
+  <text x="936" y="310" class="flowLabel" text-anchor="middle">2b</text>
 
   <path d="M508 430 L334 430" class="flow" />
-  <text x="344" y="422" class="flowLabel">3. Minted downstream token to Frontend</text>
+  <circle cx="421" cy="430" r="12" class="circleBadge" />
+  <text x="421" y="435" class="flowLabel" text-anchor="middle">3</text>
 
   <path d="M209 466 L1018 560" class="flow" />
-  <text x="380" y="540" class="flowLabel">4. Fetch data directly from Agent (Bearer token)</text>
+  <circle cx="613" cy="513" r="12" class="circleBadge" />
+  <text x="613" y="518" class="flowLabel" text-anchor="middle">4</text>
 
   <path d="M1018 640 L209 640" class="flow" />
-  <text x="440" y="630" class="flowLabel">5. Data API Response directly to Frontend</text>
+  <circle cx="613" cy="640" r="12" class="circleBadge" />
+  <text x="613" y="645" class="flowLabel" text-anchor="middle">5</text>
 
-  <path d="M854 430 C 940 430 960 480 1018 510" class="flow" />
-  <text x="680" y="480" class="flowLabel">SSE Control Push (Agent -> Server connection)</text>
+  <path d="M854 430 C 940 430 960 480 1018 510" class="flow" stroke-dasharray="5 5" />
+  <circle cx="936" cy="465" r="12" class="circleBadge" />
+  <text x="936" y="470" class="flowLabel" text-anchor="middle">6</text>
+
+  <!-- Legend Box -->
+  <rect x="84" y="500" width="350" height="230" class="legendBox" />
+  <text x="100" y="530" class="legendTitle">Flow Sequence</text>
+  <text x="100" y="560" class="legendText"><tspan font-weight="700">1.</tspan> User opens admin app</text>
+  <text x="100" y="585" class="legendText"><tspan font-weight="700">2a.</tspan> Auth request (state,
+    nonce)</text>
+  <text x="100" y="610" class="legendText"><tspan font-weight="700">2b.</tspan> Assertion or ID
+    token</text>
+  <text x="100" y="635" class="legendText"><tspan font-weight="700">3.</tspan> Minted downstream
+    token to Frontend</text>
+  <text x="100" y="660" class="legendText"><tspan font-weight="700">4.</tspan> Fetch data directly
+    from Agent (Bearer)</text>
+  <text x="100" y="685" class="legendText"><tspan font-weight="700">5.</tspan> Data API Response
+    directly to Frontend</text>
+  <text x="100" y="710" class="legendText"><tspan font-weight="700">6.</tspan> SSE Control Push
+    (Agent -> Server)</text>
 </svg>
