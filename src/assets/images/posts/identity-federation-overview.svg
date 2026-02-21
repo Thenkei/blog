@@ -22,6 +22,7 @@
       .agent { fill: #e0f2fe; stroke: #0369a1; }
       .nodeTitle { font: 700 22px 'Segoe UI', Roboto, Arial, sans-serif; fill: #0f172a; }
       .nodeText { font: 500 16px 'Segoe UI', Roboto, Arial, sans-serif; fill: #334155; }
+      .flow { stroke: #355070; stroke-width: 3; fill: none; marker-end: url(#arrow); }
       .flowLabel { font: 700 16px 'Segoe UI', Roboto, Arial, sans-serif; fill: #ffffff; }
       .circleBadge { fill: #355070; }
       .legendBox { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 8; ry: 8; }
