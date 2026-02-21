@@ -1,0 +1,142 @@
+---
+title: "Escaping the Onboarding Matrix: Functional Factories to the Rescue"
+subtitle: "How moving from Ember.js 'if/else' templates to functional flow composition saved our onboarding at Forest Admin."
+summary: "A look back at our onboarding at Forest Admin, where supporting true self-hosted architectures forced us to build hundreds of separate setup flows, and how we solved it using functional factories."
+publishedAt: "2026-02-21"
+readTimeMinutes: 7
+tags:
+  - onboarding
+  - dx
+  - architecture
+  - typescript
+---
+
+## Introduction: The Curse of Flexibility
+
+When you build a developer tool, the Holy Grail of adoption is minimizing friction. You want a developer to go from landing page to "Aha!" moment in under two minutes.
+
+At Forest Admin, our architecture was proudly self-hosted: you install our agent inside your backend, it introspects your database, and your admin panel automagically appears. It’s a great sell for security. But it creates a horrifying architectural reality: **we had to support your stack.**
+
+In the early days, it was just Node.js with Sequelize. Easy enough. "Just copy-paste this `npm install`."
+Then came Mongoose. Then Rails. Then Django. Then Laravel. Then pure Microservices.
+
+Before we knew it, we had built the Onboarding Matrix from Hell.
+
+## The Combinatorial Explosion (aka The "If/Else" Nightmare)
+
+Because the Forest Admin agent lived _inside_ the user's infrastructure, onboarding couldn't be a generic "sign in with Google" flow. It was an interactive, multi-step CLI and code-generation wizard.
+
+Let's do the math on the combinations we had to support:
+
+- **Architectures:** In-App (Agent inside your code) vs Microservice (Forest CLI generated).
+- **Languages/Frameworks:** Express, NestJS, Rails, Django, Laravel, Spring Boot.
+- **ORM/Databases:** Sequelize (PG, MySQL, MariaDB, SQL Server), Mongoose (MongoDB).
+- **Environment:** Docker vs Native CLI (npm / yarn).
+
+Our Ember.js frontend code became an absolute war zone of conditionals.
+
+```handlebars
+{{!-- A terrifying, but completely real, glimpse into our old onboarding component --}}
+<div class="c-onboarding-create-your-backend">
+  {{#if this.isInAppSequelize}}
+    <Onboarding::CreateAdminBackend::ExpressSequelizeWay />
+  {{else if this.isInAppMongoose}}
+    <Onboarding::CreateAdminBackend::ExpressMongooseWay />
+  {{else if this.isForestCLI}}
+    <Onboarding::CreateAdminBackend::ForestCliWay />
+  {{else if this.isRails}}
+    <Onboarding::CreateAdminBackend::RailsWay />
+  {{!-- ... And it went on forever --}}
+</div>
+```
+
+If a user was using the Forest CLI, we had to branch _again_ purely based on what database connection string they needed to provide. We were practically maintaining a specialized CI/CD setup wizard for 100 different tech stacks inside an Ember UI component.
+
+Every time something changed—a UI update, a new driver version, a new dialect—we had to rip open the HTML templates.
+
+## The Shift: Functional Flow Factories
+
+We hit a breaking point. The UI components were suffocating under business logic, and adding support for a new database (like Supabase or MongoDB Atlas) took weeks instead of hours.
+
+We didn't need a massive HTML decision tree. What we actually needed was a **decoupled, data-driven step configuration machine**.
+
+We ripped out the `if/else` matrix from the frontend and replaced it with a strictly functional, factory-driven approach in TypeScript. Instead of the UI dictating the flow, the UI became a dumb renderer that simply asked: _"What step am I currently on, and what data should I show?"_
+
+We started defining flows through simple composition:
+
+```typescript
+// The new way: Functional mapping instead of HTML "if/else"
+const postgresSqlFlow = {
+  ...postgresSqlDefaultFlow, // UI text, icons, names
+  architecture: "microservice",
+  agent: AgentsEnum.NodeJS,
+  // Everything is generated via a builder function
+  steps: createForestCLIIntegrationSteps(postgresSqlDefaultCredentials, true),
+};
+
+const mongoAtlasFlow = {
+  ...mongoAtlasDefaultFlow,
+  architecture: "microservice",
+  agent: AgentsEnum.NodeJS,
+  steps: createForestCLIIntegrationSteps(
+    mongoAtlasDefaultCredentials,
+    false,
+    mongoAtlasCredentialsValidator,
+    { host: { placeholder: "clustername.mongodb.net" } },
+  ),
+};
+```
+
+### Composing the Steps dynamically
+
+Under the hood, `createForestCLIIntegrationSteps` became an array of step factories. Each function explicitly defined its data contract, the CLI commands required, and any specific dynamic inputs it needed.
+
+```typescript
+export const createForestCLIIntegrationSteps = (
+  flowCredentials: RawCredentials,
+  isRelational: boolean,
+  credentialsCustomValidator?,
+  configuration?,
+) =>
+  buildStepsFromArray([
+    createStepInstallCLI(),
+    createStepDatasourceCredentials(flowCredentials, {
+      customValidator: credentialsCustomValidator,
+      configuration,
+    }),
+    createStepGenerateYourApp(isRelational),
+    createStepStartYourServerMultiple(generateStartYourServerInstructions),
+  ]);
+```
+
+Instead of branching in HTML based on `isDocker` or `isYarn`, the step definitions intelligently fed the UI the correct commands via pure functions:
+
+```typescript
+// Pure function determining the right command for the current step
+const generateInstallToolbeltInstructions = (
+  controller: OnboardingIntegrationController,
+) => {
+  if (controller.installation === "docker") {
+    return [
+      { code: "docker pull forestadmin/toolbelt", language: "bash" },
+      // ... docker commands
+    ];
+  }
+  // Standard NPM/Yarn fallback
+  return [
+    {
+      code: `${controller.installation === "yarn" ? "yarn global add" : "npm install -g"} forest-cli@latest -s`,
+      language: "bash",
+    },
+    // ... native commands
+  ];
+};
+```
+
+## Conclusion: Taming the Matrix
+
+Moving to a factory approach transformed our onboarding from an unpredictable legacy codebase into a predictable configuration pipeline.
+
+By shifting from _declarative HTML branching_ to _imperative step composition_, we decoupled the product's UX from its technical underlying mechanics. Today, this exact pattern safely powers **39 distinct onboarding branches** (25 In-App variants, 7 Microservice setups, and 7 Fully Hosted Cloud flows) without breaking a sweat. Adding support for a new database today means writing a 10-line JSON object and passing it through the factory.
+
+We could finally breathe again. The Ember components became clean, stateless renderers, and the Onboarding Matrix was finally tamed into submission by the power of TypeScript arrays.
