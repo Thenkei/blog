@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Navigate,
@@ -10,8 +10,14 @@ import {
   useParams,
 } from "react-router-dom";
 import { hasPostSlug, type PostLocale } from "../features/posts/content";
-import { PostListPage } from "../features/posts/PostListPage";
-import { PostPage } from "../features/posts/PostPage";
+const PostListPage = lazy(() =>
+  import("../features/posts/PostListPage").then((m) => ({
+    default: m.PostListPage,
+  })),
+);
+const PostPage = lazy(() =>
+  import("../features/posts/PostPage").then((m) => ({ default: m.PostPage })),
+);
 import { SiteFooter } from "../shared/components/SiteFooter";
 import { normalizeLocale } from "../shared/routing";
 
@@ -61,7 +67,9 @@ function LocaleLayout() {
     <div className="app">
       <div className="circuit-overlay" />
       <div className="view-transition">
-        <Outlet />
+        <Suspense fallback={<div />}>
+          <Outlet />
+        </Suspense>
       </div>
       <SiteFooter />
     </div>
