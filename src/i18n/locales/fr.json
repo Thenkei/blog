@@ -1,6 +1,6 @@
 {
   "header": {
-    "title": "Le Blog de Morgan",
+    "title": "Le blog de Morgan",
     "subtitle": "Ingénierie / Course à pied / Évolution"
   },
   "ui": {
@@ -27,7 +27,7 @@
     "themeSwitcher": "Sélecteur de thème",
     "tableOfContents": "Sommaire",
     "footer": {
-      "copyright": "© {{year}} Le Blog de Morgan.",
+      "copyright": "© {{year}} Le blog de Morgan.",
       "github": "GitHub",
       "linkedin": "LinkedIn"
     }
