@@ -264,6 +264,38 @@ const runSyncUser = registerSequential({
         </li>
       </ul>
 
+      <h2>Complex Cloud Orchestration Case: Forest Admin's Hosted Agent</h2>
+      <p>
+        For our Fully Hosted Cloud version, we rely on heavily orchestrated jobs
+        to prevent the main API from grinding to a halt. When a user changes
+        their schema or deletes an environment, we need to spin up jobs that
+        handle complex teardowns or data synchronization across thousands of
+        projects.
+      </p>
+
+      <ul>
+        <li>
+          <strong>Debounced synchronization:</strong> When an API Map changes,
+          we debounce the redeploy job (
+          <code>debouncedSynchronizeAgentData</code>) because users often save
+          changes in bursts. We don't want 10 simultaneous Lambda redeploys for
+          a single environment.
+        </li>
+        <li>
+          <strong>Queued deletion:</strong> Deleting a Cloud environment
+          involves trashing AWS S3 objects, pulling down NAT Gateway configs,
+          and updating our centralized Postgres. We shove this into a{" "}
+          <code>cloudDeleteService.queuedDeleteAgent()</code> job. If AWS
+          rate-limits us, BullMQ retries the deletion later without leaving
+          dangling infrastructure (and burning AWS NAT tax).
+        </li>
+        <li>
+          <strong>Job Priority:</strong> We strictly route these orchestration
+          events: user-facing syncs get higher priority than background cleanup
+          jobs.
+        </li>
+      </ul>
+
       <h2>How NestJS benefits from this pattern</h2>
       <p>
         Keep Nest decorators and modules. Add a small internal package that
@@ -486,6 +518,42 @@ export class ExportsService {
         <li>pipeline stream vers CSV puis upload S3 multipart;</li>
         <li>URL signee en sortie (TTL 24h);</li>
         <li>emails success/error branches directement branchees.</li>
+      </ul>
+
+      <h2>
+        Cas d'Orchestration Cloud Complexe : L'Agent Hébergé de Forest Admin
+      </h2>
+      <p>
+        Pour notre version Cloud entièrement hébergée, nous reposons sur des
+        jobs lourdement orchestrés pour éviter que l'API principale ne
+        s'effondre. Lorsqu'un utilisateur modifie son schéma ou supprime un
+        environnement, nous lançons des jobs asynchrones gérant des destructions
+        complexes d'infrastructure (S3, configs NAT) ou de la synchronisation de
+        données à travers des milliers de projets.
+      </p>
+
+      <ul>
+        <li>
+          <strong>Synchronisation avec Debounce :</strong> Lorsqu'une API Map
+          change (modèle de données), nous passons le job de redéploiement au
+          filtre anti-rebond (<code>debouncedSynchronizeAgentData</code>). Les
+          utilisateurs sauvegardent souvent en rafale, et nous voulons éviter de
+          lancer 10 déploiements de Lambda AWS en parallèle pour un seul
+          environnement.
+        </li>
+        <li>
+          <strong>Suppression en file d'attente :</strong> Supprimer un
+          environnement Cloud implique d'effacer des objets AWS S3 et de mettre
+          à jour le système central. On envoie tout ça dans un{" "}
+          <code>cloudDeleteService.queuedDeleteAgent()</code>. Si AWS nous
+          rate-limit, BullMQ retentera la suppression plus tard, sans laisser de
+          l'infrastructure fantôme traîner (et sans enflammer nos factures NAT).
+        </li>
+        <li>
+          <strong>Priorité des Jobs :</strong> Nous routons strictement ces
+          événements : une synchronisation bloquante pour l'utilisateur a une
+          priorité absolue par rapport à un job de nettoyage de fond.
+        </li>
       </ul>
 
       <h2>Comment appliquer le pattern dans NestJS</h2>
