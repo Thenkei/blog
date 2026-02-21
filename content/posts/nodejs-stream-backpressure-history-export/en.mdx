@@ -2,7 +2,7 @@
 title: "Node.js Backpressure for Massive History Exports: Streams, Async Generators, and S3 Multipart"
 subtitle: "Deep dive into pressure propagation, bounded concurrency, and export reliability."
 summary: "Production patterns for exporting massive historical datasets with bounded memory and resilient throughput."
-publishedAt: "2024-02-05"
+publishedAt: "2023-08-10"
 readTimeMinutes: 18
 tags:
   - nodejs
@@ -13,6 +13,290 @@ seriesId: "async-workloads-at-scale"
 seriesOrder: 1
 ---
 
-import { content as legacyContent } from "../../../src/legacy-posts/nodejs-stream-backpressure-history-export.tsx";
+This export pipeline was born out of pure, unadulterated operational trauma: users could request activity logs over ridiculously huge date ranges, sometimes all the way back to project day zero. The data lived in Elasticsearch, every single event demanded enrichment from relational databases, and the final 3GB+ CSV had to be gracefully uploaded to S3 with a signed URL. No pressure, right?
 
-{legacyContent.en}
+For our largest tenants, these mammoth exports took 10 to 15 minutes to run. The hard requirement wasn't just "make it work"; it was "make it work without burning down the servers." We had to preserve worker availability while manhandling terrifyingly large datasets with completely predictable memory usage.
+
+**Series: Async Workloads at Scale (Part 1/3)**
+
+This post opens a 3-part series:
+
+- Part 1 (current) - backpressure, streaming transforms, and multipart exports.
+- Part 2 - [Jobify + BullMQ + worker/queue contracts in NestJS](../jobify-workers-queues-nestjs/en.mdx)
+- Part 3 - [idempotency + debounce hardening (reschedule vs time-frame)](../idempotency-debounce-jobify-bullmq/en.mdx)
+
+**Backpressure was the core control mechanism, not an implementation detail.**
+
+## System Constraints (aka Ways this will inevitably explode in production)
+
+- **Unbounded producer risk:** Elasticsearch scrolling can turn into an absolute firehose that happily drowns your downstream serialization and upload steps.
+- **N+1 enrichment risk:** per-event relational lookups will quickly bring your DB connection pool to its knees.
+- **Worker starvation risk:** a 15-minute history export will cheerfully hold a worker hostage while your other critical background jobs wait in line.
+- **Retry risk:** if a 3GB upload fails at 99%, a naive retry means starting the pain all over again. Your AWS bill won't appreciate it.
+
+## Approach A: Classic Node streams with Transform stages
+
+This is the closest model to what you'll see in a battle-tested production environment. Use `Readable.from(asyncIterator)`, explicit transform stages, and finally a multipart S3 writable. It's verbose, it's not the prettiest code you'll ever write, but its operational behavior is rock-solid.
+
+```typescript
+import { Readable, Transform, pipeline } from "node:stream";
+import { promisify } from "node:util";
+
+const pipelineAsync = promisify(pipeline);
+
+await pipelineAsync([
+  Readable.from(
+    activityLogElasticStore.scrollActivityLogsByRenderingIdsAndDates({
+      renderingIds,
+      from,
+      to,
+      timezone,
+    }),
+    { objectMode: true, highWaterMark: 64 },
+  ),
+  new Transform({
+    objectMode: true,
+    transform(activityLog, _encoding, cb) {
+      cb(null, {
+        timestamp: activityLog.createdAt.toISOString(),
+        user: mapper.mapEmail(cache, activityLog, "userId"),
+        targetUser: mapper.mapEmail(cache, activityLog, "targetUserId"),
+        team: mapper.mapTeam(cache, activityLog),
+        collection: mapper.mapCollection(cache, activityLog),
+        action: activityLog.action,
+        label: activityLog.label,
+        records: mapper.mapRecords(activityLog),
+      });
+    },
+  }),
+  csvStringify({
+    columns: [
+      "timestamp",
+      "user",
+      "targetUser",
+      "team",
+      "collection",
+      "action",
+      "label",
+      "records",
+    ],
+    header: true,
+  }),
+  s3UploadWritable.createUploadWritable({
+    folder: "activity-logs",
+    fileName,
+    minSizeToUploadInBytes: 50 * 1024 * 1024,
+  }),
+]);
+```
+
+**Why this works:** every stage can refuse more data when full. That pressure propagates upstream to the ES iterator, so reads are naturally throttled by downstream throughput.
+
+## Approach B: async generator pipeline (more composable business logic)
+
+Async generators are often easier to test and reason about than custom Transform classes. You keep stream pressure by bridging with `Readable.from` at the pipeline boundary.
+
+```typescript
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+
+async function* scrollFromEs(params) {
+  let cursor;
+  while (true) {
+    const page = await es.search({
+      ...params,
+      search_after: cursor,
+      size: 500,
+    });
+    const hits = page.hits.hits;
+    if (!hits.length) return;
+
+    for (const hit of hits) yield hit._source;
+    cursor = hits[hits.length - 1].sort;
+  }
+}
+
+async function* enrich(source) {
+  for await (const event of source) {
+    const extra = await db.getMetadata(event.userId);
+    yield {
+      timestamp: event.createdAt.toISOString(),
+      ...event,
+      ...extra,
+    };
+  }
+}
+
+async function* toCsvLines(source) {
+  yield "timestamp,user,targetUser,team,collection,action,label,records\\n";
+
+  for await (const row of source) {
+    yield serializeCsvLine(row);
+  }
+}
+
+await pipeline(
+  Readable.from(toCsvLines(enrich(scrollFromEs(params))), {
+    highWaterMark: 32,
+  }),
+  s3UploadWritable,
+);
+```
+
+**Trade-off:** great readability and testability, but you need discipline around serialization edge cases and CSV escaping.
+
+## Approach C: Bounded parallel enrichment (Because waiting sequentially is for beginners)
+
+If per-row DB enrichment dominates latency, a strictly sequential mapper awkwardly underutilizes resources. Bounded parallelism improves throughput massively while still keeping memory footprints predictable.
+
+```typescript
+async function* parallelMapOrdered(source, concurrency, mapper) {
+  const inFlight = new Map();
+  let nextIndex = 0;
+  let emitIndex = 0;
+
+  for await (const item of source) {
+    const index = nextIndex++;
+    inFlight.set(index, (async () => [index, await mapper(item)])());
+
+    if (inFlight.size >= concurrency) {
+      const [, value] = await inFlight.get(emitIndex);
+      inFlight.delete(emitIndex);
+      emitIndex += 1;
+      yield value;
+    }
+  }
+
+  while (inFlight.size > 0) {
+    const [, value] = await inFlight.get(emitIndex);
+    inFlight.delete(emitIndex);
+    emitIndex += 1;
+    yield value;
+  }
+}
+
+const enriched = parallelMapOrdered(events, 8, async (event) => {
+  // Don't set concurrency to 100 unless you strongly dislike your database.
+  const extra = await db.getMetadata(event.userId);
+  return { ...event, ...extra };
+});
+```
+
+**Rule:** parallelize enrichment only up to what your DB pool and downstream serializer can absorb.
+
+## S3 multipart: two viable implementation patterns
+
+**Pattern 1 (custom writable):** your current design. It gives precise control over part flushing, retries, and metrics.
+
+**Pattern 2 (SDK managed upload):** use a `PassThrough` stream with `@aws-sdk/lib-storage` Upload.
+
+```typescript
+import { PassThrough } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import { Upload } from "@aws-sdk/lib-storage";
+
+const body = new PassThrough();
+
+const upload = new Upload({
+  client: s3,
+  params: {
+    Bucket: bucket,
+    Key: key,
+    Body: body,
+    ContentType: "text/csv",
+  },
+  partSize: 50 * 1024 * 1024,
+  queueSize: 4,
+});
+
+await Promise.all([pipeline(Readable.from(csvLines), body), upload.done()]);
+```
+
+Managed upload reduces custom code, but tune `partSize` and `queueSize` carefully. Their product is a direct memory driver.
+
+## Queue isolation with BullMQ (protecting worker capacity)
+
+Exports should not contend with latency-sensitive jobs. Isolate queue, cap concurrency to 2-3 workers, and deduplicate by deterministic `jobId`.
+
+```typescript
+const queueName = "activity-log-export";
+
+await queue.add(
+  "export",
+  { environmentId, from, to, timezone },
+  {
+    jobId: \`activity-log:\${environmentId}:\${from}:\${to}:\${timezone}\`,
+    attempts: 5,
+    backoff: { type: "exponential", delay: 30_000 },
+    removeOnComplete: { count: 1000 },
+    removeOnFail: { count: 1000 },
+  }
+);
+
+new Worker(queueName, processExport, {
+  concurrency: 3,
+});
+```
+
+## Operational controls that mattered in production
+
+- **Idempotency:** deterministic key on tenant/environment/date range/timezone.
+- **Timeout budgets:** separate timeouts for ES page fetch, enrichment IO, and multipart part commit.
+- **Structured telemetry:** queue wait time, rows/sec, bytes/sec, memory high-water mark, retries by stage.
+- **Supportability:** persistent progress checkpoints and final signed URL TTL (24 hours in this implementation).
+
+## Benchmark profile and observed deltas
+
+We used one representative staging profile to compare approaches: 5 million activity logs, ~3.2 GB final CSV, ES and Postgres in the same region as workers, and S3 multipart upload with 50 MB parts.
+
+These numbers are not universal, but they are useful to reason about behavior under load.
+
+| Approach                                   | Duration         | Peak RSS         | DB pressure      | Notes                                   |
+| :----------------------------------------- | :--------------- | :--------------- | :--------------- | :-------------------------------------- |
+| A - Stream Transform (sequential map)      | 1.00x (baseline) | 1.00x (baseline) | Low and stable   | Most predictable operationally          |
+| B - Async generators (sequential map)      | 1.03x            | 0.97x            | Low and stable   | Best readability and testability        |
+| C - Bounded parallel map (concurrency = 8) | 0.62x            | 1.18x            | Moderate to high | Highest throughput, highest tuning cost |
+
+```typescript
+const t0 = process.hrtime.bigint();
+let rows = 0;
+
+for await (const _ of pipelineOutputProbe) {
+  rows += 1;
+}
+
+const durationMs = Number(process.hrtime.bigint() - t0) / 1e6;
+const mem = process.memoryUsage();
+
+logger.info({
+  rows,
+  durationMs,
+  rowsPerSec: Math.round((rows / durationMs) * 1000),
+  rssMb: Math.round(mem.rss / 1024 / 1024),
+  heapUsedMb: Math.round(mem.heapUsed / 1024 / 1024),
+});
+```
+
+## Decision matrix (how to choose quickly)
+
+| Constraint                                               | Recommended approach            | Reason                                                    |
+| :------------------------------------------------------- | :------------------------------ | :-------------------------------------------------------- |
+| Strict memory envelope, low ops risk tolerance           | A - Stream Transform            | Strong native backpressure with simple failure boundaries |
+| Complex business mapping and test-heavy codebase         | B - Async generators            | Composable functions and easier unit-level verification   |
+| DB enrichment dominates latency and pool headroom exists | C - Bounded parallel map        | Higher throughput if concurrency is explicitly capped     |
+| Team has limited stream internals expertise              | A first, then B/C incrementally | Lower cognitive load and safer production rollout         |
+
+## Choosing between the approaches
+
+- **Transform pipeline:** best when you need strict stream semantics and mature operational behavior.
+- **Async generators:** best when business mapping logic is complex and you want easier unit tests.
+- **Bounded parallel map:** best when enrichment latency is dominant and DB capacity allows controlled parallel reads.
+
+In our case, the winning combination was stream backpressure + queue isolation + controlled concurrency. That gave us stable memory, healthy workers, and predictable export completion time even on very large tenants.
+
+## Series navigation
+
+- Continue with architecture and worker contracts in [Part 2](../jobify-workers-queues-nestjs/en.mdx).
+- Then harden dedupe and trigger storms in [Part 3](../idempotency-debounce-jobify-bullmq/en.mdx).
+
+_Note: This article was written post-mortem, after my departure from Forest Admin._

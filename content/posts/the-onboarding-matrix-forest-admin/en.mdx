@@ -2,7 +2,7 @@
 title: "Escaping the Onboarding Matrix: Functional Factories to the Rescue"
 subtitle: "How moving from Ember.js 'if/else' templates to functional flow composition saved our onboarding at Forest Admin."
 summary: "A look back at our onboarding at Forest Admin, where supporting true self-hosted architectures forced us to build hundreds of separate setup flows, and how we solved it using functional factories."
-publishedAt: "2026-02-21"
+publishedAt: "2023-11-05"
 readTimeMinutes: 7
 tags:
   - onboarding
@@ -140,3 +140,5 @@ Moving to a factory approach transformed our onboarding from an unpredictable le
 By shifting from _declarative HTML branching_ to _imperative step composition_, we decoupled the product's UX from its technical underlying mechanics. Today, this exact pattern safely powers **39 distinct onboarding branches** (25 In-App variants, 7 Microservice setups, and 7 Fully Hosted Cloud flows) without breaking a sweat. Adding support for a new database today means writing a 10-line JSON object and passing it through the factory.
 
 We could finally breathe again. The Ember components became clean, stateless renderers, and the Onboarding Matrix was finally tamed into submission by the power of TypeScript arrays.
+
+_Note: This article was written post-mortem, after my departure from Forest Admin._

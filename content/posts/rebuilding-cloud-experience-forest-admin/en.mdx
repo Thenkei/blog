@@ -2,7 +2,7 @@
 title: "Rebuilding Cloud Experience: The Trade-Offs of Serverless at Scale"
 subtitle: "How we navigated Lambda customization, NAT Gateways, and connection pool exhaustion to build Forest Admin's Cloud at nearly $0 marginal cost."
 summary: "An incredibly deep dive into our journey transitioning from a self-hosted-only model to offering a Fully Hosted Cloud agent. We tackle Cold Starts, AWS Lambda Layers, VPC structuring, and why horizontal scaling is a database's worst enemy."
-publishedAt: "2026-02-21"
+publishedAt: "2024-03-20"
 readTimeMinutes: 12
 tags:
   - aws
@@ -102,3 +102,5 @@ Could we have done this with managed Kubernetes pods? Absolutely. It would have 
 By leaning into Serverless, VPCs, and NAT Gateways, we offloaded the operational nightmare to AWS. We built a system capable of managing thousands of custom projects for roughly ~$200/month.
 
 Yes, we had to fight cold starts. Yes, we had to carefully guard against connection pool exhaustion. But at the end of the day, we created a frictionless onboarding experience that scaled itself, allowing our engineers to focus on the product, not restarting crashed EC2 instances at 3 AM.
+
+_Note: This article was written post-mortem, after my departure from Forest Admin._

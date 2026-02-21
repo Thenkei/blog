@@ -2,7 +2,7 @@
 title: "Backpressure Node.js pour les exports historiques massifs : streams, generateurs async et S3 multipart"
 subtitle: "Propagation de pression, concurrence bornee et fiabilite des exports."
 summary: "Patterns de production pour exporter de gros volumes de donnees avec memoire bornee et debit stable."
-publishedAt: "2024-02-05"
+publishedAt: "2023-08-10"
 readTimeMinutes: 18
 tags:
   - nodejs
@@ -13,6 +13,130 @@ seriesId: "async-workloads-at-scale"
 seriesOrder: 1
 ---
 
-import { content as legacyContent } from "../../../src/legacy-posts/nodejs-stream-backpressure-history-export.tsx";
+Ce pipeline d'export est littéralement né d'un traumatisme opérationnel : les utilisateurs pouvaient exiger des logs d'activité sur des plages de dates dantesques, parfois depuis le tout premier jour du projet. Les données dormaient dans Elasticsearch, chaque événement devait être farci d'infos provenant de bases relationnelles, puis le monstrueux CSV final devait atterrir sagement sur S3. Plutôt simple, non ?
 
-{legacyContent.fr}
+Sur nos plus gros clients, les exports prenaient entre 10 et 15 minutes de calcul intensif. La grosse contrainte n'était pas seulement d'avoir le bon CSV à la fin, mais de garantir la survie des workers avec une empreinte mémoire en béton armé.
+
+**Serie: Async Workloads at Scale (Partie 1/3)**
+
+Ce post ouvre une serie en 3 parties :
+
+- Partie 1 (courante) - backpressure, transforms stream et exports multipart.
+- Partie 2 - [Jobify + BullMQ + contrats worker/queue dans NestJS](../jobify-workers-queues-nestjs/fr.mdx)
+- Partie 3 - [durcissement idempotence + debounce (reschedule vs time-frame)](../idempotency-debounce-jobify-bullmq/fr.mdx)
+
+**Le backpressure etait le mecanisme de controle principal.**
+
+## Contraintes système (alias "Comment ça va inévitablement exploser en prod")
+
+- **Producteur non borné :** le scroll Elasticsearch peut se transformer en lance à incendie qui noiera allègrement votre sérialisation en aval.
+- **Risque N+1 :** l'enrichissement relationnel par événement va rapidement mettre votre pool de connexions DB à genoux.
+- **Risque de starvation worker :** un export de 15 minutes va joyeusement prendre un worker en otage pendant que vos petits jobs critiques patientent.
+- **Risque de retry tardif :** si un upload de 3GB plante à 99%, un retry naïf signifie tout recommencer depuis le début. Votre facture AWS appréciera.
+
+## Approche A : pipeline streams + Transform
+
+C'est le modèle le plus proche de ce que vous verrez dans un environnement de prod qui a survécu à la guerre. On utilise `Readable.from(asyncIterator)`, des étapes Transform explicites, puis un writable multipart S3. C'est verbeux, ce n'est pas le plus beau code du monde, mais opérationnellement, c'est du béton armé.
+
+```typescript
+import { Readable, Transform, pipeline } from "node:stream";
+import { promisify } from "node:util";
+
+const pipelineAsync = promisify(pipeline);
+
+await pipelineAsync([
+  Readable.from(activityIterator, { objectMode: true, highWaterMark: 64 }),
+  mapperTransform,
+  csvTransform,
+  s3UploadWritable,
+]);
+```
+
+**Pourquoi ca marche :** chaque etape peut ralentir la precedente quand elle est saturee. La pression remonte jusqu'au lecteur Elasticsearch.
+
+## Approche B : generateurs async
+
+Les generateurs async sont souvent plus simples a tester pour la logique metier. On garde le backpressure avec `Readable.from` a la frontiere du pipeline.
+
+```typescript
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+
+async function* enrich(source) {
+  for await (const event of source) {
+    const extra = await db.getMetadata(event.userId);
+    yield { ...event, ...extra };
+  }
+}
+
+await pipeline(
+  Readable.from(toCsvLines(enrich(scrollFromEs(params)))),
+  s3UploadWritable,
+);
+```
+
+## Approche C : enrichissement parallèle borné (Parce qu'attendre séquentiellement c'est pour les débutants)
+
+Si l'enrichissement DB domine la latence, un mapping purement séquentiel sous-utilise bêtement vos ressources. Une concurrence bornée explose le débit tout en gardant une empreinte mémoire prévisible.
+
+```typescript
+const enriched = parallelMapOrdered(events, 8, async (event) => {
+  // Ne mettez pas la concurrence à 100 sauf si vous détestez viscéralement votre base de données.
+  const extra = await db.getMetadata(event.userId);
+  return { ...event, ...extra };
+});
+```
+
+**Regle:** ne jamais depasser ce que le pool DB et le serializer aval peuvent absorber.
+
+## S3 multipart : deux patterns valides
+
+- **Writable custom:** controle fin des parts, retries, metriques.
+- **Upload SDK gere:** moins de code applicatif, mais vigilance sur `partSize` et `queueSize`.
+
+## Isolation BullMQ pour proteger la capacite worker
+
+Les exports ne doivent pas concurrencer les jobs sensibles a la latence. Queue dediee, concurrence 2-3, et `jobId` deterministe.
+
+```typescript
+new Worker("activity-log-export", processExport, {
+  concurrency: 3,
+});
+```
+
+## Controles operationnels critiques
+
+- **Idempotence:** cle deterministe tenant/environment/date-range/timezone.
+- **Budgets de timeout:** separer ES, DB et commit multipart.
+- **Telemetry structuree:** attente queue, lignes/s, bytes/s, watermark memoire, retries.
+- **Support:** checkpoints de progression + URL signee TTL (24 heures dans cette implementation).
+
+## Profil de benchmark et deltas observes
+
+Nous avons utilise un profil de staging representatif pour comparer les approches : 5 millions d'activity logs, ~3.2 GB de CSV final, ES et Postgres dans la meme region que les workers, et upload S3 multipart avec des parts de 50 MB.
+
+Ces chiffres ne sont pas universels, mais ils sont utiles pour analyser le comportement sous charge.
+
+| Approche                                      | Duree            | RSS max          | Pression DB      | Notes                                     |
+| :-------------------------------------------- | :--------------- | :--------------- | :--------------- | :---------------------------------------- |
+| A - Transform stream (mapping sequentiel)     | 1.00x (baseline) | 1.00x (baseline) | Faible et stable | Le plus previsible en production          |
+| B - Generateurs async (mapping sequentiel)    | 1.03x            | 0.97x            | Faible et stable | Meilleure lisibilite et testabilite       |
+| C - Mapping parallele borne (concurrence = 8) | 0.62x            | 1.18x            | Moderee a forte  | Meilleur debit, cout de tuning plus eleve |
+
+## Matrice de decision (choix rapide)
+
+| Contrainte                                                 | Approche recommandee               | Pourquoi                                                    |
+| :--------------------------------------------------------- | :--------------------------------- | :---------------------------------------------------------- |
+| Budget memoire strict, faible tolerance au risque ops      | A - Transform stream               | Backpressure natif fort et frontieres de pannes simples     |
+| Mapping metier complexe, base de tests importante          | B - Generateurs async              | Fonctions composables et verification unitaire plus simple  |
+| Latence d'enrichissement dominante et marge sur le pool DB | C - Mapping parallele borne        | Debit plus eleve si la concurrence est strictement capee    |
+| Equipe peu familiere avec les internals stream             | A puis B/C de maniere incrementale | Charge cognitive plus faible et rollout production plus sur |
+
+Dans notre cas, la combinaison gagnante etait : backpressure stream + isolation de queue + concurrence bornee. C'est ce qui a rendu le systeme stable sur les gros volumes.
+
+## Navigation dans la serie
+
+- Continuer avec les contrats d'architecture worker/queue dans [Partie 2](../jobify-workers-queues-nestjs/fr.mdx).
+- Puis durcir dedupe et tempetes de triggers dans [Partie 3](../idempotency-debounce-jobify-bullmq/fr.mdx).
+
+_Note : Cet article a été écrit a posteriori, après mon départ de Forest Admin._

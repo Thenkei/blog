@@ -10,6 +10,30 @@ tags:
   - leadership
 ---
 
-import { content as legacyContent } from "../../../src/legacy-posts/ai-force-multiplier.tsx";
+En tant que coureur, je sais que le terrain dicte toujours l'allure. Sur un sentier technique, on se focalise exclusivement sur la racine qui essaie de nous tordre la cheville. Sur un bitume bien plat, on trouve tranquillement son rythme. En ingénierie logicielle, le terrain vient de muter du jour au lendemain—et le sol est désormais composé à 100% de caféine. L'IA n'est pas un simple outil ; c'est une nouvelle tectonique des plaques.
 
-{legacyContent.fr}
+Pour un Staff Engineer, la valeur ajoutée a toujours reposé sur le **jugement** plutôt que sur la vitesse de frappe. Mais quand la vitesse de production brute devient infinie grâce aux LLMs, la prime au jugement crève complètement le plafond. J'ai passé ces derniers mois à injecter de l'IA dans la moindre petite parcelle de mon workflow—du simple brouillon de RFC jusqu'au gros refacto qui tache—et très franchement, le changement donne le vertige.
+
+## Du Pisseur de Code au Chef d'Orchestre
+
+Le changement le plus visible, c'est la façon dont je dépense mon temps. Dans le "monde d'avant", une part absurde de mon énergie mentale se consumait sur la _mécanique_ : se battre avec la syntaxe, le boilerplate interminable, ou chercher ce foutu flag dans la doc. Aujourd'hui, je passe environ 20 % de mon temps à exécuter et 80 % à **orchestrer**.
+
+> Considérez l'IA comme un ingénieur junior incroyablement fougueux, qui tape à la vitesse de l'éclair, a lu tout GitHub, mais n'a absolument aucun contexte métier.
+
+J'utilise massivement l'IA pour du "brouillon exploratoire". Si j'envisage une nouvelle architecture pour nos systèmes événementiels, je vais lui demander d'échafauder trois approches radicalement différentes. Mon but n'est pas d'utiliser ce code en prod (pitié, ne faites pas ça); c'est de **compresser l'espace des possibles**. Je peux "voir" trois univers parallèles en quelques secondes, puis utiliser mes propres traumatismes de production passés pour choisir la solution qui ne m'obligera pas à me lever à 3h du matin dans 18 mois.
+
+## La fin du vrai savoir-faire ?
+
+C'est une crainte totalement légitime. Si vous ne savez plus désosser une stack trace barbare parce la machine la résout pour vous en trois secondes, êtes-vous toujours un ingénieur ?
+
+Je pense que c'est la définition même des "fondamentaux" qui pivote. Écrire du code relève de moins en moins de la mémorisation du dictionnaire, et de plus en plus de la **clarté d'intention** et de la **vérification paranoïaque**. Si vous formulez mal votre problème, l'IA pondra fièrement un désastre magnifiquement typé. Le vrai super-pouvoir aujourd'hui, c'est la capacité d'auditer l'IA avec le même niveau de scepticisme que s'il s'agissait de la Pull Request d'un sombre inconnu sur internet.
+
+## Règles de survie dans l'ère de l'IA
+
+Comment s'adapter sans devenir obsolète ? Voici mes garde-fous personnels :
+
+- `Vérifiez, puis faites confiance :` Ne poussez JAMAIS du code que vous n'avez pas lu ligne par ligne. Si vous ne savez pas justifier une ligne, supprimez-la.
+- `Interrogez la machine :` Demandez à l'IA _pourquoi_ elle a choisi un pattern précis. La forcer à peser le pour et le contre met très souvent en lumière ses angles morts (et les vôtres).
+- `Protégez votre "modèle mental" :` Utilisez l'IA pour couler le béton, mais vous restez l'architecte. Le jour où vous ne comprenez plus comment les briques de votre propre système s'emboîtent, vous devenez virtuellement remplaçable.
+
+Courir un ultra-trail demande une explosivité ponctuelle et une endurance à toute épreuve. Il faut de la vitesse pour avaler les portions techniques, mais de sacrés poumons pour survivre aux 50 km. L'IA nous offre la vitesse, mais nous devons toujours apporter le coffre — la vision lointaine, les cicatrices du terrain, et ce bon vieux jugement humain qui permet au système de ronronner kilomètre après kilomètre.

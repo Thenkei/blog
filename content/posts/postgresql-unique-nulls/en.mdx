@@ -10,6 +10,22 @@ tags:
   - backend
 ---
 
-import { content as legacyContent } from "../../../src/legacy-posts/postgresql-unique-nulls.tsx";
+I just burned an embarrassing hour of my precious life on a seemingly "impossible" bug. My `ON CONFLICT DO UPDATE` was silently failing to detect duplicates, even though I had a supposedly rock-solid uniqueness constraint in place.
 
-{legacyContent.en}
+## The Plot Twist
+
+Here's the kicker: by default, PostgreSQL philosophically believes that `NULL ≠ NULL`. That's right. It sees two rows shaped like `(value, NULL)` and says, "Looks like two completely different things to me, boss!" Ergo, not duplicates.
+
+## The Magic Spell
+
+To fix this without tearing your hair out, you just need to add the magic words `NULLS NOT DISTINCT` to your unique index:
+
+```sql
+CREATE UNIQUE INDEX idx_product_unique
+ON products (isin, provider_product_reference)
+NULLS NOT DISTINCT;
+```
+
+With this little tweak, PostgreSQL finally learns that two nulls are, in fact, the same flavor of empty. Uniqueness verification is suddenly sane again, and your upserts will actually work as intended!
+
+_Pro tip: This lifesaver has been available since PostgreSQL 15. Check out the docs on [Unique Nulls Not Distinct](https://www.postgresql.org/about/featurematrix/detail/unique-nulls-not-distinct/)._

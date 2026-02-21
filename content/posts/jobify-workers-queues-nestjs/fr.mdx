@@ -2,7 +2,7 @@
 title: "Jobify au-dessus de BullMQ : un pattern production pour jobs, workers et queues (avec NestJS)"
 subtitle: "De l'integration NestJS classique aux runners types, au sequentiel, et aux exports robustes."
 summary: "Pattern de production BullMQ/NestJS pour des workers plus fiables, tracables et predictibles en charge."
-publishedAt: "2024-02-12"
+publishedAt: "2022-11-15"
 readTimeMinutes: 16
 tags:
   - bullmq
@@ -13,6 +13,104 @@ seriesId: "async-workloads-at-scale"
 seriesOrder: 2
 ---
 
-import { content as legacyContent } from "../../../src/legacy-posts/jobify-workers-queues-nestjs.tsx";
+Si vous utilisez déjà `@nestjs/bullmq`, félicitations, vous avez survécu au premier boss. Bonne nouvelle : vous pouvez garder la même stack et ajouter un contrat d'exécution des jobs infiniment plus robuste. L'idée est d'arrêter de copier-coller du boilerplate et d'introduire une fine couche `jobify` qui standardise l'enqueue, l'enregistrement des processors, les timeouts, les retries, le tracing et l'exécution séquentielle. Fini les jobs "silencieusement morts" à 4h mat.
 
-{legacyContent.fr}
+**Serie: Async Workloads at Scale (Partie 2/3)**
+
+Ce post est la couche d'architecture entre les deux autres articles de la serie :
+
+- Partie 1 - [backpressure Node.js, streams et exports S3 multipart](../nodejs-stream-backpressure-history-export/fr.mdx)
+- Partie 2 (courante) - Jobify sur BullMQ pour les contrats worker/queue.
+- Partie 3 - [strategies idempotence/debounce (reschedule vs time-frame)](../idempotency-debounce-jobify-bullmq/fr.mdx)
+
+**NestJS est le point d'integration framework. Jobify est le contrat d'execution.**
+
+## Integration NestJS classique (point de depart)
+
+```typescript
+@Injectable()
+export class ExportsService {
+  constructor(@InjectQueue("exports") private readonly queue: Queue) {}
+
+  async enqueueExport(payload: ExportPayload) {
+    return this.queue.add("activity-export", payload, {
+      priority: 2,
+      removeOnComplete: true,
+      removeOnFail: true,
+    });
+  }
+}
+```
+
+Ce modèle "Hello World" fonctionne bien au début. Mais avec la croissance du nombre de jobs, vous accumulez très vite un plat de spaghettis : du code dupliqué partout, des contrats faibles entre le producer et le consumer, et des stratégies improvisées pour l'idempotence ou le debounce. Bref, une bombe à retardement architecturale.
+
+## Ce que la couche jobify apporte
+
+- **Fonction nommee obligatoire :** cle processor stable.
+- **Registration seulement cote worker :** evite les doublons de handlers.
+- **Priorite dynamique :** valeur statique, fonction sync ou async.
+- **Contrat debounce strict :** `delayInMs` + `makeJobId` + `name`.
+
+## Queue centralisee dans queue-service.ts
+
+- propagation de trace au moment du enqueue;
+- reschedule des jobs delayed via `changeDelay`;
+- nettoyage des repeatables pour eviter les doubles schedules;
+- hygiene par defaut avec `removeOnComplete/removeOnFail`.
+
+## Execution worker standardisee dans worker-service.ts
+
+Ordre des wrappers: monitoring -> onError -> timeout -> work.
+
+Ce point est critique: meme comportement de timeout, meme policy d'erreur, memes metriques, quel que soit le job.
+
+## Execution sequentielle avec make-jobify-sequential
+
+- **sequentialKey** definit la lane;
+- **processingKey** definit le type d'action;
+- **identifier** scope une entite.
+
+Les arguments sont stockes dans Redis (liste), traites dans l'ordre, et depiles en `finally` pour eviter le blocage de lane en cas d'echec.
+
+## Cas concret: action-approvals-exporter.ts
+
+- job queue avec priorite low et timeout explicite;
+- pipeline stream vers CSV puis upload S3 multipart;
+- URL signee en sortie (TTL 24h);
+- emails success/error branches directement branchees.
+
+## Cas d'Orchestration Cloud Complexe : L'Agent Hébergé de Forest Admin
+
+Pour notre version Cloud entièrement hébergée, nous reposons sur des jobs lourdement orchestrés pour éviter que l'API principale ne s'effondre. Lorsqu'un utilisateur modifie son schéma ou supprime un environnement, nous lançons des jobs asynchrones gérant des destructions complexes d'infrastructure (S3, configs NAT) ou de la synchronisation de données à travers des milliers de projets.
+
+- **Synchronisation avec Debounce :** Lorsqu'une API Map change (modèle de données), nous passons le job de redéploiement au filtre anti-rebond (`debouncedSynchronizeAgentData`). Les utilisateurs sauvegardent souvent en rafale, et nous voulons éviter de lancer 10 déploiements de Lambda AWS en parallèle pour un seul environnement.
+- **Suppression en file d'attente :** Supprimer un environnement Cloud implique d'effacer des objets AWS S3 et de mettre à jour le système central. On envoie tout ça dans un `cloudDeleteService.queuedDeleteAgent()`. Si AWS nous rate-limit, BullMQ retentera la suppression plus tard, sans laisser de l'infrastructure fantôme traîner (et sans enflammer nos factures NAT).
+- **Priorité des Jobs :** Nous routons strictement ces événements : une synchronisation bloquante pour l'utilisateur a une priorité absolue par rapport à un job de nettoyage de fond.
+
+## Comment appliquer le pattern dans NestJS
+
+Gardez les modules NestJS, ajoutez un package interne qui expose `jobify`, `queueService`, `workerService` et optionnellement `jobifySequential`.
+
+## Strategie de migration
+
+1. Commencer par un export lourd.
+2. Centraliser les options queue dans JobOptions.
+3. Ajouter des jobId deterministes pour idempotence/debounce.
+4. N'activer le sequentiel que la ou l'ordre est obligatoire.
+5. Mesurer queue depth, failures et p95/p99 avant generalisation.
+
+## Règles de design de survie (À graver dans le marbre)
+
+- ne pas exposer les objets BullMQ Job à la logique métier par defaut. Sinon, votre cœur pur sera corrompu par les entrailles de BullMQ, et la prochaine version majeure vous fera pleurer de sang.
+- imposer des timeouts par defaut pour garantir les shutdowns;
+- garder le contrat producer/consumer au meme endroit;
+- traiter les lanes sequentielles comme une ressource rare.
+
+Le principal gain n'est pas seulement le debit. C'est le determinisme operationnel sur l'ensemble des workflows asynchrones.
+
+## Navigation dans la serie
+
+- Besoin du contexte stream/export en amont ? Lire [Partie 1](../nodejs-stream-backpressure-history-export/fr.mdx).
+- Besoin des patterns idempotence/debounce ensuite ? Lire [Partie 3](../idempotency-debounce-jobify-bullmq/fr.mdx).
+
+_Note : Cet article a été écrit a posteriori, après mon départ de Forest Admin._

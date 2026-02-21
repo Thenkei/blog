@@ -2,7 +2,7 @@
 title: "SCIM Provisioning: The Illusion of Standards and the Reality of RFC 7644"
 subtitle: "Building enterprise user management at Forest Admin in 2022 (and surviving IdP quirks)."
 summary: "How we implemented SCIM for user provisioning across Okta, Azure AD, and Google, while discovering that standard RFCs are more like loose guidelines."
-publishedAt: "2026-02-21"
+publishedAt: "2022-06-15"
 readTimeMinutes: 7
 tags:
   - scim
@@ -69,3 +69,5 @@ We built a specialized audit trail that treats every SCIM operation as a high-st
 Building SCIM is one of those features that looks like a 2-week task on a Jira board, but ends up being a month of deciphering IdP quirks.
 
 But once you nail it? The payoff is massive. When you can seamlessly drop a new Qonto engineer into the exact right environment on day one, without a single IT ticket, you finally feel like a proper enterprise platform. And when something does break, at least our new audit log tells us exactly which IdP decided to creatively interpret the RFC today.
+
+_Note: This article was written post-mortem, after my departure from Forest Admin._

@@ -2,7 +2,7 @@
 title: "Breaking Through Firewalls: Why We Chose Server-Sent Events (SSE) for Agent Communication"
 subtitle: "How to push commands to a server you don't control, without causing a security incident."
 summary: "The architectural choices, joys, and sheer traumas of maintaining thousands of open HTTP connections across corporate firewalls."
-publishedAt: "2026-02-22"
+publishedAt: "2022-10-18"
 readTimeMinutes: 8
 tags:
   - architecture
@@ -77,3 +77,5 @@ Handling 50,000 open SSE requests means holding 50,000 open file descriptors on 
 SSE is phenomenal. It gives you the real-time push capabilities of WebSockets but masquerades as boring, firewall-friendly HTTP traffic.
 
 But it comes with a strict contract: your agent code must be written like a paranoid survivor in the wasteland. Assuming the connection will drop, assuming the network is hostile, and assuming the server will occasionally vanish without a trace are the only ways to build a bulletproof streaming architecture.
+
+_Note: This article was written post-mortem, after my departure from Forest Admin._

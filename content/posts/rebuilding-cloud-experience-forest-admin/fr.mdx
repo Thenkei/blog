@@ -2,7 +2,7 @@
 title: "Refondre l'Expérience Cloud : L'Art des Compromis du Serverless à Grande Échelle"
 subtitle: "Comment nous avons géré les Lambda layers, les NAT Gateways, et l'assassinat des pools de connexions pour bâtir le Cloud Forest Admin pour presque 0€."
 summary: "Une plongée en profondeur dans notre transition d'un modèle purement self-hosted vers une offre Cloud managée. Nous abordons les Cold Starts, les AWS Lambda Layers, les VPCs, et pourquoi le scale horizontal est le pire cauchemar d'une base de données."
-publishedAt: "2026-02-21"
+publishedAt: "2024-03-20"
 readTimeMinutes: 12
 tags:
   - aws
@@ -102,3 +102,5 @@ Aurait-on pu le faire avec des Pods Kubernetes managés ? Carrément. Ça aurait
 En misant à 100% sur le Serverless, le VPC et les NAT Gateways, nous avons littéralement sous-traité le cauchemar opérationnel à AWS. Nous avons construit un système capable de gérer des milliers d'environnements clients asymétriques pour à peine plus de 200$/mois d'infrastructure.
 
 Oui, on a dû se battre contre les démarrages à froid. Oui, on a dû mettre des pansements sur les pools de base de données. Mais à la fin de la journée, on a offert un onboarding ultra fluide qui se gérait tout seul, permettant à nos ingénieurs de coder le produit plutôt que de redémarrer des instances EC2 en plein milieu de la nuit.
+
+_Note : Cet article a été écrit a posteriori, après mon départ de Forest Admin._

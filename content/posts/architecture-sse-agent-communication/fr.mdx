@@ -2,7 +2,7 @@
 title: "Traverser les pare-feux : Pourquoi nous avons choisi les Server-Sent Events (SSE) pour l'Agent"
 subtitle: "Comment envoyer des commandes à un serveur qu'on ne contrôle pas, sans causer d'incident de sécurité majeur."
 summary: "Les choix architecturaux, les joies et les traumatismes absolus liés au maintien de milliers de connexions HTTP ouvertes à travers les firewalls d'entreprise."
-publishedAt: "2026-02-22"
+publishedAt: "2022-10-18"
 readTimeMinutes: 8
 tags:
   - architecture
@@ -77,3 +77,5 @@ Gérer 50 000 requêtes SSE ouvertes signifie maintenir 50 000 descripteurs de f
 Le SSE est un mécanisme phénoménal. Il vous offre le temps réel des WebSockets tout en se déguisant en trafic HTTP ennuyeux et parfait pour les pare-feux.
 
 Mais un contrat strict s'impose : votre code d'agent doit être écrit comme celui d'un survivant paranoïaque dans un wasteland. Assumer que la connexion lâchera. Assumer que le réseau est hostile. Et assumer que le serveur disparaîtra parfois sans prévenir : ce sont là les trois piliers pour construire une architecture de streaming réellement pare-balles.
+
+_Note : Cet article a été écrit a posteriori, après mon départ de Forest Admin._

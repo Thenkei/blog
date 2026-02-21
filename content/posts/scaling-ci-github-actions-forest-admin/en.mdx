@@ -2,7 +2,7 @@
 title: "Scaling CI at Forest Admin: When Tests Take Longer Than Your Lunch Break"
 subtitle: "Partitioning tests in GitHub Actions to survive the 95% coverage phase."
 summary: "How we handled the explosion of CI times during our Series A scaling phase at Forest Admin, the nightmare of merging artifacts, and the endless pursuit of deterministic tests."
-publishedAt: "2026-02-21"
+publishedAt: "2021-09-10"
 readTimeMinutes: 6
 tags:
   - ci-cd
@@ -73,3 +73,5 @@ const mergeCoverage = async (shards) => {
 Scaling CI to handle 95% coverage safely in GitHub Actions is a rite of passage. It demands that you treat the pipeline with the same architectural rigor as your production infrastructure.
 
 It was painful, sure. But these days? The tests pass (quickly), the PRs merge, and we can actually enjoy our lunch breaks again.
+
+_Note: This article was written post-mortem, after my departure from Forest Admin._

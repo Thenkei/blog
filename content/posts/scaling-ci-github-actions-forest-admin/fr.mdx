@@ -2,7 +2,7 @@
 title: "Mettre à l'échelle la CI chez Forest Admin : Quand les Tests durent plus Longtemps que la Pause Déj"
 subtitle: "Le partitionnement des tests dans GitHub Actions pour survivre à la phase des 95% de couverture."
 summary: "Comment nous avons géré l'explosion des temps de CI pendant notre phase de scale en Série A chez Forest Admin, le cauchemar de la fusion d'artefacts, et la quête infinie pour des tests déterministes."
-publishedAt: "2026-02-21"
+publishedAt: "2021-09-10"
 readTimeMinutes: 6
 tags:
   - ci-cd
@@ -75,3 +75,5 @@ const mergeCoverage = async (shards) => {
 Scaler la CI pour gérer 95% de couverture de code sans exploser en vol sur GitHub Actions, c'est un rite de passage. Cela demande de traiter le pipeline avec la même rigueur architecturale que votre infrastructure de production.
 
 C'était pénible, certes. Mais aujourd'hui ? Le pipeline est au vert (rapidement), les PRs fusionnent presque sans attente, et on peut de nouveau profiter sereinement de notre pause dej.
+
+_Note : Cet article a été écrit a posteriori, après mon départ de Forest Admin._

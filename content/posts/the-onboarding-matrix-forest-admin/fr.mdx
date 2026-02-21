@@ -2,7 +2,7 @@
 title: "Échapper à la Matrice d'Onboarding : Les Factories Fonctionnelles à la Rescousse"
 subtitle: "Comment le passage des templates 'if/else' Ember.js à une composition fonctionnelle a sauvé notre Onboarding chez Forest Admin."
 summary: "Vouloir supporter toutes les architectures self-hosted a failli causer notre perte. Voici comment nous avons restructuré l'onboarding de Forest Admin avec une approche factory."
-publishedAt: "2026-02-21"
+publishedAt: "2023-11-05"
 readTimeMinutes: 7
 tags:
   - onboarding
@@ -137,3 +137,5 @@ Le passage à une approche Factory a transformé un vieux code lourd et imprévi
 En passant de branchements HTML déclaratifs à une **composition d'étapes impérative**, nous avons totalement découplé l'UX produit de sa mécanique d'installation sous-jacente. Aujourd'hui, ce _pattern_ gère parfaitement **39 branches d'onboarding distinctes** (25 variantes In-App, 7 configurations Microservice, et 7 flux Cloud managés) sans la moindre sueur froide. L'ajout d'une base de données devenait trivial : configurer un objet JSON de 10 lignes et le balancer dans la Factory.
 
 On pouvait à nouveau respirer. Les composants Ember redevenaient des surfaces d'affichage "stateless" et pures, et la fameuse Matrice d'Onboarding finissait par plier sous la puissance des tableaux TypeScript.
+
+_Note : Cet article a été écrit a posteriori, après mon départ de Forest Admin._

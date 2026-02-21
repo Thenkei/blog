@@ -2,7 +2,7 @@
 title: "Jobify over BullMQ: a production pattern for jobs, workers, and queues (with NestJS)"
 subtitle: "From plain NestJS queue wiring to typed runners, sequential processing, and safer exports."
 summary: "A production-ready queue orchestration pattern over BullMQ with stricter worker contracts and safer operations."
-publishedAt: "2024-02-12"
+publishedAt: "2022-11-15"
 readTimeMinutes: 16
 tags:
   - bullmq
@@ -13,6 +13,196 @@ seriesId: "async-workloads-at-scale"
 seriesOrder: 2
 ---
 
-import { content as legacyContent } from "../../../src/legacy-posts/jobify-workers-queues-nestjs.tsx";
+If you are already running `@nestjs/bullmq`, congratulations, you've survived the initial boss fight. But you can keep the exact same runtime stack and still gain infinitely stronger job contracts. The key idea is to stop writing boilerplate and add a thin, ruthless `jobify` layer that standardizes enqueue, processor registration, timeouts, retries, tracing, and sequencing. No more silent failures at 4 AM.
 
-{legacyContent.en}
+**Series: Async Workloads at Scale (Part 2/3)**
+
+This post is the architecture layer between the two other posts in this series:
+
+- Part 1 - [Node.js backpressure, streams, and S3 multipart exports](../nodejs-stream-backpressure-history-export/en.mdx)
+- Part 2 (current) - Jobify over BullMQ for worker/queue contracts.
+- Part 3 - [idempotency and debounce strategies (reschedule vs time-frame)](../idempotency-debounce-jobify-bullmq/en.mdx)
+
+**NestJS is the framework integration point. Jobify is the execution contract.**
+
+## Baseline NestJS integration (where most teams start)
+
+```typescript
+import { Injectable } from "@nestjs/common";
+import { InjectQueue, Processor, WorkerHost } from "@nestjs/bullmq";
+import { Queue, Job } from "bullmq";
+
+@Injectable()
+export class ExportsService {
+  constructor(@InjectQueue("exports") private readonly queue: Queue) {}
+
+  async enqueueExport(payload: ExportPayload) {
+    return this.queue.add("activity-export", payload, {
+      priority: 2,
+      removeOnComplete: true,
+      removeOnFail: true,
+    });
+  }
+}
+
+@Processor("exports")
+export class ExportsProcessor extends WorkerHost {
+  async process(job: Job<ExportPayload>) {
+    if (job.name === "activity-export") {
+      await this.runActivityExport(job.data);
+    }
+  }
+}
+```
+
+This works. It's the "Hello World" of queues. But as your job count grows, you usually end up with a sprawling mess: duplicated queue options, wildly weak typing between the producer and consumer, and ad-hoc behavior for idempotency, debounce, and sequential execution. Basically, it's a structural time bomb.
+
+## What the jobify layer adds
+
+The `make-jobify.ts` pattern creates a single contract:
+**register once on workers, call a typed runner everywhere.**
+
+- **Named function guard:** unnamed work is rejected to keep stable processor keys.
+- **Worker-only registration:** processors are added only when `isWorker` is true and not already present.
+- **Dynamic priority:** static, sync function, or async function priority are all supported.
+- **Debounce contract:** requires `delayInMs`, `makeJobId`, and `name`, plus marker checks to prevent misconfiguration.
+
+```typescript
+const runExport = jobify(exportApprovals, {
+  priority: JobPriority.low,
+  timeoutInMinutes: 180,
+  onError: onExportError,
+  makeJobId: (params) =>
+    "approvals-" + params.environmentId + "-" + params.from + "-" + params.to,
+});
+
+await runExport({ userId, projectId, environmentId, from, to });
+```
+
+## Queue behavior centralized in one place (For your own sanity)
+
+In `queue-service.ts`, enqueue behavior is explicit and reusable:
+
+- **trace propagation:** span parameters are embedded at job creation.
+- **debounce reschedule:** delayed jobs can be found by `jobId` and `changeDelay` in place.
+- **repeat safety:** old repeatable configs are removed to avoid duplicated schedules after redeploy.
+- **queue hygiene:** `removeOnComplete` and `removeOnFail` are defaulted to prevent storage drift.
+
+## Worker execution model is wrapped, not ad-hoc
+
+`worker-service.ts` applies wrappers in strict order: monitoring -> onError -> timeout -> work.
+
+```typescript
+const timeoutWrap = timeoutAfterMinutes(
+  jobFunction,
+  timeoutInMinutes || DEFAULT_TIMEOUT,
+);
+const onErrorWrap = WorkerService.onErrorWrap(job, timeoutWrap, options);
+const monitoringWrap = workerMonitoringService.monitoringWrap({
+  name,
+  job,
+  work: onErrorWrap,
+  service: options.service,
+});
+
+await monitoringWrap();
+```
+
+That gives consistent timeout semantics, predictable error hooks, and uniform monitoring labels without every team rewriting the same glue.
+
+## Sequential execution with make-jobify-sequential
+
+`make-jobify-sequential.ts` solves a common distributed problem: some actions must be serialized for the same logical entity, while still allowing concurrency across different entities.
+
+- **Key model:** `sequentialKey` defines the lane, `processingKey` identifies the action type, `identifier` scopes to one entity.
+- **Redis list queue:** args are pushed with `RPUSH`, consumed with `LRANGE/LPOP`.
+- **Safety:** dequeue happens in `finally`, so failed processors do not block the lane forever.
+- **Chaining:** `onComplete` triggers the next queued processing for the same lane/id.
+
+```typescript
+const registerSequential = makeJobifySequential({
+  jobify,
+  jobsRedisClient,
+  logger,
+  datadogService,
+});
+
+const runSyncUser = registerSequential({
+  sequentialKey: "user-sync",
+  processingKey: "sync-profile",
+  getSequentialId: (userId) => String(userId),
+  priority: JobPriority.normal,
+  processor: async (userId) => {
+    await syncUserProfile(userId);
+  },
+});
+```
+
+## Concrete export case: action approvals
+
+`action-approvals-exporter.ts` shows the full path: queue kickoff, streamed export, signed link, and user notification.
+
+- queued with `JobPriority.low` and explicit timeout from env.
+- trace disabled for heavy long-running exports.
+- stream pipeline: `Readable.from(iterator) -> Transform -> csv-stringify -> S3 multipart writable`.
+- success and failure email flows are attached directly via `onError` and completion logic.
+
+## Complex Cloud Orchestration Case: Forest Admin's Hosted Agent
+
+For our Fully Hosted Cloud version, we rely on heavily orchestrated jobs to prevent the main API from grinding to a halt. When a user changes their schema or deletes an environment, we need to spin up jobs that handle complex teardowns or data synchronization across thousands of projects.
+
+- **Debounced synchronization:** When an API Map changes, we debounce the redeploy job (`debouncedSynchronizeAgentData`) because users often save changes in bursts. We don't want 10 simultaneous Lambda redeploys for a single environment.
+- **Queued deletion:** Deleting a Cloud environment involves trashing AWS S3 objects, pulling down NAT Gateway configs, and updating our centralized Postgres. We shove this into a `cloudDeleteService.queuedDeleteAgent()` job. If AWS rate-limits us, BullMQ retries the deletion later without leaving dangling infrastructure (and burning AWS NAT tax).
+- **Job Priority:** We strictly route these orchestration events: user-facing syncs get higher priority than background cleanup jobs.
+
+## How NestJS benefits from this pattern
+
+Keep Nest decorators and modules. Add a small internal package that exposes `jobify`, `queueService`, and `workerService` adapters.
+
+```typescript
+@Injectable()
+export class JobifyFactory {
+  constructor(
+    private readonly queueService: QueueService,
+    private readonly workerService: WorkerService,
+    @Inject(IS_WORKER) private readonly isWorker: boolean,
+  ) {}
+
+  create<T extends (...args: any[]) => Promise<any>>(
+    work: T,
+    options: JobOptions<T>,
+  ) {
+    return makeJobify({
+      queueService: this.queueService,
+      workerService: this.workerService,
+      isWorker: this.isWorker,
+      logConfig: (k, v) => logger.info({ key: k, value: v }),
+      assertPresent,
+    })(work, options);
+  }
+}
+```
+
+## Migration strategy that avoids service disruption
+
+1. Wrap one existing heavy export with jobify.
+2. Move queue options from callsites to JobOptions defaults.
+3. Add deterministic `makeJobId` for idempotency and debounce.
+4. Introduce sequential lanes only where write-order is a hard requirement.
+5. Roll out dashboards for queue depth, active count, failures, and job duration percentile before broad adoption.
+
+## Design Rules (Break these and you will suffer)
+
+- **Do not expose BullMQ Job objects** to business code by default; pass typed args instead. Otherwise your domain logic becomes tightly coupled to BullMQ's internals, and you'll weep during the next major version bump.
+- **Always enforce timeout defaults**; shutdown behavior depends on bounded job execution.
+- **Keep producer and consumer contracts in one place** (jobify callsite), not spread across modules.
+- **Treat sequential lanes as scarce resources**; only use them where correctness requires serialization.
+
+The strongest outcome of this approach is not only throughput. It is operational determinism: same queue semantics, same monitoring contract, same error surface, across every background workflow.
+
+## Series navigation
+
+- Want the stream/export reliability context first? Read [Part 1](../nodejs-stream-backpressure-history-export/en.mdx).
+- Want debounce/idempotency hardening patterns next? Read [Part 3](../idempotency-debounce-jobify-bullmq/en.mdx).
+
+_Note: This article was written post-mortem, after my departure from Forest Admin._
