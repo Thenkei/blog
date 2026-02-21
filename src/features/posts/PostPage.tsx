@@ -99,14 +99,15 @@ export function PostPage({ locale, slug }: PostPageProps) {
       />
 
       <PostHeader
-        backToHomeLabel={t("ui.backToHome")}
-        siteTitle={t("header.title")}
-        siteSubtitle={t("header.subtitle")}
-        breadcrumbLabel={post.title}
-        onTitleClick={() => {
-          void navigate(`/${locale}`);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }}
+        backToHomeLabel={`${t("ui.backToHome")} / ${t("header.title")}`}
+        title={post.title}
+        metaInfo={
+          <>
+            <span>{formatDate(post.publishedAt, locale)}</span>
+            <span>•</span>
+            <span>{t("ui.readTime", { count: post.readTimeMinutes })}</span>
+          </>
+        }
         onBreadcrumbClick={() => {
           void navigate(`/${locale}`);
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -118,14 +119,6 @@ export function PostPage({ locale, slug }: PostPageProps) {
         <div className="container">
           <ReadingProgressBar articleRef={articleRef} contentKey={contentKey} />
           <article ref={articleRef} key={contentKey}>
-            {" "}
-            <div className="meta">
-              <span>{formatDate(post.publishedAt, locale)}</span>
-              <span>•</span>
-              <span>{t("ui.readTime", { count: post.readTimeMinutes })}</span>
-            </div>
-            <h1 className="article-title">{post.title}</h1>
-            <div className="trail-line" />
             <TableOfContents articleRef={articleRef} contentKey={contentKey} />
             <post.Component />
             <div className="trail-line article-end-line" />

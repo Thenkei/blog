@@ -1,21 +1,17 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 type PostHeaderProps = {
   backToHomeLabel: string;
-  siteTitle: string;
-  siteSubtitle: string;
-  breadcrumbLabel: string;
-  onTitleClick: () => void;
+  title: string;
+  metaInfo: ReactNode;
   onBreadcrumbClick: () => void;
   headerPadRem: number;
 };
 
 export function PostHeader({
   backToHomeLabel,
-  siteTitle,
-  siteSubtitle,
-  breadcrumbLabel,
-  onTitleClick,
+  title,
+  metaInfo,
   onBreadcrumbClick,
   headerPadRem,
 }: PostHeaderProps) {
@@ -31,17 +27,13 @@ export function PostHeader({
             onClick={onBreadcrumbClick}
             type="button"
           >
-            {backToHomeLabel}
+            ← {backToHomeLabel}
           </button>
-          <span className="breadcrumb-separator">/</span>
-          <span className="breadcrumb-current">{breadcrumbLabel}</span>
         </nav>
 
         <div className="post-header-title">
-          <h1 className="post-hero-title" onClick={onTitleClick}>
-            {siteTitle}
-          </h1>
-          <p className="post-hero-subtitle">{siteSubtitle}</p>
+          <h1 className="post-hero-title">{title}</h1>
+          <div className="post-hero-subtitle">{metaInfo}</div>
         </div>
       </div>
     </header>

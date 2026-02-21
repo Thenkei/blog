@@ -97,10 +97,14 @@
 }
 
 .post-hero-subtitle {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
   font-family: var(--font-mono);
   max-width: 60ch;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
 }
 
 .blog-content {
