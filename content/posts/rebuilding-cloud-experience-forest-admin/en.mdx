@@ -1,0 +1,104 @@
+---
+title: "Rebuilding Cloud Experience: The Trade-Offs of Serverless at Scale"
+subtitle: "How we navigated Lambda customization, NAT Gateways, and connection pool exhaustion to build Forest Admin's Cloud at nearly $0 marginal cost."
+summary: "An incredibly deep dive into our journey transitioning from a self-hosted-only model to offering a Fully Hosted Cloud agent. We tackle Cold Starts, AWS Lambda Layers, VPC structuring, and why horizontal scaling is a database's worst enemy."
+publishedAt: "2026-02-21"
+readTimeMinutes: 12
+tags:
+  - aws
+  - serverless
+  - lambda
+  - architecture
+  - scaling
+---
+
+## Introduction: The "Simple Onboarding" Illusion
+
+There comes a time in every enterprise B2B company when management decides that on-premise or self-hosted is "too hard for small clients." At Forest Admin, the historical model was simple: you host the agent, you control the data, we provide the UI. It was elegant.
+
+Then the business requirement dropped: _"We need a fully hosted Cloud version so smaller teams can onboard in two clicks."_
+
+On paper, building a managed cloud offering for 1000s of projects sounds like firing up some Kubernetes clusters, isolating namespaces, and letting the orchestrator do the rest. In reality, managing K8s for thousands of distinct micro-deployments requires an internal team of SREs that we didn't want to dedicate. Running an EC2 instance per client? Financially ruinous.
+
+We had to build a fully hosted experience that scaled seamlessly, provided static IPs for database whitelisting, allowed custom developer code, and cost us practically nothing.
+
+The solution was Serverless. Specifically, **AWS Lambda coupled with custom abstraction layers**, a centralized Gateway, and a highly opinionated network setup. We achieved our goal—running thousands of projects for around $200/month in marginal infrastructure costs.
+
+But if you think Serverless is a silver bullet, you haven't been in the trenches. Here is the unvarnished truth about the trade-offs we made.
+
+## 1. The Gateway and the Lambda Customization Layer
+
+Forest Admin isn't just a static CRUD interface; developers write custom code (Smart Actions, custom fields) that needs to execute securely within our agent. If we host the agent, we have to host _their_ arbitrary code.
+
+### The Architecture (aka "How do we run their code without them breaking our stuff?")
+
+Instead of building a container image for every single client (which would destroy our deployment times and bloat our registry), we heavily leaned on **AWS Lambda Layers**.
+
+The core agent—the engine that handles routing, permissions, and serialization—is bundled as the foundational layer. When a client pushes code customizations via our UI or CLI (`cloud-code-customization-service`), we zip their custom logic, push it to an S3 bucket (with strict 10MiB limits), and trigger a Lambda update. The Lambda mounts the generic Forest Admin core and dynamically requires the client's injected codebase on top.
+
+```typescript
+// A simplified view of how we treated deployments as config changes
+public async publishCodeCustomization(environmentId: string, userId: string) {
+  // If the zip is over 10MB, you're not writing a Smart Action,
+  // you're writing a monolith. Denied.
+  if (contentLength > MAXIMUM_FILE_SIZE) throw new CodeCustomizationFileTooLargeError();
+
+  const objectKey = `cloud_${environmentId}/code_customization.zip`;
+  const s3File = await this.s3Bucket.headS3Object(objectKey);
+
+  // Triggers the deploy pipeline: Lambda takes the new S3 zip and re-mounts the Layer.
+  return this.cloudPublishCustomizationService.publishCustomization(environmentId, s3File, userId);
+}
+```
+
+This decoupled the core engine updates from client logic. We could patch a security flaw in the core agent across 10,00s of projects instantly, without rebuilding a single client artifact.
+
+## 2. Navigating the VPC: Static IPs and the NAT Gateway Tax
+
+One of the biggest blockers for Cloud onboarding is database access. Our Cloud Agent needs to query the client's database. Security-conscious clients will absolutely refuse to open their production databases to the open internet (0.0.0.0/0). They demand a **Static IP** to whitelist.
+
+By default, Lambdas bounce around AWS availability zones with random IP addresses. To fix this, we had to attach the Lambdas to a private subnet inside a Virtual Private Cloud (VPC), and route all outbound internet traffic through a **NAT Gateway** with an assigned Elastic IP.
+
+### The Pain of the NAT
+
+If you've ever dealt with AWS billing, you know that NAT Gateways are the silent killers of cloud budgets. You pay per hour just for it to exist, and then you pay per gigabyte processed. Suddenly, our "cheap" Serverless setup had a fixed monthly tax.
+
+Worse, attaching a Lambda to a VPC historically caused brutal cold starts. AWS has improved this massively with Hyperplane ENIs, but the network hop from Lambda -> ENI -> Private Subnet -> NAT Gateway -> Client Database still adds unavoidable latency spikes.
+
+**The Trade-off:** We accepted the NAT Gateway cost and slight latency hit because it was the _only_ way to provide the "Static IP" enterprise checkbox without provisioning dedicated EC2 instances.
+
+## 3. The Database Killer: Connection Pool Exhaustion
+
+This is where the Serverless dream hits a brick wall.
+
+AWS Lambda scales beautifully. If a client's dashboard gets hammered by sudden traffic, AWS will instantly spin up 50 concurrent Lambda instances to handle the load.
+
+Your database, however, does not scale beautifully. It is a finite, stateful monolith.
+
+When you have 50 Lambdas waking up simultaneously, they all initialize their own database connection. Suddenly, your Postgres database is hit with 50 new connection requests out of nowhere. If the dashboard is complex and requires several queries per widget, Lambdas keep spawning.
+
+Very quickly, you hit the dreaded `FATAL: sorry, too many clients already`. **Horizontal compute scaling actively murders databases.**
+
+### The Mechanism
+
+We needed a way to throttle this without dropping requests.
+
+1. **Concurrency Limits:** We had to strictly enforce `ReservedConcurrentExecutions` on the Lambdas. You cannot scale to 1,000 instances if your DB maxes out at 100 connections.
+2. **Aggressive Connection Dropping:** Unlike traditional Node.js servers that keep a pool warm indefinitely, our Serverless functions had to be ruthless about tearing down idle connections, lest a sleeping Lambda hold a crucial database connection hostage.
+
+### The Downside
+
+By limiting concurrency and aggressively managing the pool, we introduced new constraints:
+
+- **Throttling:** If a client genuinely needs massive concurrency, their requests get queued or throttled at the API Gateway level (which responds with a 429 or 503 depending on configuration).
+- **The True Cost of Cold Starts:** Because we couldn't keep thick connection pools warm across instances, the "Cold Start" wasn't just the Lambda executing code; it was the Lambda waking up, negotiating the TLS handshake with the database, and running the query. This drastically impacted the "snappiness" of the UI for infrequent users.
+
+## Conclusion: Was it Worth It?
+
+Building the Cloud version was an engineering masterclass in trade-offs.
+
+Could we have done this with managed Kubernetes pods? Absolutely. It would have solved the connection pooling issues (a persistent Node.js proxy per client) and mitigated cold starts. But managing K8s for thousands of disparate tenants requires a massive internal investment in orchestration, monitoring, and infrastructure-as-code.
+
+By leaning into Serverless, VPCs, and NAT Gateways, we offloaded the operational nightmare to AWS. We built a system capable of managing thousands of custom projects for roughly ~$200/month.
+
+Yes, we had to fight cold starts. Yes, we had to carefully guard against connection pool exhaustion. But at the end of the day, we created a frictionless onboarding experience that scaled itself, allowing our engineers to focus on the product, not restarting crashed EC2 instances at 3 AM.

@@ -1,0 +1,104 @@
+---
+title: "Refondre l'Expérience Cloud : L'Art des Compromis du Serverless à Grande Échelle"
+subtitle: "Comment nous avons géré les Lambda layers, les NAT Gateways, et l'assassinat des pools de connexions pour bâtir le Cloud Forest Admin pour presque 0€."
+summary: "Une plongée en profondeur dans notre transition d'un modèle purement self-hosted vers une offre Cloud managée. Nous abordons les Cold Starts, les AWS Lambda Layers, les VPCs, et pourquoi le scale horizontal est le pire cauchemar d'une base de données."
+publishedAt: "2026-02-21"
+readTimeMinutes: 12
+tags:
+  - aws
+  - serverless
+  - lambda
+  - architecture
+  - scaling
+---
+
+## Introduction : L'Illusion de "l'Onboarding Simple"
+
+Il arrive un moment dans toute boîte B2B où le management décide que le modèle _on-premise_ ou _self-hosted_ est "trop compliqué pour les petits clients". Chez Forest Admin, le modèle historique était pur : vous hébergez l'agent, vous gardez le contrôle de la donnée, on fournit l'interface. C'était élégant.
+
+Et puis le couperet est tombé : _"Il nous faut une version Cloud 100% hébergée pour que les petites équipes fassent leur onboarding en deux clics."_
+
+Sur le papier, packager une offre managée pour des milliers de projets, ça a l'air bête. On monte des clusters Kubernetes, on isole les namespaces, et on laisse l'orchestrateur faire la magie. Dans la vraie vie, gérer K8s pour des milliers de micro-déploiements client nécessite une armée de SREs (Site Reliability Engineers) que nous refusions de dédier à ça. Un EC2 par client ? Un suicide financier.
+
+Il fallait construire une expérience Cloud qui scale à l'infini, qui fournisse des adresses IP statiques (pour les whitelists de bases de données), qui permette le custom code, et qui nous coûte virtuellement zéro.
+
+La solution a été le **Serverless**. Plus particulièrement, **AWS Lambda couplé à des couches d'abstraction sur mesure**, une Gateway centralisée, et une configuration réseau extrêmement têtue. Le pari a été gagné : faire tourner des milliers de projets pour un coût marginal avoisinant les 200$/mois.
+
+Mais si vous pensez que le Serverless est une solution miracle, c'est que vous n'avez jamais été dans les tranchées. Voici la vérité nue, sans fard, sur les compromis que nous avons dû faire.
+
+## 1. La Gateway et la Couche de Customisation Lambda
+
+Forest Admin n'est pas qu'un CRUD statique ; nos utilisateurs écrivent du code métier (les Smart Actions, les champs custom) qui doit tourner de manière sécurisée dans notre agent. Si on héberge l'agent, on doit héberger **leur** code arbitraire.
+
+### L'Architecture (Ou "Comment faire tourner leur code sans qu'ils ne pètent notre prod")
+
+Au lieu de builder une image Docker pour le moindre client (ce qui aurait ruiné nos temps de déploiement et fait exploser notre registry), on a massivement abusé des **AWS Lambda Layers**.
+
+Le cœur de l'agent (le moteur de permissions, de routeur) est packagé comme _Layer_ fondationnelle. Quand le client pousse son code via notre UI ou CLI (`cloud-code-customization-service`), on zippe sa logique, on l'envoie sur un bucket S3 (avec une limite stricte de 10Mo), et on déclenche une mise à jour Lambda. La Lambda monte le cœur générique Forest Admin, et _require_ dynamiquement le code du client par-dessus.
+
+```typescript
+// Une vue simplifiée de comment on traite un déploiement comme un simple changement de config.
+public async publishCodeCustomization(environmentId: string, userId: string) {
+  // Si le zip fait plus de 10Mo, tu n'es pas en train d'écrire une Smart Action,
+  // tu codes un monolithe complet. Refusé.
+  if (contentLength > MAXIMUM_FILE_SIZE) throw new CodeCustomizationFileTooLargeError();
+
+  const objectKey = `cloud_${environmentId}/code_customization.zip`;
+  const s3File = await this.s3Bucket.headS3Object(objectKey);
+
+  // Déclenche le pipeline : la Lambda ingère le nouveau Zip S3 et remonte sa Layer.
+  return this.cloudPublishCustomizationService.publishCustomization(environmentId, s3File, userId);
+}
+```
+
+Cela découple complètement le cœur du moteur, du code client. S'il fallait patcher une faille de sécu dans l'agent, on mettait à jour la Layer générique pour 10 000 projets d'un coup, sans recompiler un seul build client.
+
+## 2. L'Enfer du VPC : IPs Statiques et la Taxe du NAT Gateway
+
+Le plus gros point de friction de l'hébergement Cloud, c'est l'accès à la base de données. L'agent Cloud doit requêter la DB du client. Les entreprises sérieuses refuseront toujours catégoriquement d'ouvrir leur prod sur l'internet extérieur (`0.0.0.0/0`). Elles exigent une **IP Statique** à mettre sur liste blanche.
+
+Par défaut, les Lambdas se baladent joyeusement entre les Availability Zones d'AWS avec des IPs totalement aléatoires. Pour régler ça, nous avons dû attacher les Lambdas à un sous-réseau privé (VPC), et forcer tout le trafic sortant via une **NAT Gateway** dotée d'une adresse Elastic IP.
+
+### La Douleur du NAT
+
+Si vous avez déjà regardé une facture AWS, vous savez que les NAT Gateways sont les tueurs silencieux de votre budget. Vous payez à l'heure juste parce qu'elle existe, et ensuite vous payez au Gigaoctet processé. D'un coup, notre set-up Serverless "pas cher" s'est pris une taxe mensuelle fixe.
+
+Pire encore, attacher une Lambda à un VPC causait historiquement des cold starts abominables. AWS a énormément amélioré ça avec les Hyperplane ENIs, mais le rebond réseau _Lambda -> ENI -> Sous-réseau privé -> NAT Gateway -> DB du client_ rajoute de la latence incompressible.
+
+**Le Compromis :** Nous avons accepté la taxe NAT et la légère latence, car c'était la **seule** façon de cocher la fameuse case "IP Statique" pour les entreprises, sans avoir à provisionner d'instances EC2 dédiées.
+
+## 3. L'Assassin de Bases de Données : L'Épuisement du Connection Pool
+
+C'est ici que le rêve Serverless se fracasse contre un mur en béton.
+
+AWS Lambda _scale_ de manière magnifique. Si le dashboard d'un client se fait assaut d'un coup, AWS peut ouvrir instantanément 50 instances de Lambda concurrentes pour absorber la charge.
+
+Votre base de données, elle, ne scale pas magnifiquement. C'est un monolithe, fini, avec un état (stateful).
+
+Quand 50 Lambdas se réveillent en même temps, elles initialisent toutes leur propre connexion réseau vers la DB. D'un coup, votre Postgres se prend 50 requêtes de connexion dans les dents. Si le dashboard a beaucoup de widgets qui font chacun leur requête, les Lambdas continuent de spawn.
+
+Très vite, paf, l'erreur fatidique : `FATAL: sorry, too many clients already`. **Le compute horizontal assassine les bases de données.**
+
+### La Mécanique de Défense
+
+Il fallait trouver comment limiter la casse sans purement abandonner les requêtes.
+
+1. **Limites de Concurrence :** Nous avons dû configurer agressivement le `ReservedConcurrentExecutions` des Lambdas. Impossible de scale à 1000 instances si la base plafonne à 100 connexions.
+2. **Fermeture Agressive des Connexions :** Contrairement à un serveur Node.js classique (qui garde son pool de connexion au chaud tout le temps), nos fonctions Serverless devaient être impitoyables et tuer les connexions inactives, de peur qu'une Lambda endormie ne prenne en otage un _socket_ vital sur la DB du client.
+
+### Les Dommages Collatéraux
+
+En bridant la concurrence et en gérant radicalement ce pool, nous avons importé de nouvelles contraintes :
+
+- **Le Throttling (Étranglement) :** Si un client a véritablement besoin d'une montée en charge massive, ses requêtes sont au mieux mises en file d'attente, au pire rejetées par l'API Gateway (qui lâche un joli 429 ou 503).
+- **Le Vrai Prix des Cold Starts :** Puisqu'on ne conservait pas nos pools de connexion ouverts, le fameux "Cold Start" (démarrage à froid) n'était plus juste le bout de code Lambda à charger... c'était aussi la Lambda qui se réveille, le handshake TLS avec la DB, et enfin l'exécution. L'impact sur la réactivité pour les utilisateurs sporadiques était réel.
+
+## Conclusion : Est-ce que ça valait le coup ?
+
+Bâtir cette version Cloud a été une vraie masterclass en matière de _trade-offs_ d'ingénierie.
+
+Aurait-on pu le faire avec des Pods Kubernetes managés ? Carrément. Ça aurait réglé les problèmes de pool (un process Node.js persistant par client) et absorbé les cold starts. Mais gérer du K8s pour des milliers de locataires isolés aurait requis des investissements draconiens en outillage interne et un lourd fardeau opérationnel.
+
+En misant à 100% sur le Serverless, le VPC et les NAT Gateways, nous avons littéralement sous-traité le cauchemar opérationnel à AWS. Nous avons construit un système capable de gérer des milliers d'environnements clients asymétriques pour à peine plus de 200$/mois d'infrastructure.
+
+Oui, on a dû se battre contre les démarrages à froid. Oui, on a dû mettre des pansements sur les pools de base de données. Mais à la fin de la journée, on a offert un onboarding ultra fluide qui se gérait tout seul, permettant à nos ingénieurs de coder le produit plutôt que de redémarrer des instances EC2 en plein milieu de la nuit.
