@@ -1,0 +1,79 @@
+---
+title: "Traverser les pare-feux : Pourquoi nous avons choisi les Server-Sent Events (SSE) pour l'Agent"
+subtitle: "Comment envoyer des commandes à un serveur qu'on ne contrôle pas, sans causer d'incident de sécurité majeur."
+summary: "Les choix architecturaux, les joies et les traumatismes absolus liés au maintien de milliers de connexions HTTP ouvertes à travers les firewalls d'entreprise."
+publishedAt: "2026-02-22"
+readTimeMinutes: 8
+tags:
+  - architecture
+  - networking
+  - sse
+  - websockets
+  - securite
+---
+
+## Le dilemme ultime du SaaS
+
+Lorsque l'on construit une control plane centralisée (comme nous l'avons fait chez Forest Admin), on finit inévitablement par tomber sur le problème réseau le plus difficile du software B2B : **Comment pousser littéralement des commandes vers la base de données d'un client ?**
+
+La réponse naïve et immédiate est généralement : "Exposons simplement une API côté client et appelons-la depuis notre serveur !"
+
+C'est exactement à ce moment-là que le RSSI de l'entreprise cliente éclate d'un rire hystérique. Ouvrir un port entrant sur un pare-feu d'entreprise vers l'Internet public pour qu'un SaaS externe puisse y fouiller est un _Non_ monumental et indiscutable.
+
+Si l'on ne peut rien pousser en entrant, il reste deux options : le Polling (la scrutation) et le Streaming sortant (Outbound Streaming).
+
+## L'option que tout le monde déteste : le Polling
+
+"Très bien", vous dites-vous. "Si on ne peut pas appeler l'agent, l'agent devra nous appeler."
+
+L'agent se réveille toutes les 5 secondes et demande à notre serveur central :
+
+- Agent : "Tu as de nouvelles updates de config ?"
+- Serveur : "Non."
+- _(5 secondes plus tard)_
+- Agent : "Des nouvelles configs maintenant ?"
+- Serveur : "Toujours non."
+
+Non seulement cela garantit une latence horrible de 5 secondes sur votre UI, mais multiplié par des milliers d'agents, votre serveur est maintenant occupé à repousser une attaque DDoS massive et auto-infligée, juste pour répondre "Non" 99,9 % du temps.
+
+## L'arrivée du sauveur : Server-Sent Events (SSE)
+
+Nous avions besoin que le serveur central puisse pousser de la donnée instantanément, à travers une connexion sortante initiée par le client. Place aux **Server-Sent Events (SSE)**.
+
+Contrairement aux WebSockets (qui nécessitent un upgrade du protocole complet, des configurations folles de load balancers, et se font souvent dévorer par les proxys trop zélés), le SSE repose sur du bon vieux protocole HTTP standard.
+
+1. L'agent côté client effectue une requête HTTPS GET sortante classique vers notre serveur (les firewalls _adorent_ le HTTPS sortant).
+2. Le serveur répond en envoyant un header `Content-Type: text/event-stream`.
+3. Le serveur... _ne ferme tout simplement jamais la connexion_.
+
+On garde le tuyau grand ouvert. Dès qu'un événement se produit sur la control plane (changement de config, trigger de commande), notre serveur crache un payload dans ce même tuyau HTTP resté ouvert.
+
+C'est élégant. C'est léger. Et cela contourne magiquement toutes les règles pare-feu de trafic entrant, puisque la connexion vient "de l'intérieur de la maison".
+
+## La dure réalité des connexions longue durée
+
+Si vous pensez qu'il est facile de maintenir des milliers de connexions HTTP ouvertes indéfiniment sur l'Internet public, c'est que vous n'avez pas passé assez de temps à débugger des load balancers à 3 heures du matin.
+
+Voici ce qu'il se passe quand vous décidez de garder des tuyaux ouverts en permanence :
+
+### 1. Le Tueur Silencieux (Connexions TCP Half-Open)
+
+Les proxys d'entreprise et les load balancers détestent les connexions inactives. Si aucune donnée ne traverse le câble pendant 60 secondes, un routeur quelque part sur le trajet finira par tuer silencieusement la connexion pour économiser sa RAM. L'agent comme notre serveur ne recevront jamais de paquet TCP FIN ou RST.
+
+Nous pensons que la connexion est ouverte. L'agent pense qu'elle l'est aussi. Les deux se fixent en regardant une ligne téléphonique morte.
+**La solution :** Un ping agressif (heartbeat) au niveau de l'application. Si le serveur n'a pas lâché de "ping" toutes les 30 secondes, l'agent considère qu'il est cliniquement mort.
+
+### 2. Le Raz-de-marée (Reconnect Storms)
+
+Que se passe-t-il lors du déploiement d'une nouvelle version de notre serveur central ? On draine élégamment les connexions. Mais soudainement, des milliers d'agents réalisent qu'ils ont été déconnectés. Dans un mouvement de panique générale, ils tentent tous de se reconnecter à la même milliseconde exacte. Le CPU de votre serveur s'évapore instantanément.
+**La solution :** Un backoff exponentiel avec "jitter". Les agents doivent choisir un moment aléatoire entre 1 et 10 secondes pour se reconnecter, et ralentir si le serveur indique qu'il n'en peut plus.
+
+### 3. L'épuisement des File Descriptors
+
+Gérer 50 000 requêtes SSE ouvertes signifie maintenir 50 000 descripteurs de fichiers actifs sur vos processus Node.js et load balancers. Il faut aller fouiller dans les entrailles de votre OS (`ulimit -n`) et tweaker votre max sockets Node, sinon les demandes de connexions entrantes se mettront simplement à suspendre sans raisons valables.
+
+## En résumé
+
+Le SSE est un mécanisme phénoménal. Il vous offre le temps réel des WebSockets tout en se déguisant en trafic HTTP ennuyeux et parfait pour les pare-feux.
+
+Mais un contrat strict s'impose : votre code d'agent doit être écrit comme celui d'un survivant paranoïaque dans un wasteland. Assumer que la connexion lâchera. Assumer que le réseau est hostile. Et assumer que le serveur disparaîtra parfois sans prévenir : ce sont là les trois piliers pour construire une architecture de streaming réellement pare-balles.

@@ -9,7 +9,8 @@ export const metadata = {
   fr: {
     date: "1 Décembre 2025",
     readTime: "3",
-    title: "Nouveau chapitre : Je rejoins RockFi en tant que Staff Back-end Engineer",
+    title:
+      "Nouveau chapitre : Je rejoins RockFi en tant que Staff Back-end Engineer",
     subtitle:
       "Structurer la tech capable de révolutionner la gestion de fortune privée.",
   },
@@ -19,96 +20,102 @@ export const content = {
   en: (
     <>
       <p>
-        I am thrilled to announce my arrival at <strong>RockFi</strong> to
-        strengthen the tech team! It marks a significant new step in my career,
-        and I couldn't be more excited about the challenges ahead.
+        I am thrilled (and slightly terrified, in a good way) to announce my
+        arrival at <strong>RockFi</strong> as a Staff Back-end Engineer! It
+        marks a wild new step in my career, and I couldn't be more pumped about
+        the mountains we're about to climb.
       </p>
 
-      <h2>A Look Back</h2>
+      <h2>A Look Back (How Did We Get Here?)</h2>
       <p>
-        My career began in the startup world at <strong>Polymagine</strong>,
-        where I dedicated myself to R&D for additive manufacturing and augmented
-        reality visualization. I then moved to <strong>Michelin</strong>,
-        contributing to IT projects serving industrial production.
+        My career kicked off in the startup world at <strong>Polymagine</strong>
+        , where I spent my days hacking together R&D for additive manufacturing
+        and augmented reality. (Yes, making 3D things appear in thin air before
+        it was cool). I then took a detour through <strong>Michelin</strong>,
+        where I learned that the words "industrial production" and "scale" are
+        not to be taken lightly.
       </p>
 
       <p>
-        In 2021, I joined <strong>Forest Admin</strong>, where I spent four
-        years evolving from Full Stack Engineer to Staff Engineer and leading a
-        tech team as Engineering Manager. During this time, I played a key role
-        in structuring and growing the team, helping it double in size to reach
-        over 20 engineers.
+        In 2021, I joined <strong>Forest Admin</strong>, surviving four years of
+        intense, glorious growth. I evolved from a Full Stack Engineer to a
+        Staff Engineer, and eventually led a tech team as an Engineering
+        Manager. We doubled the team size to over 20 engineers—mostly by sheer
+        willpower and a lot of coffee.
       </p>
 
       <h2>The Mission at RockFi</h2>
       <p>
-        At RockFi, my focus will be on the{" "}
-        <strong>interconnection with key partners</strong>. The goal is to
-        centralize client data and enable real-time visualization of asset
-        portfolios. It's a technical challenge that sits right at the
-        intersection of complex data integration and user-centric product value.
+        Now, at RockFi, my laser focus is on the{" "}
+        <strong>interconnection with key partners</strong>. Basically, that
+        means herding a chaotic stampede of complex client data into a
+        beautifully centralized, real-time visualization of asset portfolios.
+        It's a deep technical puzzle wrapped in a massive product value prop.
       </p>
 
       <p className="highlight">
         "I have the ambition to help structure a technical team capable of
-        responding to the challenges demanded by the revolution of 'The new
-        private management'."
+        responding to the very real, very complex challenges demanded by 'The
+        new private management' revolution."
       </p>
 
       <p>
-        RockFi is tackling "The new private wealth management," and building the
-        robust technical foundation to support that vision is exactly where I
-        want to be.
+        RockFi is reinventing private wealth management. And frankly, building
+        the bulletproof technical foundations to support that vision is exactly
+        the kind of trouble I want to get into.
       </p>
     </>
   ),
   fr: (
     <>
       <p>
-        Je suis ravi d'annoncer mon arrivée chez <strong>RockFi</strong> pour
-        renforcer l'équipe technique ! Cela marque une nouvelle étape importante
-        dans ma carrière et je ne pourrais pas être plus enthousiaste face aux
-        défis qui m'attendent.
+        Je suis absolument ravi (et juste un tout petit peu terrifié, dans le
+        bon sens du terme) d'annoncer mon arrivée chez <strong>RockFi</strong>{" "}
+        en tant que Staff Back-end Engineer ! C'est une sacrée nouvelle étape
+        dans ma carrière, et je suis gonflé à bloc face aux montagnes qu'on
+        s'apprête à soulever.
       </p>
 
-      <h2>Un regard en arrière</h2>
+      <h2>Un Regard en Arrière (Comment on en est arrivé là ?)</h2>
       <p>
-        Ma carrière a débuté dans le monde des startups chez{" "}
-        <strong>Polymagine</strong>, où je me suis consacré à la R&D pour la
-        fabrication additive et la visualisation en réalité augmentée. J'ai
-        ensuite rejoint <strong>Michelin</strong>, contribuant à des projets
-        informatiques au service de la production industrielle.
+        Ma carrière a démarré dans le grand bain des startups chez{" "}
+        <strong>Polymagine</strong>. J'y faisais de la R&D sur de l'impression
+        3D et de la réalité augmentée (en gros, faire apparaître des objets
+        flottants avant que ce soit à la mode). J'ai ensuite fait un tour chez{" "}
+        <strong>Michelin</strong>, où j'ai vite compris que les mots "production
+        industrielle" et "échelle" ne devaient pas être pris à la légère.
       </p>
 
       <p>
-        En 2021, j'ai rejoint <strong>Forest Admin</strong>, où j'ai passé
-        quatre ans, évoluant de Full Stack Engineer à Staff Engineer et
-        dirigeant une équipe technique en tant qu'Engineering Manager. Pendant
-        cette période, j'ai joué un rôle clé dans la structuration et la
-        croissance de l'équipe, l'aidant à doubler de taille pour atteindre plus
-        de 20 ingénieurs.
+        En 2021, j'ai rejoint <strong>Forest Admin</strong>. J'y ai survécu à
+        quatre années d'hypercroissance aussi intenses que grandioses, passant
+        de Full Stack à Staff Engineer, puis Engineering Manager. On a doublé la
+        taille de l'équipe technique pour atteindre plus de 20
+        ingénieurs—principalement à la force du poignet et avec beaucoup,
+        beaucoup de café.
       </p>
 
-      <h2>La mission chez RockFi</h2>
+      <h2>La Mission chez RockFi</h2>
       <p>
-        Chez RockFi, ma priorité sera l'
-        <strong>interconnexion avec les partenaires clés</strong>. L'objectif
-        est de centraliser les données clients et de permettre une visualisation
-        en temps réel des portefeuilles d'actifs. C'est un défi technique qui se
-        situe exactement à l'intersection de l'intégration de données complexes
-        et de la valeur produit centrée sur l'utilisateur.
+        Maintenant chez RockFi, ma cible prioritaire c'est l'
+        <strong>interconnexion avec nos partenaires clés</strong>. En termes
+        simples : mon job est de dompter un troupeau chaotique de données pour
+        offrir une vision centralisée et en temps réel des portefeuilles
+        d'actifs. C'est un puzzle technique bien corsé, directement au service
+        du produit.
       </p>
 
       <p className="highlight">
-        "J'ai l'ambition d'aider à structurer une équipe technique capable de
-        répondre aux défis exigés par la révolution de 'La nouvelle gestion
-        privée'."
+        "J'ai l'ambition d'aider à structurer une équipe technique capable
+        d'encaisser les défis extrêmes qu'exige la révolution de 'La nouvelle
+        gestion privée'."
       </p>
 
       <p>
-        RockFi s'attaque à "La nouvelle gestion de patrimoine privée", et
-        construire les fondations techniques robustes pour soutenir cette vision
-        est exactement là où je veux être.
+        RockFi s'attaque à la modernisation de la gestion de patrimoine privée.
+        Et très honnêtement, construire les fondations techniques blindées pour
+        soutenir cette vision, c'est exactement le genre de casse-tête dans
+        lequel je voulais plonger.
       </p>
     </>
   ),

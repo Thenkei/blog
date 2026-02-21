@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 820" role="img" aria-labelledby="title desc">
+  <title id="title">SAML to OAuth2 bridge with RFC7522</title>
+  <desc id="desc">Sequence showing SAML assertion validation and OAuth2 token exchange using RFC7522 profile.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#ecfeff"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+      <path d="M0,0 L12,4 L0,8 z" fill="#1f2937"/>
+    </marker>
+    <style>
+      .title { font: 700 34px 'Segoe UI', Roboto, Arial, sans-serif; fill: #111827; }
+      .subtitle { font: 500 18px 'Segoe UI', Roboto, Arial, sans-serif; fill: #334155; }
+      .box { fill: #ffffff; stroke: #475569; stroke-width: 2; rx: 14; ry: 14; }
+      .boxTitle { font: 700 19px 'Segoe UI', Roboto, Arial, sans-serif; fill: #111827; }
+      .lifeline { stroke: #94a3b8; stroke-width: 2; stroke-dasharray: 8 8; }
+      .msg { stroke: #1f2937; stroke-width: 2.6; fill: none; marker-end: url(#arrow); }
+      .msgText { font: 600 14px 'Segoe UI', Roboto, Arial, sans-serif; fill: #0f172a; }
+      .forestNote { fill: #dcfce7; stroke: #15803d; stroke-width: 1.8; rx: 10; ry: 10; }
+      .forestText { font: 500 13px 'Segoe UI', Roboto, Arial, sans-serif; fill: #14532d; }
+    </style>
+  </defs>
+
+  <rect width="1680" height="820" fill="url(#bg)"/>
+  <text x="50" y="62" class="title">SAML Federation + RFC7522 OAuth2 Bridge</text>
+  <text x="50" y="90" class="subtitle">Forest validates enterprise SAML assertion, then performs controlled OAuth2 exchange</text>
+
+  <rect x="62" y="126" width="220" height="74" class="box"/>
+  <text x="96" y="170" class="boxTitle">Browser</text>
+
+  <rect x="356" y="126" width="240" height="74" class="box"/>
+  <text x="386" y="170" class="boxTitle">Enterprise IdP</text>
+
+  <rect x="698" y="126" width="300" height="74" class="box"/>
+  <text x="728" y="170" class="boxTitle">Forest (SP + Broker)</text>
+
+  <rect x="1096" y="126" width="290" height="74" class="box"/>
+  <text x="1128" y="170" class="boxTitle">OAuth2 Token Endpoint</text>
+
+  <rect x="1464" y="126" width="170" height="74" class="box"/>
+  <text x="1506" y="170" class="boxTitle">Agent</text>
+
+  <line x1="172" y1="200" x2="172" y2="760" class="lifeline"/>
+  <line x1="476" y1="200" x2="476" y2="760" class="lifeline"/>
+  <line x1="848" y1="200" x2="848" y2="760" class="lifeline"/>
+  <line x1="1240" y1="200" x2="1240" y2="760" class="lifeline"/>
+  <line x1="1548" y1="200" x2="1548" y2="760" class="lifeline"/>
+
+  <line x1="172" y1="250" x2="476" y2="250" class="msg"/>
+  <text x="198" y="238" class="msgText">1. User authentication</text>
+
+  <line x1="476" y1="302" x2="172" y2="302" class="msg"/>
+  <text x="188" y="290" class="msgText">2. SAMLResponse (signed assertion)</text>
+
+  <line x1="172" y1="354" x2="848" y2="354" class="msg"/>
+  <text x="324" y="342" class="msgText">3. POST assertion to Forest ACS endpoint</text>
+
+  <rect x="692" y="386" width="312" height="92" class="forestNote"/>
+  <text x="712" y="410" class="forestText">Forest validation gate:</text>
+  <text x="712" y="432" class="forestText">- signature / cert chain</text>
+  <text x="712" y="454" class="forestText">- audience / recipient / temporal checks</text>
+
+  <line x1="848" y1="532" x2="1240" y2="532" class="msg"/>
+  <text x="874" y="520" class="msgText">4. RFC7522 grant: saml2-bearer assertion</text>
+
+  <line x1="1240" y1="584" x2="848" y2="584" class="msg"/>
+  <text x="910" y="572" class="msgText">5. OAuth2 access token (+ constraints)</text>
+
+  <line x1="848" y1="636" x2="1548" y2="636" class="msg"/>
+  <text x="990" y="624" class="msgText">6. Forest-issued downstream token (aud=agent, tenant, scope, exp)</text>
+
+  <line x1="1548" y1="688" x2="848" y2="688" class="msg"/>
+  <text x="1120" y="676" class="msgText">7. Agent response and audit correlation ID</text>
+</svg>

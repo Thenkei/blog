@@ -21,10 +21,13 @@ export const content = {
   en: (
     <>
       <p>
-        If you are already running <code>@nestjs/bullmq</code>, you can keep the
-        same runtime stack and still gain stronger job contracts. The key idea
-        is to add a thin <code>jobify</code> layer that standardizes enqueue,
-        processor registration, timeouts, retries, tracing, and sequencing.
+        If you are already running <code>@nestjs/bullmq</code>, congratulations,
+        you've survived the initial boss fight. But you can keep the exact same
+        runtime stack and still gain infinitely stronger job contracts. The key
+        idea is to stop writing boilerplate and add a thin, ruthless{" "}
+        <code>jobify</code> layer that standardizes enqueue, processor
+        registration, timeouts, retries, tracing, and sequencing. No more silent
+        failures at 4 AM.
       </p>
 
       <p className="highlight">Series: Async Workloads at Scale (Part 2/3)</p>
@@ -87,21 +90,26 @@ export class ExportsProcessor extends WorkerHost {
       </pre>
 
       <p>
-        This works, but as job count grows you usually get duplicated queue
-        options, weak typing between producer/consumer, and ad-hoc behavior for
-        idempotency, debounce, and sequential execution.
+        This works. It's the "Hello World" of queues. But as your job count
+        grows, you usually end up with a sprawling mess: duplicated queue
+        options, wildly weak typing between the producer and consumer, and
+        ad-hoc behavior for idempotency, debounce, and sequential execution.
+        Basically, it's a structural time bomb.
       </p>
 
       <h2>What the jobify layer adds</h2>
       <p>
         The <code>make-jobify.ts</code> pattern creates a single contract:
-        <strong> register once on workers, call a typed runner everywhere.</strong>
+        <strong>
+          {" "}
+          register once on workers, call a typed runner everywhere.
+        </strong>
       </p>
 
       <ul>
         <li>
-          <strong>Named function guard:</strong> unnamed work is rejected to keep
-          stable processor keys.
+          <strong>Named function guard:</strong> unnamed work is rejected to
+          keep stable processor keys.
         </li>
         <li>
           <strong>Worker-only registration:</strong> processors are added only
@@ -131,15 +139,15 @@ await runExport({ userId, projectId, environmentId, from, to });`}
         </code>
       </pre>
 
-      <h2>Queue behavior centralized in one place</h2>
+      <h2>Queue behavior centralized in one place (For your own sanity)</h2>
       <p>
         In <code>queue-service.ts</code>, enqueue behavior is explicit and
         reusable:
       </p>
       <ul>
         <li>
-          <strong>trace propagation:</strong> span parameters are embedded at job
-          creation.
+          <strong>trace propagation:</strong> span parameters are embedded at
+          job creation.
         </li>
         <li>
           <strong>debounce reschedule:</strong> delayed jobs can be found by
@@ -238,14 +246,17 @@ const runSyncUser = registerSequential({
 
       <ul>
         <li>
-          queued with <code>JobPriority.low</code> and explicit timeout from env.
+          queued with <code>JobPriority.low</code> and explicit timeout from
+          env.
         </li>
-        <li>
-          trace disabled for heavy long-running exports.
-        </li>
+        <li>trace disabled for heavy long-running exports.</li>
         <li>
           stream pipeline:
-          <code>Readable.from(iterator) -&gt; Transform -&gt; csv-stringify -&gt; S3 multipart writable</code>.
+          <code>
+            Readable.from(iterator) -&gt; Transform -&gt; csv-stringify -&gt; S3
+            multipart writable
+          </code>
+          .
         </li>
         <li>
           success and failure email flows are attached directly via
@@ -300,11 +311,13 @@ export class JobifyFactory {
         </li>
       </ol>
 
-      <h2>Design rules worth keeping</h2>
+      <h2>Design Rules (Break these and you will suffer)</h2>
       <ul>
         <li>
           <strong>Do not expose BullMQ Job objects</strong> to business code by
-          default; pass typed args instead.
+          default; pass typed args instead. Otherwise your domain logic becomes
+          tightly coupled to BullMQ's internals, and you'll weep during the next
+          major version bump.
         </li>
         <li>
           <strong>Always enforce timeout defaults</strong>; shutdown behavior
@@ -342,11 +355,14 @@ export class JobifyFactory {
   fr: (
     <>
       <p>
-        Si vous utilisez deja <code>@nestjs/bullmq</code>, vous pouvez garder la
-        meme stack runtime et ajouter un meilleur contrat d'execution des jobs.
-        L'idee est d'introduire une couche <code>jobify</code> qui standardise
-        enqueue, registration des processors, timeouts, retries, tracing et
-        execution sequentielle.
+        Si vous utilisez déjà <code>@nestjs/bullmq</code>, félicitations, vous
+        avez survécu au premier boss. Bonne nouvelle : vous pouvez garder la
+        même stack et ajouter un contrat d'exécution des jobs infiniment plus
+        robuste. L'idée est d'arrêter de copier-coller du boilerplate et
+        d'introduire une fine couche <code>jobify</code> qui standardise
+        l'enqueue, l'enregistrement des processors, les timeouts, les retries,
+        le tracing et l'exécution séquentielle. Fini les jobs "silencieusement
+        morts" à 4h mat.
       </p>
 
       <p className="highlight">Serie: Async Workloads at Scale (Partie 2/3)</p>
@@ -397,9 +413,12 @@ export class ExportsService {
       </pre>
 
       <p>
-        Ce modele fonctionne, mais avec la croissance du nombre de jobs vous
-        accumulez vite du code duplique, des contrats faibles entre producer et
-        consumer, et des strategies non unifiees pour idempotence/debounce.
+        Ce modèle "Hello World" fonctionne bien au début. Mais avec la
+        croissance du nombre de jobs, vous accumulez très vite un plat de
+        spaghettis : du code dupliqué partout, des contrats faibles entre le
+        producer et le consumer, et des stratégies improvisées pour
+        l'idempotence ou le debounce. Bref, une bombe à retardement
+        architecturale.
       </p>
 
       <h2>Ce que la couche jobify apporte</h2>
@@ -408,12 +427,12 @@ export class ExportsService {
           <strong>Fonction nommee obligatoire :</strong> cle processor stable.
         </li>
         <li>
-          <strong>Registration seulement cote worker :</strong> evite les doublons
-          de handlers.
+          <strong>Registration seulement cote worker :</strong> evite les
+          doublons de handlers.
         </li>
         <li>
-          <strong>Priorite dynamique :</strong> valeur statique, fonction sync ou
-          async.
+          <strong>Priorite dynamique :</strong> valeur statique, fonction sync
+          ou async.
         </li>
         <li>
           <strong>Contrat debounce strict :</strong>
@@ -423,15 +442,11 @@ export class ExportsService {
 
       <h2>Queue centralisee dans queue-service.ts</h2>
       <ul>
-        <li>
-          propagation de trace au moment du enqueue;
-        </li>
+        <li>propagation de trace au moment du enqueue;</li>
         <li>
           reschedule des jobs delayed via <code>changeDelay</code>;
         </li>
-        <li>
-          nettoyage des repeatables pour eviter les doubles schedules;
-        </li>
+        <li>nettoyage des repeatables pour eviter les doubles schedules;</li>
         <li>
           hygiene par defaut avec <code>removeOnComplete/removeOnFail</code>.
         </li>
@@ -490,20 +505,16 @@ export class ExportsService {
         <li>Mesurer queue depth, failures et p95/p99 avant generalisation.</li>
       </ol>
 
-      <h2>Regles de design a conserver</h2>
+      <h2>Règles de design de survie (À graver dans le marbre)</h2>
       <ul>
         <li>
-          ne pas exposer les objets BullMQ Job a la logique metier par defaut;
+          ne pas exposer les objets BullMQ Job à la logique métier par defaut.
+          Sinon, votre cœur pur sera corrompu par les entrailles de BullMQ, et
+          la prochaine version majeure vous fera pleurer de sang.
         </li>
-        <li>
-          imposer des timeouts par defaut pour garantir les shutdowns;
-        </li>
-        <li>
-          garder le contrat producer/consumer au meme endroit;
-        </li>
-        <li>
-          traiter les lanes sequentielles comme une ressource rare.
-        </li>
+        <li>imposer des timeouts par defaut pour garantir les shutdowns;</li>
+        <li>garder le contrat producer/consumer au meme endroit;</li>
+        <li>traiter les lanes sequentielles comme une ressource rare.</li>
       </ul>
 
       <p>
@@ -515,7 +526,8 @@ export class ExportsService {
       <ul>
         <li>
           Besoin du contexte stream/export en amont ? Lire{" "}
-          <a href="?post=nodejs-stream-backpressure-history-export">Partie 1</a>.
+          <a href="?post=nodejs-stream-backpressure-history-export">Partie 1</a>
+          .
         </li>
         <li>
           Besoin des patterns idempotence/debounce ensuite ? Lire{" "}

@@ -21,23 +21,24 @@ export const content = {
   en: (
     <>
       <p>
-        This export pipeline came from a real operational constraint: users
-        could request activity logs over huge date ranges, sometimes from
-        project day zero. Data came from Elasticsearch, each event needed
-        enrichment from relational sources, and the final CSV had to be uploaded
-        to S3 with a signed URL.
+        This export pipeline was born out of pure, unadulterated operational
+        trauma: users could request activity logs over ridiculously huge date
+        ranges, sometimes all the way back to project day zero. The data lived
+        in Elasticsearch, every single event demanded enrichment from relational
+        databases, and the final 3GB+ CSV had to be gracefully uploaded to S3
+        with a signed URL. No pressure, right?
       </p>
 
       <p>
-        For large tenants, exports took 10 to 15 minutes. The hard requirement
-        was not just correctness; it was preserving worker availability while
-        handling very large datasets with predictable memory usage.
+        For our largest tenants, these mammoth exports took 10 to 15 minutes to
+        run. The hard requirement wasn't just "make it work"; it was "make it
+        work without burning down the servers." We had to preserve worker
+        availability while manhandling terrifyingly large datasets with
+        completely predictable memory usage.
       </p>
 
       <p className="highlight">Series: Async Workloads at Scale (Part 1/3)</p>
-      <p>
-        This post opens a 3-part series:
-      </p>
+      <p>This post opens a 3-part series:</p>
       <ul>
         <li>
           Part 1 (current) - backpressure, streaming transforms, and multipart
@@ -62,32 +63,39 @@ export const content = {
         detail.
       </p>
 
-      <h2>System constraints and failure modes</h2>
+      <h2>
+        System Constraints (aka Ways this will inevitably explode in production)
+      </h2>
       <ul>
         <li>
           <strong>Unbounded producer risk:</strong> Elasticsearch scrolling can
-          outpace downstream serialization and upload.
+          turn into an absolute firehose that happily drowns your downstream
+          serialization and upload steps.
         </li>
         <li>
-          <strong>N+1 enrichment risk:</strong> per-event relational lookups can
-          increase latency and pressure DB pools.
+          <strong>N+1 enrichment risk:</strong> per-event relational lookups
+          will quickly bring your DB connection pool to its knees.
         </li>
         <li>
-          <strong>Worker starvation risk:</strong> large exports can monopolize
-          async workers and delay other jobs.
+          <strong>Worker starvation risk:</strong> a 15-minute history export
+          will cheerfully hold a worker hostage while your other critical
+          background jobs wait in line.
         </li>
         <li>
-          <strong>Retry risk:</strong> if upload fails late, naive retry can
-          duplicate work and cost.
+          <strong>Retry risk:</strong> if a 3GB upload fails at 99%, a naive
+          retry means starting the pain all over again. Your AWS bill won't
+          appreciate it.
         </li>
       </ul>
 
-      <h2>Approach A: classic Node streams with Transform stages</h2>
+      <h2>Approach A: Classic Node streams with Transform stages</h2>
       <p>
-        This is the closest model to your production code. Use
+        This is the closest model to what you'll see in a battle-tested
+        production environment. Use
         <code>Readable.from(asyncIterator)</code>, explicit transform stages,
-        then a multipart S3 writable. It gives clear backpressure semantics and
-        mature operational behavior.
+        and finally a multipart S3 writable. It's verbose, it's not the
+        prettiest code you'll ever write, but its operational behavior is
+        rock-solid.
       </p>
 
       <pre>
@@ -209,11 +217,14 @@ await pipeline(
         need discipline around serialization edge cases and CSV escaping.
       </p>
 
-      <h2>Approach C: bounded parallel enrichment for higher throughput</h2>
+      <h2>
+        Approach C: Bounded parallel enrichment (Because waiting sequentially is
+        for beginners)
+      </h2>
       <p>
         If per-row DB enrichment dominates latency, a strictly sequential mapper
-        underutilizes resources. Bounded parallelism improves throughput while
-        still keeping memory predictable.
+        awkwardly underutilizes resources. Bounded parallelism improves
+        throughput massively while still keeping memory footprints predictable.
       </p>
 
       <pre>
@@ -247,6 +258,7 @@ await pipeline(
 }
 
 const enriched = parallelMapOrdered(events, 8, async (event) => {
+  // Don't set concurrency to 100 unless you strongly dislike your database.
   const extra = await db.getMetadata(event.userId);
   return { ...event, ...extra };
 });`}
@@ -493,23 +505,23 @@ logger.info({
   fr: (
     <>
       <p>
-        Ce pipeline d'export vient d'une contrainte operationnelle reelle : les
-        utilisateurs pouvaient demander des activity logs sur des plages de
-        dates enormes, parfois depuis le debut du projet. Les donnees venaient
-        d'Elasticsearch, chaque evenement devait etre enrichi depuis des sources
-        relationnelles, puis le CSV final etait envoye vers S3.
+        Ce pipeline d'export est littéralement né d'un traumatisme opérationnel
+        : les utilisateurs pouvaient exiger des logs d'activité sur des plages
+        de dates dantesques, parfois depuis le tout premier jour du projet. Les
+        données dormaient dans Elasticsearch, chaque événement devait être farci
+        d'infos provenant de bases relationnelles, puis le monstrueux CSV final
+        devait atterrir sagement sur S3. Plutôt simple, non ?
       </p>
 
       <p>
-        Sur les gros clients, les exports prenaient 10 a 15 minutes. La
-        contrainte principale n'etait pas seulement la justesse fonctionnelle,
-        mais la disponibilite des workers avec une memoire previsible.
+        Sur nos plus gros clients, les exports prenaient entre 10 et 15 minutes
+        de calcul intensif. La grosse contrainte n'était pas seulement d'avoir
+        le bon CSV à la fin, mais de garantir la survie des workers avec une
+        empreinte mémoire en béton armé.
       </p>
 
       <p className="highlight">Serie: Async Workloads at Scale (Partie 1/3)</p>
-      <p>
-        Ce post ouvre une serie en 3 parties :
-      </p>
+      <p>Ce post ouvre une serie en 3 parties :</p>
       <ul>
         <li>
           Partie 1 (courante) - backpressure, transforms stream et exports
@@ -533,31 +545,40 @@ logger.info({
         Le backpressure etait le mecanisme de controle principal.
       </p>
 
-      <h2>Contraintes systeme et modes de panne</h2>
+      <h2>
+        Contraintes système (alias "Comment ça va inévitablement exploser en
+        prod")
+      </h2>
       <ul>
         <li>
-          <strong>Producteur non borne :</strong> le scroll Elasticsearch peut
-          produire plus vite que la serialisation et l'upload.
+          <strong>Producteur non borné :</strong> le scroll Elasticsearch peut
+          se transformer en lance à incendie qui noiera allègrement votre
+          sérialisation en aval.
         </li>
         <li>
-          <strong>Risque N+1 :</strong> enrichissement relationnel par evenement
-          qui met sous pression les pools DB.
+          <strong>Risque N+1 :</strong> l'enrichissement relationnel par
+          événement va rapidement mettre votre pool de connexions DB à genoux.
         </li>
         <li>
-          <strong>Risque de starvation worker :</strong> quelques exports lourds
-          peuvent bloquer d'autres jobs.
+          <strong>Risque de starvation worker :</strong> un export de 15 minutes
+          va joyeusement prendre un worker en otage pendant que vos petits jobs
+          critiques patientent.
         </li>
         <li>
-          <strong>Risque de retry tardif :</strong> un echec tardif pendant
-          l'upload peut couter tres cher sans idempotence.
+          <strong>Risque de retry tardif :</strong> si un upload de 3GB plante à
+          99%, un retry naïf signifie tout recommencer depuis le début. Votre
+          facture AWS appréciera.
         </li>
       </ul>
 
       <h2>Approche A : pipeline streams + Transform</h2>
       <p>
-        C'est le modele le plus proche du code de production. On utilise
-        <code>Readable.from(asyncIterator)</code>, des etapes Transform, puis un
-        writable multipart S3.
+        C'est le modèle le plus proche de ce que vous verrez dans un
+        environnement de prod qui a survécu à la guerre. On utilise
+        <code>Readable.from(asyncIterator)</code>, des étapes Transform
+        explicites, puis un writable multipart S3. C'est verbeux, ce n'est pas
+        le plus beau code du monde, mais opérationnellement, c'est du béton
+        armé.
       </p>
 
       <pre>
@@ -608,16 +629,20 @@ await pipeline(
         </code>
       </pre>
 
-      <h2>Approche C : enrichissement parallele borne</h2>
+      <h2>
+        Approche C : enrichissement parallèle borné (Parce qu'attendre
+        séquentiellement c'est pour les débutants)
+      </h2>
       <p>
-        Si l'enrichissement DB domine la latence, le mapping sequentiel est trop
-        lent. Une concurrence bornee augmente le debit tout en gardant une
-        memoire stable.
+        Si l'enrichissement DB domine la latence, un mapping purement séquentiel
+        sous-utilise bêtement vos ressources. Une concurrence bornée explose le
+        débit tout en gardant une empreinte mémoire prévisible.
       </p>
 
       <pre>
         <code className="language-typescript">
           {`const enriched = parallelMapOrdered(events, 8, async (event) => {
+  // Ne mettez pas la concurrence à 100 sauf si vous détestez viscéralement votre base de données.
   const extra = await db.getMetadata(event.userId);
   return { ...event, ...extra };
 });`}

@@ -27,20 +27,24 @@ export const content = {
   en: (
     <>
       <p>
-        I just stumbled upon a slightly tricky case. (an hour spent searching
-        what was happening) My <code>ON CONFLICT DO UPDATE</code> was not
-        detecting duplicates even though I had a uniqueness constraint.
+        I just burned an embarrassing hour of my precious life on a seemingly
+        "impossible" bug. My <code>ON CONFLICT DO UPDATE</code> was silently
+        failing to detect duplicates, even though I had a supposedly rock-solid
+        uniqueness constraint in place.
       </p>
 
-      <h2>The Thing</h2>
+      <h2>The Plot Twist</h2>
       <p>
-        By default, PostgreSQL considers that <code>NULL ≠ NULL</code>. So, two
-        rows with <code>(value, NULL)</code> are not seen as duplicates.
+        Here's the kicker: by default, PostgreSQL philosophically believes that{" "}
+        <code>NULL ≠ NULL</code>. That's right. It sees two rows shaped like{" "}
+        <code>(value, NULL)</code> and says, "Looks like two completely
+        different things to me, boss!" Ergo, not duplicates.
       </p>
 
-      <h2>The Solution</h2>
+      <h2>The Magic Spell</h2>
       <p>
-        Add <code>NULLS NOT DISTINCT</code> to the unique index:
+        To fix this without tearing your hair out, you just need to add the
+        magic words <code>NULLS NOT DISTINCT</code> to your unique index:
       </p>
 
       <pre>
@@ -52,12 +56,14 @@ NULLS NOT DISTINCT;`}
       </pre>
 
       <p>
-        This way, PostgreSQL treats NULLs as equal for uniqueness verification,
-        and upserts work as expected.
+        With this little tweak, PostgreSQL finally learns that two nulls are, in
+        fact, the same flavor of empty. Uniqueness verification is suddenly sane
+        again, and your upserts will actually work as intended!
       </p>
 
       <p className="highlight">
-        Note: Available since PostgreSQL 15{" "}
+        Pro tip: This lifesaver has been available since PostgreSQL 15. Check
+        out the docs on{" "}
         <a
           href="https://www.postgresql.org/about/featurematrix/detail/unique-nulls-not-distinct/"
           target="_blank"
@@ -65,27 +71,31 @@ NULLS NOT DISTINCT;`}
         >
           Unique Nulls Not Distinct
         </a>
+        .
       </p>
     </>
   ),
   fr: (
     <>
       <p>
-        Je viens de tomber sur un cas un peu piégeux. (une heure à chercher what
-        was happening) Mon <code>ON CONFLICT DO UPDATE</code> ne détectait pas
-        les doublons alors que j'avais bien une contrainte d'unicité.
+        Je viens de brûler une honteuse heure de ma précieuse existence sur un
+        cas "impossible". Mon <code>ON CONFLICT DO UPDATE</code> passait
+        royalement à côté de doublons évidents alors que j'avais bétonné ma
+        table avec une contrainte d'unicité.
       </p>
 
-      <h2>Le truc</h2>
+      <h2>Le Dénouement</h2>
       <p>
-        Par défaut, PostgreSQL considère que <code>NULL ≠ NULL</code>. Du coup,
-        deux lignes avec <code>(valeur, NULL)</code> ne sont pas vues comme des
-        doublons.
+        Le piège est là : par défaut, la philosophie de PostgreSQL c'est que{" "}
+        <code>NULL ≠ NULL</code>. C'est à dire que si vous lui présentez deux
+        lignes <code>(valeur, NULL)</code>, il va vous soutenir mordicus que ce
+        n'est pas la même chose. Exit la notion de doublons !
       </p>
 
-      <h2>La solution</h2>
+      <h2>La Formule Magique</h2>
       <p>
-        Ajouter <code>NULLS NOT DISTINCT</code> à l'index unique :
+        Pour éviter de vous arracher les cheveux, il suffit d'ajouter
+        l'incantation magique <code>NULLS NOT DISTINCT</code> à l'index unique :
       </p>
 
       <pre>
@@ -97,12 +107,14 @@ NULLS NOT DISTINCT;`}
       </pre>
 
       <p>
-        Comme ça, PostgreSQL traite les NULL comme égaux pour la vérification
-        d'unicité, et les upserts fonctionnent comme attendu.
+        Et hop, PostgreSQL accepte enfin qu'un vide ait la même saveur qu'un
+        autre vide lors de la vérification d'unicité. Résultat : vos upserts
+        re-fonctionnent de nouveau comme par magie.
       </p>
 
       <p className="highlight">
-        À noter : Dispo depuis PostgreSQL 15{" "}
+        Pro tip : ce petit sauveur de vie est dispo depuis PostgreSQL 15. Jetez
+        un œil aux docs :{" "}
         <a
           href="https://www.postgresql.org/about/featurematrix/detail/unique-nulls-not-distinct/"
           target="_blank"

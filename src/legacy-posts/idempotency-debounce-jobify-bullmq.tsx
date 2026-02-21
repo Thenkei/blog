@@ -21,21 +21,21 @@ export const content = {
   en: (
     <>
       <p>
-        After we stabilized streaming exports, the next bottleneck was not
-        throughput. It was queue noise: repeated triggers for the same entity,
-        duplicate jobs, and inconsistent retry behavior under bursts.
+        After we successfully managed to stop our streaming exports from melting
+        the servers, we hit the next final boss: queue noise. I'm talking about
+        repeated triggers for the exact same entity, mysterious duplicate jobs,
+        and totally chaotic retry behavior every time traffic spiked.
       </p>
 
       <p>
-        This is where idempotency and debounce became first-class concerns. We
-        kept BullMQ, but added a strict <code>jobify</code> contract around job
+        This is where idempotency and debounce had to become first-class
+        citizens instead of "nice-to-haves." We kept BullMQ, but wrapped it in a
+        ruthless <code>jobify</code> contract to restore sanity to our job
         creation and worker execution.
       </p>
 
       <p className="highlight">Series: Async Workloads at Scale (Part 3/3)</p>
-      <p>
-        This post closes a 3-part series:
-      </p>
+      <p>This post closes a 3-part series:</p>
       <ul>
         <li>
           Part 1 -{" "}
@@ -49,9 +49,7 @@ export const content = {
             Jobify + BullMQ + workers + queues in a NestJS architecture
           </a>
         </li>
-        <li>
-          Part 3 (current) - Idempotency and debounce strategy design.
-        </li>
+        <li>Part 3 (current) - Idempotency and debounce strategy design.</li>
       </ul>
 
       <p className="highlight">
@@ -59,7 +57,7 @@ export const content = {
         Debounce answers "when should we actually execute under trigger storms?"
       </p>
 
-      <h2>Start from NestJS, then harden</h2>
+      <h2>Start from NestJS, then harden (Because out-of-the-box is a trap)</h2>
       <p>
         In a typical NestJS setup, jobs are added directly through
         <code>@InjectQueue</code>. Good for bootstrap speed, weak for
@@ -133,7 +131,8 @@ export const content = {
       <h2>2) reschedule</h2>
       <p>
         Used in <code>cloud-synchronize-data-service.ts</code>. If a delayed job
-        already exists, delay is pushed forward instead of enqueuing another job.
+        already exists, delay is pushed forward instead of enqueuing another
+        job.
       </p>
 
       <pre>
@@ -155,8 +154,8 @@ export const content = {
 
       <h2>Critical nuance: payload freshness</h2>
       <p>
-        Both debounce modes can keep the original queued payload if a job already
-        exists for the same key. If later triggers contain semantically
+        Both debounce modes can keep the original queued payload if a job
+        already exists for the same key. If later triggers contain semantically
         different arguments, you may execute stale data.
       </p>
 
@@ -185,7 +184,7 @@ export const content = {
         </li>
       </ul>
 
-      <h2>Failure modes and guardrails</h2>
+      <h2>Failure modes (And how to not trigger pagerduty)</h2>
       <table>
         <thead>
           <tr>
@@ -226,28 +225,16 @@ export const content = {
       </p>
 
       <ul>
-        <li>
-          debounce reduces noise before execution;
-        </li>
-        <li>
-          sequential ensures processing order during execution.
-        </li>
+        <li>debounce reduces noise before execution;</li>
+        <li>sequential ensures processing order during execution.</li>
       </ul>
 
       <h2>Observability signals to add on day one</h2>
       <ul>
-        <li>
-          enqueue attempts vs accepted jobs (dedupe ratio),
-        </li>
-        <li>
-          delay extension count for rescheduled jobs,
-        </li>
-        <li>
-          job duration p50/p95/p99 per processor,
-        </li>
-        <li>
-          queue depth split by waiting/delayed/active/failed.
-        </li>
+        <li>enqueue attempts vs accepted jobs (dedupe ratio),</li>
+        <li>delay extension count for rescheduled jobs,</li>
+        <li>job duration p50/p95/p99 per processor,</li>
+        <li>queue depth split by waiting/delayed/active/failed.</li>
       </ul>
 
       <h2>Decision guide: time-frame or reschedule?</h2>
@@ -257,8 +244,8 @@ export const content = {
           where exact latest trigger time is not critical.
         </li>
         <li>
-          <strong>reschedule:</strong> execute after quiet period, where the work
-          should happen only when changes stop arriving.
+          <strong>reschedule:</strong> execute after quiet period, where the
+          work should happen only when changes stop arriving.
         </li>
       </ul>
 
@@ -284,21 +271,23 @@ export const content = {
   fr: (
     <>
       <p>
-        Apres la stabilisation des exports stream, le prochain probleme n'etait
-        pas le debit mais le bruit en queue: triggers repetes pour la meme
-        entite, doublons de jobs et comportements de retry non homoges.
+        Après avoir réussi à empêcher nos exports stream de faire fondre les
+        serveurs, le boss final suivant n'était pas le débit, mais le bruit
+        absolu dans les queues : des triggers répétés frénétiquement pour la
+        même entité, des doublons de jobs venus de nulle part, et des retrys
+        chaotiques en cas de pic de charge.
       </p>
 
       <p>
-        C'est la que idempotence et debounce deviennent des sujets de premier
-        plan. BullMQ reste en place, mais avec un contrat
-        <code>jobify</code> autour de la creation et de l'execution des jobs.
+        C'est exactement là que l'idempotence et le debounce devaient cesser
+        d'être des options "sympas à avoir". BullMQ est resté en place, mais
+        nous lui avons imposé un contrat
+        <code>jobify</code> strict et autoritaire pour encadrer la création et
+        l'exécution des jobs.
       </p>
 
       <p className="highlight">Serie: Async Workloads at Scale (Partie 3/3)</p>
-      <p>
-        Ce post clot une serie en 3 parties :
-      </p>
+      <p>Ce post clot une serie en 3 parties :</p>
       <ul>
         <li>
           Partie 1 -{" "}
@@ -312,9 +301,7 @@ export const content = {
             Jobify + BullMQ + workers + queues dans une architecture NestJS
           </a>
         </li>
-        <li>
-          Partie 3 (courante) - conception idempotence et debounce.
-        </li>
+        <li>Partie 3 (courante) - conception idempotence et debounce.</li>
       </ul>
 
       <p className="highlight">
@@ -322,7 +309,10 @@ export const content = {
         choisir quand executer sous tempete d'evenements.
       </p>
 
-      <h2>Point de depart NestJS, puis durcissement</h2>
+      <h2>
+        Point de départ NestJS, puis durcissement (Car les tutos de base sont un
+        piège)
+      </h2>
       <p>
         Le pattern classique NestJS via <code>@InjectQueue</code> est rapide a
         mettre en place, mais fragile quand le nombre de jobs augmente.
@@ -347,9 +337,7 @@ export const content = {
         <li>
           registration des processors uniquement sur les instances worker.
         </li>
-        <li>
-          un seul chemin d'enqueue et de monitoring pour tous les jobs.
-        </li>
+        <li>un seul chemin d'enqueue et de monitoring pour tous les jobs.</li>
       </ul>
 
       <h2>Deux modes debounce, deux comportements</h2>
@@ -387,18 +375,14 @@ export const content = {
           schema de cle deterministe
           <code>{`<job-name>:<tenant>:<entity>:<time-range>:<mode>`}</code>;
         </li>
-        <li>
-          eviter timestamps aleatoires et UUIDs dans makeJobId;
-        </li>
-        <li>
-          trier/canonicaliser les listes avant composition de cle;
-        </li>
-        <li>
-          toujours inclure le scope tenant/environment.
-        </li>
+        <li>eviter timestamps aleatoires et UUIDs dans makeJobId;</li>
+        <li>trier/canonicaliser les listes avant composition de cle;</li>
+        <li>toujours inclure le scope tenant/environment.</li>
       </ul>
 
-      <h2>Modes de panne et garde-fous</h2>
+      <h2>
+        Modes de panne (Et comment éviter de réveiller l'équipe d'astreinte)
+      </h2>
       <table>
         <thead>
           <tr>
@@ -440,7 +424,8 @@ export const content = {
       <h2>Guide de choix</h2>
       <ul>
         <li>
-          <strong>time-frame:</strong> une execution par fenetre en cas de burst.
+          <strong>time-frame:</strong> une execution par fenetre en cas de
+          burst.
         </li>
         <li>
           <strong>reschedule:</strong> execution apres une periode de calme.
@@ -456,7 +441,8 @@ export const content = {
       <ul>
         <li>
           Besoin de fiabilite stream en premier ? Lire{" "}
-          <a href="?post=nodejs-stream-backpressure-history-export">Partie 1</a>.
+          <a href="?post=nodejs-stream-backpressure-history-export">Partie 1</a>
+          .
         </li>
         <li>
           Besoin du contrat queue/worker ensuite ? Lire{" "}

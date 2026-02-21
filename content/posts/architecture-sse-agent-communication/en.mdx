@@ -1,0 +1,79 @@
+---
+title: "Breaking Through Firewalls: Why We Chose Server-Sent Events (SSE) for Agent Communication"
+subtitle: "How to push commands to a server you don't control, without causing a security incident."
+summary: "The architectural choices, joys, and sheer traumas of maintaining thousands of open HTTP connections across corporate firewalls."
+publishedAt: "2026-02-22"
+readTimeMinutes: 8
+tags:
+  - architecture
+  - networking
+  - sse
+  - websockets
+  - security
+---
+
+## The Ultimate SaaS Dilemma
+
+When building a centralized control plane (like we did at Forest Admin), you eventually hit the hardest networking problem in B2B software: **How do we literally push commands to a customer's database?**
+
+The immediate, naive answer is usually, "Just expose an API endpoint on the customer's end, and our server will call it!"
+
+This is exactly when the customer's CISO starts laughing hysterically. Opening inbound ports on a corporate firewall to the public internet so a third-party SaaS can poke around is a monumental, unquestionable _No_.
+
+If you can't push inbound, you have two remaining options: Polling and Outbound Streaming.
+
+## The Option Everyone Hates: Polling
+
+"Fine," you say. "If we can't call the agent, the agent can call us."
+
+The agent wakes up every 5 seconds and asks our central server:
+
+- Agent: "Got any new config updates?"
+- Server: "No."
+- _(5 seconds later)_
+- Agent: "Got any new config updates?"
+- Server: "Still no."
+
+Not only does this introduce a guaranteed 5-second latency to UI updates, but multiplied by thousands of agents, your server is now fighting off a massive, self-inflicted DDoS attack just to say "No" 99.9% of the time.
+
+## Enter the Hero: Server-Sent Events (SSE)
+
+We needed a way for the central server to push data instantly, but initiated entirely by an outbound connection from the customer's server. Enter **Server-Sent Events (SSE)**.
+
+Unlike WebSockets (which require a full protocol upgrade, custom load balancer configurations, and often get chewed up by aggressive proxies), SSE is just plain HTTP.
+
+1. The customer's agent makes a standard outbound HTTPS GET request to our server. (Firewalls _love_ outbound HTTPS).
+2. The server responds with `Content-Type: text/event-stream`.
+3. The server simply... _never closes the connection_.
+
+We keep the pipe open. Whenever an event happens on the control plane (like a configuration change or a command trigger), our server pushes a payload down that already-open HTTP pipe.
+
+It is elegant. It is lightweight. It circumvents inbound firewall rules perfectly because the connection originated from inside the house.
+
+## The Traumatic Reality of Long-Lived Connections
+
+If you think keeping an HTTP connection open indefinitely over the public internet is easy, you have not spent enough time debugging load balancers at 3 AM.
+
+Here is what happens when you decide to hold thousands of connections open:
+
+### 1. The "Silent Killer" (TCP Half-Open Connections)
+
+Corporate proxies and load balancers despise idle connections. If no data travels across the wire for 60 seconds, a router somewhere in the middle will silently drop the connection to save memory. Neither the agent nor our server receives a generic TCP FIN or RST packet.
+
+We think the connection is open. The agent thinks the connection is open. Both sides are staring at a dead phone line.
+**The Fix:** We had to implement aggressive application-level heartbeats. If the server doesn't send "ping" every 30 seconds, it's dead.
+
+### 2. The Thundering Herd (Reconnect Storms)
+
+What happens when we deploy a new version of our central server? We gracefully drain connections. Suddenly, thousands of agents realize they are disconnected. In panic, they all immediately try to reconnect at the exact same millisecond. Your CPU melts.
+**The Fix:** Jittered exponential backoff. Agents must reconnect randomly within a window of 1 to 10 seconds, scaling up if the server reports capacity issues.
+
+### 3. File Descriptor Exhaustion
+
+Handling 50,000 open SSE requests means holding 50,000 open file descriptors on your load balancers and Node.js processes. This requires tuning OS limits (`ulimit -n`) and tweaking Node's HTTP max sockets, otherwise incoming connections simply hang and bounce.
+
+## Conclusion
+
+SSE is phenomenal. It gives you the real-time push capabilities of WebSockets but masquerades as boring, firewall-friendly HTTP traffic.
+
+But it comes with a strict contract: your agent code must be written like a paranoid survivor in the wasteland. Assuming the connection will drop, assuming the network is hostile, and assuming the server will occasionally vanish without a trace are the only ways to build a bulletproof streaming architecture.

@@ -19,148 +19,155 @@ export const content = {
   en: (
     <>
       <p>
-        It's 2026, and the "AI coding assistant" is no longer a novelty—it's the
-        oxygen in the room. I've spent the last few weeks trialing the big
-        three: <strong>Antigravity</strong>, <strong>Cursor</strong>, and{" "}
+        It's 2026, and the "AI coding assistant" is no longer a cute
+        novelty—it's basically our oxygen. I've spent the last few weeks in the
+        trenches trialing the big three heavyweights:{" "}
+        <strong>Antigravity</strong>, <strong>Cursor</strong>, and{" "}
         <strong>Claude Code</strong> (both the CLI and the IDE integration). The
-        verdict? They are all incredible. Seriously. If you told me three years
-        ago I'd have tools this capable, I would have laughed.
+        verdict? They are all absolutely absurd. If you told me three years ago
+        I'd have tools this ridiculously capable, I would have asked what you
+        were smoking.
       </p>
 
       <p>
-        But "incredible" doesn't help me decide where to put my subscription
-        money. The real question is:{" "}
-        <em>How do they actually impact our work?</em>
+        But "absurd" doesn't help me justify my expanding SaaS budget. The real
+        question is:{" "}
+        <em>How do they actually impact our real-world spaghetti code?</em>
       </p>
 
       <h2>The Value Proposition: Quantifying the Unquantifiable</h2>
       <p>
-        We're past the point of "this one writes better boilterplate." Now we're
-        in the realm of agentic behavior. Quantifying the value of these tools
-        is tricky. Is it lines of code per hour? Bugs prevented? Or is it
-        something softer, like "mental energy conserved"?
+        We're way past the "look, it can write a sorting algorithm!" phase. Now
+        we're in the realm of autonomous agents. How do you measure their value?
+        Lines of code generated per hour? (Please no.) Bugs preemptively caught?
+        Or is it something softer, like "brain cells conserved per sprint"?
       </p>
 
       <p>
-        To me, the differentiator is how they handle <strong>context</strong>{" "}
-        and <strong>intent</strong>. Antigravity feels like it's
-        pair-programming with a senior engineer who knows the whole codebase.
-        Cursor is the speed demon, predicting my next move before I even make
-        it. Claude Code offers this deep, thoughtful analysis that feels like a
-        code review from a patient mentor.
+        To me, the core differentiator is how they digest{" "}
+        <strong>context</strong> and infer your true <strong>intent</strong>{" "}
+        (even when you barely know it yourself). Antigravity feels like
+        pair-programming with that 10x staff engineer who actually read the
+        whole monorepo. Cursor is the caffeinated speed demon, predicting your
+        next move before your fingers hit the keyboard. Claude Code offers that
+        deep, thoughtful code review that feels like a patient mentor gently
+        asking why you wrote a O(n^3) loop.
       </p>
 
       <p className="highlight">
-        The profound shift isn't in typing faster; it's in thinking bigger.
+        The profound shift isn't in typing faster; it's in thinking bigger, with
+        fewer mental roadblocks.
       </p>
 
-      <h2>The Long-Term Angle: Google's Hardware Moat</h2>
+      <h2>The Under-the-Hood Angle: Google's Hardware Moat</h2>
       <p>
-        Here's an angle I can't shake: <strong>Infrastructure</strong>. We often
-        look at the software layer, but the models running these agents are
-        hungry. They need compute. Massive, specialized, localized compute.
-      </p>
-
-      <p>
-        This is where I think Google has a tremendous, almost unfair advantage.
-        They own the hardware (TPUs) and the datacenters. They control the atoms
-        that move the bits. In the long run, as models get larger and context
-        windows effectively become infinite, the cost of inference will be the
-        defining factor.
+        Here's a spicy take I can't shake: <strong>Infrastructure</strong>. We
+        all obsess over the UX, but the LLMs powering these agents are ravenous
+        beasts. They crave compute. Massive, specialized, and hyper-localized
+        compute.
       </p>
 
       <p>
-        If Google can run a model 10x larger for 10% of the cost because they
-        own the vertical stack, does that make them the inevitable winner?
-        Maybe. Does it mean we should ignore the others? Absolutely not.
-        Innovation often comes from constraints, and the competition is fierce.
+        This is where Google is sitting on a terrifyingly massive moat. They
+        actually own the silicon (TPUs) and the datacenters that house them. In
+        the long run, as context windows stretch to infinity and models get
+        wider, the sheer cost of inference will dictate who survives.
       </p>
 
-      <h2>Excited for 2026</h2>
       <p>
-        One thing is sure: I've tried all three, and the results are
-        mind-blowing. We are standing at the precipice of a new era in software
-        engineering. I am genuinely excited to see what the rest of 2026 brings.
-        If the models improve this much in another year, we won't just be
-        writing code; we'll be conducting symphonies of logic.
+        If Google can spin up a model that’s 10x larger for 10% of the cost just
+        because they control the entire vertical stack, are they the inevitable
+        kings of the hill? Maybe. Does it mean we count out the scrappy
+        innovators? Absolutely not. Constraints breed incredible engineering,
+        and the dogfight right now is glorious.
+      </p>
+
+      <h2>Buckle Up for 2026</h2>
+      <p>
+        One thing is certain: having test-driven all three, the results are
+        legitimately mind-blowing. We are standing on the edge of a fundamental
+        shift in software architecture. I am genuinely hyped to see what the
+        rest of 2026 cooks up. If the compute curves keep bending like this, we
+        won't be "writing" code anymore; we'll be conducting symphonies of
+        logic.
       </p>
     </>
   ),
   fr: (
     <>
       <p>
-        Nous sommes en 2026, et l'assistant de code IA n'est plus une nouveauté,
-        c'est l'oxygène de la pièce. J'ai passé les dernières semaines à tester
-        les trois grands : <strong>Antigravity</strong>, <strong>Cursor</strong>{" "}
-        et <strong>Claude Code</strong> (à la fois le CLI et l'intégration IDE).
-        Le verdict ? Ils sont tous incroyables. Sérieusement. Si vous m'aviez
-        dit il y a trois ans que j'aurais des outils aussi performants, j'aurais
-        ri.
+        Nous sommes en 2026, et l'assistant de code IA n'est plus un simple
+        jouet, c'est notre oxygène. J'ai passé les dernières semaines dans les
+        tranchées à tester les trois titans : <strong>Antigravity</strong>,{" "}
+        <strong>Cursor</strong> et <strong>Claude Code</strong> (le CLI et
+        l'IDE). Le verdict ? Ils sont tous dingues. Sérieusement. Si vous
+        m'aviez dit il y a trois ans que j'aurais à disposition des outils d'une
+        telle puissance, je vous aurais demandé ce que vous aviez fumé.
       </p>
 
       <p>
-        Mais "incroyable" ne m'aide pas à décider où placer mon argent
-        d'abonnement. La vraie question est :{" "}
-        <em>Comment impactent-ils réellement notre travail ?</em>
+        Mais "dingue" ne m'aide pas vraiment à justifier mon budget SaaS qui
+        explose. La vraie question, c'est :{" "}
+        <em>
+          Quel est leur impact réel sur notre code plat de nouilles quotidien ?
+        </em>
       </p>
 
-      <h2>La proposition de valeur : Quantifier l'inquantifiable</h2>
+      <h2>La proposition de valeur : Mesurer l'immesurable</h2>
       <p>
-        Nous avons dépassé le stade du "celui-ci écrit mieux le code répétitif".
-        Nous sommes maintenant dans le domaine du comportement agentique.
-        Quantifier la valeur de ces outils est délicat. S'agit-il de lignes de
-        code par heure ? De bugs évités ? Ou est-ce quelque chose de plus
-        immatériel, comme "l'économie d'énergie mentale" ?
+        On a largué l'époque du "regarde, ça pond un algorithme de tri tout seul
+        !". Nous sommes dans l'ère des agents autonomes. Comment chiffrer ça ?
+        En lignes de code générées à l'heure ? (Pitié non). En bugs évités de
+        justesse ? Ou bien en "neurones épargnés par sprint" ?
       </p>
 
       <p>
-        Pour moi, le facteur de différenciation réside dans la manière dont ils
-        gèrent le <strong>contexte</strong> et <strong>l'intention</strong>.
-        Antigravity donne l'impression de faire de la programmation en binôme
-        avec un ingénieur senior qui connaît toute la base de code. Cursor est
-        le démon de la vitesse, prédisant mon prochain mouvement avant même que
-        je ne le fasse. Claude Code offre cette analyse profonde et réfléchie
-        qui ressemble à une revue de code d'un mentor patient.
+        Pour moi, la ligne de fracture se situe dans leur façon de digérer le{" "}
+        <strong>contexte</strong> et de deviner votre <strong>intention</strong>
+        . Antigravity donne l'impression de pair-programmer avec le Staff
+        Engineer mythique qui a lu le monorepo de A à Z. Cursor est le démon
+        caféiné de la vitesse, qui crache la ligne d'après avant même que vous
+        n'y pensiez. Claude Code, lui, vous offre ces revues de code ultra
+        posées, comme un mentor qui vous demande doucement pourquoi vous avez
+        pondu cette boucle en O(n^3).
       </p>
 
       <p className="highlight">
-        Le changement profond n'est pas d'écrire plus vite, mais de penser plus
-        grand.
+        Le vrai changement systémique ne réside pas dans la vitesse de frappe :
+        c'est l'échelle à laquelle on peut réfléchir.
       </p>
 
-      <h2>L'angle à long terme : La douve matérielle de Google</h2>
+      <h2>Sous le capot : La forteresse matérielle de Google</h2>
       <p>
-        Voici un aspect dont je ne peux me défaire :{" "}
-        <strong>L'infrastructure</strong>. Nous regardons souvent la couche
-        logicielle, mais les modèles qui font tourner ces agents sont affamés.
-        Ils ont besoin de calcul. Un calcul massif, spécialisé et localisé.
-      </p>
-
-      <p>
-        C'est là que je pense que Google a un avantage considérable, presque
-        injuste. Ils possèdent le matériel (TPU) et les centres de données. Ils
-        contrôlent les atomes qui déplacent les bits. À long terme, alors que
-        les modèles s'agrandissent et que les fenêtres de contexte deviennent
-        effectivement infinies, le coût de l'inférence sera le facteur
-        déterminant.
+        Voilà une théorie dont je n'arrive pas à me défaire :{" "}
+        <strong>L'infrastructure</strong>. On bloque souvent sur la couche
+        logicielle, mais ces modèles sont des bêtes assoiffées de calcul. Du
+        calcul en masse, hyper spécialisé et localisé.
       </p>
 
       <p>
-        Si Google peut faire tourner un modèle 10 fois plus grand pour 10 % du
-        coût parce qu'ils possèdent la pile verticale, cela les rend-ils
-        inévitables gagnants ? Peut-être. Cela signifie-t-il que nous devrions
-        ignorer les autres ? Absolument pas. L'innovation vient souvent des
-        contraintes, et la concurrence est féroce.
+        C'est là, je pense, que Google possède un avantage terrifiant de la
+        taille d'une douve. Ils maîtrisent le hardware (les fameux TPUs) et les
+        datacenters. Ils gèrent la matière au service des bits. Dans le futur,
+        vu que les fenêtres de contexte s'étirent vers l'infini, le coût pur de
+        l'inférence va décider de qui vivra ou mourra.
       </p>
 
-      <h2>Enthousiaste pour 2026</h2>
       <p>
-        Une chose est sûre : j'ai essayé les trois, et les résultats sont
-        époustouflants. Nous sommes au bord d'une nouvelle ère dans l'ingénierie
-        logicielle. Je suis sincèrement impatient de voir ce que la suite de
-        2026 nous réserve. Si les modèles s'améliorent autant en une seule
-        année, nous ne ferons plus qu'écrire du code ; nous dirigerons des
-        symphonies de logique.
+        Si Google peut faire tourner des modèles 10x plus gros pour 10 % du prix
+        sous prétexte qu'ils détiennent toute la chaîne verticale, est-ce que ça
+        en fait les inévitables rois du monde ? Peut-être. Est-ce qu'il faut
+        enterrer les concurrents agressifs ? Pas du tout. La contrainte force
+        l'innovation, et le combat actuel est magnifique à regarder.
+      </p>
+
+      <h2>Attachez vos ceintures pour 2026</h2>
+      <p>
+        Une chose est gravée dans le marbre : avoir testé les trois m'a retourné
+        le cerveau. Nous sommes sur le bord d'une fracture cataclysmique en
+        ingénierie logicielle. Et je suis honnêtement surexcité de voir ce que
+        la fin d'année 2026 nous réserve. Vu la courbe, bientôt on "n'écrira"
+        plus : on deviendra de simples chefs d'orchestre de la logique.
       </p>
     </>
   ),

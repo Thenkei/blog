@@ -55,6 +55,11 @@ describe("routing and UX", () => {
     renderApp("/en");
     await screen.findByText(/Latest Posts/i);
 
+    const [firstPostCard] = await screen.findAllByRole("link", { name: / - Read post/i });
+    const firstCardLabel = firstPostCard?.getAttribute("aria-label") ?? "";
+    const expectedPostTitle = firstCardLabel.replace(/\s*-\s*Read post\s*$/i, "");
+    expect(expectedPostTitle.length).toBeGreaterThan(0);
+
     window.scrollTo = vi.fn();
     const user = userEvent.setup();
     await user.keyboard("j");
@@ -63,7 +68,7 @@ describe("routing and UX", () => {
     expect(
       await screen.findByRole("heading", {
         level: 1,
-        name: /2017: When We Built the Future of Eyewear in Less Than a Second/i,
+        name: expectedPostTitle,
       }),
     ).toBeInTheDocument();
   });

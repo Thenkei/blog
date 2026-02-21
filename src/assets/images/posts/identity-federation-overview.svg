@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 780" role="img" aria-labelledby="title desc">
+  <title id="title">Identity federation overview</title>
+  <desc id="desc">Forest Admin acts as service provider upstream and identity provider downstream.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f6f8fb"/>
+      <stop offset="100%" stop-color="#eef3ff"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+      <path d="M0,0 L12,4 L0,8 z" fill="#355070"/>
+    </marker>
+    <style>
+      .title { font: 700 34px 'Segoe UI', Roboto, Arial, sans-serif; fill: #102a43; }
+      .subtitle { font: 500 18px 'Segoe UI', Roboto, Arial, sans-serif; fill: #334e68; }
+      .boundary { fill: none; stroke: #6b7280; stroke-width: 2; stroke-dasharray: 10 8; rx: 20; }
+      .boundaryLabel { font: 600 18px 'Segoe UI', Roboto, Arial, sans-serif; fill: #475569; }
+      .node { stroke-width: 2; rx: 16; ry: 16; }
+      .user { fill: #fef3c7; stroke: #d97706; }
+      .forest { fill: #dcfce7; stroke: #15803d; }
+      .idp { fill: #e0e7ff; stroke: #4338ca; }
+      .agent { fill: #e0f2fe; stroke: #0369a1; }
+      .nodeTitle { font: 700 22px 'Segoe UI', Roboto, Arial, sans-serif; fill: #0f172a; }
+      .nodeText { font: 500 16px 'Segoe UI', Roboto, Arial, sans-serif; fill: #334155; }
+      .flow { stroke: #355070; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .flowLabel { font: 600 15px 'Segoe UI', Roboto, Arial, sans-serif; fill: #1e293b; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="780" fill="url(#bg)"/>
+  <text x="56" y="64" class="title">Identity Federation Topology</text>
+  <text x="56" y="92" class="subtitle">Upstream login federation and downstream delegated access for agents</text>
+
+  <rect x="452" y="108" width="900" height="248" class="boundary"/>
+  <text x="472" y="136" class="boundaryLabel">Upstream trust boundary: Forest as SP/RP</text>
+
+  <rect x="452" y="416" width="900" height="260" class="boundary"/>
+  <text x="472" y="444" class="boundaryLabel">Downstream trust boundary: Forest as IDP</text>
+
+  <rect x="84" y="302" width="250" height="124" class="node user"/>
+  <text x="108" y="344" class="nodeTitle">User</text>
+  <text x="108" y="370" class="nodeText">Admin console session</text>
+
+  <rect x="508" y="278" width="346" height="178" class="node forest"/>
+  <text x="532" y="324" class="nodeTitle">Forest Admin Server</text>
+  <text x="532" y="352" class="nodeText">SP upstream, IDP downstream</text>
+  <text x="532" y="378" class="nodeText">Policy + token translation boundary</text>
+
+  <rect x="1018" y="136" width="304" height="140" class="node idp"/>
+  <text x="1042" y="180" class="nodeTitle">Upstream IDP</text>
+  <text x="1042" y="208" class="nodeText">OIDC / OAuth2 / SAML</text>
+
+  <rect x="1018" y="500" width="304" height="140" class="node agent"/>
+  <text x="1042" y="544" class="nodeTitle">Agent (SP/RS)</text>
+  <text x="1042" y="572" class="nodeText">Validates Forest-issued tokens</text>
+
+  <path d="M334 364 L508 364" class="flow"/>
+  <text x="362" y="346" class="flowLabel">1. User opens admin app</text>
+
+  <path d="M854 330 C924 286 960 242 1018 204" class="flow"/>
+  <text x="860" y="268" class="flowLabel">2a. Auth request (state, nonce)</text>
+
+  <path d="M1018 246 C958 288 924 324 854 380" class="flow"/>
+  <text x="864" y="408" class="flowLabel">2b. Assertion or ID token</text>
+
+  <path d="M854 420 L1018 568" class="flow"/>
+  <text x="862" y="474" class="flowLabel">3. Forest-minted scoped token</text>
+
+  <path d="M1018 612 C940 616 900 610 854 548" class="flow"/>
+  <text x="858" y="604" class="flowLabel">4. Agent API response</text>
+</svg>

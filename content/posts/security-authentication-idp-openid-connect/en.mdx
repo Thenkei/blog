@@ -1,0 +1,219 @@
+---
+title: "Security and authentication with identity federation (OpenID Connect)"
+subtitle: "Forest Admin Server as upstream SP and downstream IDP for agents."
+summary: "A production breakdown of OIDC, OAuth2 bearer tokens, and SAML assertion flows when one platform is both service provider and identity provider."
+publishedAt: "2026-02-11"
+readTimeMinutes: 12
+tags:
+  - security
+  - authentication
+  - oidc
+  - oauth2
+  - saml
+  - identity-federation
+---
+
+import federationOverviewDiagram from "../../../src/assets/images/posts/identity-federation-overview.svg";
+import oidcAuthorizationCodeFlowDiagram from "../../../src/assets/images/posts/oidc-authorization-code-flow.svg";
+import samlRfc7522BridgeFlowDiagram from "../../../src/assets/images/posts/saml-rfc7522-bridge-flow.svg";
+import downstreamAgentValidationFlowDiagram from "../../../src/assets/images/posts/downstream-agent-validation-flow.svg";
+
+## Context (aka "Who Do You Trust?")
+
+At Forest Admin, our architecture essentially forced us into a massive trust exercise. We had three distinct boundaries:
+
+1. **User to Forest Admin Server** (The "Are you really Bob from Accounting?" boundary, via SAML, OAuth, or simple password + 2FA)
+2. **Frontend to Customer-Hosted Agent** (The "Forest Server vouches for me, please give me the data" boundary)
+3. **Customer-Hosted Agent to Forest Admin Server** (The "I am the legitimate agent, here is my environment secret" boundary)
+
+To make things significantly spicier, **we didn't host the agents**. They lived comfortably behind our customers' corporate firewalls. You might wonder, "How does a SaaS server push commands to a server hiding behind a firewall?" The answer is Server-Sent Events (SSE). The agent opens an outbound connection, and we push data down that pipe. (But honestly, the sheer joy and trauma of maintaining SSE connections across thousands of firewalls deserves [a dedicated article of its own](../architecture-sse-agent-communication/en.mdx).)
+
+This topology created a wonderfully complex dual-role setup:
+
+- Forest Admin Server had to act as a **Service Provider (SP)** toward external Identity Providers (enterprise SAML behemoths like Okta or Azure AD, and OAuth2/OIDC providers like Google).
+- Simultaneously, Forest Admin Server had to act as an **Identity Provider (IDP)** toward downstream agents. The user is authenticated on the frontend, but to fetch data, the frontend needs a token to prove to the customer-hosted agent that the user is legit. The agent trusts these Forest-issued identity artifacts.
+
+This split brain is a very common pattern in SaaS control planes. It is also the exact spot where authentication architectures dramatically collapse if you blur the protocol boundaries. Let's dig in.
+
+<figure className="post-visual">
+  <img
+    src={federationOverviewDiagram}
+    alt="Identity federation overview showing Forest Admin Server as SP toward upstream identity providers and as IDP toward agents."
+    loading="lazy"
+    decoding="async"
+  />
+  <figcaption>
+    End-to-end topology: upstream federation into Forest, downstream delegated
+    access from Forest to agents.
+  </figcaption>
+</figure>
+
+## Why the double-agent model matters
+
+If you look at this setup and think, "Let's just flatten this into one 'generic auth' layer to save time!", please step away from the keyboard. Doing so immediately loses control of:
+
+- audience isolation (who is this token actually for?)
+- replay protection (can an attacker submit this twice?)
+- token provenance (where did this even come from?)
+- tenant-level policy enforcement
+- operational debugging during a 3 AM incident
+
+The only sane model is federated: **upstream authentication is NOT downstream authorization**. Forest Admin Server acts as the ultimate bouncer, translating identity context across wildly different protocols and trust domains.
+
+## Flow 1: Upstream user authentication (Forest as SP)
+
+Forest Admin initiates login with an upstream IdP.
+
+- With **SAML**, Forest acts as SP and consumes a signed SAML assertion.
+- With **OIDC**, Forest acts as RP/OAuth client and consumes ID token + access token (typically Authorization Code flow).
+
+<figure className="post-visual">
+  <img
+    src={oidcAuthorizationCodeFlowDiagram}
+    alt="OIDC authorization code sequence between browser, Forest Admin Server, and upstream OIDC provider."
+    loading="lazy"
+    decoding="async"
+  />
+  <figcaption>
+    OIDC upstream flow details: redirect, authorization code callback, token
+    exchange, and signature validation.
+  </figcaption>
+</figure>
+
+Core checks at this boundary:
+
+- issuer trust anchored by metadata and key material
+- strict audience / recipient validation
+- signed assertion / signed JWT validation
+- expiry, not-before, clock skew policy
+- nonce/state correlation
+- tenant mapping from trusted claims only
+
+This boundary answers: "Is this human user authenticated by an allowed upstream authority?"
+
+## Flow 2: Frontend to Agent Authentication (Forest as IDP)
+
+Once user identity and tenant context are established upstream, the frontend still needs to actually fetch data. But the data lives on the customer's infrastructure.
+
+Forest Admin Server issues downstream credentials (a token) to the frontend. The frontend presents this token directly to the customer-hosted agent.
+
+In this direction, Forest is the issuer. The agent is the relying party / resource server, validating the Forest-issued artifacts using public keys.
+
+Minimal downstream token contract:
+
+- `iss`: Forest Admin issuer identifier
+- `aud`: exact agent audience (not wildcard)
+- `sub`: stable principal identifier
+- `tenant_id`: explicit tenant scope
+- `iat`, `nbf`, `exp`: narrow lifetime
+- `jti`: replay tracking handle when needed
+- `scope` or permissions claims constrained to least privilege
+
+<figure className="post-visual">
+  <img
+    src={downstreamAgentValidationFlowDiagram}
+    alt="Downstream bearer token validation flow where Forest issues a token and the agent applies signature and claim checks before allow or deny."
+    loading="lazy"
+    decoding="async"
+  />
+  <figcaption>
+    Downstream enforcement path: every claim check is explicit, and the decision
+    is observable and auditable.
+  </figcaption>
+</figure>
+
+This boundary answers: "Can this frontend request call this specific customer-hosted agent in this tenant context?"
+
+_(Note: There is also the Agent-to-Server OIDC/Secret flow, where the agent uses an agent secret to authenticate itself to Forest Admin, but the heavy lifting of user identity sits on the boundaries above)._
+
+## RFC 6750 in practice: bearer token transport rules
+
+[`RFC 6750`](https://www.ietf.org/rfc/rfc6750.txt) defines bearer token usage. The practical implication is simple: bearer tokens are possession tokens; if leaked, they are usable.
+
+Controls that are mandatory, not optional:
+
+- transport only over TLS
+- use `Authorization: Bearer <token>` header, avoid query-string transport
+- short expiry with deterministic refresh paths
+- no token logs (ingress, app logs, traces, crash dumps)
+- token audience scoping and signature verification at the agent
+
+Bearer misuse is still one of the easiest ways to create cross-tenant impact in distributed admin planes.
+
+## OpenID Connect core implications
+
+[`OpenID Connect Core 1.0`](https://openid.net/specs/openid-connect-core-1_0.html) adds identity semantics on top of OAuth2.
+
+At architecture level, two mistakes cause recurring incidents:
+
+- treating any valid JWT as identity proof without checking intended audience and issuer
+- using access tokens as user profile documents instead of authorization artifacts
+
+For control-plane systems, keep the separation explicit:
+
+- ID token proves authentication event at the OIDC boundary
+- access token authorizes resource access at a specific audience
+- downstream Forest-to-agent token should be purpose-built for agent authorization
+
+## RFC 7522: SAML assertion profile in OAuth2 bridges
+
+[`RFC 7522`](https://datatracker.ietf.org/doc/html/rfc7522) specifies SAML 2.0 bearer assertion usage in OAuth2:
+
+- as an authorization grant
+- as a client authentication mechanism
+
+<figure className="post-visual">
+  <img
+    src={samlRfc7522BridgeFlowDiagram}
+    alt="SAML to OAuth2 bridge using RFC7522 where Forest validates an assertion and performs constrained token exchange."
+    loading="lazy"
+    decoding="async"
+  />
+  <figcaption>
+    RFC7522 bridge: validate upstream SAML assertion first, then exchange under
+    strict policy before minting downstream access.
+  </figcaption>
+</figure>
+
+This is important when bridging enterprise SAML to OAuth2/OIDC-style APIs. It lets a platform accept a SAML assertion from an upstream IdP and exchange it for OAuth2-compatible tokens under strict policy.
+
+Failure mode to avoid: blindly converting upstream assertions into downstream broad-scope bearer tokens without re-evaluating audience, tenant, and authorization policy.
+
+## Recommended trust pipeline
+
+1. Validate upstream artifact cryptographically (`SAML` or `OIDC`).
+2. Resolve tenant and principal with deterministic mapping rules.
+3. Apply authorization policy at Forest boundary.
+4. Mint a narrow-scope downstream token for one agent audience.
+5. Enforce replay/TTL constraints.
+6. Emit audit events for each identity translation step.
+
+This keeps provenance explicit and audit-friendly, which is mandatory in regulated environments.
+
+## Non-negotiable production controls
+
+- key rotation with overlap windows and deterministic `kid` usage
+- strict separation between authentication claims and authorization claims
+- per-tenant issuer/audience policy where possible
+- clock synchronization and explicit skew tolerances
+- incident-ready observability: auth failure reason codes, signature errors, claim mismatch metrics
+- immutable audit trail for token exchanges and assertion validations
+
+If you cannot explain exactly which upstream assertion produced which downstream token, your forensic posture is weak.
+
+## Closing
+
+The architecture is not "SAML vs OIDC vs OAuth2". It is a federation chain with explicit boundaries:
+
+- upstream identity proofing (Forest as SP/RP)
+- boundary policy enforcement
+- downstream delegated access (Forest as IDP for agents)
+
+That is the model that scales technically and operationally.
+
+## References
+
+- Forest Admin under-the-hood security notes: [Security & Privacy](https://docs.forestadmin.com/developer-guide-agents-nodejs/under-the-hood/security-privacy)
+- OAuth2 Bearer Token Usage: [RFC 6750](https://www.ietf.org/rfc/rfc6750.txt)
+- OpenID Connect Core 1.0: [OIDC Core](https://openid.net/specs/openid-connect-core-1_0.html)
+- SAML 2.0 Bearer Assertion Profiles for OAuth2: [RFC 7522](https://datatracker.ietf.org/doc/html/rfc7522)

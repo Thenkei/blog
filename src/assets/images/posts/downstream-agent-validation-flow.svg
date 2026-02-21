@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1420 820" role="img" aria-labelledby="title desc">
+  <title id="title">Downstream token validation flow</title>
+  <desc id="desc">Forest issues a scoped bearer token and the agent validates claim and signature checks before allow or deny.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#eff6ff"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+      <path d="M0,0 L12,4 L0,8 z" fill="#1e293b"/>
+    </marker>
+    <style>
+      .title { font: 700 34px 'Segoe UI', Roboto, Arial, sans-serif; fill: #111827; }
+      .subtitle { font: 500 18px 'Segoe UI', Roboto, Arial, sans-serif; fill: #334155; }
+      .node { stroke-width: 2; rx: 16; ry: 16; }
+      .forest { fill: #dcfce7; stroke: #15803d; }
+      .agent { fill: #e0f2fe; stroke: #0369a1; }
+      .audit { fill: #ede9fe; stroke: #6d28d9; }
+      .allow { fill: #ecfdf5; stroke: #059669; }
+      .deny { fill: #fef2f2; stroke: #dc2626; }
+      .boxTitle { font: 700 22px 'Segoe UI', Roboto, Arial, sans-serif; fill: #0f172a; }
+      .text { font: 500 15px 'Segoe UI', Roboto, Arial, sans-serif; fill: #334155; }
+      .check { font: 600 15px 'Segoe UI', Roboto, Arial, sans-serif; fill: #0f172a; }
+      .arrow { stroke: #1e293b; stroke-width: 2.8; fill: none; marker-end: url(#arrow); }
+      .arrowText { font: 600 14px 'Segoe UI', Roboto, Arial, sans-serif; fill: #1e293b; }
+      .tokenNote { fill: #ffffff; stroke: #64748b; stroke-width: 1.8; rx: 12; ry: 12; }
+      .tokenText { font: 500 14px 'Consolas', Menlo, Monaco, monospace; fill: #1f2937; }
+    </style>
+  </defs>
+
+  <rect width="1420" height="820" fill="url(#bg)"/>
+  <text x="52" y="62" class="title">Downstream Bearer Token Validation (RFC6750)</text>
+  <text x="52" y="90" class="subtitle">Forest issues; agent validates; decision is explicit and auditable</text>
+
+  <rect x="72" y="234" width="322" height="196" class="node forest"/>
+  <text x="96" y="278" class="boxTitle">Forest Admin (IDP)</text>
+  <text x="96" y="306" class="text">Mints short-lived JWT for one agent</text>
+  <text x="96" y="332" class="text">Includes tenant, scope, jti, exp</text>
+  <text x="96" y="358" class="text">Signed with rotating key set</text>
+
+  <rect x="496" y="190" width="420" height="308" class="node agent"/>
+  <text x="522" y="234" class="boxTitle">Agent Auth Gateway (SP/RS)</text>
+  <text x="522" y="266" class="check">Checks:</text>
+  <text x="522" y="292" class="check">1) Signature and trusted issuer key</text>
+  <text x="522" y="318" class="check">2) iss + aud exact match</text>
+  <text x="522" y="344" class="check">3) exp/nbf and allowed clock skew</text>
+  <text x="522" y="370" class="check">4) tenant_id + scope policy</text>
+  <text x="522" y="396" class="check">5) Optional replay control on jti</text>
+  <text x="522" y="422" class="check">6) Correlated auth event logging</text>
+
+  <rect x="980" y="170" width="352" height="124" class="node audit"/>
+  <text x="1004" y="214" class="boxTitle">Audit + Metrics</text>
+  <text x="1004" y="242" class="text">reason_code, tenant, principal, jti</text>
+  <text x="1004" y="266" class="text">latency, deny counters, signature errors</text>
+
+  <rect x="980" y="364" width="352" height="124" class="node allow"/>
+  <text x="1004" y="408" class="boxTitle">ALLOW</text>
+  <text x="1004" y="436" class="text">Proceed to agent handlers</text>
+
+  <rect x="980" y="560" width="352" height="124" class="node deny"/>
+  <text x="1004" y="604" class="boxTitle">DENY</text>
+  <text x="1004" y="632" class="text">Return 401/403 with deterministic reason</text>
+
+  <path d="M394 300 L496 300" class="arrow"/>
+  <text x="404" y="284" class="arrowText">1. Authorization: Bearer &lt;token&gt; over TLS</text>
+
+  <path d="M916 248 L980 230" class="arrow"/>
+  <text x="844" y="216" class="arrowText">2. Emit auth decision event</text>
+
+  <path d="M916 402 L980 422" class="arrow"/>
+  <text x="850" y="394" class="arrowText">3. All checks pass</text>
+
+  <path d="M916 452 L980 622" class="arrow"/>
+  <text x="842" y="556" class="arrowText">4. Any check fails</text>
+
+  <rect x="72" y="514" width="844" height="186" class="tokenNote"/>
+  <text x="96" y="548" class="tokenText">{</text>
+  <text x="126" y="548" class="tokenText">"iss":"forest-admin", "aud":"agent-x", "sub":"user-123",</text>
+  <text x="126" y="576" class="tokenText">"tenant_id":"tenant-a", "scope":"records:read",</text>
+  <text x="126" y="604" class="tokenText">"iat":..., "nbf":..., "exp":..., "jti":"..."</text>
+  <text x="96" y="632" class="tokenText">}</text>
+  <text x="96" y="668" class="text">Bearer constraint: possession equals usage. Keep TTL short and prevent token leakage in logs.</text>
+</svg>
