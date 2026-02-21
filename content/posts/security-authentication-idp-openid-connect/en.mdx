@@ -26,7 +26,7 @@ At Forest Admin, our architecture essentially forced us into a massive trust exe
 2. **Frontend to Customer-Hosted Agent** (The "Forest Server vouches for me, please give me the data" boundary)
 3. **Customer-Hosted Agent to Forest Admin Server** (The "I am the legitimate agent, here is my environment secret" boundary)
 
-To make things significantly spicier, **we didn't host the agents**. They lived comfortably behind our customers' corporate firewalls. You might wonder, "How does a SaaS server push commands to a server hiding behind a firewall?" The answer is Server-Sent Events (SSE). The agent opens an outbound connection, and we push data down that pipe. (But honestly, the sheer joy and trauma of maintaining SSE connections across thousands of firewalls deserves [a dedicated article of its own](../architecture-sse-agent-communication/en.mdx).)
+To make things significantly spicier, **we didn't host the agents**. They lived comfortably behind our customers' corporate firewalls. You might wonder, "How does a SaaS server push commands to a server hiding behind a firewall?" The answer is Server-Sent Events (SSE). The agent opens an outbound connection, and we push data down that pipe. (But honestly, the sheer joy and trauma of maintaining SSE connections across thousands of firewalls deserves [a dedicated article of its own](../posts/architecture-sse-agent-communication).)
 
 This topology created a wonderfully complex dual-role setup:
 

@@ -26,7 +26,7 @@ Chez Forest Admin, notre architecture nous imposait un véritable exercice d'éq
 2. **Frontend vers agent hébergé chez le client** (La frontière "Le serveur Forest se porte garant pour moi, laisse-moi lire la base")
 3. **Agent hébergé chez le client vers Forest Admin Server** (La frontière "Je suis l'agent légitime, voici mon secret d'environnement")
 
-Pour pimenter un peu le tout, **nous n'hébergions pas les agents**. Ils tournaient bien au chaud derrière les pare-feux d'entreprise de nos clients. Vous vous demandez sûrement : "Comment un serveur SaaS peut-il bien envoyer des commandes à un serveur planqué derrière un firewall ?" La réponse magique : les Server-Sent Events (SSE). L'agent ouvre une connexion sortante, et nous y poussons nos datas. (Mais honnêtement, la joie et le traumatisme absolu de maintenir des connexions SSE actives à travers des milliers de pare-feux méritent [un article dédié à part entière](../architecture-sse-agent-communication/fr.mdx)).
+Pour pimenter un peu le tout, **nous n'hébergions pas les agents**. Ils tournaient bien au chaud derrière les pare-feux d'entreprise de nos clients. Vous vous demandez sûrement : "Comment un serveur SaaS peut-il bien envoyer des commandes à un serveur planqué derrière un firewall ?" La réponse magique : les Server-Sent Events (SSE). L'agent ouvre une connexion sortante, et nous y poussons nos datas. (Mais honnêtement, la joie et le traumatisme absolu de maintenir des connexions SSE actives à travers des milliers de pare-feux méritent [un article dédié à part entière](../posts/architecture-sse-agent-communication)).
 
 Cela nous imposait un modèle à double rôle merveilleusement complexe vis-à-vis de l'utilisateur :
 

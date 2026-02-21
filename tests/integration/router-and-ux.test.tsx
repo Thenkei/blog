@@ -39,25 +39,32 @@ describe("routing and UX", () => {
     renderApp("/en/posts/postgresql-unique-nulls");
 
     expect(
-      await screen.findByRole("heading", { level: 2, name: "The Thing" }),
+      await screen.findByRole("heading", { level: 2, name: "The Plot Twist" }),
     ).toBeInTheDocument();
 
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "FR" }));
 
     expect(
-      await screen.findByRole("heading", { level: 2, name: "Le truc" }),
+      await screen.findByRole("heading", { level: 2, name: "Le Dénouement" }),
     ).toBeInTheDocument();
-    expect(await screen.findByRole("link", { name: "Le truc" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("link", { name: "Le Dénouement" }),
+    ).toBeInTheDocument();
   });
 
   it("supports keyboard navigation on post list", async () => {
     renderApp("/en");
     await screen.findByText(/Latest Posts/i);
 
-    const [firstPostCard] = await screen.findAllByRole("link", { name: / - Read post/i });
+    const [firstPostCard] = await screen.findAllByRole("link", {
+      name: / - Read post/i,
+    });
     const firstCardLabel = firstPostCard?.getAttribute("aria-label") ?? "";
-    const expectedPostTitle = firstCardLabel.replace(/\s*-\s*Read post\s*$/i, "");
+    const expectedPostTitle = firstCardLabel.replace(
+      /\s*-\s*Read post\s*$/i,
+      "",
+    );
     expect(expectedPostTitle.length).toBeGreaterThan(0);
 
     window.scrollTo = vi.fn();
@@ -114,7 +121,9 @@ describe("routing and UX", () => {
     renderApp("/en");
     const user = userEvent.setup();
 
-    expect(await screen.findByRole("radio", { name: "Light" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("radio", { name: "Light" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Dark" })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Mountain" })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Rocket" })).toBeInTheDocument();
@@ -129,7 +138,10 @@ describe("routing and UX", () => {
     await user.click(cardLink);
 
     expect(document.documentElement).toHaveAttribute("data-theme", "mountain");
-    expect(screen.getByRole("radio", { name: "Mountain" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("radio", { name: "Mountain" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
   });
 
   it("renders simple hero on home for light and dark themes", async () => {

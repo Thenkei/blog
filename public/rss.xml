@@ -47,25 +47,67 @@
 <pubDate>Mon, 01 Dec 2025 00:00:00 GMT</pubDate>
 </item>
 <item>
+<title>Rebuilding Cloud Experience: The Trade-Offs of Serverless at Scale</title>
+<link>https://thenkei.github.io/blog/en/posts/rebuilding-cloud-experience-forest-admin</link>
+<guid>https://thenkei.github.io/blog/en/posts/rebuilding-cloud-experience-forest-admin</guid>
+<description>An incredibly deep dive into our journey transitioning from a self-hosted-only model to offering a Fully Hosted Cloud agent. We tackle Cold Starts, AWS Lambda Layers, VPC structuring, and why horizontal scaling is a database&apos;s worst enemy.</description>
+<pubDate>Wed, 20 Mar 2024 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Escaping the Onboarding Matrix: Functional Factories to the Rescue</title>
+<link>https://thenkei.github.io/blog/en/posts/the-onboarding-matrix-forest-admin</link>
+<guid>https://thenkei.github.io/blog/en/posts/the-onboarding-matrix-forest-admin</guid>
+<description>A look back at our onboarding at Forest Admin, where supporting true self-hosted architectures forced us to build hundreds of separate setup flows, and how we solved it using functional factories.</description>
+<pubDate>Sun, 05 Nov 2023 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>Idempotency and Debounce in BullMQ: hardening jobs with a jobify contract</title>
 <link>https://thenkei.github.io/blog/en/posts/idempotency-debounce-jobify-bullmq</link>
 <guid>https://thenkei.github.io/blog/en/posts/idempotency-debounce-jobify-bullmq</guid>
 <description>How to implement idempotent, debounced queue execution semantics with deterministic identifiers in BullMQ.</description>
-<pubDate>Mon, 19 Feb 2024 00:00:00 GMT</pubDate>
-</item>
-<item>
-<title>Jobify over BullMQ: a production pattern for jobs, workers, and queues (with NestJS)</title>
-<link>https://thenkei.github.io/blog/en/posts/jobify-workers-queues-nestjs</link>
-<guid>https://thenkei.github.io/blog/en/posts/jobify-workers-queues-nestjs</guid>
-<description>A production-ready queue orchestration pattern over BullMQ with stricter worker contracts and safer operations.</description>
-<pubDate>Mon, 12 Feb 2024 00:00:00 GMT</pubDate>
+<pubDate>Fri, 01 Sep 2023 00:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Node.js Backpressure for Massive History Exports: Streams, Async Generators, and S3 Multipart</title>
 <link>https://thenkei.github.io/blog/en/posts/nodejs-stream-backpressure-history-export</link>
 <guid>https://thenkei.github.io/blog/en/posts/nodejs-stream-backpressure-history-export</guid>
 <description>Production patterns for exporting massive historical datasets with bounded memory and resilient throughput.</description>
-<pubDate>Mon, 05 Feb 2024 00:00:00 GMT</pubDate>
+<pubDate>Thu, 10 Aug 2023 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Jobify over BullMQ: a production pattern for jobs, workers, and queues (with NestJS)</title>
+<link>https://thenkei.github.io/blog/en/posts/jobify-workers-queues-nestjs</link>
+<guid>https://thenkei.github.io/blog/en/posts/jobify-workers-queues-nestjs</guid>
+<description>A production-ready queue orchestration pattern over BullMQ with stricter worker contracts and safer operations.</description>
+<pubDate>Tue, 15 Nov 2022 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Breaking Through Firewalls: Why We Chose Server-Sent Events (SSE) for Agent Communication</title>
+<link>https://thenkei.github.io/blog/en/posts/architecture-sse-agent-communication</link>
+<guid>https://thenkei.github.io/blog/en/posts/architecture-sse-agent-communication</guid>
+<description>The architectural choices, joys, and sheer traumas of maintaining thousands of open HTTP connections across corporate firewalls.</description>
+<pubDate>Tue, 18 Oct 2022 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>SCIM Provisioning: The Illusion of Standards and the Reality of RFC 7644</title>
+<link>https://thenkei.github.io/blog/en/posts/scim-user-provisioning-forest-admin</link>
+<guid>https://thenkei.github.io/blog/en/posts/scim-user-provisioning-forest-admin</guid>
+<description>How we implemented SCIM for user provisioning across Okta, Azure AD, and Google, while discovering that standard RFCs are more like loose guidelines.</description>
+<pubDate>Wed, 15 Jun 2022 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Scaling CI at Forest Admin: When Tests Take Longer Than Your Lunch Break</title>
+<link>https://thenkei.github.io/blog/en/posts/scaling-ci-github-actions-forest-admin</link>
+<guid>https://thenkei.github.io/blog/en/posts/scaling-ci-github-actions-forest-admin</guid>
+<description>How we handled the explosion of CI times during our Series A scaling phase at Forest Admin, the nightmare of merging artifacts, and the endless pursuit of deterministic tests.</description>
+<pubDate>Fri, 10 Sep 2021 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Security and authentication with identity federation (OpenID Connect)</title>
+<link>https://thenkei.github.io/blog/en/posts/security-authentication-idp-openid-connect</link>
+<guid>https://thenkei.github.io/blog/en/posts/security-authentication-idp-openid-connect</guid>
+<description>A production breakdown of OIDC, OAuth2 bearer tokens, and SAML assertion flows when one platform is both service provider and identity provider.</description>
+<pubDate>Wed, 12 May 2021 00:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
