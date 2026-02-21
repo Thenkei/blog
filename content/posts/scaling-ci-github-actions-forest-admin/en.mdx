@@ -1,0 +1,75 @@
+---
+title: "Scaling CI at Forest Admin: When Tests Take Longer Than Your Lunch Break"
+subtitle: "Partitioning tests in GitHub Actions to survive the 95% coverage phase."
+summary: "How we handled the explosion of CI times during our Series A scaling phase at Forest Admin, the nightmare of merging artifacts, and the endless pursuit of deterministic tests."
+publishedAt: "2026-02-21"
+readTimeMinutes: 6
+tags:
+  - ci-cd
+  - github-actions
+  - testing
+  - scaling
+---
+
+## Introduction: The Series A Reality Check (aka Code No Longer Ships Unchecked)
+
+You remember the early days. Total Cowboy territory. Ship it, see if it breaks, fix it in prod.
+Then, a Series A happens. You hire people. You get customers who actually care if the dashboard loads. The "move fast and break things" mantra quickly becomes "move fast, and please God, stop breaking things."
+
+At Forest Admin, our test coverage went from "we checked the happy path once" to a staggering **95%+ coverage**.
+Suddenly, you're not just writing tests; you have a process. You no longer ship code without tests passing.
+
+The immediate side effect? **Our CI time exploded.**
+When your CI pipeline takes longer than your lunch break, developers start context switching. And when developers context switch, PRs linger, merge conflicts breed, and your delivery velocity drops to a crawl. We had to fix it.
+
+## The Partitioning Pivot (aka Divide and Conquer... Mostly Divide)
+
+When one runner takes 45 minutes to execute thousands of tests, the obvious solution is to parallelize. Split the tests, run them across multiple GitHub Actions jobs, and watch the time plummet.
+
+Easy on paper, right?
+
+```yaml
+# Don't try this at home unless you love debugging race conditions.
+jobs:
+  test_chunk_1:
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm run test:part1
+  # ... imagine 10 more of these
+```
+
+In reality, partitioning tests in GitHub Actions is a whole different beast. It’s like splitting a massive monolith into microservices—you solve one problem by introducing three new ones.
+
+### The Pain Points (Why My Hair is Grayer Now)
+
+- **Merging the Matrix:** You can't just run 10 jobs. You have to gather their artifacts (coverage reports, test results) and merge them perfectly at the end. **GitHub Actions artifacts are notoriously clunky** for complex merging logic. (If an upload fails on node 4, does the whole workflow crash? Yes, yes it does).
+- **The Nightmare of Deterministic Tests:** Oh, you think your tests are deterministic? Try running them on 10 different virtual machines simultaneously. You'll quickly discover that your database teardown script occasionally leaves a rogue record, turning `test_chunk_5` into a flaky disaster.
+- **Orchestration Hell:** Handling all the troubles of a CI is exhausting. A single network blip downloading `node_modules` on worker 7 ruins the entire run.
+
+## Strategies for Survival
+
+To actually make CI partitioning work, we had to adopt some battle-tested rules:
+
+- **Aggressive Cleanup:** Your test suite must leave zero trace. Database state, file system, cache—nuke it all between tests. If state leaks across partitioned workers, you will spend weeks chasing ghosts.
+- **Smart Chunking:** Don't just split by test count. Split by execution time. A suite block of heavy integration tests will easily bottleneck 5 blocks of unit tests.
+- **Artifact Patience:** We built dedicated reconciliation jobs that explicitly waited for ALL shards to upload artifacts, download them, and stitch the unified LCOV files before sending them to our coverage tracker.
+
+```javascript
+// A completely realistic snippet of merging coverage
+const mergeCoverage = async (shards) => {
+  // If we don't await all 10 shards, the coverage tool throws a fit
+  // and management thinks we dropped 20% coverage overnight.
+  const files = await downloadAllArtifacts(shards);
+
+  if (files.length !== expectedShards) {
+    throw new Error("Well, we lost a shard. Time to retry the whole CI.");
+  }
+  return stitchLcov(files);
+};
+```
+
+## Conclusion
+
+Scaling CI to handle 95% coverage safely in GitHub Actions is a rite of passage. It demands that you treat the pipeline with the same architectural rigor as your production infrastructure.
+
+It was painful, sure. But these days? The tests pass (quickly), the PRs merge, and we can actually enjoy our lunch breaks again.
