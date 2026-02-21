@@ -18,7 +18,10 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-export function ReadingProgressBar({ articleRef, contentKey }: ReadingProgressBarProps) {
+export function ReadingProgressBar({
+  articleRef,
+  contentKey,
+}: ReadingProgressBarProps) {
   const [progress, setProgress] = useState(0);
   const [direction, setDirection] = useState<"down" | "up">("down");
   const [orbitActive, setOrbitActive] = useState(false);
@@ -68,12 +71,13 @@ export function ReadingProgressBar({ articleRef, contentKey }: ReadingProgressBa
   const isRunnerMoving = progress > 0 && progress < 100;
 
   const cssVars = useMemo(
-    () => ({
-      "--reading-progress": progress,
-      "--reading-progress-value": `${progress}%`,
-      "--reading-progress-rounded": Math.round(progress),
-      "--runner-stride-duration": "0.74s",
-    }) as CSSProperties,
+    () =>
+      ({
+        "--reading-progress": progress,
+        "--reading-progress-value": `${progress}%`,
+        "--reading-progress-rounded": Math.round(progress),
+        "--runner-stride-duration": "0.74s",
+      }) as CSSProperties,
     [progress],
   );
 
@@ -94,7 +98,10 @@ export function ReadingProgressBar({ articleRef, contentKey }: ReadingProgressBa
           </svg>
         </div>
         <div className={`rocket-orbit ${orbitActive ? "active" : ""}`}>
-          <div className="rocket" style={orbitActive ? undefined : { top: `${100 - progress}%` }}>
+          <div
+            className="rocket"
+            style={orbitActive ? undefined : { top: `${100 - progress}%` }}
+          >
             <svg viewBox="0 0 92 168" role="presentation">
               <path className="rocket-fin" d="M31 105 L14 125 L31 126 Z" />
               <path className="rocket-fin" d="M61 105 L78 125 L61 126 Z" />
@@ -108,7 +115,10 @@ export function ReadingProgressBar({ articleRef, contentKey }: ReadingProgressBa
               />
               <circle className="rocket-window-ring" cx="46" cy="67" r="12.5" />
               <circle className="rocket-window-core" cx="46" cy="67" r="6.5" />
-              <path className="rocket-nozzle" d="M46 139 L34 157 L46 151 L58 157 Z" />
+              <path
+                className="rocket-nozzle"
+                d="M46 139 L34 157 L46 151 L58 157 Z"
+              />
             </svg>
             <span className="rocket-trail" />
           </div>
@@ -134,17 +144,5 @@ export function ReadingProgressBar({ articleRef, contentKey }: ReadingProgressBa
     );
   }
 
-  return (
-    <div
-      className={`clean-progress clean-progress-${appliedTheme}`}
-      style={cssVars}
-      data-progress-placement="top"
-      data-direction={direction}
-      aria-hidden="true"
-    >
-      <span className="clean-progress-track" />
-      <span className="clean-progress-fill" />
-      <span className="clean-progress-marker" />
-    </div>
-  );
+  return null;
 }

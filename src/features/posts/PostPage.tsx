@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { useTheme } from "../../app/providers/ThemeProvider";
 import {
   getAdjacentPosts,
   getPost,
@@ -35,7 +34,6 @@ export function PostPage({ locale, slug }: PostPageProps) {
   const articleRef = useRef<HTMLElement | null>(null);
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { themeMode, setThemeMode } = useTheme();
 
   const post = useMemo(() => getPost(locale, slug), [locale, slug]);
   const related = useMemo(() => getRelatedPosts(locale, slug), [locale, slug]);
@@ -88,8 +86,8 @@ export function PostPage({ locale, slug }: PostPageProps) {
 
   const contentKey = `${locale}:${slug}`;
   const headerPadRem = Math.min(
-    6,
-    3.5 + Math.max(0, (post.title.length - 40) * 0.04),
+    3.5,
+    1.5 + Math.max(0, (post.title.length - 40) * 0.02),
   );
 
   return (
@@ -101,16 +99,7 @@ export function PostPage({ locale, slug }: PostPageProps) {
       />
 
       <PostHeader
-        themeMode={themeMode}
-        onThemeChange={setThemeMode}
-        labels={{
-          lightTheme: t("ui.lightTheme"),
-          darkTheme: t("ui.darkTheme"),
-          mountainTheme: t("ui.mountainTheme"),
-          rocketTheme: t("ui.rocketTheme"),
-          themeSwitcher: t("ui.themeSwitcher"),
-          backToHome: t("ui.backToHome"),
-        }}
+        backToHomeLabel={t("ui.backToHome")}
         siteTitle={t("header.title")}
         siteSubtitle={t("header.subtitle")}
         breadcrumbLabel={post.title}
@@ -129,30 +118,17 @@ export function PostPage({ locale, slug }: PostPageProps) {
         <div className="container">
           <ReadingProgressBar articleRef={articleRef} contentKey={contentKey} />
           <article ref={articleRef} key={contentKey}>
-            <Link
-              className="back-btn"
-              to={`/${locale}`}
-              onClick={() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-            >
-              ← {t("ui.backToHome")}
-            </Link>
-
+            {" "}
             <div className="meta">
               <span>{formatDate(post.publishedAt, locale)}</span>
               <span>•</span>
               <span>{t("ui.readTime", { count: post.readTimeMinutes })}</span>
             </div>
-
             <h1 className="article-title">{post.title}</h1>
-
             <div className="trail-line" />
             <TableOfContents articleRef={articleRef} contentKey={contentKey} />
             <post.Component />
-
             <div className="trail-line article-end-line" />
-
             <section className="post-nav" aria-label={t("ui.seriesNavigation")}>
               {adjacent.previous ? (
                 <Link
@@ -175,7 +151,6 @@ export function PostPage({ locale, slug }: PostPageProps) {
                 <span className="post-nav-placeholder" />
               )}
             </section>
-
             {related.length > 0 ? (
               <section
                 className="related-posts"
@@ -196,16 +171,6 @@ export function PostPage({ locale, slug }: PostPageProps) {
                 </ul>
               </section>
             ) : null}
-
-            <Link
-              className="back-btn"
-              to={`/${locale}`}
-              onClick={() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-            >
-              ← {t("ui.backToHome")}
-            </Link>
           </article>
         </div>
       </main>

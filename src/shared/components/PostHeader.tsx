@@ -1,19 +1,7 @@
-import { LanguageSwitcher } from "./LanguageSwitcher";
-import { ThemeSwitcher } from "./ThemeSwitcher";
-import type { ThemeMode } from "../../app/providers/ThemeProvider";
 import type { CSSProperties } from "react";
 
 type PostHeaderProps = {
-  themeMode: ThemeMode;
-  onThemeChange: (mode: ThemeMode) => void;
-  labels: {
-    lightTheme: string;
-    darkTheme: string;
-    mountainTheme: string;
-    rocketTheme: string;
-    themeSwitcher: string;
-    backToHome: string;
-  };
+  backToHomeLabel: string;
   siteTitle: string;
   siteSubtitle: string;
   breadcrumbLabel: string;
@@ -23,9 +11,7 @@ type PostHeaderProps = {
 };
 
 export function PostHeader({
-  themeMode,
-  onThemeChange,
-  labels,
+  backToHomeLabel,
   siteTitle,
   siteSubtitle,
   breadcrumbLabel,
@@ -39,19 +25,13 @@ export function PostHeader({
       style={{ "--post-header-pad": `${headerPadRem}rem` } as CSSProperties}
     >
       <div className="post-header-inner">
-        <div className="post-header-actions">
-          <ThemeSwitcher
-            themeMode={themeMode}
-            onThemeChange={onThemeChange}
-            labels={labels}
-            variant="compact"
-          />
-          <LanguageSwitcher variant="compact" />
-        </div>
-
         <nav className="breadcrumb" aria-label="Breadcrumb">
-          <button className="breadcrumb-link" onClick={onBreadcrumbClick} type="button">
-            {labels.backToHome}
+          <button
+            className="breadcrumb-link"
+            onClick={onBreadcrumbClick}
+            type="button"
+          >
+            {backToHomeLabel}
           </button>
           <span className="breadcrumb-separator">/</span>
           <span className="breadcrumb-current">{breadcrumbLabel}</span>

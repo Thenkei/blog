@@ -25,9 +25,15 @@
 .post-card:hover,
 .post-card.focused {
   background: var(--card-hover-bg);
-  border-color: color-mix(in srgb, var(--accent-primary) 55%, var(--card-border));
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-lg);
+  border-color: color-mix(
+    in srgb,
+    var(--accent-primary) 55%,
+    var(--card-border)
+  );
+  transform: translateY(-8px);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent-primary) 70%, transparent),
+    var(--shadow-lg);
 }
 
 .post-card.focused {
@@ -101,7 +107,8 @@
 
 .back-btn {
   background: transparent;
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 50%, var(--card-border));
+  border: 1px solid
+    color-mix(in srgb, var(--accent-primary) 50%, var(--card-border));
   color: var(--accent-primary);
   padding: 0.55rem 0.95rem;
   border-radius: 999px;
@@ -289,12 +296,71 @@
 }
 
 .toc {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 50;
+  border: none;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+.toc-bubble {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: var(--card-elevated-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 50%;
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: opacity var(--motion-fast) var(--motion-ease-standard);
+  position: relative;
+  z-index: 51;
+}
+
+.toc-icon {
+  stroke: var(--accent-primary);
+}
+
+.toc-content {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 300px;
+  max-width: calc(100vw - 4rem);
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
   background: var(--card-elevated-bg);
   border: 1px solid var(--card-border);
   border-radius: 16px;
   padding: 1.2rem 1.3rem;
-  margin-bottom: 2.1rem;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(10px) scale(0.95);
+  transform-origin: bottom right;
+  transition: all var(--motion-base) var(--motion-ease-emphasis);
+  z-index: 52;
+}
+
+.toc:hover .toc-content,
+.toc-content:focus-within {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.toc:hover .toc-bubble {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .toc-title {
@@ -336,7 +402,7 @@
 
 .article-title {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 6vw, 3.45rem);
+  font-size: clamp(1.6rem, 5vw, 3.45rem);
   margin-bottom: 1.8rem;
   line-height: 1.05;
   letter-spacing: -0.025em;

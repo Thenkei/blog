@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { LanguageSwitcher } from "./LanguageSwitcher";
-import { ThemeSwitcher } from "./ThemeSwitcher";
 import { useMultiplaneCamera } from "./parallax/useMultiplaneCamera";
 import { useRocketCamera } from "./parallax/useRocketCamera";
 import type { ThemeMode } from "../../app/providers/ThemeProvider";
@@ -21,30 +19,25 @@ type ParallaxHeroProps = {
   onThemeChange: (mode: ThemeMode) => void;
   title: string;
   subtitle: string;
-  labels: {
-    lightTheme: string;
-    darkTheme: string;
-    mountainTheme: string;
-    rocketTheme: string;
-    themeSwitcher: string;
-  };
   onTitleClick: () => void;
 };
 
 export function ParallaxHero({
   themeMode,
-  onThemeChange,
   title,
   subtitle,
-  labels,
   onTitleClick,
 }: ParallaxHeroProps) {
   const mountainShellRef = useRef<HTMLElement | null>(null);
   const mountainStageRef = useRef<HTMLElement | null>(null);
   const rocketShellRef = useRef<HTMLElement | null>(null);
   const rocketStageRef = useRef<HTMLElement | null>(null);
-  const [isReducedMotion, setIsReducedMotion] = useState(() => matchesMediaQuery(REDUCED_MOTION_QUERY));
-  const [isMobileReduced, setIsMobileReduced] = useState(() => matchesMediaQuery(MOBILE_QUERY));
+  const [isReducedMotion, setIsReducedMotion] = useState(() =>
+    matchesMediaQuery(REDUCED_MOTION_QUERY),
+  );
+  const [isMobileReduced, setIsMobileReduced] = useState(() =>
+    matchesMediaQuery(MOBILE_QUERY),
+  );
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) {
@@ -69,7 +62,10 @@ export function ParallaxHero({
     mobileMedia.addEventListener("change", handleMobileChange);
 
     return () => {
-      reducedMotionMedia.removeEventListener("change", handleReducedMotionChange);
+      reducedMotionMedia.removeEventListener(
+        "change",
+        handleReducedMotionChange,
+      );
       mobileMedia.removeEventListener("change", handleMobileChange);
     };
   }, []);
@@ -95,12 +91,6 @@ export function ParallaxHero({
 
   const heroContent = (
     <div className="hero-content">
-      <ThemeSwitcher
-        themeMode={themeMode}
-        onThemeChange={onThemeChange}
-        labels={labels}
-      />
-      <LanguageSwitcher />
       <h1 className="hero-title" onClick={onTitleClick}>
         {title}
       </h1>
@@ -112,10 +102,23 @@ export function ParallaxHero({
     return (
       <section className="mountain-camera-shell" ref={mountainShellRef}>
         <div className="mountain-camera-sticky">
-          <section className="parallax-container mountain-camera-stage" data-hero-theme={themeMode} ref={mountainStageRef}>
-            <div className="mountain-layer mountain-layer-sky" aria-hidden="true" />
-            <div className="mountain-layer mountain-layer-far" aria-hidden="true" />
-            <div className="mountain-layer mountain-layer-near" aria-hidden="true" />
+          <section
+            className="parallax-container mountain-camera-stage"
+            data-hero-theme={themeMode}
+            ref={mountainStageRef}
+          >
+            <div
+              className="mountain-layer mountain-layer-sky"
+              aria-hidden="true"
+            />
+            <div
+              className="mountain-layer mountain-layer-far"
+              aria-hidden="true"
+            />
+            <div
+              className="mountain-layer mountain-layer-near"
+              aria-hidden="true"
+            />
             {heroContent}
           </section>
         </div>
@@ -127,11 +130,27 @@ export function ParallaxHero({
     return (
       <section className="rocket-camera-shell" ref={rocketShellRef}>
         <div className="rocket-camera-sticky">
-          <section className="parallax-container rocket-camera-stage" data-hero-theme={themeMode} ref={rocketStageRef}>
-            <div className="rocket-layer rocket-layer-space" aria-hidden="true" />
-            <div className="rocket-layer rocket-layer-planet" aria-hidden="true" />
-            <div className="rocket-layer rocket-layer-asteroids" aria-hidden="true" />
-            <div className="rocket-layer rocket-layer-ship" aria-hidden="true" />
+          <section
+            className="parallax-container rocket-camera-stage"
+            data-hero-theme={themeMode}
+            ref={rocketStageRef}
+          >
+            <div
+              className="rocket-layer rocket-layer-space"
+              aria-hidden="true"
+            />
+            <div
+              className="rocket-layer rocket-layer-planet"
+              aria-hidden="true"
+            />
+            <div
+              className="rocket-layer rocket-layer-asteroids"
+              aria-hidden="true"
+            />
+            <div
+              className="rocket-layer rocket-layer-ship"
+              aria-hidden="true"
+            />
             {heroContent}
           </section>
         </div>
@@ -140,7 +159,10 @@ export function ParallaxHero({
   }
 
   return (
-    <section className="parallax-container simple-theme-hero" data-hero-theme={themeMode}>
+    <section
+      className="parallax-container simple-theme-hero"
+      data-hero-theme={themeMode}
+    >
       {heroContent}
     </section>
   );

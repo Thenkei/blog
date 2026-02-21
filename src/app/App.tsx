@@ -3,6 +3,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { MDXProvider } from "@mdx-js/react";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import { AppRouter } from "./router";
+import { GlobalHeader } from "../shared/components/GlobalHeader";
 
 import type { ComponentProps } from "react";
 
@@ -19,6 +20,7 @@ export default function App() {
       <ThemeProvider>
         <MDXProvider components={components}>
           <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <GlobalHeader />
             <AppRouter />
           </BrowserRouter>
         </MDXProvider>
