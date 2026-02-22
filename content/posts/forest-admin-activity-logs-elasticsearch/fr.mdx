@@ -1,0 +1,56 @@
+---
+title: "Quand PostgreSQL ne suffit plus : La migration des Logs d'Activité vers Elasticsearch"
+subtitle: "Passer à l'échelle les pistes d'audit de Forest Admin au-delà de 100 millions d'enregistrements."
+summary: "Comment nous avons contourné les goulots d'étranglement de performance en migrant notre système massif de logs d'activité de PostgreSQL vers Elasticsearch via une architecture de recherche hybride."
+publishedAt: "2026-02-22"
+readTimeMinutes: 6
+tags:
+  - backend
+  - database
+  - elasticsearch
+  - postgresql
+---
+
+Toute plateforme SaaS se heurte inévitablement à un mur où un choix de base de données, pourtant robuste à l'origine, commence à montrer ses limites. Chez Forest Admin, ce mur s'est dressé sur notre système de Logs d'Activité (les pistes d'audit utilisateurs), et la base de données concernée était PostgreSQL.
+
+À mon arrivée dans l'équipe, ce système d'audit montrait déjà de graves signes de faiblesse. Avec la croissance de l'utilisation par nos clients, la table Postgres de tracking avait gonflé pour dépasser les 100 millions d'enregistrements. De simples requêtes d'historique tombaient en timeout et les performances globales se dégradaient. Nous devions optimiser, et vite.
+
+## La Proposition : L'arrivée d'Elasticsearch
+
+Notre Lead Developer, [Guillaume Gautreau](https://www.ghusse.com/), avait déjà travaillé avec succès sur Elasticsearch par le passé et l'a proposé comme le moteur idéal pour ce type de charge de travail orientée séries temporelles, en ajout seul et intensive en recherche.
+
+Elasticsearch est spécialement conçu pour fouiller à travers des millions de documents non structurés à la vitesse de l'éclair. Cependant, migrer un système critique d'une base relationnelle vers un moteur de recherche ne s'apparente jamais à une promenade de santé.
+
+## Les Maux de Tête de la Migration des Données
+
+Le premier obstacle monumental a tout simplement été de sortir ces 100 millions de logs de PostgreSQL pour les injecter dans Elasticsearch proprement, de manière fiable, et sans couper la plateforme.
+
+Cela impliquait du streaming de données complexe, une gestion minutieuse de la mémoire dans Node.js, et la maîtrise de la _backpressure_ (contre-pression) pour s'assurer de ne submerger aucune des deux bases pendant le transfert. (Guillaume a d'ailleurs écrit un excellent article complet sur le sujet : [Gérer la Backpressure dans les Streams Node.js](https://www.ghusse.com/javascript/stream/backpressure/backpressure/)).
+
+_Note : Ce travail de fond s'est révélé inestimable par la suite lorsque nous avons développé la fonctionnalité [d'Export Historique Massif](/posts/nodejs-stream-backpressure-history-export) dans la foulée._
+
+## L'Architecture de Recherche Hybride
+
+La véritable complexité de cette migration ne résidait pas seulement dans le stockage de la donnée, mais dans sa récupération.
+
+Forest Admin propose des fonctionnalités de Logs d'Activité riches permettant aux utilisateurs de filtrer les actions par membre d'équipe, par rôle ou par ressource ciblée. Dans un monde PostgreSQL purement relationnel, résoudre ces requêtes impliquait d'enchaîner des `JOIN` à travers les tables d'utilisateurs, d'équipes et de ressources.
+
+En passant à Elasticsearch, nous faisions face à un choix :
+
+1. **Tout Dénormaliser** : Dupliquer toutes les métadonnées (utilisateurs, équipes, ressources) dans chaque document de log.
+2. **Rester Normalisé** : Trouver un moyen de requêter à travers les deux systèmes.
+
+Pour des raisons évidentes de performance, de stockage et de synchronisation, nous avons écarté la dénormalisation totale. Cela nous a conduits à concevoir une **Architecture de Recherche Hybride** :
+
+1. **Étape 1 : Le Filtre Relationnel (PostgreSQL)**
+   Lorsqu'une requête arrive (ex: "Montrez-moi les logs de l'équipe Marketing"), nous interrogeons d'abord PostgreSQL pour résoudre le contexte relationnel. PostgreSQL renvoie les ID spécifiques des utilisateurs appartenant à cette équipe.
+2. **Étape 2 : La Récupération des Documents (Elasticsearch)**
+   Nous passons ensuite ces ID spécifiques dans notre requête Elasticsearch pour récupérer les documents bruts d'activité à très haute vitesse.
+3. **Étape 3 : L'Enrichissement (PostgreSQL)**
+   Enfin, avant de renvoyer la réponse au client, nous prenons les résultats d'Elasticsearch pour les agréger et les enrichir avec les données relationnelles à jour de PostgreSQL (comme le nom actuel de l'utilisateur ou l'URL de son avatar).
+
+## Le Résultat
+
+Cette approche hybride nous a offert le meilleur des deux mondes. Nous avons conservé l'intégrité relationnelle stricte et les recherches de métadonnées rapides de PostgreSQL, tout en délégant à Elasticsearch la lourde tâche de trier et fouiller 100 millions de payloads massifs.
+
+Les timeouts ont disparu, le système s'est stabilisé, et nos pistes d'audit ont retrouvé leur réactivité — prouvant que parfois, la meilleure base de données pour un travail, c'est en fait deux.

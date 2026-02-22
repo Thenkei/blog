@@ -13,7 +13,7 @@ seriesId: "async-workloads-at-scale"
 seriesOrder: 1
 ---
 
-This export pipeline was born out of pure, unadulterated operational trauma: users could request activity logs over ridiculously huge date ranges, sometimes all the way back to project day zero. The data lived in Elasticsearch, every single event demanded enrichment from relational databases, and the final 3GB+ CSV had to be gracefully uploaded to S3 with a signed URL. No pressure, right?
+This export pipeline was born out of pure, unadulterated operational trauma: users could request activity logs over ridiculously huge date ranges, sometimes all the way back to project day zero. The data lived in Elasticsearch (having recently been [migrated from PostgreSQL](/posts/forest-admin-activity-logs-elasticsearch)), every single event demanded enrichment from relational databases, and the final 3GB+ CSV had to be gracefully uploaded to S3 with a signed URL. No pressure, right?
 
 For our largest tenants, these mammoth exports took 10 to 15 minutes to run. The hard requirement wasn't just "make it work"; it was "make it work without burning down the servers." We had to preserve worker availability while manhandling terrifyingly large datasets with completely predictable memory usage.
 

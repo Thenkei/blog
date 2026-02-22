@@ -13,7 +13,7 @@ seriesId: "async-workloads-at-scale"
 seriesOrder: 1
 ---
 
-Ce pipeline d'export est littéralement né d'un traumatisme opérationnel : les utilisateurs pouvaient exiger des logs d'activité sur des plages de dates dantesques, parfois depuis le tout premier jour du projet. Les données dormaient dans Elasticsearch, chaque événement devait être farci d'infos provenant de bases relationnelles, puis le monstrueux CSV final devait atterrir sagement sur S3. Plutôt simple, non ?
+Ce pipeline d'export est littéralement né d'un traumatisme opérationnel : les utilisateurs pouvaient exiger des logs d'activité sur des plages de dates dantesques, parfois depuis le tout premier jour du projet. Les données dormaient dans Elasticsearch (récemment [migrées depuis PostgreSQL](/posts/forest-admin-activity-logs-elasticsearch)), chaque événement devait être farci d'infos provenant de bases relationnelles, puis le monstrueux CSV final devait atterrir sagement sur S3. Plutôt simple, non ?
 
 Sur nos plus gros clients, les exports prenaient entre 10 et 15 minutes de calcul intensif. La grosse contrainte n'était pas seulement d'avoir le bon CSV à la fin, mais de garantir la survie des workers avec une empreinte mémoire en béton armé.
 

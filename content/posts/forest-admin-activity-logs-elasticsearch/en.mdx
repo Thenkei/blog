@@ -1,0 +1,56 @@
+---
+title: "When PostgreSQL Is No Longer Enough: Migrating Activity Logs to Elasticsearch"
+subtitle: "Scaling Forest Admin's audit trails past the 100M+ records mark."
+summary: "How we navigated performance bottlenecks by migrating our massive activity logs system from PostgreSQL to Elasticsearch using a hybrid search architecture."
+publishedAt: "2026-02-22"
+readTimeMinutes: 6
+tags:
+  - backend
+  - database
+  - elasticsearch
+  - postgresql
+---
+
+Every SaaS platform inevitably hits a wall where a previously bulletproof database choice starts to show its age. At Forest Admin, that wall was our Activity Logs system (our user audit trails), and the database that hit it was PostgreSQL.
+
+When I joined the team, this audit system was already showing severe signs of struggle. As client usage grew, the Postgres table tracking these logs ballooned past 100 million records. Simple queries for audit histories were timing out, and database performance was degrading. We needed an optimization—and fast.
+
+## The Proposal: Enter Elasticsearch
+
+Our Lead Developer, [Guillaume Gautreau](https://www.ghusse.com/), had successfully worked with Elasticsearch in the past and proposed it as the ideal engine for this kind of time-series, append-heavy, search-intensive workload.
+
+Elasticsearch is purpose-built for slicing through millions of unstructured or semi-structured documents at lightning speed. However, migrating a core system from a relational database to a document-oriented search engine is never a walk in the park.
+
+## The Headaches of Data Migration
+
+The first monumental hurdle was simply moving those 100M+ logs out of PostgreSQL and into Elasticsearch cleanly, reliably, and without taking the platform offline.
+
+This involved complex data streaming, careful memory management in Node.js, and handling backpressure to ensure we didn't overwhelm either database during the transfer. (Guillaume wrote an excellent deep dive on exactly this topic: [Handling Backpressure in Node.js Streams](https://www.ghusse.com/javascript/stream/backpressure/backpressure/)).
+
+_Note: This foundational work later proved invaluable when we built the massive [History Export feature](/posts/nodejs-stream-backpressure-history-export) as a follow-up._
+
+## The Hybrid Search Architecture
+
+The real complexity of this migration wasn't just storing the data; it was retrieving it.
+
+Forest Admin provides rich Activity Log features that allow users to filter actions by specific team members, roles, or targeted resources. In a purely relational PostgreSQL world, resolving these queries involved chaining `JOIN`s across user, team, and resource tables.
+
+When moving to Elasticsearch, we faced a choice:
+
+1. **Denormalize Everything**: Duplicate all user, team, and resource metadata into every single audit log document in Elasticsearch.
+2. **Keep it Normalized**: Find a way to query across both systems.
+
+For obvious performance, storage, and synchronization reasons, we ruled out full denormalization. This led us to pioneer a **Hybrid Search Architecture**:
+
+1. **Step 1: The Relational Filter (PostgreSQL)**
+   When a request comes in (e.g., "Show me logs for the Marketing Team"), we first query PostgreSQL to resolve the relational context. PostgreSQL returns the specific IDs of the users belonging to that team.
+2. **Step 2: The Document Fetch (Elasticsearch)**
+   We then pass those specific IDs into our Elasticsearch query to retrieve the raw activity log documents at high speed.
+3. **Step 3: The Enrichment (PostgreSQL)**
+   Finally, before returning the payload to the client, we take the Elasticsearch results and aggregate/enrich them with the latest relational data from PostgreSQL (like current user names or avatar URLs).
+
+## The Result
+
+This hybrid approach gave us the best of both worlds. We retained the strict relational integrity and fast metadata lookups of PostgreSQL while offloading the heavy lifting of sorting and searching 100 million massive log payloads to Elasticsearch.
+
+The timeouts disappeared, the system stabilized, and our audit trails became snappy again—proving that sometimes the best database for the job is actually two.

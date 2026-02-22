@@ -68,6 +68,6 @@ Pour résoudre les problèmes fondamentaux liés aux données, nous avons :
 
 - **Raccourci les TTLs** : Les rendre beaucoup plus agressifs pour garantir que la mémoire soit libérée plus rapidement.
 - **Nettoyé les données obsolètes** : Mis en place des routines pour supprimer immédiatement les éléments en cache appartenant aux projets supprimés.
-- **Compressé les Payloads** : Un collègue a pris le temps d'étudier et d'implémenter une solution de compression des données _avant_ leur stockage dans Redis. Non seulement cela a optimisé nos coûts de mémoire de manière significative, mais cela s'est également traduit par des temps de transport HTTPS plus rapides en raison de la taille réduite des payloads.
+- **Compressé les Payloads** : Un collègue ([Guillaume Gautreau](https://www.ghusse.com/redis/node/compress/does-it-worth-compressing-large-json-in-redis/)) a pris le temps d'étudier et d'implémenter une solution de compression des données _avant_ leur stockage dans Redis. Non seulement cela a optimisé nos coûts de mémoire de manière significative, mais cela s'est également traduit par des temps de transport HTTPS plus rapides en raison de la taille réduite des payloads.
 
 Si vous utilisez une base de données en mémoire comme Redis en production, ce post-mortem sert de rappel : surveillez toujours votre mémoire, isolez vos domaines métier et ne supposez jamais qu'une stratégie de cache qui fonctionne pour un petit nombre de clients passera automatiquement à l'échelle lorsque la complexité de vos données augmentera.
