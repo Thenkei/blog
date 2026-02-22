@@ -2,7 +2,7 @@
 title: "When PostgreSQL Is No Longer Enough: Migrating Activity Logs to Elasticsearch"
 subtitle: "Scaling Forest Admin's audit trails past the 100M+ records mark."
 summary: "How we navigated performance bottlenecks by migrating our massive activity logs system from PostgreSQL to Elasticsearch using a hybrid search architecture."
-publishedAt: "2026-02-22"
+publishedAt: "2021-05-15"
 readTimeMinutes: 6
 tags:
   - backend
@@ -10,6 +10,8 @@ tags:
   - elasticsearch
   - postgresql
 ---
+
+_Note: This article was written post-mortem, after my departure from Forest Admin._
 
 Every SaaS platform inevitably hits a wall where a previously bulletproof database choice starts to show its age. At Forest Admin, that wall was our Activity Logs system (our user audit trails), and the database that hit it was PostgreSQL.
 

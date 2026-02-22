@@ -2,7 +2,7 @@
 title: "Quand PostgreSQL ne suffit plus : La migration des Logs d'Activité vers Elasticsearch"
 subtitle: "Passer à l'échelle les pistes d'audit de Forest Admin au-delà de 100 millions d'enregistrements."
 summary: "Comment nous avons contourné les goulots d'étranglement de performance en migrant notre système massif de logs d'activité de PostgreSQL vers Elasticsearch via une architecture de recherche hybride."
-publishedAt: "2026-02-22"
+publishedAt: "2021-05-15"
 readTimeMinutes: 6
 tags:
   - backend
@@ -10,6 +10,8 @@ tags:
   - elasticsearch
   - postgresql
 ---
+
+_Note : Cet article a été écrit post-mortem, après mon départ de Forest Admin._
 
 Toute plateforme SaaS se heurte inévitablement à un mur où un choix de base de données, pourtant robuste à l'origine, commence à montrer ses limites. Chez Forest Admin, ce mur s'est dressé sur notre système de Logs d'Activité (les pistes d'audit utilisateurs), et la base de données concernée était PostgreSQL.
 
