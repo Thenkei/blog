@@ -49,7 +49,7 @@ For obvious performance, storage, and synchronization reasons, we ruled out full
 2. **Step 2: The Document Fetch (Elasticsearch)**
    We then pass those specific IDs into our Elasticsearch query to retrieve the raw activity log documents at high speed.
 3. **Step 3: The Enrichment (PostgreSQL)**
-   Finally, before returning the payload to the client, we take the Elasticsearch results and aggregate/enrich them with the latest relational data from PostgreSQL (like current user names or avatar URLs).
+   Finally, before returning the payload to the client, we take the Elasticsearch results and aggregate/enrich them with the latest relational data from PostgreSQL (this was more due to another design issue we didn't fix in time).
 
 ## Scaling to Billions: Sharding and Cluster Evolution
 

@@ -49,7 +49,7 @@ Pour des raisons évidentes de performance, de stockage et de synchronisation, n
 2. **Étape 2 : La Récupération des Documents (Elasticsearch)**
    Nous passons ensuite ces ID spécifiques dans notre requête Elasticsearch pour récupérer les documents bruts d'activité à très haute vitesse.
 3. **Étape 3 : L'Enrichissement (PostgreSQL)**
-   Enfin, avant de renvoyer la réponse au client, nous prenons les résultats d'Elasticsearch pour les agréger et les enrichir avec les données relationnelles à jour de PostgreSQL (comme le nom actuel de l'utilisateur ou l'URL de son avatar).
+   Enfin, avant de renvoyer la réponse au client, nous prenons les résultats d'Elasticsearch pour les agréger et les enrichir avec les données relationnelles à jour de PostgreSQL (c'était plus dû à un autre problème de conception que nous n'avons pas eu le temps de corriger à ce moment là).
 
 ## Passer à l'échelle des Milliards : Sharding et Évolution du Cluster
 
