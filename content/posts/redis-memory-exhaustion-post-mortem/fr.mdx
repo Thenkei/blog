@@ -1,0 +1,60 @@
+---
+title: "Post-Mortem : Le jour où Redis a atteint ses limites"
+subtitle: "Pourquoi regrouper tous vos cas d'usage dans une seule base de données est une bombe à retardement."
+summary: "Une panne le week-end chez Forest Admin causée par l'épuisement de la mémoire Redis, illustrant les dangers d'un point de défaillance unique et l'importance des alarmes Datadog."
+publishedAt: "2026-02-22"
+readTimeMinutes: 4
+tags:
+  - backend
+  - database
+  - devops
+---
+
+Stocker des objets complexes et volumineux dans Redis pour un service ultra-rapide semble être une excellente idée, jusqu'à ce que ça ne le soit plus. Chez Forest Admin, nous avons appris à nos dépens que traiter une seule instance Redis comme une solution miracle pour tout pouvait entraîner des pannes en cascade catastrophiques.
+
+Voici l'histoire d'une panne survenue lors d'un week-end, causée par une erreur Out-Of-Memory (OOM), et les leçons d'architecture cruciales que nous en avons tirées.
+
+## Le Contexte
+
+Pour atteindre une latence inférieure à la milliseconde sur certaines données très consultées, nous avions mis en place un cas d'usage mettant en cache des objets complexes et lourds dans Redis.
+
+Parce que Redis est incroyablement rapide et fiable, il était devenu organiquement notre solution par défaut pour divers autres besoins au fil du temps :
+
+- **BullMQ** : Gestion et exécution des jobs en arrière-plan.
+- **Authentification** : Gestion des sessions utilisateurs.
+- **Sécurité** : Mécanismes anti-brute force et rate limiting.
+
+Tous ces processus distincts cohabitaient joyeusement au sein d'une **seule et unique instance Redis**.
+
+## L'Incident
+
+C'est arrivé un week-end. Le cas d'usage gérant les objets volumineux a connu un pic de volume de données inattendu. Le mécanisme de cache a agressivement rempli la mémoire et, avant que quiconque ne s'en rende compte, notre instance Redis a atteint sa limite de mémoire et épuisé sa capacité.
+
+Les conséquences ont été immédiates et généralisées. Comme tout dépendait de cette instance unique, le problème ne s'est pas limité à la couche de cache :
+
+- **Files d'attente bloquées** : BullMQ ne pouvait plus écrire ni lire de jobs, paralysant les traitements en arrière-plan.
+- **Authentification en panne** : Les utilisateurs ne pouvaient plus se connecter ni maintenir leurs sessions.
+- **Sécurité impactée** : Notre suivi anti-brute force est tombé hors ligne.
+
+La plateforme entière subissait de fait une dégradation massive, le tout découlant d'un seul pool de mémoire épuisé.
+
+## Les Causes Profondes
+
+Lors de l'analyse de l'incident, deux défaillances flagrantes dans la conception de notre infrastructure ont sauté aux yeux :
+
+### 1. Pas d'alarme de mémoire dans Datadog
+
+Bien que nous ayons un système de monitoring en place, nous n'avions pas configuré d'alertes spécifiques pour la consommation mémoire de Redis. L'instance a gonflé silencieusement jusqu'à planter, ne nous laissant aucun avertissement préalable pour ajuster l'échelle ou intervenir avant que la limite ne soit atteinte.
+
+### 2. L'architecture en Single Point of Failure (SPOF)
+
+En couplant une mise en cache hautement volatile et gourmande en mémoire avec des infrastructures système critiques (comme l'authentification et les files d'attente) sur la même instance, nous avions créé un énorme point de défaillance unique. L'épuisement de la mémoire dans un domaine a totalement fait s'effondrer des domaines sans aucun rapport.
+
+## Les Leçons à Retenir
+
+Si vous utilisez une base de données en mémoire comme Redis en production, ce post-mortem sert de rappel de deux bonnes pratiques critiques :
+
+1. **Surveillez et alertez toujours sur la mémoire** : Une base de données en mémoire est limitée par la RAM. Assurez-vous d'avoir Datadog (ou votre outil de monitoring au choix) configuré pour vous alerter bien avant d'atteindre 80 % ou 90 % de capacité.
+2. **Isolez vos instances par domaine** : Ne mélangez jamais la mise en cache (qu'il est acceptable de perdre) avec des données critiques ou persistantes. Utilisez des instances (ou des clusters) Redis distinctes pour chaque domaine fonctionnel afin d'éviter les pannes en cascade.
+
+Nous en avons payé le prix un week-end, mais la séparation architecturale qui en a résulté a rendu notre infrastructure considérablement plus résiliente.

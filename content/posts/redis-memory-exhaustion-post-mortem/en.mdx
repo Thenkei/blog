@@ -1,0 +1,60 @@
+---
+title: "Post-Mortem: The Day Redis Reached its Limits"
+subtitle: "Why consolidating all your use cases into a single in-memory database is a ticking time bomb."
+summary: "A weekend outage at Forest Admin caused by Redis memory exhaustion, highlighting the dangers of a single point of failure and the importance of proper Datadog alarms."
+publishedAt: "2026-02-22"
+readTimeMinutes: 4
+tags:
+  - backend
+  - database
+  - devops
+---
+
+Storing complex and large objects in Redis for super-fast serving sounds like a great idea until it isn't. At Forest Admin, we learned the hard way that treating a single Redis instance as a silver bullet for everything can lead to catastrophic, cascading failures.
+
+Here is the story of a weekend outage caused by an Out-Of-Memory (OOM) error, and the crucial architectural lessons we learned.
+
+## The Setup
+
+To achieve sub-millisecond latency for some heavily accessed data, we built a use case that cached complex, large objects in Redis.
+
+Because Redis is incredibly fast and reliable, it had organically become our go-to solution for various other needs over time:
+
+- **BullMQ**: Queueing and executing background jobs.
+- **Authentication**: Managing user sessions.
+- **Security**: Anti-brute force mechanisms and rate limiting.
+
+All of these distinct processes were happily co-existing inside a **single Redis instance**.
+
+## The Incident
+
+It happened on a weekend. The specific use case storing large objects experienced an unexpected spike in data volume. The caching mechanism aggressively filled up the memory, and before anyone noticed, our Redis instance hit its memory limit and exhausted its capacity.
+
+The consequences were immediate and widespread. Because everything relied on that single instance, the issue wasn't isolated to just the caching layer:
+
+- **Job Queues Stopped**: BullMQ couldn't write or read jobs, bringing background processing to a halt.
+- **Authentication Broke**: Users couldn't log in or maintain their sessions.
+- **Security Mechanisms Failed**: Our anti-brute force tracking went offline.
+
+The entire platform was effectively suffering from a massive degradation, all stemming from one exhausted memory pool.
+
+## The Root Causes
+
+When we investigated the incident, two glaring failures in our infrastructure design stood out:
+
+### 1. No Memory Alarms in Datadog
+
+While we had monitoring in place, we hadn't set up specific alerts for Redis memory consumption. The instance silently ballooned until it crashed, giving us no preemptive warning to scale up or intervene before the limit was reached.
+
+### 2. The Single Point of Failure (SPOF) Architecture
+
+By coupling highly volatile, memory-intensive caching with mission-critical system infrastructure (like authentication and job queues) on the exact same infrastructure, we created a massive single point of failure. A memory exhaustion issue in one domain entirely took down completely unrelated domains.
+
+## The Takeaways
+
+If you are using an in-memory database like Redis in production, this post-mortem serves as a reminder of two critical best practices:
+
+1. **Always Monitor and Alert on Memory**: An in-memory database is bounded by RAM. Ensure you have Datadog (or your monitoring tool of choice) configured to alert you well before you reach 80% or 90% capacity.
+2. **Isolate Your Instances by Domain**: Never mix volatile caching with persistent/critical data like queues or sessions. Use separate Redis instances (or clusters) for different functional domains to prevent cascading failures.
+
+We paid the price on a weekend, but the resulting architectural split made our infrastructure significantly more resilient.
