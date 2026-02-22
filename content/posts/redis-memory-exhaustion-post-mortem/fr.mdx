@@ -2,13 +2,15 @@
 title: "Post-Mortem : Le jour où Redis a atteint ses limites"
 subtitle: "Pourquoi regrouper tous vos cas d'usage dans une seule base de données est une bombe à retardement."
 summary: "Une panne le week-end chez Forest Admin causée par l'épuisement de la mémoire Redis, illustrant les défis liés au cycle de vie des données."
-publishedAt: "2026-02-22"
+publishedAt: "2021-10-15"
 readTimeMinutes: 5
 tags:
   - backend
   - database
   - devops
 ---
+
+_Note : Cet article a été écrit post-mortem, après mon départ de Forest Admin._
 
 Stocker des objets complexes et volumineux dans Redis pour un service ultra-rapide semble être une excellente idée, jusqu'à ce que ça ne le soit plus. Chez Forest Admin, nous avons appris à nos dépens que traiter une seule instance Redis comme une solution miracle pour tout pouvait entraîner des pannes en cascade catastrophiques.
 

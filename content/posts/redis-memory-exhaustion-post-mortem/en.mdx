@@ -2,13 +2,15 @@
 title: "Post-Mortem: The Day Redis Reached its Limits"
 subtitle: "Why consolidating all your use cases into a single in-memory database is a ticking time bomb."
 summary: "A weekend outage at Forest Admin caused by Redis memory exhaustion, highlighting the dangers of a single point of failure, data lifecycles, and scaling issues."
-publishedAt: "2026-02-22"
+publishedAt: "2021-10-15"
 readTimeMinutes: 5
 tags:
   - backend
   - database
   - devops
 ---
+
+_Note: This article was written post-mortem, after my departure from Forest Admin._
 
 Storing complex and large objects in Redis for super-fast serving sounds like a great idea until it isn't. At Forest Admin, we learned the hard way that treating a single Redis instance as a silver bullet for everything can lead to catastrophic, cascading failures.
 
