@@ -51,8 +51,19 @@ For obvious performance, storage, and synchronization reasons, we ruled out full
 3. **Step 3: The Enrichment (PostgreSQL)**
    Finally, before returning the payload to the client, we take the Elasticsearch results and aggregate/enrich them with the latest relational data from PostgreSQL (like current user names or avatar URLs).
 
+## Scaling to Billions: Sharding and Cluster Evolution
+
+The system didn't just stop at millions. By the time I left Forest Admin, we were ingesting over 100 million logs _per month_, meaning the Elasticsearch system successfully scaled to handle billions of records.
+
+To maintain strict performance guarantees under this colossal load, we had to evolve our cluster and our indexing strategy significantly:
+
+- **Time-based Index Patterns**: Instead of dumping everything into one massive index, we sharded our indices by timestamp.
+- **Dynamic Sharding Evolution**: For the first few years, a single shard handled the entire volume. As the data grew, we transitioned to monthly shards. Eventually, the volume became so intense that we had to split the data into multiple shards per month just to support the load.
+- **Explicit Mappings**: We heavily optimized our indices by using explicit mappings tightly coupled to the application's specific querying needs, preventing Elasticsearch from guessing types and wasting memory.
+- **Cluster Topology**: What started as a simple single node with a replica evolved into a complex multi-node architecture, complete with dedicated Ingest Nodes to handle the heavy write throughput without starving the search operations.
+
 ## The Result
 
-This hybrid approach gave us the best of both worlds. We retained the strict relational integrity and fast metadata lookups of PostgreSQL while offloading the heavy lifting of sorting and searching 100 million massive log payloads to Elasticsearch.
+This hybrid approach gave us the best of both worlds. We retained the strict relational integrity and fast metadata lookups of PostgreSQL while offloading the heavy lifting of sorting and searching massive log payloads to Elasticsearch.
 
-The timeouts disappeared, the system stabilized, and our audit trails became snappy again—proving that sometimes the best database for the job is actually two.
+The timeouts disappeared, the system stabilized, and our audit trails successfully scaled to billions—proving that sometimes the best database for the job is actually two.

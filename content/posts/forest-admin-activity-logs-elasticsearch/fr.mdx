@@ -51,8 +51,19 @@ Pour des raisons évidentes de performance, de stockage et de synchronisation, n
 3. **Étape 3 : L'Enrichissement (PostgreSQL)**
    Enfin, avant de renvoyer la réponse au client, nous prenons les résultats d'Elasticsearch pour les agréger et les enrichir avec les données relationnelles à jour de PostgreSQL (comme le nom actuel de l'utilisateur ou l'URL de son avatar).
 
+## Passer à l'échelle des Milliards : Sharding et Évolution du Cluster
+
+Le système ne s'est pas arrêté aux millions. Au moment où j'ai quitté Forest Admin, nous ingérions plus de 100 millions de logs _par mois_, ce qui signifie que le système Elasticsearch a réussi à passer à l'échelle pour gérer des milliards d'enregistrements.
+
+Pour maintenir des garanties de performance strictes sous cette charge colossale, nous avons dû faire évoluer considérablement notre cluster et notre stratégie d'indexation :
+
+- **Indexation Temporelle (Index Patterns)** : Au lieu de tout déverser dans un seul index massif, nous avons partitionné nos index par timestamp.
+- **Évolution Dynamique du Sharding** : Pendant les premières années, un shard unique gérait l'ensemble du volume. Avec la croissance des données, nous sommes passés à des shards mensuels. Finalement, le volume est devenu si intense que nous avons dû diviser les données en plusieurs shards par mois pour supporter la charge.
+- **Mappings Explicites** : Nous avons fortement optimisé nos index en utilisant des mappings explicites étroitement liés aux besoins de requêtage spécifiques de l'application, évitant ainsi à Elasticsearch de deviner les types et de gaspiller de la mémoire.
+- **Topologie du Cluster** : Ce qui a commencé comme un simple nœud unique avec un réplica a évolué vers une architecture multi-nœuds complexe, dotée de Nœuds d'Ingestion dédiés pour gérer le lourd débit d'écriture sans pénaliser les opérations de recherche.
+
 ## Le Résultat
 
-Cette approche hybride nous a offert le meilleur des deux mondes. Nous avons conservé l'intégrité relationnelle stricte et les recherches de métadonnées rapides de PostgreSQL, tout en délégant à Elasticsearch la lourde tâche de trier et fouiller 100 millions de payloads massifs.
+Cette approche hybride nous a offert le meilleur des deux mondes. Nous avons conservé l'intégrité relationnelle stricte et les recherches de métadonnées rapides de PostgreSQL, tout en délégant à Elasticsearch la lourde tâche de trier et fouiller des payloads massifs.
 
-Les timeouts ont disparu, le système s'est stabilisé, et nos pistes d'audit ont retrouvé leur réactivité — prouvant que parfois, la meilleure base de données pour un travail, c'est en fait deux.
+Les timeouts ont disparu, le système s'est stabilisé, et nos pistes d'audit ont pu encaisser des milliards d'événements — prouvant que parfois, la meilleure base de données pour un travail, c'est en fait deux.
