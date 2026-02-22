@@ -1,0 +1,33 @@
+---
+title: "Changing Hats: From Backend to Data Engineer at RockFi"
+subtitle: "Building the data foundation for the new generation of wealth management."
+summary: "Why I transitioned towards Data Engineering at RockFi, diving into Dagster, medallion architecture, and our future with modern data warehouses."
+publishedAt: "2025-10-15"
+readTimeMinutes: 4
+tags:
+  - data-engineering
+  - backend
+  - dagster
+  - architecture
+  - rockfi
+---
+
+# Changing Hats: From Backend to Data Engineer
+
+Recently at [RockFi](https://www.rockfi.fr/), I've found myself changing my hat ("changer de casquette", as we say in French). While my roots lie deep in backend engineering, I've increasingly stepped into the fascinating, albeit complex, world of Data Engineering.
+
+Why the shift? In my previous experiences, we were 100% in control of the data because we produced it ourselves. At RockFi, the challenge is entirely different: while we do produce data internally, our primary hurdle lies in interconnecting with a multitude of external partners (Insurers, Asset Managers, Price Providers, etc.). It becomes crucial to master this complexity to consolidate and govern these flows. Being _data-driven_ isn't just an empty buzzword; it's the very foundation of our product. Even as a Backend Engineer, you quickly learn to love data and adapt to tackle this kind of large-scale integration challenge.
+
+## Orchestrating the Chaos with Dagster
+
+My days are now revolving around [Dagster](https://dagster.io/). We are building a robust orchestrator capable of managing our data pipelines based on the **medallion architecture** (Bronze, Silver, Gold). This approach is the very essence of all our business operations.
+
+We gather immense amounts of data from all our providers to fuel the new generation of wealth management at RockFi. But raw data isn't enough. We are also building and integrating semantic models to ensure proper data governance, giving our teams confidence in the numbers they see and use every day.
+
+## The Next Step: A Proper Data Warehouse
+
+Achieving this orchestration has been a huge milestone. We have successfully laid down the pipelines and the governance models. But data at this scale never sleeps, and our systems need to evolve.
+
+We can proudly say that this foundational work is done. It's now time to move to the next level: adopting a proper Data Warehouse like **Snowflake** or **Clickhouse**. This migration will allow us to scale our analytics capabilities and truly unlock the potential of the data asset we've built, serving our wealth management platform with unprecedented speed and reliability.
+
+Being a Data Engineer (or a Backend Engineer wearing a very large data hat) at RockFi is a thrilling ride. It requires a different mindset from traditional software engineering, but the impact you have on the entire company is undeniable.
