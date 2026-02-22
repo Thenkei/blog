@@ -1,9 +1,9 @@
 ---
 title: "Post-Mortem : Le jour où Redis a atteint ses limites"
 subtitle: "Pourquoi regrouper tous vos cas d'usage dans une seule base de données est une bombe à retardement."
-summary: "Une panne le week-end chez Forest Admin causée par l'épuisement de la mémoire Redis, illustrant les dangers d'un point de défaillance unique et l'importance des alarmes Datadog."
+summary: "Une panne le week-end chez Forest Admin causée par l'épuisement de la mémoire Redis, illustrant les défis liés au cycle de vie des données."
 publishedAt: "2026-02-22"
-readTimeMinutes: 4
+readTimeMinutes: 5
 tags:
   - backend
   - database
@@ -12,11 +12,13 @@ tags:
 
 Stocker des objets complexes et volumineux dans Redis pour un service ultra-rapide semble être une excellente idée, jusqu'à ce que ça ne le soit plus. Chez Forest Admin, nous avons appris à nos dépens que traiter une seule instance Redis comme une solution miracle pour tout pouvait entraîner des pannes en cascade catastrophiques.
 
-Voici l'histoire d'une panne survenue lors d'un week-end, causée par une erreur Out-Of-Memory (OOM), et les leçons d'architecture cruciales que nous en avons tirées.
+Voici l'histoire d'une panne survenue lors d'un week-end, causée par une erreur Out-Of-Memory (OOM), et les leçons d'architecture et de cycle de vie des données que nous en avons tirées.
 
 ## Le Contexte
 
-Pour atteindre une latence inférieure à la milliseconde sur certaines données très consultées, nous avions mis en place un cas d'usage mettant en cache des objets complexes et lourds dans Redis.
+Pour atteindre une latence inférieure à la milliseconde sur certaines données très consultées, nous avions mis en place un système de cache pour des objets (à l'origine) petits.
+
+Cette fonctionnalité avait été implémentée 2 à 3 ans avant l'incident. À l'époque, nous avions moins de clients et les objets en question étaient minuscules. D'ailleurs, la majorité de l'équipe technique gérant l'incident (moi y compris) n'était même pas encore dans l'entreprise lors du développement initial.
 
 Parce que Redis est incroyablement rapide et fiable, il était devenu organiquement notre solution par défaut pour divers autres besoins au fil du temps :
 
@@ -26,9 +28,11 @@ Parce que Redis est incroyablement rapide et fiable, il était devenu organiquem
 
 Tous ces processus distincts cohabitaient joyeusement au sein d'une **seule et unique instance Redis**.
 
-## L'Incident
+## Le Syndrome de la Grenouille Bouillie
 
-C'est arrivé un week-end. Le cas d'usage gérant les objets volumineux a connu un pic de volume de données inattendu. Le mécanisme de cache a agressivement rempli la mémoire et, avant que quiconque ne s'en rende compte, notre instance Redis a atteint sa limite de mémoire et épuisé sa capacité.
+À mesure que Forest Admin s'est développé, les cas d'usage de nos clients ont suivi le même chemin. Ce qui a commencé par de petits objets légers en cache s'est lentement transformé en structures de données massives. La croissance étant progressive, le problème s'est insidieusement installé.
+
+Puis, c'est arrivé un week-end. Un pic de volume de données inattendu a fait déborder le vase. Avant que quiconque ne s'en rende compte, notre instance Redis a atteint sa limite de mémoire et épuisé sa capacité.
 
 Les conséquences ont été immédiates et généralisées. Comme tout dépendait de cette instance unique, le problème ne s'est pas limité à la couche de cache :
 
@@ -40,21 +44,28 @@ La plateforme entière subissait de fait une dégradation massive, le tout déco
 
 ## Les Causes Profondes
 
-Lors de l'analyse de l'incident, deux défaillances flagrantes dans la conception de notre infrastructure ont sauté aux yeux :
+Lors de l'analyse de l'incident, plusieurs défaillances dans la conception de notre infrastructure et notre gestion de la donnée ont sauté aux yeux :
 
 ### 1. Pas d'alarme de mémoire dans Datadog
 
-Bien que nous ayons un système de monitoring en place, nous n'avions pas configuré d'alertes spécifiques pour la consommation mémoire de Redis. L'instance a gonflé silencieusement jusqu'à planter, ne nous laissant aucun avertissement préalable pour ajuster l'échelle ou intervenir avant que la limite ne soit atteinte.
+Bien que nous ayons un système de monitoring en place, nous n'avions pas configuré d'alertes spécifiques pour la consommation mémoire de Redis. L'instance a gonflé silencieusement jusqu'à planter, ne nous laissant aucun avertissement préalable.
 
 ### 2. L'architecture en Single Point of Failure (SPOF)
 
-En couplant une mise en cache hautement volatile et gourmande en mémoire avec des infrastructures système critiques (comme l'authentification et les files d'attente) sur la même instance, nous avions créé un énorme point de défaillance unique. L'épuisement de la mémoire dans un domaine a totalement fait s'effondrer des domaines sans aucun rapport.
+En couplant une mise en cache hautement volatile et gourmande en mémoire avec des infrastructures système critiques sur la même instance, nous avions créé un énorme point de défaillance unique. L'épuisement de la mémoire dans un domaine a totalement fait s'effondrer des pans sans aucun rapport.
 
-## Les Leçons à Retenir
+### 3. Cycles de Vie des Données Inefficaces
 
-Si vous utilisez une base de données en mémoire comme Redis en production, ce post-mortem sert de rappel de deux bonnes pratiques critiques :
+Nous pensions avoir géré la rétention. Nous avions configuré un TTL (Time-To-Live), mais il n'était tout simplement pas assez agressif. De plus, nous nous sommes rendu compte que nous ne supprimions pas activement les données appartenant aux projets supprimés, laissant des objets obsolètes consommer de la RAM pour absolument rien.
 
-1. **Surveillez et alertez toujours sur la mémoire** : Une base de données en mémoire est limitée par la RAM. Assurez-vous d'avoir Datadog (ou votre outil de monitoring au choix) configuré pour vous alerter bien avant d'atteindre 80 % ou 90 % de capacité.
-2. **Isolez vos instances par domaine** : Ne mélangez jamais la mise en cache (qu'il est acceptable de perdre) avec des données critiques ou persistantes. Utilisez des instances (ou des clusters) Redis distinctes pour chaque domaine fonctionnel afin d'éviter les pannes en cascade.
+## Les Corrections & Leçons à Retenir
 
-Nous en avons payé le prix un week-end, mais la séparation architecturale qui en a résulté a rendu notre infrastructure considérablement plus résiliente.
+Nous avons bien sûr séparé l'architecture pour que le cache, les files d'attente et les sessions vivent désormais dans des instances Redis isolées. Mais nous ne nous sommes pas arrêtés là.
+
+Pour résoudre les problèmes fondamentaux liés aux données, nous avons :
+
+- **Raccourci les TTLs** : Les rendre beaucoup plus agressifs pour garantir que la mémoire soit libérée plus rapidement.
+- **Nettoyé les données obsolètes** : Mis en place des routines pour supprimer immédiatement les éléments en cache appartenant aux projets supprimés.
+- **Compressé les Payloads** : Un collègue a pris le temps d'étudier et d'implémenter une solution de compression des données _avant_ leur stockage dans Redis. Non seulement cela a optimisé nos coûts de mémoire de manière significative, mais cela s'est également traduit par des temps de transport HTTPS plus rapides en raison de la taille réduite des payloads.
+
+Si vous utilisez une base de données en mémoire comme Redis en production, ce post-mortem sert de rappel : surveillez toujours votre mémoire, isolez vos domaines métier et ne supposez jamais qu'une stratégie de cache qui fonctionne pour un petit nombre de clients passera automatiquement à l'échelle lorsque la complexité de vos données augmentera.
