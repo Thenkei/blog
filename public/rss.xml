@@ -40,11 +40,18 @@
 <pubDate>Sat, 10 Jan 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
+<title>Changing Hats: From Backend to Data Engineer at RockFi</title>
+<link>https://thenkei.github.io/blog/en/posts/backend-to-data-engineer-rockfi</link>
+<guid>https://thenkei.github.io/blog/en/posts/backend-to-data-engineer-rockfi</guid>
+<description>Why I transitioned towards Data Engineering at RockFi, diving into Dagster, medallion architecture, and our future with modern data warehouses.</description>
+<pubDate>Wed, 15 Oct 2025 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>New Chapter: Joining RockFi as Staff Back-end Engineer</title>
 <link>https://thenkei.github.io/blog/en/posts/joining-rockfi</link>
 <guid>https://thenkei.github.io/blog/en/posts/joining-rockfi</guid>
 <description>Career update and technical mission context for building a scalable wealth-management platform.</description>
-<pubDate>Mon, 01 Dec 2025 00:00:00 GMT</pubDate>
+<pubDate>Sun, 01 Dec 2024 00:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Rebuilding Cloud Experience: The Trade-Offs of Serverless at Scale</title>
@@ -96,11 +103,25 @@
 <pubDate>Wed, 15 Jun 2022 00:00:00 GMT</pubDate>
 </item>
 <item>
+<title>Post-Mortem: The Day Redis Reached its Limits</title>
+<link>https://thenkei.github.io/blog/en/posts/redis-memory-exhaustion-post-mortem</link>
+<guid>https://thenkei.github.io/blog/en/posts/redis-memory-exhaustion-post-mortem</guid>
+<description>A weekend outage at Forest Admin caused by Redis memory exhaustion, highlighting the dangers of a single point of failure, data lifecycles, and scaling issues.</description>
+<pubDate>Fri, 15 Oct 2021 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>Scaling CI at Forest Admin: When Tests Take Longer Than Your Lunch Break</title>
 <link>https://thenkei.github.io/blog/en/posts/scaling-ci-github-actions-forest-admin</link>
 <guid>https://thenkei.github.io/blog/en/posts/scaling-ci-github-actions-forest-admin</guid>
 <description>How we handled the explosion of CI times during our Series A scaling phase at Forest Admin, the nightmare of merging artifacts, and the endless pursuit of deterministic tests.</description>
 <pubDate>Fri, 10 Sep 2021 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>When PostgreSQL Is No Longer Enough: Migrating Activity Logs to Elasticsearch</title>
+<link>https://thenkei.github.io/blog/en/posts/forest-admin-activity-logs-elasticsearch</link>
+<guid>https://thenkei.github.io/blog/en/posts/forest-admin-activity-logs-elasticsearch</guid>
+<description>How we navigated performance bottlenecks by migrating our massive activity logs system from PostgreSQL to Elasticsearch using a hybrid search architecture.</description>
+<pubDate>Sat, 15 May 2021 00:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Security and authentication with identity federation (OpenID Connect)</title>
