@@ -5,23 +5,13 @@ import "../../src/i18n/config";
 import { ParallaxHero } from "../../src/shared/components/ParallaxHero";
 import type { ThemeMode } from "../../src/app/providers/ThemeProvider";
 
-const labels = {
-  lightTheme: "Light",
-  darkTheme: "Dark",
-  mountainTheme: "Mountain",
-  rocketTheme: "Rocket",
-  themeSwitcher: "Theme selector",
-};
-
 function renderHero(themeMode: ThemeMode) {
   return render(
     <MemoryRouter initialEntries={["/en"]}>
       <ParallaxHero
         themeMode={themeMode}
-        onThemeChange={vi.fn()}
         title="Morgan's Blog"
         subtitle="Engineering / Running / Evolution"
-        labels={labels}
         onTitleClick={vi.fn()}
       />
     </MemoryRouter>,

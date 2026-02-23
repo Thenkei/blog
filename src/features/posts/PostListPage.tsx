@@ -12,27 +12,34 @@ type PostListPageProps = {
 };
 
 function formatDate(date: string, locale: PostLocale): string {
-  const formatter = new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const formatter = new Intl.DateTimeFormat(
+    locale === "fr" ? "fr-FR" : "en-US",
+    {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
+  );
   return formatter.format(new Date(`${date}T00:00:00.000Z`));
 }
 
-function includesQuery(post: { title: string; subtitle: string; summary: string; tags: string[] }, query: string): boolean {
+function includesQuery(
+  post: { title: string; subtitle: string; summary: string; tags: string[] },
+  query: string,
+): boolean {
   if (!query.trim()) {
     return true;
   }
 
-  const haystack = `${post.title} ${post.subtitle} ${post.summary} ${post.tags.join(" ")}`.toLowerCase();
+  const haystack =
+    `${post.title} ${post.subtitle} ${post.summary} ${post.tags.join(" ")}`.toLowerCase();
   return haystack.includes(query.trim().toLowerCase());
 }
 
 export function PostListPage({ locale }: PostListPageProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { themeMode, setThemeMode } = useTheme();
+  const { themeMode } = useTheme();
   const [query, setQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
@@ -47,7 +54,9 @@ export function PostListPage({ locale }: PostListPageProps) {
   const filteredPosts = useMemo(() => {
     const filtered = posts
       .filter((post) => includesQuery(post, query))
-      .filter((post) => selectedTag === "all" || post.tags.includes(selectedTag));
+      .filter(
+        (post) => selectedTag === "all" || post.tags.includes(selectedTag),
+      );
 
     filtered.sort((a, b) => {
       if (sortOrder === "newest") {
@@ -59,16 +68,18 @@ export function PostListPage({ locale }: PostListPageProps) {
     return filtered;
   }, [posts, query, selectedTag, sortOrder]);
 
-  const { focusedIndex, setFocusedIndex, cardRefs } = usePostKeyboardNavigation({
-    enabled: true,
-    count: filteredPosts.length,
-    onSelectIndex: (index) => {
-      const selected = filteredPosts[index];
-      if (selected) {
-        openPost(selected.slug);
-      }
+  const { focusedIndex, setFocusedIndex, cardRefs } = usePostKeyboardNavigation(
+    {
+      enabled: true,
+      count: filteredPosts.length,
+      onSelectIndex: (index) => {
+        const selected = filteredPosts[index];
+        if (selected) {
+          openPost(selected.slug);
+        }
+      },
     },
-  });
+  );
 
   return (
     <>
@@ -79,16 +90,8 @@ export function PostListPage({ locale }: PostListPageProps) {
       />
       <ParallaxHero
         themeMode={themeMode}
-        onThemeChange={setThemeMode}
         title={t("header.title")}
         subtitle={t("header.subtitle")}
-        labels={{
-          lightTheme: t("ui.lightTheme"),
-          darkTheme: t("ui.darkTheme"),
-          mountainTheme: t("ui.mountainTheme"),
-          rocketTheme: t("ui.rocketTheme"),
-          themeSwitcher: t("ui.themeSwitcher"),
-        }}
         onTitleClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       />
 
@@ -136,7 +139,9 @@ export function PostListPage({ locale }: PostListPageProps) {
                   className="post-control-select"
                   value={sortOrder}
                   onChange={(event) => {
-                    setSortOrder(event.target.value === "oldest" ? "oldest" : "newest");
+                    setSortOrder(
+                      event.target.value === "oldest" ? "oldest" : "newest",
+                    );
                     setFocusedIndex(-1);
                   }}
                 >
@@ -166,7 +171,9 @@ export function PostListPage({ locale }: PostListPageProps) {
                   <div className="meta">
                     <span>{formatDate(post.publishedAt, locale)}</span>
                     <span>•</span>
-                    <span>{t("ui.readTime", { count: post.readTimeMinutes })}</span>
+                    <span>
+                      {t("ui.readTime", { count: post.readTimeMinutes })}
+                    </span>
                   </div>
                   <h3>{post.title}</h3>
                   <p className="post-subtitle">{post.subtitle}</p>

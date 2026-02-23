@@ -16,7 +16,6 @@ function matchesMediaQuery(query: string): boolean {
 
 type ParallaxHeroProps = {
   themeMode: ThemeMode;
-  onThemeChange: (mode: ThemeMode) => void;
   title: string;
   subtitle: string;
   onTitleClick: () => void;
