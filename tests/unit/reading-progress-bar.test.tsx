@@ -1,7 +1,10 @@
 import { render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useRef } from "react";
-import { ThemeProvider, type ThemeMode } from "../../src/app/providers/ThemeProvider";
+import {
+  ThemeProvider,
+  type ThemeMode,
+} from "../../src/app/providers/ThemeProvider";
 import { ReadingProgressBar } from "../../src/features/reading/ReadingProgressBar";
 
 const ARTICLE_TOP = 500;
@@ -71,18 +74,14 @@ describe("ReadingProgressBar", () => {
     });
   });
 
-  it("renders clean progress variant for light theme", () => {
+  it("renders no progress variant for light theme", () => {
     const { container } = renderProgress("light");
-    const lightProgress = container.querySelector(".clean-progress-light");
-    expect(lightProgress).toBeTruthy();
-    expect(lightProgress).toHaveAttribute("data-progress-placement", "top");
+    expect(container.querySelector(".clean-progress-light")).toBeNull();
   });
 
-  it("renders clean progress variant for dark theme", () => {
+  it("renders no progress variant for dark theme", () => {
     const { container } = renderProgress("dark");
-    const darkProgress = container.querySelector(".clean-progress-dark");
-    expect(darkProgress).toBeTruthy();
-    expect(darkProgress).toHaveAttribute("data-progress-placement", "top");
+    expect(container.querySelector(".clean-progress-dark")).toBeNull();
   });
 
   it("renders mountain variant and tracks direction changes", async () => {
@@ -109,7 +108,9 @@ describe("ReadingProgressBar", () => {
     expect(container.querySelector(".mountain-progress-track")).toBeNull();
     expect(container.querySelector(".mountain-progress-fill")).toBeNull();
     expect(container.querySelector(".mountain-progress-glow")).toBeNull();
-    expect(container.querySelector(".mountain-progress-checkpoints")).toBeNull();
+    expect(
+      container.querySelector(".mountain-progress-checkpoints"),
+    ).toBeNull();
     expect(container.querySelector(".mountain-progress-altitude")).toBeNull();
   });
 

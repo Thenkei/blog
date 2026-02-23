@@ -6,12 +6,14 @@ import { MemoryRouter } from "react-router-dom";
 import "../../src/i18n/config";
 import { ThemeProvider } from "../../src/app/providers/ThemeProvider";
 import { AppRouter } from "../../src/app/router";
+import { GlobalHeader } from "../../src/shared/components/GlobalHeader";
 
 function renderApp(initialPath: string) {
   return render(
     <HelmetProvider>
       <ThemeProvider>
         <MemoryRouter initialEntries={[initialPath]}>
+          <GlobalHeader />
           <AppRouter />
         </MemoryRouter>
       </ThemeProvider>
