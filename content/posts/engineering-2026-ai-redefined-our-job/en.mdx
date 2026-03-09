@@ -1,0 +1,74 @@
+---
+title: "Engineering in 2026: The Year AI Redefined Our Job"
+subtitle: "From Cursor to Claude Code, from writing boilerplate to orchestrating chaos."
+summary: "How RockFi's move to Claude Code transformed the way our team ships: less hand-rolling syntax, more engineering thinking, and surviving working across multiple projects without burning out."
+publishedAt: "2026-02-27"
+readTimeMinutes: 6
+tags:
+  - ai
+  - engineering
+  - developer-tools
+  - reflection
+---
+
+New year, new paradigm. Not the kind of HR-approved "new year, new me" nonsense that evaporates by February, but the kind that permanently reshapes how we survive this profession. 2026 is that year for software engineering.
+
+At **RockFi**, we crossed a threshold we didn't fully anticipate. Looking back, we need to name it clearly: we stopped _writing_ code as our primary activity. Instead of fighting syntax while fueled by an unhealthy amount of caffeine, we started _engineering_ at a different altitude.
+
+## The Switch: From Cursor to Claude Code (aka Finding a Better Co-Pilot)
+
+A few months ago, our team made the unapologetic call to move from Cursor to **Claude Code**. This wasn't just another shiny tooling swap to distract us from technical debt. It was a deliberate bet on a workflow where the AI isn't just a glorified autocomplete — it's an active collaborator deeply embedded in the terminal, the repo, and the messy reality of the actual project.
+
+The difference showed up fast.
+
+Delivery actually improved without anyone having to mandate it. People saw the delta between wrestling with context windows and actually getting things done, so they migrated. The key shift wasn't that we typed faster. It was **leverage**. Claude Code understood our spaghetti architecture well enough to reduce the constant, soul-draining translation overhead between "what I want" and "what the compiler forces me to type."
+
+> We don't write nearly as much code by hand as we used to. And yet we ship more. That still sounds like absolute heresy to say out loud.
+
+## Internal Tooling That Changed the Game (aka Stop Doing Undifferentiated Grunt Work)
+
+One of the most impactful moves we made was building **custom internal tooling** directly into our AI workflow. These aren't flashy wrappers — they are precise, heavily opinionated tools built to eliminate the specific things that make us want to flip our desks:
+
+- **Workshop and brainstorming support** — Structured prompts and context loaders that keep the team exploring ideas without falling down a rabbit hole of obsolete Jira tickets.
+- **Dive In generator** — Our mercilessly efficient deep technical documentation tool. The kind of doc that used to chew up half a senior engineer's day — only to be outdated the moment it was published. Now, it's generated right alongside the work. `// No more docs lying to production.`
+- **Story-to-PR pipelines** — We write the user stories, and the tool handles the scaffolding: creating the branch, pulling context, drafting the description, and linking artifacts. The administrative tax that used to slowly drain our will to live on every feature? Gone.
+
+These tools didn't replace our judgment. They eliminated the mindless friction that traditionally burns out good engineers.
+
+## Both Codex and Claude Code: A Personal Rhythm (aka Embracing Tooling Polygamy)
+
+Beyond the team's shared stack, my personal setup evolved into something more pragmatic. I'll be honest: I run both **Codex** and **Claude Code**, and I'm totally fine holding that opinion.
+
+Codex is basically a precision scalpel for pure code generation. It’s tightly focused and fits cleanly into short iteration loops where you just need the damn function written. Claude Code, on the other hand, brings the heavier context management. It handles the back-and-forth reasoning you desperately need when making architecture decisions or debugging a gnarly, distributed race condition that only happens at 3 AM.
+
+This combination unlocked something terrifyingly effective: I routinely work across **4 to 5 projects a day** without my brain melting down. Fixing an observability regression in one codebase, reviewing a terrifying schema migration in another, and pushing my main project forward — all without the usual context-switching tax breaking my spirit before lunch.
+
+That's not multitasking. That's just working with a system that drops the cognitive ramp-up cost to near zero.
+
+## What Actually Changed (Because "AI makes us faster" is a weak take)
+
+Let's be precise here. Just saying "AI makes us code faster" misses the point entirely:
+
+- **The unit of effort shifted.** We used to measure progress by how many lines of code we shoved into `main`. Now we measure it in actual problems solved, architectural decisions defended, and how well the system holds up under fire. `// Your AWS bill will finally appreciate it.`
+- **Junior engineers ramp absurdly fast.** The gap between the new hire and the grizzled veteran shrank because the LLM handles the boilerplate and the trivia. The human just has to focus on intent (and avoiding circular dependencies).
+- **Most of our time is now spent doing actual engineering.** Reading complex systems. Making brutal tradeoffs. Designing for failure. Reviewing code to ensure it won’t bring the database connection pool to its knees. The hard stuff is now the only stuff we do.
+
+## The New Bottlenecks (aka Ways This Will Inevitably Explode)
+
+We fixed the speed of writing code, but the laws of physics still apply: the bottleneck just moved somewhere else.
+
+- **The Code Review Paralysis (and AI Reviewers):** Reading code is inherently harder than writing it. Reviewing an AI's PR is like reviewing a pull request from a 10x engineer who refuses to sleep, knows everything, but occasionally hallucinates a cryptographic library that doesn't exist. The mental pipeline required to review 500 lines of generated code to ensure it doesn't subtly introduce a debilitating race condition is a completely new muscle. The only real defense mechanism? Fighting fire with fire. We now heavily rely on dedicated reviewer skills in Claude (and parallel setups in Codex) to do the first-pass review. `// Let the bots argue about cyclomatic complexity before I have to look at it.`
+- **Context is the New Syntax:** We stopped fighting syntax, but we replaced it with fighting context windows. If you just drop an LLM into a 5-year-old monolithic repo without guiding it, it will confidently rewrite your core payment logic using an outdated architectural paradigm it read on Reddit in 2021. The real skill isn't just "talking to AI"—it's meticulously curating the context you feed it. We are now _context engineers_.
+- **The API Outage Dependency:** Let's be self-deprecating for a moment. What happens when Anthropic or OpenAI has an API outage? The entire engineering team effectively grinds to a halt. We stare blankly at our IDEs because the idea of manually typing out a 150-line boilerplate schema migration by hand now feels like being asked to churn our own butter. The dependency is absolute, and we just have to accept that risk.
+
+## The Uncomfortable Truth (aka You Can't Hide Behind Fast Typing Anymore)
+
+Let's name the elephant in the room: **the baseline for what counts as an "engineer's contribution" has moved permanently.** Typing 120 WPM was never the actual job, but it was a great way to mask a lack of deep architectural thinking. That hiding place has been demolished.
+
+If you aren't actively sharpening your system judgment, refining your ability to brutally evaluate AI output, or honing your instinct for _what is correct_ versus _what merely compiles_, 2026 is going to chew you up. The tools are extraordinary. But the expectation placed on the human in the loop has never been higher.
+
+## Let's Go
+
+I’m saying this from a place of genuine excitement, not Silicon Valley hype. Our team is shipping at a velocity — and with a level of stability — that would have sounded like science fiction eight months ago. The boundary between "designing" and "building" has blurred, and it's glorious.
+
+2026 redefined the job. The tools are locked in, the team is moving fast, and the only thing left is to keep raising the bar. Let's get back to work.
