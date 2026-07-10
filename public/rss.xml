@@ -5,6 +5,13 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
+<title>AI at RockFi: Building Leverage Without Removing Human Judgment</title>
+<link>https://thenkei.github.io/blog/en/posts/ai-human-judgment-rockfi</link>
+<guid>https://thenkei.github.io/blog/en/posts/ai-human-judgment-rockfi</guid>
+<description>At RockFi, AI is already embedded in roughly 70% of our work. Here is how we are scaling its leverage while keeping accountability, validation, and access control firmly human-owned.</description>
+<pubDate>Fri, 10 Jul 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>2017: When We Built the Future of Eyewear in Less Than a Second</title>
 <link>https://thenkei.github.io/blog/en/posts/polymagine-industry-4-eyewear-2017</link>
 <guid>https://thenkei.github.io/blog/en/posts/polymagine-industry-4-eyewear-2017</guid>

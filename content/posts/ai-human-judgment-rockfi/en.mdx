@@ -1,0 +1,86 @@
+---
+title: "AI at RockFi: Building Leverage Without Removing Human Judgment"
+subtitle: "From a hands-on Claude Code curriculum to the guarded AI loops we are preparing next."
+summary: "At RockFi, AI is already embedded in roughly 70% of our work. Here is how we are scaling its leverage while keeping accountability, validation, and access control firmly human-owned."
+publishedAt: "2026-07-10"
+readTimeMinutes: 7
+tags:
+  - ai
+  - engineering
+  - operations
+  - security
+  - rockfi
+---
+
+At RockFi, AI is no longer a side experiment or a tool reserved for the technical team. It now contributes to roughly 70% of the work that moves through the company: preparing, exploring, drafting, checking, structuring, and accelerating decisions.
+
+That figure does **not** mean that 70% of RockFi runs on autopilot. It means that AI is becoming part of the way we work, while people remain responsible for direction, validation, and the final decision.
+
+This distinction matters. In wealth management, speed without control is not progress. The objective is not to remove people from consequential work; it is to remove the avoidable friction around that work so that people can spend more time on judgment, client value, and the decisions that deserve their attention.
+
+Our approach has two sides. The first is technical: help engineers become genuinely effective with AI, then build the foundations for safe, repeatable agent loops. The second is organisational: make AI useful across the company without treating it as an oracle.
+
+## From a tool to a shared engineering capability
+
+Giving a team access to Claude Code is easy. Building the habits to use it well is the real work.
+
+That is why our engineering team created the **Claude Code Challenges: From Zero to Hero** programme: a sequence of short, practical challenges run on real code and real workflows. The programme is deliberately async and collaborative. Engineers share the prompt or strategy that worked, the failure that did not, and the insight they will reuse. The goal is not a leaderboard. It is shared operational knowledge.
+
+The sequence follows the delivery lifecycle:
+
+- Set up the environment and learn how context affects results.
+- Turn a specification into code, then review and deliver it properly.
+- Debug non-trivial issues through reproducible evidence and falsifiable hypotheses.
+- Use parallel agents, hooks, and reusable skills where they add real value.
+- Contribute useful workflows and guardrails back to the team.
+
+This is important because AI proficiency is not prompt cleverness. It is the ability to frame a problem, supply the right context, evaluate the result, and recover when the model takes the wrong path.
+
+For example, the debugging challenge does not ask someone to type “fix this bug.” It requires a deterministic reproduction, competing hypotheses, experiments designed to disprove them, and a regression test that fails before the fix and passes afterwards. AI can accelerate that process; it cannot replace the discipline behind it.
+
+The same principle applies to team tooling. Skills package the workflows, templates, and hard-won edge cases that should be reusable. Hooks can apply guardrails at the right moment in an agent session: block dangerous actions, require a fast test suite, or record changes to sensitive areas. The aim is to turn individual gains into a safer team capability.
+
+## The next step: bounded loops, not autonomous free-for-all
+
+The most interesting frontier is not another chat interface. It is the loop: a task that can observe a defined signal, act within a constrained scope, produce evidence, and stop under a clear condition.
+
+Examples are already familiar to any operating team: checking why CI failed, surfacing documentation drift, triaging incoming reports, or preparing the first pass on a review. These are repetitive loops with explicit inputs and useful outputs. They are good candidates for AI assistance because their completion criteria can be made measurable.
+
+We are now assembling the building blocks to run this kind of work more safely inside our infrastructure. The direction is clear: an agent should execute in an ephemeral VM with a sharply scoped set of permissions, a defined task boundary, observable actions, and a finite lifetime. It should receive only the credentials and data it needs—not the ambient authority of a human laptop or a broad production role.
+
+That design is deliberate. A future agent loop should not be able to discover a production credential, silently expand its own access, or turn an ambiguous objective into an open-ended run. The controls need to be technical and operational:
+
+- **Least-privilege execution:** isolated environments, short-lived credentials, and explicit access to named systems only.
+- **Verifiable completion:** measurable exit criteria, evidence of tests or checks, and bounded turns, time, and cost.
+- **Traceability:** logs of actions, inputs, outputs, and approvals that allow us to understand what happened.
+- **Human gates:** a person reviews material changes, high-impact decisions, and anything that crosses a sensitive boundary.
+- **Safe failure:** the default response to missing context, a failed check, or an unclear instruction is to stop and escalate—not to guess.
+
+This is the infrastructure version of the same lesson we teach in the challenges: define what “done” means, make it testable, and do not confuse an assertion with proof.
+
+## AI is already changing how the company operates
+
+The engineering team is the most visible example because code makes the interaction easy to see. The broader impact is less glamorous and more significant.
+
+Across RockFi, AI now helps turn an initial idea into structured material, reduce the cost of research and preparation, make first drafts faster, and keep routine work moving. In many cases, the output is not the answer; it is the starting point that lets a person begin from something useful instead of a blank page.
+
+That changes the economics of execution. A small team can explore more options, iterate sooner, and raise the quality of its preparation without growing headcount simply to absorb administrative throughput. The gain is not “do more with fewer people” as an empty slogan. The gain is that expertise spends less time on formatting, searching, and re-explaining—and more time on deciding.
+
+The human role becomes more important, not less:
+
+- Someone must state the actual problem and the constraints that matter.
+- Someone must recognise when a plausible answer is wrong for our clients, our product, or our regulatory obligations.
+- Someone must validate recommendations before they become customer-facing, financial, or production-impacting.
+- Someone must own the outcome.
+
+AI can generate a convincing first draft. It does not hold accountability. At RockFi, accountability remains human.
+
+## The bottleneck is moving
+
+When creating a first draft becomes cheap, the bottleneck shifts. The hard questions are no longer “Can we produce this?” but “Is this the right thing to produce?”, “What evidence would prove it is correct?”, and “Who is responsible if it is not?”
+
+For engineering, that means stronger reviews, better architecture, clearer domain boundaries, and more rigorous verification. For the company, it means better operating decisions, faster feedback loops, and an explicit place for human judgment in every consequential workflow.
+
+We do not see AI as a replacement for the people who know RockFi, our clients, and the real-world consequences of a decision. We see it as leverage for those people.
+
+The work ahead is to make that leverage reliable: teach the craft, encode the guardrails, and build the infrastructure that lets useful loops run safely. That is how we intend to move faster without losing control of what matters.
