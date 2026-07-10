@@ -1,0 +1,86 @@
+---
+title: "L'IA chez RockFi : accélérer sans retirer le jugement humain"
+subtitle: "Des challenges Claude Code aux boucles IA sécurisées que nous préparons pour la suite."
+summary: "Chez RockFi, l'IA contribue déjà à environ 70 % de nos flux de travail. Voici comment nous en amplifions l'effet tout en gardant le pilotage, la validation et les accès sous responsabilité humaine."
+publishedAt: "2026-07-10"
+readTimeMinutes: 7
+tags:
+  - ia
+  - engineering
+  - operations
+  - securite
+  - rockfi
+---
+
+Chez RockFi, l'IA n'est plus une expérimentation isolée ni un outil réservé à l'équipe technique. Elle contribue désormais à environ 70 % des flux de travail qui font avancer l'entreprise : préparation, exploration, rédaction, vérification, structuration et accélération de la décision.
+
+Ce chiffre ne veut **pas** dire que 70 % de RockFi fonctionne en pilote automatique. Il veut dire que l'IA entre dans notre manière de travailler, pendant que les personnes gardent la responsabilité de la direction, de la validation et de la décision finale.
+
+Cette nuance est essentielle. Dans la gestion de patrimoine, aller vite sans garder le contrôle n'est pas un progrès. Notre objectif n'est pas de retirer les personnes des sujets importants ; il est d'enlever les frictions évitables autour de ces sujets afin qu'elles consacrent plus de temps au jugement, à la valeur client et aux décisions qui méritent leur attention.
+
+Notre approche a deux faces. La première est technique : aider les ingénieurs à devenir réellement efficaces avec l'IA, puis construire les fondations de boucles agentiques sûres et répétables. La seconde est organisationnelle : rendre l'IA utile dans toute l'entreprise sans jamais la traiter comme un oracle.
+
+## D'un outil à une capacité d'ingénierie partagée
+
+Donner accès à Claude Code à une équipe est simple. Construire les habitudes qui permettent de bien l'utiliser est le vrai travail.
+
+C'est pour cela que l'équipe engineering a créé le programme **Claude Code Challenges: From Zero to Hero** : une série de challenges courts et pratiques, réalisés sur du vrai code et de vrais workflows. Le programme est volontairement asynchrone et collaboratif. Les ingénieurs partagent le prompt ou la stratégie qui a fonctionné, l'échec qui n'a pas fonctionné, et l'insight qu'ils réutiliseront. Le but n'est pas de faire un classement. C'est de transformer les apprentissages individuels en connaissance opérationnelle collective.
+
+La progression suit le cycle de livraison :
+
+- Mettre en place son environnement et comprendre l'impact du contexte sur le résultat.
+- Passer d'une spécification au code, puis le reviewer et le livrer correctement.
+- Débugger des problèmes non triviaux avec des preuves reproductibles et des hypothèses falsifiables.
+- Utiliser les agents en parallèle, les hooks et les skills réutilisables là où ils apportent une vraie valeur.
+- Contribuer à l'outillage et aux garde-fous partagés par l'équipe.
+
+Ce point est important : être compétent avec l'IA ne consiste pas à trouver des prompts astucieux. C'est savoir cadrer un problème, fournir le bon contexte, évaluer le résultat et reprendre la main quand le modèle part dans une mauvaise direction.
+
+Par exemple, le challenge de debugging ne demande pas d'écrire « corrige ce bug ». Il exige une reproduction déterministe, plusieurs hypothèses, des expériences conçues pour les invalider, et un test de régression qui échoue avant le correctif puis passe après. L'IA accélère cette démarche ; elle ne remplace pas la rigueur qui la rend fiable.
+
+La même logique s'applique à l'outillage d'équipe. Les skills encapsulent des workflows, des templates et des cas limites appris sur le terrain afin de les rendre réutilisables. Les hooks appliquent des garde-fous au bon moment dans une session agentique : bloquer une action dangereuse, exiger une suite de tests rapide, ou tracer une modification dans une zone sensible. L'objectif est de faire passer un gain individuel à une capacité collective plus sûre.
+
+## L'étape suivante : des boucles bornées, pas une autonomie sans limites
+
+La frontière la plus intéressante n'est pas une nouvelle interface de chat. C'est la boucle : une tâche capable d'observer un signal défini, d'agir dans un périmètre contraint, de produire une preuve, puis de s'arrêter selon une condition claire.
+
+Les exemples sont déjà familiers à toute équipe qui opère un produit : comprendre un échec de CI, remonter de la documentation qui a dérivé, trier des signalements entrants, ou préparer une première passe de review. Ce sont des boucles répétitives avec des entrées explicites et des sorties utiles. Elles sont de bonnes candidates à l'assistance IA parce que leurs critères de fin peuvent être rendus mesurables.
+
+Nous commençons maintenant à réunir les briques qui permettront d'exécuter ce type de travail plus sûrement dans notre infrastructure. La direction est claire : un agent doit s'exécuter dans une VM éphémère, avec des permissions très précisément bornées, une tâche définie, des actions observables et une durée de vie finie. Il ne doit recevoir que les identifiants et les données nécessaires — jamais l'autorité implicite d'un laptop humain ou d'un rôle de production trop large.
+
+Ce design est volontaire. Une future boucle agentique ne doit pas pouvoir découvrir un secret de production, étendre silencieusement ses propres accès, ni transformer un objectif ambigu en exécution sans fin. Les contrôles doivent être à la fois techniques et opérationnels :
+
+- **Exécution au moindre privilège :** environnements isolés, identifiants de courte durée et accès explicite aux seuls systèmes concernés.
+- **Fin vérifiable :** critères de sortie mesurables, preuves par les tests ou les contrôles, nombre de tours, temps et coût bornés.
+- **Traçabilité :** journaux des actions, entrées, sorties et validations permettant de comprendre ce qui s'est passé.
+- **Gates humains :** une personne relit les changements matériels, les décisions à fort impact et tout ce qui franchit une frontière sensible.
+- **Échec sûr :** en cas de contexte manquant, de contrôle échoué ou d'instruction ambiguë, le comportement par défaut est de s'arrêter et d'escalader — pas de deviner.
+
+C'est la traduction infrastructure de la leçon que nous pratiquons dans les challenges : définir ce que signifie « terminé », le rendre testable, et ne jamais confondre une affirmation avec une preuve.
+
+## L'IA change déjà notre manière d'opérer
+
+L'équipe engineering est l'exemple le plus visible, car le code rend l'interaction facile à observer. L'impact plus large est moins spectaculaire et pourtant plus important.
+
+Dans toute l'entreprise, l'IA nous aide à transformer une idée initiale en matière structurée, à réduire le coût de la recherche et de la préparation, à accélérer les premières versions et à faire avancer le travail récurrent. Dans beaucoup de cas, le résultat n'est pas la réponse : c'est le point de départ qui permet à une personne de commencer avec quelque chose d'utile plutôt qu'une page blanche.
+
+Cela change l'économie de l'exécution. Une petite équipe peut explorer davantage d'options, itérer plus tôt et mieux préparer son travail sans devoir augmenter ses effectifs pour absorber du throughput administratif. Le gain n'est pas « faire plus avec moins » comme un slogan vide. Le gain est que l'expertise passe moins de temps à mettre en forme, chercher et réexpliquer — et plus de temps à décider.
+
+Le rôle humain devient plus important, pas moins :
+
+- Il faut définir le vrai problème et les contraintes qui comptent.
+- Il faut reconnaître qu'une réponse plausible est inadaptée à nos clients, à notre produit ou à nos obligations réglementaires.
+- Il faut valider les recommandations avant qu'elles deviennent client-facing, financières ou qu'elles aient un impact en production.
+- Il faut assumer le résultat.
+
+L'IA peut générer une première version convaincante. Elle ne porte pas la responsabilité. Chez RockFi, cette responsabilité reste humaine.
+
+## Le goulot d'étranglement se déplace
+
+Quand produire une première version devient peu coûteux, le goulot d'étranglement se déplace. Les questions difficiles ne sont plus « Peut-on produire cela ? », mais « Est-ce la bonne chose à produire ? », « Quelle preuve montrerait que c'est correct ? » et « Qui est responsable si cela ne l'est pas ? »
+
+Pour l'engineering, cela implique des reviews plus solides, une meilleure architecture, des frontières métier plus claires et une vérification plus rigoureuse. Pour l'entreprise, cela implique de meilleures décisions opérationnelles, des boucles de feedback plus rapides et une place explicite pour le jugement humain dans chaque workflow conséquent.
+
+Nous ne voyons pas l'IA comme un remplacement des personnes qui connaissent RockFi, nos clients et les conséquences réelles d'une décision. Nous la voyons comme un levier pour ces personnes.
+
+Le travail qui nous attend est de rendre ce levier fiable : transmettre le savoir-faire, encoder les garde-fous et construire l'infrastructure qui laisse tourner les boucles utiles en sécurité. C'est ainsi que nous voulons aller plus vite sans perdre le contrôle de ce qui compte.
