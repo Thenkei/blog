@@ -122,6 +122,44 @@ describe("routing and UX", () => {
     });
   });
 
+  it("hydrates discovery filters from a shareable query string", async () => {
+    renderApp("/en?q=BullMQ&sort=oldest");
+
+    expect(
+      await screen.findByText(/Idempotency and Debounce in BullMQ/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/From Smart to Sport: Why I Traded My Apple Watch/i),
+    ).not.toBeInTheDocument();
+    expect(screen.getByDisplayValue("Oldest first")).toBeInTheDocument();
+  });
+
+  it("renders durable topic and about pages", async () => {
+    const topicView = renderApp("/en/topics/architecture");
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Architecture" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Idempotency and Debounce in BullMQ/i),
+    ).toBeInTheDocument();
+
+    topicView.unmount();
+    renderApp("/en/about");
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "About Morgan" }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "GitHub" })).toHaveLength(2);
+  });
+
+  it("adds completion and copy controls to post pages", async () => {
+    renderApp("/en/posts/jobify-workers-queues-nestjs");
+    expect(
+      await screen.findByRole("heading", { level: 2, name: "Next recommended" }),
+    ).toBeInTheDocument();
+    expect((await screen.findAllByRole("button", { name: "Copy link" })).length).toBeGreaterThan(0);
+    expect((await screen.findAllByRole("button", { name: "Copy code" })).length).toBeGreaterThan(0);
+  });
+
   it("supports four explicit themes and keeps selection across navigation", async () => {
     renderApp("/en");
     const user = userEvent.setup();

@@ -1,6 +1,7 @@
 import { render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useRef } from "react";
+import "../../src/i18n/config";
 import {
   ThemeProvider,
   type ThemeMode,
@@ -74,14 +75,23 @@ describe("ReadingProgressBar", () => {
     });
   });
 
-  it("renders no progress variant for light theme", () => {
+  it("renders a minimal percentage progress variant for light theme", () => {
     const { container } = renderProgress("light");
-    expect(container.querySelector(".clean-progress-light")).toBeNull();
+    expect(container.querySelector(".clean-progress-light")).toHaveAttribute(
+      "role",
+      "progressbar",
+    );
+    expect(container.querySelector(".clean-progress-label")).toHaveTextContent(
+      "Reading 0%",
+    );
   });
 
-  it("renders no progress variant for dark theme", () => {
+  it("renders a minimal percentage progress variant for dark theme", () => {
     const { container } = renderProgress("dark");
-    expect(container.querySelector(".clean-progress-dark")).toBeNull();
+    expect(container.querySelector(".clean-progress-dark")).toHaveAttribute(
+      "role",
+      "progressbar",
+    );
   });
 
   it("renders mountain variant and tracks direction changes", async () => {

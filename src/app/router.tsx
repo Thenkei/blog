@@ -18,6 +18,12 @@ const PostListPage = lazy(() =>
 const PostPage = lazy(() =>
   import("../features/posts/PostPage").then((m) => ({ default: m.PostPage })),
 );
+const TopicPage = lazy(() =>
+  import("../features/posts/TopicPage").then((m) => ({ default: m.TopicPage })),
+);
+const AboutPage = lazy(() =>
+  import("../features/about/AboutPage").then((m) => ({ default: m.AboutPage })),
+);
 import { SiteFooter } from "../shared/components/SiteFooter";
 import { normalizeLocale } from "../shared/routing";
 
@@ -94,6 +100,16 @@ function LocalePostRoute() {
   return <PostPage locale={locale} slug={slug} />;
 }
 
+function LocaleTopicRoute() {
+  const params = useParams();
+  return <TopicPage locale={normalizeLocale(params.locale)} topicSlug={params.topicSlug} />;
+}
+
+function LocaleAboutRoute() {
+  const params = useParams();
+  return <AboutPage locale={normalizeLocale(params.locale)} />;
+}
+
 function NotFoundRedirect() {
   return <Navigate replace to="/en" />;
 }
@@ -104,6 +120,9 @@ export function AppRouter() {
       <Route path="/" element={<RootRedirect />} />
       <Route path="/:locale" element={<LocaleLayout />}>
         <Route index element={<LocalePostListRoute />} />
+        <Route path="topics" element={<LocaleTopicRoute />} />
+        <Route path="topics/:topicSlug" element={<LocaleTopicRoute />} />
+        <Route path="about" element={<LocaleAboutRoute />} />
         <Route path="posts/:slug" element={<LocalePostRoute />} />
       </Route>
       <Route path="*" element={<NotFoundRedirect />} />

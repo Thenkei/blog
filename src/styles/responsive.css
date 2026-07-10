@@ -35,6 +35,11 @@
   .post-nav-placeholder {
     display: none;
   }
+
+  .topic-grid,
+  .about-project-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
@@ -174,5 +179,9 @@
   .rocket-progress[data-progress-placement="right"] {
     right: 2px;
     width: 84px;
+  }
+
+  .rocket-progress-label {
+    right: 76px;
   }
 }

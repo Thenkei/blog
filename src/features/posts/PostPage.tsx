@@ -12,6 +12,7 @@ import { PostHeader } from "../../shared/components/PostHeader";
 import { PageMeta } from "../../shared/seo/PageMeta";
 import { ReadingProgressBar } from "../reading/ReadingProgressBar";
 import { TableOfContents } from "../reading/TableOfContents";
+import { CopyLinkButtons } from "../reading/CopyLinkButtons";
 
 type PostPageProps = {
   locale: PostLocale;
@@ -36,7 +37,7 @@ export function PostPage({ locale, slug }: PostPageProps) {
   const { t } = useTranslation();
 
   const post = useMemo(() => getPost(locale, slug), [locale, slug]);
-  const related = useMemo(() => getRelatedPosts(locale, slug), [locale, slug]);
+  const related = useMemo(() => getRelatedPosts(locale, slug, 4), [locale, slug]);
   const adjacent = useMemo(
     () => getAdjacentPosts(locale, slug),
     [locale, slug],
@@ -85,6 +86,7 @@ export function PostPage({ locale, slug }: PostPageProps) {
   }
 
   const contentKey = `${locale}:${slug}`;
+  const [recommended, ...moreRelated] = related;
   const headerPadRem = Math.min(
     3.5,
     1.5 + Math.max(0, (post.title.length - 40) * 0.02),
@@ -120,6 +122,7 @@ export function PostPage({ locale, slug }: PostPageProps) {
           <ReadingProgressBar articleRef={articleRef} contentKey={contentKey} />
           <article ref={articleRef} key={contentKey}>
             <TableOfContents articleRef={articleRef} contentKey={contentKey} />
+            <CopyLinkButtons articleRef={articleRef} contentKey={contentKey} />
             <post.Component />
             <div className="trail-line article-end-line" />
             <section className="post-nav" aria-label={t("ui.seriesNavigation")}>
@@ -144,14 +147,21 @@ export function PostPage({ locale, slug }: PostPageProps) {
                 <span className="post-nav-placeholder" />
               )}
             </section>
-            {related.length > 0 ? (
+            {recommended ? (
+              <section className="next-recommended" aria-label={t("ui.nextRecommended")}>
+                <p className="section-eyebrow">{t("ui.recommendedBecause")}</p>
+                <h2>{t("ui.nextRecommended")}</h2>
+                <Link className="next-recommended-link" to={`/${locale}/posts/${recommended.slug}`}>{recommended.title} →</Link>
+              </section>
+            ) : null}
+            {moreRelated.length > 0 ? (
               <section
                 className="related-posts"
-                aria-label={t("ui.relatedPosts")}
+                aria-label={t("ui.moreRelatedPosts")}
               >
-                <h2>{t("ui.relatedPosts")}</h2>
+                <h2>{t("ui.moreRelatedPosts")}</h2>
                 <ul className="related-post-list">
-                  {related.map((item) => (
+                  {moreRelated.map((item) => (
                     <li key={item.slug}>
                       <Link
                         className="related-post-link"

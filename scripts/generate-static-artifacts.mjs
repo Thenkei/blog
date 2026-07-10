@@ -7,6 +7,7 @@ const root = process.cwd();
 const contentDir = path.join(root, "content", "posts");
 const publicDir = path.join(root, "public");
 const siteUrl = (process.env.SITE_URL || "https://thenkei.github.io/blog").replace(/\/$/, "");
+const topicSlugs = ["architecture", "platform", "security", "ai", "career", "running", "product"];
 
 const frontmatterSchema = z.object({
   title: z.string().min(1),
@@ -75,15 +76,21 @@ async function loadEntries() {
 }
 
 function buildSitemap(entries) {
-  const urls = entries
+  const staticUrls = ["en", "fr"].flatMap((locale) => [
+    `<url><loc>${escapeXml(`${siteUrl}/${locale}/about`)}</loc></url>`,
+    `<url><loc>${escapeXml(`${siteUrl}/${locale}/topics`)}</loc></url>`,
+    ...topicSlugs.map(
+      (topic) => `<url><loc>${escapeXml(`${siteUrl}/${locale}/topics/${topic}`)}</loc></url>`,
+    ),
+  ]);
+  const postUrls = entries
     .map((entry) => {
       const loc = `${siteUrl}/${entry.locale}/posts/${entry.slug}`;
       const lastmod = entry.updatedAt || entry.publishedAt;
       return `<url><loc>${escapeXml(loc)}</loc><lastmod>${lastmod}</lastmod></url>`;
-    })
-    .join("\n");
+    });
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[...staticUrls, ...postUrls].join("\n")}\n</urlset>\n`;
 }
 
 function buildRss(entries) {

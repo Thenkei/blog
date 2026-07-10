@@ -5,6 +5,30 @@
   pointer-events: none;
 }
 
+.reading-progress-label {
+  position: fixed;
+  z-index: 121;
+  margin: 0;
+  padding: 0.24rem 0.5rem;
+  color: var(--text-secondary);
+  font: 0.68rem var(--font-mono);
+  background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.clean-progress-label,
+.mountain-progress-label {
+  top: calc(env(safe-area-inset-top) + 28px);
+  right: clamp(10px, 2vw, 24px);
+}
+
+.rocket-progress-label {
+  top: calc(env(safe-area-inset-top) + 10px);
+  right: 100px;
+}
+
 .clean-progress[data-progress-placement="top"],
 .mountain-progress[data-progress-placement="top"] {
   top: calc(env(safe-area-inset-top) + 6px);

@@ -319,6 +319,24 @@ article th {
   gap: 0.65rem;
 }
 
+.global-header-nav {
+  display: flex;
+  gap: 0.8rem;
+  margin-left: auto;
+}
+
+.global-header-nav a {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  text-decoration: none;
+}
+
+.global-header-nav a:hover,
+.global-header-nav a:focus-visible {
+  color: var(--accent-primary);
+}
+
 @media (max-width: 768px) {
   .global-header-inner {
     flex-direction: column;
@@ -331,5 +349,11 @@ article th {
     justify-content: flex-start;
     flex-wrap: wrap;
     gap: 0.5rem;
+  }
+
+  .global-header-nav {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
   }
 }

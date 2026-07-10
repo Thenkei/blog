@@ -5,9 +5,10 @@ type PageMetaProps = {
   title: string;
   description: string;
   path: string;
+  type?: "article" | "website";
 };
 
-export function PageMeta({ title, description, path }: PageMetaProps) {
+export function PageMeta({ title, description, path, type = "article" }: PageMetaProps) {
   const canonical = `${SITE_URL}${path}`;
   const fullTitle = `${title} | ${SITE_NAME}`;
 
@@ -20,7 +21,7 @@ export function PageMeta({ title, description, path }: PageMetaProps) {
       <meta property="og:description" content={description} />
       <meta property="og:url" content={canonical} />
       <meta property="og:site_name" content={SITE_NAME} />
-      <meta property="og:type" content="article" />
+      <meta property="og:type" content={type} />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />

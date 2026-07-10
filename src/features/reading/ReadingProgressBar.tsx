@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useTheme } from "../../app/providers/ThemeProvider";
 import { MountainTrailRunnerIcon } from "./MountainTrailRunnerIcon";
+import { useTranslation } from "react-i18next";
 
 type ReadingProgressBarProps = {
   articleRef: RefObject<HTMLElement | null>;
@@ -27,6 +28,7 @@ export function ReadingProgressBar({
   const [orbitActive, setOrbitActive] = useState(false);
   const lastProgressRef = useRef(0);
   const { appliedTheme } = useTheme();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const computeProgress = () => {
@@ -69,6 +71,7 @@ export function ReadingProgressBar({
   }, [articleRef, contentKey]);
 
   const isRunnerMoving = progress > 0 && progress < 100;
+  const roundedProgress = Math.round(progress);
 
   const cssVars = useMemo(
     () =>
@@ -83,12 +86,9 @@ export function ReadingProgressBar({
 
   if (appliedTheme === "rocket") {
     return (
-      <div
-        className="rocket-progress"
-        data-progress-placement="right"
-        aria-hidden="true"
-        style={cssVars}
-      >
+      <>
+        <p className="reading-progress-label rocket-progress-label">{t("ui.readingProgress", { progress: roundedProgress })}</p>
+        <div className="rocket-progress" data-progress-placement="right" aria-hidden="true" style={cssVars}>
         <div className="moon">
           <svg viewBox="0 0 120 120" role="presentation">
             <circle cx="60" cy="60" r="42" className="moon-disc" />
@@ -123,26 +123,32 @@ export function ReadingProgressBar({
             <span className="rocket-trail" />
           </div>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
   if (appliedTheme === "mountain") {
     return (
-      <div
-        className="mountain-progress"
-        style={cssVars}
-        data-progress-placement="top"
-        data-direction={direction}
-        data-running={isRunnerMoving ? "true" : "false"}
-        aria-hidden="true"
-      >
+      <>
+        <p className="reading-progress-label mountain-progress-label">{t("ui.readingProgress", { progress: roundedProgress })}</p>
+        <div className="mountain-progress" style={cssVars} data-progress-placement="top" data-direction={direction} data-running={isRunnerMoving ? "true" : "false"} aria-hidden="true">
         <span className="mountain-progress-runner">
           <MountainTrailRunnerIcon className="mountain-runner-icon" />
         </span>
-      </div>
+        </div>
+      </>
     );
   }
 
-  return null;
+  return (
+    <>
+      <p className="reading-progress-label clean-progress-label">{t("ui.readingProgress", { progress: roundedProgress })}</p>
+      <div className={`clean-progress clean-progress-${appliedTheme}`} data-progress-placement="top" style={cssVars} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={roundedProgress} aria-label={t("ui.readingProgress", { progress: roundedProgress })}>
+        <span className="clean-progress-track" />
+        <span className="clean-progress-fill" />
+        <span className="clean-progress-marker" />
+      </div>
+    </>
+  );
 }
