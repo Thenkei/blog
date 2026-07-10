@@ -1,0 +1,121 @@
+---
+title: "From Claude Code Challenges to a Product OS"
+subtitle: "How we turned AI experimentation into a shared, human-led delivery system at RockFi."
+summary: "RockFi's Claude Code Challenges and internal plugins are not about automating judgment. They make the path from product decision to reviewed release more explicit, reusable, and reliable."
+publishedAt: "2027-04-28"
+readTimeMinutes: 8
+draft: true
+tags:
+  - ai
+  - engineering
+  - product
+  - developer-tools
+  - rockfi
+---
+
+At RockFi, we did not want Claude Code to become one more personal productivity trick: useful for a few early adopters, impossible to reproduce, and disconnected from how we actually ship.
+
+We wanted something more durable. A shared way to learn the tool, encode the workflows that matter, and carry the right context from a product decision all the way to a reviewed release.
+
+That work has two parts. First, we built **Claude Code Challenges: From Zero to Hero**, an internal programme designed to turn individual experimentation into engineering practice. Then we started packaging the repeatable parts of our delivery process as internal Claude Code plugins.
+
+Together, they are becoming what we call our **Product OS**: not an autonomous product factory, and not a replacement for product or engineering judgment. It is a set of human-led loops that make intent, decisions, documents, implementation, and release easier to connect.
+
+## The first problem was not access. It was practice.
+
+Giving an engineer a powerful coding agent does not guarantee better engineering. Without method, the experience is inconsistent: one person discovers a useful workflow, another fights stale context, and a third generates a large diff that nobody can confidently review.
+
+The Claude Code Challenges were our answer. The programme is deliberately practical: ten short challenges, including bonus challenges, completed asynchronously on real code. Each challenge takes roughly 60 to 90 minutes and asks for a concrete deliverable—not a quiz score.
+
+The sequence mirrors the work engineers actually do:
+
+- Establish a reliable baseline and learn to manage context.
+- Build from a specification, review the result, and deliver it through the normal workflow.
+- Debug difficult problems with reproducible evidence and falsifiable hypotheses.
+- Work with subagents and parallel worktrees where parallelism is justified.
+- Build hooks and skills, then contribute useful workflows back to the team.
+
+The most valuable design choice is that the programme is **Slack-first and failure-friendly**. Participants share the prompt that worked, the approach that failed, a screenshot, or the unexpected insight from a session. There is no ranking. The point is to make the invisible part of using AI visible: how people frame the work, inspect the output, correct course, and decide that a result is good enough to move forward.
+
+This matters more than prompt recipes. A strong engineer using Claude Code still needs to understand the system, define the constraints, and verify the result. The tool can produce a plausible answer quickly. It cannot know whether that answer preserves the right invariant in our domain unless we provide the context and apply judgment.
+
+## From individual workflows to team capabilities
+
+Once a workflow proves useful, it should not live only in one person's terminal history. We package it as a plugin: versioned, documented, installable, and available to the people who need it.
+
+This is a meaningful step up from a shared prompt. A good internal plugin carries the procedure, the guardrails, the templates, and the edge cases that make a workflow reliable in the way RockFi works.
+
+Our internal marketplace now contains technical plugins as well as broader company plugins for recurring tasks. The technical plugins are where the Product OS becomes most visible today.
+
+## Engineering plugin: keep delivery fast without bypassing controls
+
+The `rockfi-engineering` plugin brings the everyday engineering workflow into Claude Code. It is intentionally opinionated because the fastest workflow is not useful if it bypasses review discipline or produces a weak change history.
+
+Its PR creation skill does more than fill out a template. It analyses the change, scores its complexity, looks for unrelated scopes, and warns when a pull request should be split. It then prepares a structured PR around the questions a reviewer actually needs answered: objective, rationale, implementation, and resources.
+
+The companion commit skill validates our conventional-commit rules. And a strict pre-tool hook blocks commits or pushes from `main`. If someone starts from `main`, the workflow recovers constructively by creating an appropriately named feature branch and continuing from there. The guardrail is not a dead end; it nudges the work back into the path we want every change to take: feature branch, review, and pull request.
+
+That distinction is important. We are not asking an agent to “ship it.” We are encoding a delivery path that keeps humans in control of the decisions with team-wide impact:
+
+1. Understand the change and its scope.
+2. Make the change on a feature branch.
+3. Inspect whether the work is coherent and reviewable.
+4. Create a clear pull request.
+5. Let the appropriate people review before anything is merged.
+
+AI removes mechanical friction from this flow. It does not remove the review.
+
+## VE plugin: keep product and technical intent connected
+
+The harder problem is not creating a PR. It is making sure that the PR remains connected to the decision that justified it.
+
+Product and tech can drift apart easily. A workshop produces a decision; the decision turns into a document; the document becomes issues; the implementation starts; and, several weeks later, the context that explains *why* a choice was made is scattered across conversations and pages.
+
+The `rockfi-ve` plugin is designed to reduce that drift. It supports our Value Engineering process from structured workshop facilitation through to the final DiveIn design document, grounded in the official Notion templates.
+
+It has two complementary modes:
+
+- **Facilitation:** when the thinking still needs to happen, it guides a workshop or DiveIn section by section. The team explores the problem, compares solutions, documents the decision, and defines the expected outcome.
+- **Distillation:** when the discussion has already happened, it maps the existing conversation into the right document structure, surfaces missing information, flags assumptions, and prepares a draft for confirmation before publication.
+
+The DiveIn structure makes the handoff concrete: context, definition of done, functional solution, technical solution, slicing, and resources. The output is not merely a more polished document. It is a better contract between product and tech: what problem we are solving, what “done” means, what is intentionally out of scope, and how the work can be delivered in independently meaningful increments.
+
+The plugin also knows the next likely move. A workshop can lead to a DiveIn; a DiveIn can lead to slices, QA plans, rollout plans, and issues. That continuity is what makes it a building block of a Product OS rather than a documentation assistant.
+
+## The Product OS is a connected loop, not a straight line
+
+The phrase “Product OS” can sound grander than it needs to be. For us, it describes a simple operating idea: each step should leave the next step with usable, reviewable context.
+
+```text
+Problem and discovery
+        ↓
+VE workshop and recorded decision
+        ↓
+DiveIn with a testable definition of done
+        ↓
+Independently deliverable slices
+        ↓
+Implementation on a protected branch
+        ↓
+Structured PR and human review
+        ↓
+Release, learning, and the next decision
+```
+
+Each layer has a different owner. Product owns the problem and the intended outcome. Engineering owns the technical design and implementation. Reviewers own the scrutiny required before a change lands. AI helps the context move between those layers without forcing teams to recreate it from scratch.
+
+That is why we are cautious about calling this automation. The system accelerates preparation and makes the process more consistent, but it does not collapse accountability. A VE decision still needs people to make it. A definition of done still needs people to agree to it. A PR still needs a reviewer who can challenge the design and the code.
+
+## What we are learning
+
+The internal work has reinforced a few principles.
+
+First, **adoption needs a curriculum**. Tools are not self-adopting simply because they are powerful. The challenges give the team a safe way to build the muscles that matter: context management, verification, delegation, and recovery from failure.
+
+Second, **the durable asset is the workflow, not the prompt**. A prompt may be useful once. A plugin can carry a team convention, a decision framework, a template, and a guardrail forward into the next hundred uses.
+
+Third, **documentation only creates leverage when it is connected to delivery**. The VE plugin is valuable because it does not stop at a nice document. It preserves the path from a decision to a testable definition of done, slices, QA, rollout, and implementation.
+
+Finally, **human judgment becomes more valuable as execution becomes cheaper**. The point of this work is not to generate more output. It is to reduce the time spent reconstructing context and handling routine mechanics, so people can spend their attention on the choices that determine whether we build the right thing.
+
+We are still at the beginning. The marketplace will grow, the workflows will improve, and some of our best ideas will come from the failures shared in a challenge thread. But the direction is established: learn together, encode what works, protect the important boundaries, and keep the human responsible for the outcome.

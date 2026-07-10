@@ -1,0 +1,121 @@
+---
+title: "Des Claude Code Challenges à un Product OS"
+subtitle: "Comment nous avons transformé l'expérimentation IA en système de delivery partagé et piloté par des humains chez RockFi."
+summary: "Les Claude Code Challenges et les plugins internes de RockFi n'automatisent pas le jugement. Ils rendent le chemin entre une décision produit et une release reviewée plus explicite, réutilisable et fiable."
+publishedAt: "2027-04-28"
+readTimeMinutes: 8
+draft: true
+tags:
+  - ia
+  - engineering
+  - product
+  - developer-tools
+  - rockfi
+---
+
+Chez RockFi, nous ne voulions pas que Claude Code devienne une astuce de productivité personnelle de plus : utile pour quelques early adopters, impossible à reproduire et déconnectée de notre manière réelle de livrer.
+
+Nous voulions quelque chose de plus durable. Une manière commune d'apprendre l'outil, d'encoder les workflows qui comptent et de faire circuler le bon contexte d'une décision produit jusqu'à une release reviewée.
+
+Ce travail a deux volets. Nous avons d'abord créé **Claude Code Challenges: From Zero to Hero**, un programme interne conçu pour transformer l'expérimentation individuelle en pratique d'ingénierie. Nous avons ensuite commencé à packager les parties répétables de notre processus de delivery sous forme de plugins Claude Code internes.
+
+Ensemble, ces éléments deviennent ce que nous appelons notre **Product OS** : ni une usine produit autonome, ni un remplacement du jugement produit ou technique. C'est un ensemble de boucles pilotées par des humains qui facilite le lien entre l'intention, les décisions, les documents, l'implémentation et la release.
+
+## Le premier problème n'était pas l'accès. C'était la pratique.
+
+Donner à un ingénieur accès à un agent de code puissant ne garantit pas un meilleur engineering. Sans méthode, l'expérience est incohérente : une personne découvre un workflow efficace, une autre se bat avec du contexte obsolète, et une troisième génère une grosse diff que personne ne peut reviewer avec confiance.
+
+Les Claude Code Challenges sont notre réponse. Le programme est volontairement pratique : dix challenges courts, dont des bonus, réalisés de manière asynchrone sur du vrai code. Chaque challenge prend environ 60 à 90 minutes et demande un livrable concret — pas un score de quiz.
+
+La progression reflète le travail réel des ingénieurs :
+
+- Poser un baseline fiable et apprendre à gérer le contexte.
+- Partir d'une spécification, reviewer le résultat et le livrer dans le workflow normal.
+- Débugger des problèmes difficiles avec des preuves reproductibles et des hypothèses falsifiables.
+- Travailler avec des subagents et des worktrees parallèles quand le parallélisme est justifié.
+- Construire des hooks et des skills, puis contribuer des workflows utiles à l'équipe.
+
+Le choix de design le plus précieux est que le programme est **Slack-first et favorable au partage des échecs**. Les participants partagent le prompt qui a marché, l'approche qui a échoué, un screenshot ou l'insight inattendu d'une session. Il n'y a pas de classement. L'objectif est de rendre visible la partie invisible de l'usage de l'IA : comment chacun cadre le travail, inspecte la sortie, corrige la trajectoire et décide qu'un résultat est suffisamment bon pour avancer.
+
+C'est plus important que des recettes de prompts. Un bon ingénieur utilisant Claude Code doit toujours comprendre le système, définir les contraintes et vérifier le résultat. L'outil peut produire rapidement une réponse plausible. Il ne peut pas savoir si cette réponse préserve le bon invariant dans notre domaine sans le contexte que nous lui donnons et sans notre jugement.
+
+## Des workflows individuels à des capacités d'équipe
+
+Dès qu'un workflow a prouvé son utilité, il ne doit pas vivre uniquement dans l'historique de terminal d'une personne. Nous le packagons sous forme de plugin : versionné, documenté, installable et disponible pour les personnes qui en ont besoin.
+
+C'est une étape significative au-delà d'un prompt partagé. Un bon plugin interne porte la procédure, les garde-fous, les templates et les cas limites qui rendent un workflow fiable dans la manière de travailler de RockFi.
+
+Notre marketplace interne contient maintenant des plugins techniques et d'autres plugins plus transverses pour les tâches récurrentes de l'entreprise. Les plugins techniques sont aujourd'hui ceux qui rendent le plus visible le Product OS.
+
+## Plugin engineering : aller vite sans contourner les contrôles
+
+Le plugin `rockfi-engineering` amène le workflow quotidien des ingénieurs dans Claude Code. Il est volontairement prescriptif, car un workflow rapide ne sert à rien s'il contourne la discipline de review ou produit un historique de changement faible.
+
+Son skill de création de PR fait plus que remplir un template. Il analyse le changement, estime sa complexité, recherche des scopes sans rapport et avertit lorsqu'une pull request devrait être découpée. Il prépare ensuite une PR structurée autour des questions dont un reviewer a réellement besoin : objectif, raison, implémentation et ressources.
+
+Le skill de commit associé valide nos règles de conventional commits. Et un hook strict avant exécution bloque les commits ou les pushes depuis `main`. Si quelqu'un démarre depuis `main`, le workflow se rétablit de façon constructive en créant une feature branch correctement nommée, puis continue. Le garde-fou n'est pas une impasse ; il remet le travail sur le chemin que nous voulons pour chaque changement : feature branch, review et pull request.
+
+La nuance est importante. Nous ne demandons pas à un agent de « livrer ». Nous encodons un chemin de delivery qui laisse aux humains le contrôle des décisions ayant un impact sur l'équipe :
+
+1. Comprendre le changement et son périmètre.
+2. Faire le changement dans une feature branch.
+3. Vérifier que le travail est cohérent et reviewable.
+4. Créer une pull request claire.
+5. Laisser les bonnes personnes reviewer avant tout merge.
+
+L'IA enlève de la friction mécanique dans ce flux. Elle ne retire pas la review.
+
+## Plugin VE : garder l'intention produit et technique connectée
+
+Le problème le plus difficile n'est pas de créer une PR. C'est de s'assurer que la PR reste connectée à la décision qui la justifie.
+
+Produit et tech peuvent facilement dériver. Un workshop produit une décision ; la décision devient un document ; le document devient des issues ; l'implémentation commence ; et, quelques semaines plus tard, le contexte qui explique *pourquoi* un choix a été fait est dispersé entre conversations et pages.
+
+Le plugin `rockfi-ve` est conçu pour réduire cette dérive. Il accompagne notre processus de Value Engineering, de la facilitation structurée des workshops jusqu'au document de conception final DiveIn, en s'appuyant sur les templates Notion officiels.
+
+Il a deux modes complémentaires :
+
+- **Facilitation :** quand la réflexion reste à faire, il guide un workshop ou un DiveIn section par section. L'équipe explore le problème, compare les solutions, documente la décision et définit le résultat attendu.
+- **Distillation :** quand la discussion a déjà eu lieu, il projette le contenu existant dans la bonne structure documentaire, fait remonter les informations manquantes, signale les hypothèses et prépare un draft à confirmer avant publication.
+
+La structure du DiveIn rend le handoff concret : contexte, definition of done, solution fonctionnelle, solution technique, slicing et ressources. La sortie n'est pas simplement un document plus propre. C'est un meilleur contrat entre produit et tech : quel problème nous résolvons, ce que signifie « terminé », ce qui est volontairement hors périmètre et comment livrer le travail en incréments indépendamment utiles.
+
+Le plugin connaît aussi le mouvement le plus probable ensuite. Un workshop peut mener à un DiveIn ; un DiveIn peut mener à des slices, des plans QA, des plans de rollout et des issues. Cette continuité en fait une brique du Product OS, plutôt qu'un assistant de documentation.
+
+## Le Product OS est une boucle connectée, pas une ligne droite
+
+L'expression « Product OS » peut paraître plus ambitieuse qu'elle ne doit l'être. Pour nous, elle décrit une idée opérationnelle simple : chaque étape doit laisser à la suivante un contexte exploitable et reviewable.
+
+```text
+Problème et discovery
+        ↓
+Workshop VE et décision enregistrée
+        ↓
+DiveIn avec une definition of done testable
+        ↓
+Slices livrables indépendamment
+        ↓
+Implémentation sur une branche protégée
+        ↓
+PR structurée et review humaine
+        ↓
+Release, apprentissage et décision suivante
+```
+
+Chaque couche a un owner différent. Product porte le problème et le résultat visé. Engineering porte la conception technique et l'implémentation. Les reviewers portent la rigueur nécessaire avant qu'un changement arrive en production. L'IA aide le contexte à circuler entre ces couches sans obliger les équipes à le reconstruire à partir de zéro.
+
+C'est pourquoi nous restons prudents avec le mot « automatisation ». Le système accélère la préparation et rend le processus plus cohérent, mais il ne dilue pas la responsabilité. Une décision VE doit toujours être prise par des personnes. Une definition of done doit toujours être validée par des personnes. Une PR a toujours besoin d'un reviewer capable de challenger le design et le code.
+
+## Ce que nous apprenons
+
+Ce travail interne a renforcé quelques principes.
+
+D'abord, **l'adoption a besoin d'un curriculum**. Les outils ne s'adoptent pas d'eux-mêmes parce qu'ils sont puissants. Les challenges donnent à l'équipe un cadre sûr pour construire les réflexes qui comptent : gestion du contexte, vérification, délégation et récupération après un échec.
+
+Ensuite, **l'actif durable est le workflow, pas le prompt**. Un prompt peut être utile une fois. Un plugin peut transmettre une convention d'équipe, un cadre de décision, un template et un garde-fou aux cent prochaines utilisations.
+
+Troisièmement, **la documentation ne crée du levier que lorsqu'elle est connectée au delivery**. Le plugin VE est utile parce qu'il ne s'arrête pas à un beau document. Il préserve le chemin entre une décision, une definition of done testable, les slices, la QA, le rollout et l'implémentation.
+
+Enfin, **le jugement humain prend davantage de valeur à mesure que l'exécution devient moins coûteuse**. L'enjeu de ce travail n'est pas de générer plus de sorties. Il est de réduire le temps passé à reconstruire du contexte et à gérer la mécanique répétitive, afin que les personnes consacrent leur attention aux choix qui déterminent si nous construisons la bonne chose.
+
+Nous n'en sommes qu'au début. La marketplace va grandir, les workflows vont s'améliorer, et certaines de nos meilleures idées viendront des échecs partagés dans un thread de challenge. Mais la direction est posée : apprendre ensemble, encoder ce qui marche, protéger les frontières importantes et garder la responsabilité du résultat du côté humain.
