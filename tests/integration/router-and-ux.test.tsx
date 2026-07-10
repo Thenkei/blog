@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HelmetProvider } from "react-helmet-async";
 import { MemoryRouter } from "react-router-dom";
@@ -89,6 +89,9 @@ describe("routing and UX", () => {
     const cardLink = await screen.findByRole("link", {
       name: /2017: When We Built the Future of Eyewear in Less Than a Second - Read post/i,
     });
+
+    expect(cardLink).toHaveClass("post-card");
+    expect(within(cardLink).getByRole("list", { name: "Tags" })).toBeInTheDocument();
 
     await user.click(cardLink);
 
