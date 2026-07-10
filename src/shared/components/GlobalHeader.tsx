@@ -22,6 +22,11 @@ export function GlobalHeader() {
           {t("header.title")}
         </Link>
 
+        <nav className="global-header-nav" aria-label={t("ui.primaryNavigation")}>
+          <Link to={`/${locale}/topics`}>{t("ui.topics")}</Link>
+          <Link to={`/${locale}/about`}>{t("ui.about")}</Link>
+        </nav>
+
         <div className="global-header-actions">
           <ThemeSwitcher
             themeMode={themeMode}

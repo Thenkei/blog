@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTheme } from "../../app/providers/ThemeProvider";
-import { getAvailableTags, getPostSummaries, type PostLocale } from "./content";
+import { getAvailableTags, getSearchDocuments, getPostSummaries, type PostLocale } from "./content";
 import { usePostKeyboardNavigation } from "./hooks/usePostKeyboardNavigation";
 import { ParallaxHero } from "../../shared/components/ParallaxHero";
 import { PageMeta } from "../../shared/seo/PageMeta";
@@ -40,20 +40,40 @@ export function PostListPage({ locale }: PostListPageProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { themeMode } = useTheme();
-  const [query, setQuery] = useState("");
-  const [selectedTag, setSelectedTag] = useState("all");
-  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const query = searchParams.get("q") ?? "";
+  const selectedTag = searchParams.get("tag") ?? "all";
+  const sortOrder = searchParams.get("sort") === "oldest" ? "oldest" : "newest";
 
   const openPost = (slug: string) => {
     void navigate(`/${locale}/posts/${slug}`);
   };
 
   const posts = useMemo(() => getPostSummaries(locale), [locale]);
+  const searchDocuments = useMemo(() => getSearchDocuments(locale), [locale]);
   const tags = useMemo(() => getAvailableTags(locale), [locale]);
 
+  const updateFilters = (next: { query?: string; tag?: string; sort?: "newest" | "oldest" }) => {
+    const params = new URLSearchParams(searchParams);
+    const nextQuery = next.query ?? query;
+    const nextTag = next.tag ?? selectedTag;
+    const nextSort = next.sort ?? sortOrder;
+
+    if (nextQuery.trim()) params.set("q", nextQuery); else params.delete("q");
+    if (nextTag !== "all") params.set("tag", nextTag); else params.delete("tag");
+    if (nextSort === "oldest") params.set("sort", nextSort); else params.delete("sort");
+    setSearchParams(params, { replace: true });
+    setFocusedIndex(-1);
+  };
+
   const filteredPosts = useMemo(() => {
+    const matchingSlugs = new Set(
+      searchDocuments
+        .filter((document) => includesQuery(document, query))
+        .map((document) => document.slug),
+    );
     const filtered = posts
-      .filter((post) => includesQuery(post, query))
+      .filter((post) => matchingSlugs.has(post.slug))
       .filter(
         (post) => selectedTag === "all" || post.tags.includes(selectedTag),
       );
@@ -66,7 +86,7 @@ export function PostListPage({ locale }: PostListPageProps) {
     });
 
     return filtered;
-  }, [posts, query, selectedTag, sortOrder]);
+  }, [posts, query, searchDocuments, selectedTag, sortOrder]);
 
   const { focusedIndex, setFocusedIndex, cardRefs } = usePostKeyboardNavigation(
     {
@@ -107,8 +127,7 @@ export function PostListPage({ locale }: PostListPageProps) {
                   type="search"
                   value={query}
                   onChange={(event) => {
-                    setQuery(event.target.value);
-                    setFocusedIndex(-1);
+                    updateFilters({ query: event.target.value });
                   }}
                   placeholder={t("ui.searchPlaceholder")}
                 />
@@ -120,8 +139,7 @@ export function PostListPage({ locale }: PostListPageProps) {
                   className="post-control-select"
                   value={selectedTag}
                   onChange={(event) => {
-                    setSelectedTag(event.target.value);
-                    setFocusedIndex(-1);
+                    updateFilters({ tag: event.target.value });
                   }}
                 >
                   <option value="all">{t("ui.allTags")}</option>
@@ -139,10 +157,9 @@ export function PostListPage({ locale }: PostListPageProps) {
                   className="post-control-select"
                   value={sortOrder}
                   onChange={(event) => {
-                    setSortOrder(
-                      event.target.value === "oldest" ? "oldest" : "newest",
-                    );
-                    setFocusedIndex(-1);
+                    updateFilters({
+                      sort: event.target.value === "oldest" ? "oldest" : "newest",
+                    });
                   }}
                 >
                   <option value="newest">{t("ui.sortNewest")}</option>

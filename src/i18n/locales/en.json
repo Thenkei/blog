@@ -26,10 +26,38 @@
     "rocketTheme": "Rocket",
     "themeSwitcher": "Theme selector",
     "tableOfContents": "Table of Contents",
+    "primaryNavigation": "Primary navigation",
+    "topics": "Topics",
+    "topic": "Topic",
+    "allTopics": "All topics",
+    "topicsDescription": "Explore engineering, product, and running writing by enduring subject.",
+    "explore": "Explore",
+    "exploreTopic": "Explore topic",
+    "about": "About",
+    "readingProgress": "Reading {{progress}}%",
+    "nextRecommended": "Next recommended",
+    "recommendedBecause": "Selected from shared tags",
+    "moreRelatedPosts": "More related posts",
+    "copyLink": "Copy link",
+    "copyCode": "Copy code",
+    "copied": "Copied",
     "footer": {
       "copyright": "© {{year}} Morgan's Blog.",
       "github": "GitHub",
       "linkedin": "LinkedIn"
     }
+  },
+  "about": {
+    "title": "About Morgan",
+    "summary": "Staff-level backend and data engineer building reliable systems for wealth tech.",
+    "currentFocus": "Current focus",
+    "currentFocusText": "I work on backend, data, and platform systems where correctness, operability, and clear ownership matter. Outside that work, I am exploring AI-native engineering workflows and the routines that keep ambitious projects sustainable.",
+    "selectedProjects": "Selected projects",
+    "findMe": "Find me",
+    "projects": [
+      { "title": "Wealth-tech systems", "description": "Designing dependable product and data capabilities for a regulated financial domain." },
+      { "title": "Engineering platforms", "description": "Improving delivery, data quality, and operational feedback loops for product teams." },
+      { "title": "AI-native delivery", "description": "Testing where agentic tooling improves engineering judgment rather than obscuring it." }
+    ]
   }
 }

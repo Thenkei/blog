@@ -26,10 +26,38 @@
     "rocketTheme": "Rocket",
     "themeSwitcher": "Sélecteur de thème",
     "tableOfContents": "Sommaire",
+    "primaryNavigation": "Navigation principale",
+    "topics": "Thèmes",
+    "topic": "Thème",
+    "allTopics": "Tous les thèmes",
+    "topicsDescription": "Explorez les articles d'ingénierie, de produit et de course à pied par sujet durable.",
+    "explore": "Explorer",
+    "exploreTopic": "Explorer le thème",
+    "about": "À propos",
+    "readingProgress": "Lecture {{progress}} %",
+    "nextRecommended": "À lire ensuite",
+    "recommendedBecause": "Sélectionné à partir de tags communs",
+    "moreRelatedPosts": "Autres articles liés",
+    "copyLink": "Copier le lien",
+    "copyCode": "Copier le code",
+    "copied": "Copié",
     "footer": {
       "copyright": "© {{year}} Le blog de Morgan.",
       "github": "GitHub",
       "linkedin": "LinkedIn"
     }
+  },
+  "about": {
+    "title": "À propos de Morgan",
+    "summary": "Ingénieur backend et data staff, je construis des systèmes fiables pour la wealth tech.",
+    "currentFocus": "En ce moment",
+    "currentFocusText": "Je travaille sur des systèmes backend, data et plateforme où la justesse, l'opérabilité et la clarté des responsabilités sont essentielles. En parallèle, j'explore les workflows d'ingénierie natifs à l'IA et les routines qui rendent les projets ambitieux durables.",
+    "selectedProjects": "Projets sélectionnés",
+    "findMe": "Me retrouver",
+    "projects": [
+      { "title": "Systèmes wealth tech", "description": "Concevoir des capacités produit et data fiables dans un domaine financier régulé." },
+      { "title": "Plateformes d'ingénierie", "description": "Améliorer le delivery, la qualité des données et les boucles de feedback opérationnelles des équipes produit." },
+      { "title": "Delivery natif à l'IA", "description": "Évaluer où les outils agentiques renforcent le jugement d'ingénierie au lieu de le masquer." }
+    ]
   }
 }

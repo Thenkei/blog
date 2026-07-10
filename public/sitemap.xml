@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://thenkei.github.io/blog/en/about</loc></url>
+<url><loc>https://thenkei.github.io/blog/en/topics</loc></url>
+<url><loc>https://thenkei.github.io/blog/en/topics/architecture</loc></url>
+<url><loc>https://thenkei.github.io/blog/en/topics/platform</loc></url>
+<url><loc>https://thenkei.github.io/blog/en/topics/security</loc></url>
+<url><loc>https://thenkei.github.io/blog/en/topics/ai</loc></url>
+<url><loc>https://thenkei.github.io/blog/en/topics/career</loc></url>
+<url><loc>https://thenkei.github.io/blog/en/topics/running</loc></url>
+<url><loc>https://thenkei.github.io/blog/en/topics/product</loc></url>
+<url><loc>https://thenkei.github.io/blog/fr/about</loc></url>
+<url><loc>https://thenkei.github.io/blog/fr/topics</loc></url>
+<url><loc>https://thenkei.github.io/blog/fr/topics/architecture</loc></url>
+<url><loc>https://thenkei.github.io/blog/fr/topics/platform</loc></url>
+<url><loc>https://thenkei.github.io/blog/fr/topics/security</loc></url>
+<url><loc>https://thenkei.github.io/blog/fr/topics/ai</loc></url>
+<url><loc>https://thenkei.github.io/blog/fr/topics/career</loc></url>
+<url><loc>https://thenkei.github.io/blog/fr/topics/running</loc></url>
+<url><loc>https://thenkei.github.io/blog/fr/topics/product</loc></url>
 <url><loc>https://thenkei.github.io/blog/en/posts/agent-battle-2026</loc><lastmod>2026-01-14</lastmod></url>
 <url><loc>https://thenkei.github.io/blog/fr/posts/agent-battle-2026</loc><lastmod>2026-01-14</lastmod></url>
 <url><loc>https://thenkei.github.io/blog/en/posts/ai-force-multiplier</loc><lastmod>2026-01-10</lastmod></url>
@@ -12,6 +30,8 @@
 <url><loc>https://thenkei.github.io/blog/fr/posts/backend-to-data-engineer-rockfi</loc><lastmod>2025-10-15</lastmod></url>
 <url><loc>https://thenkei.github.io/blog/en/posts/coros-apex-4</loc><lastmod>2026-01-14</lastmod></url>
 <url><loc>https://thenkei.github.io/blog/fr/posts/coros-apex-4</loc><lastmod>2026-01-14</lastmod></url>
+<url><loc>https://thenkei.github.io/blog/en/posts/engineering-2026-ai-redefined-our-job</loc><lastmod>2026-02-27</lastmod></url>
+<url><loc>https://thenkei.github.io/blog/fr/posts/engineering-2026-ai-redefined-our-job</loc><lastmod>2026-02-27</lastmod></url>
 <url><loc>https://thenkei.github.io/blog/en/posts/forest-admin-activity-logs-elasticsearch</loc><lastmod>2021-05-15</lastmod></url>
 <url><loc>https://thenkei.github.io/blog/fr/posts/forest-admin-activity-logs-elasticsearch</loc><lastmod>2021-05-15</lastmod></url>
 <url><loc>https://thenkei.github.io/blog/en/posts/idempotency-debounce-jobify-bullmq</loc><lastmod>2023-09-01</lastmod></url>

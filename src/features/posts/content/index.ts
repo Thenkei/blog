@@ -1,4 +1,5 @@
 import { buildPostManifest } from "./manifest";
+import { getTopic } from "./topics";
 import type { ComponentType } from "react";
 import type { PostDocument, PostLocale, PostSummary, SearchDocument } from "./types";
 
@@ -49,6 +50,20 @@ export function getAvailableTags(locale: PostLocale): string[] {
   }
 
   return [...tags].sort((a, b) => a.localeCompare(b));
+}
+
+export function getTopicPosts(
+  locale: PostLocale,
+  topicSlug: string,
+): PostSummary[] {
+  const topic = getTopic(topicSlug);
+  if (!topic) {
+    return [];
+  }
+
+  return nonDraft(manifest.byLocale[locale])
+    .filter((post) => post.tags.some((tag) => topic.tags.includes(tag)))
+    .map(toSummary);
 }
 
 export function getSearchDocuments(locale: PostLocale): SearchDocument[] {
@@ -137,3 +152,5 @@ export type {
 
 export { buildPostManifest };
 export { postFrontmatterSchema } from "./schema";
+export { getTopic, topics } from "./topics";
+export type { TopicDefinition } from "./topics";
