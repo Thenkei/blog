@@ -30,6 +30,7 @@
 .clean-progress-track {
   height: 8px;
   background: color-mix(in srgb, var(--progress-rail-bg) 88%, transparent);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.08) inset;
 }
 
 .clean-progress-fill {

@@ -1,14 +1,14 @@
 .footer {
   width: 100%;
-  margin-top: 5.5rem;
-  padding: 2rem 1.5rem 2.2rem;
-  border-top: 1px solid var(--card-border);
+  margin-top: 4rem;
+  padding: 2.4rem 1.5rem 2.6rem;
+  border-top: 1px solid var(--divider);
   background:
-    linear-gradient(180deg, transparent, color-mix(in srgb, var(--surface-1) 55%, transparent));
+    linear-gradient(180deg, transparent, color-mix(in srgb, var(--surface-raised) 74%, transparent));
 }
 
 .footer-content {
-  max-width: 860px;
+  max-width: var(--content-width);
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -36,7 +36,7 @@
   color: var(--text-secondary);
   text-decoration: none;
   font-size: 0.88rem;
-  border: 1px solid transparent;
+  border: 1px solid var(--divider);
   border-radius: 999px;
   padding: 0.38rem 0.62rem;
   transition:
@@ -47,7 +47,8 @@
 
 .footer-link:hover {
   color: var(--accent-primary);
-  border-color: color-mix(in srgb, var(--accent-primary) 40%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 50%, var(--divider));
+  background: var(--accent-soft);
   transform: translateY(-1px);
 }
 

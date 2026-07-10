@@ -16,16 +16,24 @@
     grid-template-columns: 1fr;
   }
 
+  .post-list {
+    grid-template-columns: 1fr;
+  }
+
   .article-title {
     font-size: clamp(2rem, 7vw, 2.6rem);
   }
 
   .post-nav {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .post-nav-link {
-    max-width: 100%;
+    min-height: auto;
+  }
+
+  .post-nav-placeholder {
+    display: none;
   }
 }
 
@@ -113,7 +121,7 @@
   }
 
   .blog-content {
-    padding-top: 68px;
+    padding-top: 3rem;
   }
 
   .mountain-progress[data-progress-placement="top"],
@@ -135,6 +143,11 @@
   .post-card {
     border-radius: 18px;
     padding: 1.6rem;
+  }
+
+  .post-controls,
+  .related-posts {
+    border-radius: 14px;
   }
 
   .footer-content {
