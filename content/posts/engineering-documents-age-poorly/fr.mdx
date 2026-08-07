@@ -16,6 +16,8 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 4
 ---
 
+import documentLifecycleDiagram from "../../../src/assets/images/posts/document-lifecycle-fr.svg";
+
 La plupart des équipes d'ingénierie ne souffrent pas d'une absence totale de documentation. Elles souffrent de documents qui semblent faire autorité alors que le système a continué à évoluer.
 
 La page existe toujours. Le diagramme se rend toujours. Les instructions contiennent encore des commandes plausibles. Un nouvel ingénieur les suit et obtient un résultat presque correct, ou un opérateur modifie un système à partir d'une frontière qui n'existe plus. Le document n'a pas disparu. Il est devenu plus dangereux parce qu'il conserve l'apparence d'une connaissance actuelle.
@@ -41,17 +43,15 @@ Le document possède alors un cycle de vie :
 
 Le problème n'est pas que le changement existe. C'est que la plupart des systèmes de documentation rendent la publication visible mais la divergence invisible.
 
-```mermaid
-flowchart LR
-    A[Décision ou observation] --> B[Document publié]
-    B --> C[Implémentation et exploitation]
-    C --> D[Changement du système]
-    D --> E[Signal de fraîcheur ou divergence]
-    E --> F{Encore utile ?}
-    F -->|Oui| G[Mettre à jour et vérifier]
-    F -->|Non| H[Archiver ou remplacer]
-    G --> C
-```
+<figure className="post-visual">
+  <img
+    src={documentLifecycleDiagram}
+    alt="Cycle de vie d'un document : décision ou observation, publication, implémentation, changement du système, contrôle de fraîcheur, mise à jour ou archivage."
+  />
+  <figcaption>
+    Un document reste utile lorsque son cycle de vie et ses conditions de sortie sont visibles.
+  </figcaption>
+</figure>
 
 ## Tous les documents ne se maintiennent pas de la même manière
 

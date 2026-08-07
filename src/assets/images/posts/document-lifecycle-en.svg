@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 300" role="img" aria-labelledby="title desc">
+  <title id="title">Document lifecycle</title>
+  <desc id="desc">A document moves from a decision through implementation and system change to a freshness check, then gets updated or archived.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 9 4.5 0 9Z" fill="#52657a"/></marker>
+    <style>
+      .node{fill:#f7f9fc;stroke:#8ea0b3;stroke-width:2}.decision{fill:#fff7e8;stroke:#d58a35;stroke-width:2}.text{fill:#172033;font:600 15px system-ui,sans-serif;text-anchor:middle}.edge{fill:none;stroke:#52657a;stroke-width:2;marker-end:url(#arrow)}.branch{fill:#9a5a18;font:600 13px system-ui,sans-serif}
+    </style>
+  </defs>
+  <path class="edge" d="M180 104H218"/><path class="edge" d="M380 104H418"/><path class="edge" d="M580 104H618"/><path class="edge" d="M780 104H818"/><path class="edge" d="M980 104H1018"/>
+  <path class="edge" d="M1100 144V224H1220"/><path class="edge" d="M1180 104H1218"/><path class="edge" d="M1300 64V32H500V64"/>
+  <text class="branch" x="1138" y="214">No</text><text class="branch" x="1198" y="94">Yes</text>
+  <rect class="node" x="20" y="64" width="160" height="80" rx="14"/><rect class="node" x="220" y="64" width="160" height="80" rx="14"/><rect class="node" x="420" y="64" width="160" height="80" rx="14"/><rect class="node" x="620" y="64" width="160" height="80" rx="14"/><rect class="node" x="820" y="64" width="160" height="80" rx="14"/>
+  <polygon class="decision" points="1100,24 1180,104 1100,184 1020,104"/><rect class="node" x="1220" y="64" width="160" height="80" rx="14"/><rect class="node" x="1220" y="184" width="160" height="80" rx="14"/>
+  <text class="text" x="100" y="96"><tspan x="100">Decision or</tspan><tspan x="100" dy="21">observation</tspan></text><text class="text" x="300" y="96"><tspan x="300">Document</tspan><tspan x="300" dy="21">published</tspan></text><text class="text" x="500" y="96"><tspan x="500">Implementation</tspan><tspan x="500" dy="21">and operation</tspan></text><text class="text" x="700" y="96"><tspan x="700">System</tspan><tspan x="700" dy="21">changes</tspan></text><text class="text" x="900" y="96"><tspan x="900">Freshness or</tspan><tspan x="900" dy="21">divergence signal</tspan></text><text class="text" x="1100" y="99"><tspan x="1100">Still</tspan><tspan x="1100" dy="20">useful?</tspan></text><text class="text" x="1300" y="96"><tspan x="1300">Update</tspan><tspan x="1300" dy="21">and verify</tspan></text><text class="text" x="1300" y="216"><tspan x="1300">Archive</tspan><tspan x="1300" dy="21">or replace</tspan></text>
+</svg>

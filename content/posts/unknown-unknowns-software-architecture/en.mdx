@@ -15,6 +15,8 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 1
 ---
 
+import unknownUnknownsDiagram from "../../../src/assets/images/posts/unknown-unknowns-en.svg";
+
 Software architecture is usually presented as a problem of making the right decisions with incomplete information. That is true, but incomplete information is not the hardest part. The harder problem is that some of the information does not exist yet.
 
 You can list the decisions you have not made. You can create a spike for a technology you do not understand. You can mark a dependency as risky. The dangerous category is different: the assumptions, interactions, and failure modes that are absent from the team's mental model entirely.
@@ -139,15 +141,15 @@ Design the failure path before the failure exists.
 
 Recovery may mean replaying an event, rebuilding a projection, rolling back a feature flag, revoking a credential, quarantining a record, or asking a human to decide. The right mechanism depends on the domain, but the invariant is the same: discovery must not require an irreversible guess.
 
-```mermaid
-flowchart LR
-    A[Decision] --> B[Implicit assumptions]
-    B --> C[Real interaction]
-    C --> D[Failure or unexpected signal]
-    D --> E[Observable evidence]
-    E --> F[Revised contract or boundary]
-    F --> A
-```
+<figure className="post-visual">
+  <img
+    src={unknownUnknownsDiagram}
+    alt="Architecture learning loop from a decision and implicit assumptions through real interaction, failure, evidence, and a revised contract."
+  />
+  <figcaption>
+    Unexpected behaviour becomes useful when it produces observable evidence and a revised boundary.
+  </figcaption>
+</figure>
 
 ## Reversibility is an architectural control
 

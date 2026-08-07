@@ -13,6 +13,7 @@ import { PageMeta } from "../../shared/seo/PageMeta";
 import { ReadingProgressBar } from "../reading/ReadingProgressBar";
 import { TableOfContents } from "../reading/TableOfContents";
 import { CopyLinkButtons } from "../reading/CopyLinkButtons";
+import { enhanceCodeBlocks } from "../reading/enhanceCodeBlocks";
 
 type PostPageProps = {
   locale: PostLocale;
@@ -48,33 +49,7 @@ export function PostPage({ locale, slug }: PostPageProps) {
       return;
     }
 
-    const codeBlocks = Array.from(
-      articleRef.current.querySelectorAll("pre code"),
-    );
-    if (codeBlocks.length === 0) return;
-
-    void import("highlight.js/lib/core").then(({ default: hljs }) => {
-      void Promise.all([
-        import("highlight.js/lib/languages/javascript"),
-        import("highlight.js/lib/languages/typescript"),
-        import("highlight.js/lib/languages/sql"),
-        import("highlight.js/lib/languages/json"),
-        import("highlight.js/lib/languages/bash"),
-      ]).then(([javascript, typescript, sql, json, bash]) => {
-        hljs.registerLanguage("javascript", javascript.default);
-        hljs.registerLanguage("js", javascript.default);
-        hljs.registerLanguage("typescript", typescript.default);
-        hljs.registerLanguage("ts", typescript.default);
-        hljs.registerLanguage("sql", sql.default);
-        hljs.registerLanguage("json", json.default);
-        hljs.registerLanguage("bash", bash.default);
-
-        codeBlocks.forEach((block) => {
-          block.removeAttribute("data-highlighted");
-          hljs.highlightElement(block as HTMLElement);
-        });
-      });
-    });
+    return enhanceCodeBlocks(articleRef.current);
   }, [post]);
 
   useEffect(() => {

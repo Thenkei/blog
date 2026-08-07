@@ -16,6 +16,8 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 4
 ---
 
+import documentLifecycleDiagram from "../../../src/assets/images/posts/document-lifecycle-en.svg";
+
 Most engineering teams do not suffer from a complete absence of documentation. They suffer from documents that look authoritative after the system has moved on.
 
 The page still exists. The diagram still renders. The instructions still contain plausible commands. A new engineer follows it and gets a result that is almost correct, or an operator makes a change based on a boundary that no longer exists. The document did not disappear. It became more dangerous because it retained the appearance of current knowledge.
@@ -41,17 +43,15 @@ The document now has a lifecycle:
 
 The problem is not that change occurs. The problem is that most documentation systems make publication visible but divergence invisible.
 
-```mermaid
-flowchart LR
-    A[Decision or observation] --> B[Document published]
-    B --> C[Implementation and operation]
-    C --> D[System changes]
-    D --> E[Freshness or divergence signal]
-    E --> F{Still useful?}
-    F -->|Yes| G[Update and verify]
-    F -->|No| H[Archive or replace]
-    G --> C
-```
+<figure className="post-visual">
+  <img
+    src={documentLifecycleDiagram}
+    alt="Document lifecycle showing a decision or observation moving through publication, implementation, system change, and a freshness check before update or archive."
+  />
+  <figcaption>
+    A document remains useful when its lifecycle and exit conditions are visible.
+  </figcaption>
+</figure>
 
 ## Not all documents should be maintained the same way
 
