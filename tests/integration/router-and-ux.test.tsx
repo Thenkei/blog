@@ -156,6 +156,11 @@ describe("routing and UX", () => {
     expect(
       screen.getByText(/Idempotency and Debounce in BullMQ/i),
     ).toBeInTheDocument();
+    const topicCards = topicView.container.querySelectorAll(".post-card");
+    expect(topicCards.length).toBeGreaterThan(0);
+    expect(
+      [...topicCards].every((card) => card.querySelector(".post-card-body")),
+    ).toBe(true);
 
     topicView.unmount();
     renderApp("/en/about");

@@ -58,15 +58,17 @@ export function TopicPage({ locale, topicSlug }: TopicPageProps) {
         <div className="post-list">
           {posts.map((post) => (
             <Link key={post.slug} className="post-card" to={`/${locale}/posts/${post.slug}`} aria-label={`${post.title} - ${t("ui.readPost")}`}>
-              <div className="meta"><span>{formatDate(post.publishedAt, locale)}</span><span>•</span><span>{t("ui.readTime", { count: post.readTimeMinutes })}</span></div>
-              <h3>{post.title}</h3>
-              <p className="post-subtitle">{post.subtitle}</p>
-              <p className="post-summary">{post.summary}</p>
-              <ul className="post-tag-list" aria-label={t("ui.tags")}>
-                {post.tags.map((tag) => <li key={tag} className="post-tag-item">{tag}</li>)}
-              </ul>
-              <span className="post-card-link">{t("ui.readPost")}</span>
-              <div className="trail-line trail-line-small" />
+              <div className="post-card-body">
+                <div className="meta"><span>{formatDate(post.publishedAt, locale)}</span><span>•</span><span>{t("ui.readTime", { count: post.readTimeMinutes })}</span></div>
+                <h3>{post.title}</h3>
+                <p className="post-subtitle">{post.subtitle}</p>
+                <p className="post-summary">{post.summary}</p>
+                <ul className="post-tag-list" aria-label={t("ui.tags")}>
+                  {post.tags.map((tag) => <li key={tag} className="post-tag-item">{tag}</li>)}
+                </ul>
+                <span className="post-card-link">{t("ui.readPost")}</span>
+                <div className="trail-line trail-line-small" />
+              </div>
             </Link>
           ))}
         </div>
