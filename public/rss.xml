@@ -12,6 +12,13 @@
 <pubDate>Mon, 31 Aug 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
+<title>Context Engineering Beyond Prompt Engineering</title>
+<link>https://thenkei.github.io/blog/en/posts/context-engineering-beyond-prompt-engineering</link>
+<guid>https://thenkei.github.io/blog/en/posts/context-engineering-beyond-prompt-engineering</guid>
+<description>Why prompt quality is only one part of AI reliability, and how context selection, permissions, freshness, provenance, and validation shape agent behaviour.</description>
+<pubDate>Mon, 24 Aug 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>Building Self-Service Analytics That Doesn&apos;t Lie</title>
 <link>https://thenkei.github.io/blog/en/posts/self-service-analytics-that-doesnt-lie</link>
 <guid>https://thenkei.github.io/blog/en/posts/self-service-analytics-that-doesnt-lie</guid>
