@@ -8,6 +8,7 @@ import "../../src/i18n/config";
 import { ThemeProvider } from "../../src/app/providers/ThemeProvider";
 import { AppRouter } from "../../src/app/router";
 import { ArticleDiagram } from "../../src/shared/components/PostVisual";
+import { enhanceCodeBlocks } from "../../src/features/reading/enhanceCodeBlocks";
 
 function renderApp(initialPath: string) {
   return render(
@@ -177,6 +178,61 @@ describe("routing and UX", () => {
     ).toBeInTheDocument();
     expect((await screen.findAllByRole("button", { name: "Copy link" })).length).toBeGreaterThan(0);
     expect((await screen.findAllByRole("button", { name: "Copy code" })).length).toBeGreaterThan(0);
+  });
+
+  it("renders static SVG diagrams", async () => {
+    renderApp("/en/posts/engineering-documents-age-poorly");
+
+    await screen.findByRole("heading", {
+      level: 1,
+      name: "Why Most Engineering Documents Age Poorly",
+    });
+
+    expect(
+      await screen.findByRole("img", {
+        name: /document lifecycle showing a decision or observation/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("highlights supported code fences after the article is ready", async () => {
+    renderApp("/en/posts/jobify-workers-queues-nestjs");
+
+    await screen.findByRole("heading", {
+      level: 1,
+      name: "Jobify over BullMQ: a production pattern for jobs, workers, and queues (with NestJS)",
+    });
+
+    await waitFor(() => {
+      expect(
+        document.querySelector("pre code.language-typescript .hljs-keyword"),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("highlights YAML and Handlebars fences used by older posts", async () => {
+    const article = document.createElement("article");
+    article.innerHTML = `
+      <pre><code class="language-yaml">jobs:\n  test:\n    runs-on: ubuntu-latest</code></pre>
+      <pre><code class="language-handlebars">{{#if enabled}}active{{/if}}</code></pre>
+    `;
+    document.body.append(article);
+    const stopEnhancing = enhanceCodeBlocks(article);
+
+    try {
+      await waitFor(() => {
+        expect(article.querySelector("pre code.language-yaml")).toHaveAttribute(
+          "data-highlighted",
+          "yes",
+        );
+        expect(
+          article.querySelector("pre code.language-handlebars"),
+        ).toHaveAttribute("data-highlighted", "yes");
+      });
+    } finally {
+      stopEnhancing();
+      article.remove();
+    }
   });
 
   it("supports four explicit themes and keeps selection across navigation", async () => {

@@ -17,6 +17,8 @@ seriesOrder: 3
 draft: true
 ---
 
+import contextEngineeringDiagram from "../../../src/assets/images/posts/context-engineering-en.svg";
+
 Prompt engineering became popular because it made a new interface feel controllable. Change the instruction, change the output. Add a role, an example, or a constraint. Ask the model to think step by step. The techniques are useful, but they describe only one layer of the problem.
 
 A prompt is an instruction. Context is the operating state from which the system produces an answer.
@@ -110,17 +112,15 @@ The exact order varies by domain. The important invariant is that a summary must
 
 Compression also needs provenance. A short summary is not equivalent to the source unless the system can recover the source or prove that the omitted detail is irrelevant to the decision.
 
-```mermaid
-flowchart LR
-    A[Task and constraints] --> B[Context sources]
-    B --> C[Relevance filter]
-    C --> D[Authorization and policy filter]
-    D --> E[Freshness and provenance check]
-    E --> F[Prioritized execution context]
-    F --> G[Agent action]
-    G --> H[Tests, review, and evidence]
-    H --> I[Context update or escalation]
-```
+<figure className="post-visual">
+  <img
+    src={contextEngineeringDiagram}
+    alt="Context engineering flow from task constraints through relevance, authorization, freshness, and provenance checks to agent action and evidence."
+  />
+  <figcaption>
+    Reliable agent execution depends on context that is relevant, authorized, fresh, and testable.
+  </figcaption>
+</figure>
 
 ## Useful, ambiguous, and dangerous context
 

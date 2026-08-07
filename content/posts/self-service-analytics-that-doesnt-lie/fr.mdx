@@ -16,6 +16,8 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 2
 ---
 
+import selfServiceAnalyticsDiagram from "../../../src/assets/images/posts/self-service-analytics-fr.svg";
+
 Chez RockFi, le self-service analytics n'est pas une success story que je peux emballer dans un joli retour d'expérience. C'est un objectif que nous poursuivons activement — et que nous n'avons pas encore complètement craqué.
 
 Aujourd'hui, les outils d'IA accélèrent déjà une grande partie de la boucle technique. Ils nous aident à explorer des données que l'on connaît mal, tester des hypothèses pendant la conception, comprendre les modèles existants, générer des requêtes et renforcer la première passe de QA après l'implémentation. Dans un workflow engineering ou data, le levier est réel.
@@ -81,21 +83,15 @@ La question sans réponse doit plutôt devenir une demande de modélisation gouv
 
 La séparation importante se trouve entre le **query plane**, capable de répondre depuis des données certifiées, et le **modeling plane**, capable de proposer de nouveaux data products certifiés. Un agent peut accélérer les deux. Il ne doit pas supprimer la frontière entre eux.
 
-```mermaid
-flowchart LR
-    A[Question métier] --> B[Planner sémantique et catalogue]
-    B --> C{Disponible dans les marts certifiés ?}
-    C -->|Oui| D[Requête read-only gouvernée]
-    D --> E[Validation SQL, accès et coût]
-    E --> F[Réponse avec provenance et fraîcheur]
-    C -->|Non| G[Identifier le gap de métrique ou modèle]
-    G --> H[Agents de modélisation spécialisés]
-    H --> I[Inspecter int, staging, lineage et contrats]
-    I --> J[Proposer mart, fct ou dim avec tests]
-    J --> K[CI et revue humaine]
-    K --> L[Déployer le modèle certifié]
-    L --> B
-```
+<figure className="post-visual">
+  <img
+    src={selfServiceAnalyticsDiagram}
+    alt="Flux d'analytics self-service gouverné depuis une question métier vers des marts certifiés ou un parcours de modélisation revue."
+  />
+  <figcaption>
+    Le self-service a besoin d'un chemin de lecture gouverné et d'une voie revue pour les modèles manquants.
+  </figcaption>
+</figure>
 
 C'est plus lent que d'autoriser un agent à interroger tout ce qu'il trouve. Tant mieux. La version rapide offre à l'entreprise du SQL en self-service et un problème de vérité distribuée le même après-midi.
 

@@ -17,6 +17,8 @@ seriesOrder: 3
 draft: true
 ---
 
+import contextEngineeringDiagram from "../../../src/assets/images/posts/context-engineering-fr.svg";
+
 Le prompt engineering est devenu populaire parce qu'il rendait une nouvelle interface plus contrôlable. Modifier l'instruction, modifier la sortie. Ajouter un rôle, un exemple ou une contrainte. Demander au modèle de raisonner étape par étape. Ces techniques sont utiles, mais elles ne décrivent qu'une couche du problème.
 
 Un prompt est une instruction. Le contexte est l'état opérationnel à partir duquel le système produit une réponse.
@@ -110,17 +112,15 @@ L'ordre exact dépend du domaine. L'invariant important est qu'un résumé ne do
 
 La compression a aussi besoin de provenance. Un résumé court n'est pas équivalent à sa source si le système ne peut pas retrouver la source ou prouver que le détail omis est sans conséquence pour la décision.
 
-```mermaid
-flowchart LR
-    A[Tâche et contraintes] --> B[Sources de contexte]
-    B --> C[Filtre de pertinence]
-    C --> D[Filtre d'autorisation et de policy]
-    D --> E[Contrôle fraîcheur et provenance]
-    E --> F[Contexte priorisé d'exécution]
-    F --> G[Action de l'agent]
-    G --> H[Tests, revue et preuves]
-    H --> I[Mise à jour du contexte ou escalade]
-```
+<figure className="post-visual">
+  <img
+    src={contextEngineeringDiagram}
+    alt="Flux d'ingénierie du contexte : tâche, pertinence, autorisation, fraîcheur et provenance, action de l'agent et preuves."
+  />
+  <figcaption>
+    Une exécution agentique fiable dépend d'un contexte pertinent, autorisé, frais et testable.
+  </figcaption>
+</figure>
 
 ## Contexte utile, ambigu et dangereux
 

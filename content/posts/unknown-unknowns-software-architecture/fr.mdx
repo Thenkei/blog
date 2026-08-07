@@ -15,6 +15,8 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 1
 ---
 
+import unknownUnknownsDiagram from "../../../src/assets/images/posts/unknown-unknowns-fr.svg";
+
 On présente souvent l'architecture logicielle comme le problème de prendre les bonnes décisions avec une information incomplète. C'est vrai, mais l'information incomplète n'est pas la partie la plus difficile. Le vrai problème est qu'une partie de l'information n'existe pas encore.
 
 On peut lister les décisions qui n'ont pas été prises. On peut créer un spike pour une technologie que l'on ne maîtrise pas. On peut déclarer une dépendance risquée. La catégorie dangereuse est différente : ce sont les hypothèses, les interactions et les modes de panne qui n'existent même pas dans le modèle mental de l'équipe.
@@ -139,15 +141,15 @@ Concevoir le chemin de panne avant que la panne n'existe.
 
 La récupération peut consister à rejouer un événement, reconstruire une projection, désactiver une feature flag, révoquer une credential, mettre un enregistrement en quarantaine ou demander une décision humaine. Le mécanisme dépend du domaine, mais l'invariant reste le même : la découverte ne doit pas obliger à faire un choix irréversible à l'aveugle.
 
-```mermaid
-flowchart LR
-    A[Décision] --> B[Hypothèses implicites]
-    B --> C[Interaction réelle]
-    C --> D[Panne ou signal inattendu]
-    D --> E[Preuve observable]
-    E --> F[Contrat ou frontière révisée]
-    F --> A
-```
+<figure className="post-visual">
+  <img
+    src={unknownUnknownsDiagram}
+    alt="Boucle d'apprentissage architectural : décision, hypothèses implicites, interaction réelle, panne, preuve observable et contrat révisé."
+  />
+  <figcaption>
+    Un comportement inattendu devient utile lorsqu'il produit une preuve observable et une frontière révisée.
+  </figcaption>
+</figure>
 
 ## La réversibilité est un contrôle architectural
 
