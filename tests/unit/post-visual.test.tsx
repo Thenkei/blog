@@ -35,6 +35,32 @@ describe("PostVisual", () => {
     expect(container.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
   });
 
+  it("keeps a distinct SVG geometry for every article visual", () => {
+    const signatures = postVisualIds.map((id) => {
+      const { container, unmount } = render(
+        <PostVisual locale="en" slug={id} variant="header" visualId={id} />,
+      );
+      const geometry = Array.from(
+        container.querySelectorAll("svg path, svg rect, svg circle, svg ellipse, svg line"),
+      )
+        .map((element) =>
+          ["d", "x", "y", "width", "height", "cx", "cy", "r", "rx", "ry"]
+            .map((attribute) => element.getAttribute(attribute) ?? "")
+            .join(":"),
+        )
+        .join("|");
+      unmount();
+      return geometry;
+    });
+
+    expect(new Set(signatures).size).toBe(postVisualIds.length);
+  });
+
+  it.each(postVisualIds)("maps %s to a concrete diagram", (id) => {
+    render(<PostVisual locale="en" slug={id} variant="inline" visualId={id} />);
+    expect(screen.queryByText("UNMAPPED VISUAL")).not.toBeInTheDocument();
+  });
+
   it("localizes visible captions", () => {
     render(
       <PostVisual
