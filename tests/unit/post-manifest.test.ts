@@ -49,7 +49,8 @@ describe("buildPostManifest", () => {
             summary: "Summary",
             publishedAt: "2026-01-01",
             readTimeMinutes: 2,
-            tags: ["example"],
+          tags: ["example"],
+          visualId: "sse-outbound-channel",
           },
         },
       }),
@@ -67,7 +68,8 @@ describe("buildPostManifest", () => {
             summary: "Summary",
             publishedAt: "2026-01-01",
             readTimeMinutes: 2,
-            tags: ["example"],
+          tags: ["example"],
+          visualId: "sse-outbound-channel",
           },
         },
         "/tmp/content/posts/example/en.mdx": {
@@ -78,7 +80,39 @@ describe("buildPostManifest", () => {
             summary: "Summary",
             publishedAt: "2026-01-01",
             readTimeMinutes: 2,
+          tags: ["example"],
+          visualId: "sse-outbound-channel",
+          },
+        },
+        "/content/posts/example/fr.mdx": {
+          default: DummyPost,
+          meta: {
+            title: "Exemple",
+            subtitle: "Sous-titre",
+            summary: "Résumé",
+            publishedAt: "2026-01-01",
+            readTimeMinutes: 2,
+          tags: ["example"],
+          visualId: "sse-outbound-channel",
+          },
+        },
+      }),
+    ).toThrow(/Duplicate locale entry/);
+  });
+
+  it("fails when locale variants use different visual identifiers", () => {
+    expect(() =>
+      buildPostManifest({
+        "/content/posts/example/en.mdx": {
+          default: DummyPost,
+          meta: {
+            title: "Example",
+            subtitle: "Subtitle",
+            summary: "Summary",
+            publishedAt: "2026-01-01",
+            readTimeMinutes: 2,
             tags: ["example"],
+            visualId: "sse-outbound-channel",
           },
         },
         "/content/posts/example/fr.mdx": {
@@ -90,9 +124,10 @@ describe("buildPostManifest", () => {
             publishedAt: "2026-01-01",
             readTimeMinutes: 2,
             tags: ["example"],
+            visualId: "bounded-ai-loop",
           },
         },
       }),
-    ).toThrow(/Duplicate locale entry/);
+    ).toThrow(/share visualId/);
   });
 });

@@ -2,6 +2,7 @@
 title: "Quick feedback: ON CONFLICT DO UPDATE with nullable columns"
 subtitle: "Warning: By default, PostgreSQL considers that NULL ≠ NULL."
 summary: "How to use NULLS NOT DISTINCT to make ON CONFLICT and unique indexes behave as expected with nullable columns."
+visualId: "postgresql-unique-nulls"
 publishedAt: "2026-01-26"
 readTimeMinutes: 2
 tags:
@@ -13,6 +14,8 @@ tags:
 I just burned an embarrassing hour of my precious life on a seemingly "impossible" bug. My `ON CONFLICT DO UPDATE` was silently failing to detect duplicates, even though I had a supposedly rock-solid uniqueness constraint in place.
 
 ## The Plot Twist
+
+<ArticleDiagram visualId="postgresql-unique-nulls" />
 
 Here's the kicker: by default, PostgreSQL philosophically believes that `NULL ≠ NULL`. That's right. It sees two rows shaped like `(value, NULL)` and says, "Looks like two completely different things to me, boss!" Ergo, not duplicates.
 

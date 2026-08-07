@@ -314,6 +314,18 @@
   stroke: var(--visual-line-secondary);
 }
 
+.visual-symbol {
+  fill: color-mix(in srgb, var(--visual-surface-strong) 92%, transparent);
+  stroke: color-mix(in srgb, var(--visual-line) 72%, var(--divider));
+  stroke-width: 2;
+}
+
+.visual-symbol-success {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 13%, var(--visual-surface-strong));
+  stroke: var(--visual-line-secondary);
+  stroke-width: 2;
+}
+
 .visual-flow-line {
   fill: none;
   stroke: var(--visual-line);

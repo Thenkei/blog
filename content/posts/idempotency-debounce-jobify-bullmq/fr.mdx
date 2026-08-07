@@ -2,6 +2,7 @@
 title: "Idempotence et debounce dans BullMQ : durcir les jobs avec un contrat jobify"
 subtitle: "reschedule vs time-frame, job IDs deterministes, et modes de panne cote workers."
 summary: "Mise en place d'une execution idempotente et debouncee des jobs BullMQ avec identifiants deterministes."
+visualId: "idempotency-debounce-jobify-bullmq"
 publishedAt: "2023-09-01"
 readTimeMinutes: 13
 tags:
@@ -28,6 +29,8 @@ Ce post clot une serie en 3 parties :
 **Idempotence: execution sure meme avec triggers multiples. Debounce: choisir quand executer sous tempete d'evenements.**
 
 ## Point de départ NestJS, puis durcissement (Car les tutos de base sont un piège)
+
+<ArticleDiagram visualId="idempotency-debounce-jobify-bullmq" />
 
 Le pattern classique NestJS via `@InjectQueue` est rapide a mettre en place, mais fragile quand le nombre de jobs augmente.
 

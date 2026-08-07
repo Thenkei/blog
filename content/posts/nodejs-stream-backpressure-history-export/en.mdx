@@ -2,6 +2,7 @@
 title: "Node.js Backpressure for Massive History Exports: Streams, Async Generators, and S3 Multipart"
 subtitle: "Deep dive into pressure propagation, bounded concurrency, and export reliability."
 summary: "Production patterns for exporting massive historical datasets with bounded memory and resilient throughput."
+visualId: "nodejs-stream-backpressure-history-export"
 publishedAt: "2023-08-10"
 readTimeMinutes: 18
 tags:
@@ -28,6 +29,8 @@ This post opens a 3-part series:
 **Backpressure was the core control mechanism, not an implementation detail.**
 
 ## System Constraints (aka Ways this will inevitably explode in production)
+
+<ArticleDiagram visualId="nodejs-stream-backpressure-history-export" />
 
 - **Unbounded producer risk:** Elasticsearch scrolling can turn into an absolute firehose that happily drowns your downstream serialization and upload steps.
 - **N+1 enrichment risk:** per-event relational lookups will quickly bring your DB connection pool to its knees.

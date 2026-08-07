@@ -24,7 +24,7 @@ export const postFrontmatterSchema = z.object({
   updatedAt: z.string().refine(isValidIsoDate, "updatedAt must be YYYY-MM-DD").optional(),
   readTimeMinutes: z.number().int().positive(),
   tags: z.array(z.string().trim().min(1)).min(1),
-  visualId: z.enum(postVisualIds).optional(),
+  visualId: z.enum(postVisualIds),
   seriesId: z.string().trim().min(1).optional(),
   seriesOrder: z.number().int().positive().optional(),
   draft: z.boolean().optional(),

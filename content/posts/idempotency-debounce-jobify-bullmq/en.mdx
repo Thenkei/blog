@@ -2,6 +2,7 @@
 title: "Idempotency and Debounce in BullMQ: hardening jobs with a jobify contract"
 subtitle: "reschedule vs time-frame, deterministic job IDs, and failure modes in production workers."
 summary: "How to implement idempotent, debounced queue execution semantics with deterministic identifiers in BullMQ."
+visualId: "idempotency-debounce-jobify-bullmq"
 publishedAt: "2023-09-01"
 readTimeMinutes: 13
 tags:
@@ -28,6 +29,8 @@ This post closes a 3-part series:
 **Idempotency answers "can this be triggered multiple times safely?" Debounce answers "when should we actually execute under trigger storms?"**
 
 ## Start from NestJS, then harden (Because out-of-the-box is a trap)
+
+<ArticleDiagram visualId="idempotency-debounce-jobify-bullmq" />
 
 In a typical NestJS setup, jobs are added directly through `@InjectQueue`. Good for bootstrap speed, weak for consistency once job count grows.
 
