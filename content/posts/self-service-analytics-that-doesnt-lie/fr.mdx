@@ -1,0 +1,249 @@
+---
+title: "Construire un self-service analytics qui ne ment pas"
+subtitle: "Le vrai travail n'est pas de donner un dashboard à tout le monde. C'est de donner un contrat à chaque chiffre."
+summary: "L'architecture self-service analytics que nous voulons construire chez RockFi : des requêtes limitées aux marts gouvernés, des contrats de métriques explicites et des agents qui proposent les modèles manquants sans contourner les contrôles."
+publishedAt: "2026-08-17"
+readTimeMinutes: 19
+tags:
+  - data-engineering
+  - analytics
+  - architecture
+  - governance
+  - reliability
+  - reflection
+seriesId: "engineering-ideas-that-survive-reality"
+seriesOrder: 2
+draft: true
+---
+
+Chez RockFi, le self-service analytics n'est pas une success story que je peux emballer dans un joli retour d'expérience. C'est un objectif que nous poursuivons activement — et que nous n'avons pas encore complètement craqué.
+
+Aujourd'hui, les outils d'IA accélèrent déjà une grande partie de la boucle technique. Ils nous aident à explorer des données que l'on connaît mal, tester des hypothèses pendant la conception, comprendre les modèles existants, générer des requêtes et renforcer la première passe de QA après l'implémentation. Dans un workflow engineering ou data, le levier est réel.
+
+Ce que nous n'avons pas encore rendu accessible, c'est cette même capacité à l'échelle de toute l'entreprise. Une personne hors de l'équipe technique ne peut pas toujours poser une question métier et obtenir une réponse à la fois rapide, gouvernée, reproductible et suffisamment sûre pour être utilisée. La pièce manquante n'est pas une nouvelle interface de chat brillante. C'est de l'infrastructure.
+
+Connecter directement un LLM au warehouse en lui souhaitant bonne chance produirait une démo impressionnante. Cela produirait aussi trois définitions de la même métrique avant midi.
+
+Cette promesse échoue lorsque l'on confond « accès » et « compréhension ». Un dashboard peut se charger correctement, utiliser une requête SQL valide et communiquer malgré tout un chiffre faux. L'échec est généralement silencieux. Aucune exception n'est levée lorsqu'une jointure multiplie les lignes, qu'un fournisseur envoie des données en retard, qu'un changement de timezone modifie la journée de reporting ou que deux équipes utilisent le mot « revenu » pour désigner deux populations différentes.
+
+Le problème ne vient pas principalement de l'outil de visualisation. Il vient de l'absence de contrat autour de la métrique.
+
+Le self-service analytics devient fiable lorsque chacun peut explorer librement, mais que l'organisation explicite les définitions, les grains, les sources et les signaux de qualité qui peuvent être utilisés pour prendre une décision.
+
+## Des données disponibles ne sont pas forcément des données fiables
+
+La question « Peut-on obtenir ce chiffre ? » en contient au moins quatre :
+
+1. Une source contient-elle des enregistrements liés à la question ?
+2. Peut-on transformer ces enregistrements au grain demandé ?
+3. La métrique produite est-elle définie de manière cohérente selon les consommateurs ?
+4. Le résultat est-il assez récent et complet pour la décision envisagée ?
+
+La première question concerne la disponibilité. Les autres concernent le sens et l'aptitude à l'usage.
+
+Une table du warehouse peut être interrogeable techniquement tout en étant inadaptée à un reporting client. Un flux fournisseur brut peut être utile pour enquêter mais impropre à un KPI. Un modèle peut être correct au grain du compte et incorrect lorsqu'il est joint directement à des transactions. Le schéma ne communique pas ces frontières à lui seul.
+
+Les erreurs analytiques les plus dangereuses ne sont donc pas les pipelines cassés. Ce sont les résultats plausibles auxquels il manque le contexte.
+
+## Le système que nous voulons construire chez RockFi (sans donner les clés du warehouse)
+
+La première frontière est volontairement stricte : un utilisateur self-service ne doit pouvoir interroger que la couche de marts gouvernés.
+
+Les modèles `staging` et `int` sont des matériaux de construction. Ils exposent les formats fournisseurs, les jointures intermédiaires, les détails d'implémentation et des sémantiques encore incomplètes. Ils sont indispensables à l'équipe data et constituent une très mauvaise API publique pour le reste de l'entreprise.
+
+Le chemin de requête que nous visons ressemble à ceci :
+
+1. Une personne pose une question métier en langage naturel.
+2. Un planner résout les termes dans un catalogue de marts, dimensions, facts, mesures, grains, règles de fraîcheur et politiques d'accès certifiés.
+3. Le système génère une requête en lecture seule contre une surface de marts explicitement autorisée.
+4. Un garde-fou déterministe valide la structure SQL, les permissions, le coût estimé, le timeout et les limites de résultat avant exécution.
+5. La réponse expose la requête générée, les modèles et métriques utilisés, leur fraîcheur et les limites pertinentes — pas seulement un paragraphe très sûr de lui accompagné d'un graphique.
+
+Le modèle peut aider à produire la requête. Il ne doit pas être le composant qui fait respecter la frontière. Les rôles read-only, allowlists, row et column policies, parseurs SQL, limites de ressources et logs d'audit appartiennent à l'infrastructure autour de lui.
+
+### Lorsque la réponse n'existe pas dans les marts
+
+C'est ici que l'objectif devient réellement intéressant.
+
+Si la réponse demandée n'est pas disponible depuis les marts certifiés, le système ne doit pas basculer silencieusement sur `int` ou `staging` et improviser. Cela rendrait la première réponse rapide et toutes les discussions futures sur le chiffre terriblement lentes.
+
+La question sans réponse doit plutôt devenir une demande de modélisation gouvernée :
+
+1. Un agent de classification identifie l'objet sémantique manquant : une mesure, une dimension, un fact ou un mart complet.
+2. Des agents spécialisés inspectent les marts existants, les modèles `int` et `staging`, la lineage, les contrats sources, les conventions de nommage et les tests.
+3. Un agent de modélisation propose le `mart`, le `fct` ou la `dim` manquante sous forme de code, dans une branche ou un environnement isolé.
+4. La proposition déclare son grain, ses clés, mesures, dimensions, exclusions, attentes de fraîcheur, owner et policy d'accès.
+5. La CI construit le graphe affecté et exécute les contrôles de schéma, qualité, réconciliation et coût.
+6. Un humain revoit le sens métier et l'implémentation technique avant toute promotion.
+7. Ce n'est qu'après le déploiement que la question originale repasse par le chemin gouverné des marts.
+
+La séparation importante se trouve entre le **query plane**, capable de répondre depuis des données certifiées, et le **modeling plane**, capable de proposer de nouveaux data products certifiés. Un agent peut accélérer les deux. Il ne doit pas supprimer la frontière entre eux.
+
+```mermaid
+flowchart LR
+    A[Question métier] --> B[Planner sémantique et catalogue]
+    B --> C{Disponible dans les marts certifiés ?}
+    C -->|Oui| D[Requête read-only gouvernée]
+    D --> E[Validation SQL, accès et coût]
+    E --> F[Réponse avec provenance et fraîcheur]
+    C -->|Non| G[Identifier le gap de métrique ou modèle]
+    G --> H[Agents de modélisation spécialisés]
+    H --> I[Inspecter int, staging, lineage et contrats]
+    I --> J[Proposer mart, fct ou dim avec tests]
+    J --> K[CI et revue humaine]
+    K --> L[Déployer le modèle certifié]
+    L --> B
+```
+
+C'est plus lent que d'autoriser un agent à interroger tout ce qu'il trouve. Tant mieux. La version rapide offre à l'entreprise du SQL en self-service et un problème de vérité distribuée le même après-midi.
+
+## Les mensonges silencieux
+
+Certains modes de panne reviennent dans tous les systèmes self-service.
+
+### Le mauvais grain
+
+Chaque modèle possède un grain, qu'il le déclare ou non. Une table peut représenter une ligne par compte, par position ou par événement de valorisation. Si un utilisateur joint un attribut au niveau du compte à une table au niveau de la transaction puis agrège le résultat, la requête peut s'exécuter parfaitement tout en comptant l'attribut plusieurs fois.
+
+La réponse sûre n'est pas de prévenir vaguement les utilisateurs de faire attention aux jointures. Il faut publier le grain dans le contrat du modèle et fournir des mesures qui le respectent.
+
+### La dérive des définitions
+
+« Client actif », « actifs sous gestion » et « transaction terminée » sont des définitions métier, pas des noms de colonnes. Si la définition change dans un dashboard mais pas dans un autre, l'organisation peut posséder deux vérités internes cohérentes mais incompatibles.
+
+Le versioning est parfois nécessaire. Au minimum, une métrique possède un owner identifié, une définition, une date d'effet et les exclusions importantes.
+
+### La fraîcheur et les données tardives
+
+Un dashboard qui affiche « aujourd'hui » peut contenir les données fournisseur d'hier, un chargement partiel ou un mélange de snapshots pris à des instants différents. La fraîcheur n'est pas seulement une métrique technique de pipeline. Elle détermine si le chiffre convient à la décision.
+
+Une métrique quotidienne de pilotage et un reporting de valorisation destiné à un client ne devraient pas avoir le même contrat de fraîcheur.
+
+### Les filtres invisibles
+
+De nombreux outils cachent des filtres dans des vues sauvegardées, des scopes par défaut ou des permissions héritées. L'utilisateur voit un chiffre sans voir quels enregistrements ont été exclus. Le dashboard devient une conclusion sans chemin inspectable vers la source.
+
+Plus la décision est importante, plus il faut exposer directement le scope, les exclusions et les limites temporelles.
+
+### Les écarts de réconciliation
+
+Une métrique peut être cohérente en interne et diverger du système opérationnel à cause des mappings, du timing, des suppressions ou des corrections fournisseur. La réconciliation n'est pas une tâche de migration ponctuelle. C'est un signal continu que deux représentations du métier commencent à diverger.
+
+## Le contrat d'une métrique
+
+Une métrique fiable doit répondre à autre chose que « quelle est la requête SQL ? ». Son contrat devrait inclure :
+
+| Champ | Question à laquelle il répond |
+| --- | --- |
+| Définition | Que signifie cette métrique dans le métier ? |
+| Grain | Que représente une ligne avant agrégation ? |
+| Population | Quelles entités, quels statuts et quelles périodes sont inclus ? |
+| Exclusions | Quels enregistrements sont volontairement exclus, et pourquoi ? |
+| Source | Quel système fait autorité pour chaque entrée ? |
+| Fraîcheur | Quel âge maximal rend le chiffre impropre ? |
+| Owner | Qui décide si la définition reste correcte ? |
+| Réconciliation | Quel total indépendant doit correspondre ? |
+| Historique | Quand la définition ou la source a-t-elle changé ? |
+
+Ce contrat n'a pas besoin d'être un document massif. Il doit être trouvable là où la métrique est utilisée et suffisamment précis pour empêcher deux personnes raisonnables de produire des réponses différentes.
+
+## Exploration, certification et décision
+
+Le self-service ne signifie pas que tous les datasets possèdent le même niveau de confiance. Un système utile sépare trois modes :
+
+- **Exploration :** les utilisateurs peuvent enquêter dans des données brutes ou légèrement modélisées, formuler des hypothèses et repérer des problèmes. Les résultats sont provisoires.
+- **Certification :** les modèles et métriques possèdent des contrats déclarés, des tests, des owners, des signaux de fraîcheur et des limites connues.
+- **Usage décisionnel :** un reporting, une alerte ou un workflow opérationnel consomme des métriques certifiées avec un engagement explicite.
+
+Cette frontière ne doit pas restreindre la curiosité. Elle empêche une requête exploratoire de devenir silencieusement un fait organisationnel.
+
+L'équipe data ne devrait pas être la seule à pouvoir interroger les données. Elle devrait posséder les contrats et les chemins balisés qui rendent l'interrogation sûre. Chez RockFi, c'est précisément ce manque d'infrastructure que nous essayons de combler.
+
+## À quoi sert réellement une semantic layer
+
+On décrit souvent une semantic layer comme un moyen d'éviter de répéter du SQL. C'est utile, mais incomplet. Son rôle le plus important est de donner un sens métier partagé aux champs et aux mesures.
+
+Elle peut définir :
+
+- le grain canonique d'une entité ;
+- les dimensions qui peuvent être combinées sans danger ;
+- les filtres qui appartiennent à une métrique ;
+- le lien entre un terme métier et les colonnes sources ;
+- les agrégations autorisées ;
+- les métadonnées de fraîcheur et de qualité exposées aux consommateurs.
+
+Cela ne rend pas la semantic layer autoritaire par simple déclaration. Elle le devient lorsque ses définitions sont testées contre la réalité opérationnelle et que les changements ont un owner et une date d'effet.
+
+Il faut aussi prévoir une sortie. Une métrique gouvernée incapable d'expliquer ses exceptions repoussera les utilisateurs sérieux vers le SQL brut. Le bon design permet l'exploration tout en gardant une distinction claire entre analyse personnalisée et sortie certifiée.
+
+## La confiance est un signal, pas un badge
+
+Un label comme « certifié » n'est utile que s'il indique ce qui a été vérifié. Une indication de confiance opérationnelle peut afficher :
+
+- le dernier chargement réussi et la fraîcheur attendue ;
+- la couverture des sources et les fournisseurs manquants connus ;
+- le statut des tests et de la dernière réconciliation ;
+- l'owner de la définition et la date de dernière revue ;
+- la date d'effet de la définition courante ;
+- les avertissements sur les périodes partielles ou les données tardives.
+
+Cela rend l'incertitude visible sans obliger chaque utilisateur à lire un document d'implémentation.
+
+Pour les usages à fort enjeu, le système devrait échouer fermé. Si une métrique certifiée dépasse son délai de fraîcheur ou si une réconciliation sort significativement de la tolérance, le dashboard doit signaler qu'elle n'est plus adaptée à la décision visée. Un graphique vert accompagné d'une petite réserve cachée n'est pas un contrôle qualité.
+
+## Revue de confiance avant publication
+
+Avant de publier largement un dashboard ou une métrique, demander :
+
+- À quelle question exacte répond-il ?
+- Quel est le grain à chaque étape de la transformation ?
+- Quelle population et quelle période sont incluses ?
+- Que deviennent les données tardives, manquantes, corrigées ou dupliquées ?
+- Quel système fait autorité pour chaque entrée ?
+- Quel total indépendant permet la réconciliation ?
+- Comment le consommateur saura-t-il que la métrique est ancienne ou partielle ?
+- Qui possède la définition lorsque le processus métier change ?
+- Quelles conclusions sont sûres et lesquelles nécessitent une revue humaine ?
+
+Si ces questions restent sans réponse, la sortie peut encore être précieuse pour explorer. Elle n'est pas prête à être présentée comme un fait établi.
+
+## Le coût de la gouvernance est inférieur au coût du désaccord
+
+Les équipes résistent parfois aux contrats de métriques parce qu'ils semblent plus lents que de laisser chaque analyste travailler indépendamment. Cette comparaison oublie le coût en aval : dashboards dupliqués, débats sur le bon chiffre, réconciliation manuelle avant les réunions et décisions prises à partir de définitions impossibles à reconstruire.
+
+La gouvernance n'est pas utile parce qu'elle ajoute des métadonnées. Elle est utile parce qu'elle réduit le travail d'interprétation répété et rend les désaccords diagnostiquables.
+
+Le niveau de gouvernance doit être proportionnel à la conséquence. Une requête exploratoire jetable demande peu de cérémonie. Une métrique utilisée pour le reporting de portefeuille, la communication client, les opérations financières ou une décision automatisée nécessite un contrat plus fort et un état de qualité visible.
+
+## Les limites du self-service
+
+Toutes les questions ne doivent pas devenir une métrique réutilisable. Certaines sont réellement exploratoires. Certaines nécessitent une nouvelle définition métier. Certaines révèlent un défaut des systèmes sources qu'aucune semantic layer ne peut réparer.
+
+Le self-service ne peut pas non plus résoudre l'absence d'ownership. Si personne ne sait décider ce que signifie « actif », encoder la supposition d'une équipe dans un modèle ne fait que transformer l'ambiguïté en infrastructure.
+
+Enfin, les contrôles de qualité ne peuvent pas prouver qu'une métrique représente le bon concept métier. Ils peuvent détecter les problèmes de fraîcheur, de schéma, de nullité, de doublon et de réconciliation. Il faut toujours un jugement humain lorsque le sens du métier change.
+
+Les modèles générés par des agents ajoutent une autre limite : la vitesse augmente aussi la cadence à laquelle une mauvaise hypothèse peut devenir de l'infrastructure de production. Le workflow de modélisation a donc besoin des mêmes protections de branche, revues, contrôles de lineage et disciplines de déploiement que n'importe quel autre changement data. « C'est l'agent qui l'a écrit » donne du contexte, pas une preuve.
+
+## Le chiffre est la fin d'une chaîne
+
+Un chiffre de dashboard n'est pas un fait isolé. Il est l'aboutissement d'une chaîne de systèmes sources, transformations, définitions, filtres, limites temporelles et hypothèses.
+
+Le self-service analytics fonctionne lorsque cette chaîne est suffisamment visible pour être utilisée correctement. Donnez aux équipes la liberté d'explorer, mais rendez le sens certifié explicite. Publiez le grain. Affichez la fraîcheur. Nommez l'owner. Réconciliez le résultat. Rendez l'incertitude visible avant qu'elle ne devienne une décision.
+
+L'objectif n'est pas de rendre l'analytics incapable d'être faux. C'est de rendre l'erreur détectable avant qu'un chiffre plausible ne gagne de l'autorité.
+
+## Le prochain article se cache déjà dans celui-ci
+
+La boucle complète de modélisation mérite son propre article : comment une question métier devient un besoin sémantique manquant, comment des agents spécialisés explorent `int` et `staging`, comment ils proposent un modèle dbt et comment les tests plus la revue humaine le font entrer dans la couche mart.
+
+Ce prochain article pourra approfondir les rôles des agents, la lineage dbt, les builds isolés, les contrôles de coût, la réconciliation, les preuves de revue et le rollback. Celui-ci pose d'abord la frontière, parce qu'un model builder autonome sans cette frontière automatiserait surtout la production de dette technique.
+
+## Navigation dans la série
+
+- Partie 1 — [Les inconnus inconnus de l'architecture logicielle](../posts/unknown-unknowns-software-architecture).
+- Partie 2 (actuelle) — Construire un self-service analytics qui ne ment pas.
+- Partie 3 — [L'ingénierie du contexte au-delà du prompt engineering](../posts/context-engineering-beyond-prompt-engineering).
+- Partie 4 — [Pourquoi la plupart des documents d'ingénierie vieillissent mal](../posts/engineering-documents-age-poorly).
+
+À lire aussi : [Changer de casquette : du backend à la data chez RockFi](../posts/backend-to-data-engineer-rockfi) et [Les inconnus inconnus de l'architecture logicielle](../posts/unknown-unknowns-software-architecture).
