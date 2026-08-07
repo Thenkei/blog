@@ -5,16 +5,24 @@ A React + TypeScript blog focused on engineering content, with a theme-driven vi
 ## Stack
 - React 19
 - TypeScript
-- Vite 6
+- Vite 8
 - React Router 7
 - i18next (EN/FR)
 - Vitest + Testing Library
 
 ## Run Locally
+
+This repository uses **npm**. The committed `package-lock.json` is the source of truth; do not use Yarn for this project.
+
+Node.js `24.19.0` LTS is pinned in `.nvmrc`. It includes the npm version declared in `package.json`.
+
 ```bash
-npm install
+nvm use
+npm ci
 npm run dev
 ```
+
+Vite prints the local URL after startup, normally `http://localhost:5173/blog/`.
 
 ## Quality Gates
 ```bash
