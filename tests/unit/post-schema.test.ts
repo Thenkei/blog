@@ -10,9 +10,11 @@ describe("postFrontmatterSchema", () => {
       publishedAt: "2026-01-26",
       readTimeMinutes: 5,
       tags: ["nodejs", "backend"],
+      visualId: "bounded-ai-loop",
     });
 
     expect(parsed.title).toBe("Valid title");
+    expect(parsed.visualId).toBe("bounded-ai-loop");
   });
 
   it("rejects invalid date values", () => {
@@ -24,6 +26,20 @@ describe("postFrontmatterSchema", () => {
         publishedAt: "2026-13-42",
         readTimeMinutes: 5,
         tags: ["nodejs"],
+      }),
+    ).toThrow();
+  });
+
+  it("rejects unknown visual identifiers", () => {
+    expect(() =>
+      postFrontmatterSchema.parse({
+        title: "Invalid visual",
+        subtitle: "Invalid visual",
+        summary: "Invalid visual",
+        publishedAt: "2026-01-01",
+        readTimeMinutes: 5,
+        tags: ["nodejs"],
+        visualId: "generic-ai-art",
       }),
     ).toThrow();
   });

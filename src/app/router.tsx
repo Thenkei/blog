@@ -25,6 +25,7 @@ const AboutPage = lazy(() =>
   import("../features/about/AboutPage").then((m) => ({ default: m.AboutPage })),
 );
 import { SiteFooter } from "../shared/components/SiteFooter";
+import { GlobalHeader } from "../shared/components/GlobalHeader";
 import { normalizeLocale } from "../shared/routing";
 
 function RootRedirect() {
@@ -71,6 +72,7 @@ function LocaleLayout() {
 
   return (
     <div className="app">
+      <GlobalHeader />
       <div className="circuit-overlay" />
       <div className="view-transition">
         <Suspense fallback={<div />}>

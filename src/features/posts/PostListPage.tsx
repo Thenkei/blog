@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTheme } from "../../app/providers/ThemeProvider";
@@ -6,6 +6,7 @@ import { getAvailableTags, getSearchDocuments, getPostSummaries, type PostLocale
 import { usePostKeyboardNavigation } from "./hooks/usePostKeyboardNavigation";
 import { ParallaxHero } from "../../shared/components/ParallaxHero";
 import { PageMeta } from "../../shared/seo/PageMeta";
+import { PostVisual } from "../../shared/components/PostVisual";
 
 type PostListPageProps = {
   locale: PostLocale;
@@ -41,6 +42,8 @@ export function PostListPage({ locale }: PostListPageProps) {
   const navigate = useNavigate();
   const { themeMode } = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [areFiltersOpen, setAreFiltersOpen] = useState(false);
+  const filterOptionsId = useId();
   const query = searchParams.get("q") ?? "";
   const selectedTag = searchParams.get("tag") ?? "all";
   const sortOrder = searchParams.get("sort") === "oldest" ? "oldest" : "newest";
@@ -118,9 +121,20 @@ export function PostListPage({ locale }: PostListPageProps) {
       <main className="blog-content">
         <div className="container">
           <section className="post-controls" aria-label={t("ui.discovery")}>
-            <h2 className="post-list-title">{t("ui.latestPosts")}</h2>
+            <div className="post-controls-header">
+              <h2 className="post-list-title">{t("ui.latestPosts")}</h2>
+              <button
+                className="post-filter-toggle"
+                type="button"
+                aria-expanded={areFiltersOpen}
+                aria-controls={filterOptionsId}
+                onClick={() => setAreFiltersOpen((open) => !open)}
+              >
+                {t("ui.showFilters")}
+              </button>
+            </div>
             <div className="post-controls-grid">
-              <label className="post-control-field">
+              <label className="post-control-field post-control-search">
                 <span>{t("ui.search")}</span>
                 <input
                   className="post-control-input"
@@ -133,39 +147,45 @@ export function PostListPage({ locale }: PostListPageProps) {
                 />
               </label>
 
-              <label className="post-control-field">
-                <span>{t("ui.filterByTag")}</span>
-                <select
-                  className="post-control-select"
-                  value={selectedTag}
-                  onChange={(event) => {
-                    updateFilters({ tag: event.target.value });
-                  }}
-                >
-                  <option value="all">{t("ui.allTags")}</option>
-                  {tags.map((tag) => (
-                    <option key={tag} value={tag}>
-                      {tag}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div
+                className={`post-filter-options ${areFiltersOpen ? "open" : ""}`}
+                id={filterOptionsId}
+              >
+                <label className="post-control-field">
+                  <span>{t("ui.filterByTag")}</span>
+                  <select
+                    className="post-control-select"
+                    value={selectedTag}
+                    onChange={(event) => {
+                      updateFilters({ tag: event.target.value });
+                    }}
+                  >
+                    <option value="all">{t("ui.allTags")}</option>
+                    {tags.map((tag) => (
+                      <option key={tag} value={tag}>
+                        {tag}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-              <label className="post-control-field">
-                <span>{t("ui.sortBy")}</span>
-                <select
-                  className="post-control-select"
-                  value={sortOrder}
-                  onChange={(event) => {
-                    updateFilters({
-                      sort: event.target.value === "oldest" ? "oldest" : "newest",
-                    });
-                  }}
-                >
-                  <option value="newest">{t("ui.sortNewest")}</option>
-                  <option value="oldest">{t("ui.sortOldest")}</option>
-                </select>
-              </label>
+                <label className="post-control-field">
+                  <span>{t("ui.sortBy")}</span>
+                  <select
+                    className="post-control-select"
+                    value={sortOrder}
+                    onChange={(event) => {
+                      updateFilters({
+                        sort:
+                          event.target.value === "oldest" ? "oldest" : "newest",
+                      });
+                    }}
+                  >
+                    <option value="newest">{t("ui.sortNewest")}</option>
+                    <option value="oldest">{t("ui.sortOldest")}</option>
+                  </select>
+                </label>
+              </div>
             </div>
           </section>
 
@@ -173,39 +193,58 @@ export function PostListPage({ locale }: PostListPageProps) {
             {filteredPosts.length === 0 ? (
               <p className="post-empty">{t("ui.noResults")}</p>
             ) : (
-              filteredPosts.map((post, index) => (
-                <Link
-                  key={post.slug}
-                  to={`/${locale}/posts/${post.slug}`}
-                  aria-label={`${post.title} - ${t("ui.readPost")}`}
-                  ref={(element) => {
-                    cardRefs.current[index] = element;
-                  }}
-                  className={`post-card ${focusedIndex === index ? "focused" : ""}`}
-                  onMouseEnter={() => setFocusedIndex(index)}
-                  onFocus={() => setFocusedIndex(index)}
-                >
-                  <div className="meta">
-                    <span>{formatDate(post.publishedAt, locale)}</span>
-                    <span>•</span>
-                    <span>
-                      {t("ui.readTime", { count: post.readTimeMinutes })}
-                    </span>
-                  </div>
-                  <h3>{post.title}</h3>
-                  <p className="post-subtitle">{post.subtitle}</p>
-                  <p className="post-summary">{post.summary}</p>
-                  <ul className="post-tag-list" aria-label={t("ui.tags")}>
-                    {post.tags.map((tag) => (
-                      <li key={tag} className="post-tag-item">
-                        {tag}
-                      </li>
-                    ))}
-                  </ul>
-                  <span className="post-card-link">{t("ui.readPost")}</span>
-                  <div className="trail-line trail-line-small" />
-                </Link>
-              ))
+              filteredPosts.map((post, index) => {
+                const visibleTags = post.tags.slice(0, 3);
+                const hiddenTagCount = post.tags.length - visibleTags.length;
+
+                return (
+                  <Link
+                    key={post.slug}
+                    to={`/${locale}/posts/${post.slug}`}
+                    aria-label={`${post.title} - ${t("ui.readPost")}`}
+                    ref={(element) => {
+                      cardRefs.current[index] = element;
+                    }}
+                    className={`post-card ${focusedIndex === index ? "focused" : ""}`}
+                    onMouseEnter={() => setFocusedIndex(index)}
+                    onFocus={() => setFocusedIndex(index)}
+                  >
+                    <PostVisual
+                      locale={locale}
+                      slug={post.slug}
+                      variant="card"
+                      visualId={post.visualId}
+                    />
+                    <div className="post-card-body">
+                      <div className="meta">
+                        <span>{formatDate(post.publishedAt, locale)}</span>
+                        <span>•</span>
+                        <span>
+                          {t("ui.readTime", { count: post.readTimeMinutes })}
+                        </span>
+                      </div>
+                      <h3>{post.title}</h3>
+                      <p className="post-subtitle">{post.subtitle}</p>
+                      <ul className="post-tag-list" aria-label={t("ui.tags")}>
+                        {visibleTags.map((tag) => (
+                          <li key={tag} className="post-tag-item">
+                            {tag}
+                          </li>
+                        ))}
+                        {hiddenTagCount > 0 ? (
+                          <li
+                            className="post-tag-item post-tag-more"
+                            aria-label={t("ui.moreTags", { count: hiddenTagCount })}
+                          >
+                            +{hiddenTagCount}
+                          </li>
+                        ) : null}
+                      </ul>
+                      <span className="post-card-link">{t("ui.readPost")} →</span>
+                    </div>
+                  </Link>
+                );
+              })
             )}
           </div>
         </div>

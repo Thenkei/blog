@@ -106,6 +106,7 @@ export function ParallaxHero({
             data-hero-theme={themeMode}
             ref={mountainStageRef}
           >
+            <div className="topographic-field" aria-hidden="true" />
             <div
               className="mountain-layer mountain-layer-sky"
               aria-hidden="true"
@@ -134,6 +135,7 @@ export function ParallaxHero({
             data-hero-theme={themeMode}
             ref={rocketStageRef}
           >
+            <div className="topographic-field" aria-hidden="true" />
             <div
               className="rocket-layer rocket-layer-space"
               aria-hidden="true"
@@ -162,6 +164,7 @@ export function ParallaxHero({
       className="parallax-container simple-theme-hero"
       data-hero-theme={themeMode}
     >
+      <div className="topographic-field" aria-hidden="true" />
       {heroContent}
     </section>
   );

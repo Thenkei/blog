@@ -4,6 +4,7 @@ subtitle: "Comment envoyer des commandes à un serveur qu'on ne contrôle pas, s
 summary: "Les choix architecturaux, les joies et les traumatismes absolus liés au maintien de milliers de connexions HTTP ouvertes à travers les firewalls d'entreprise."
 publishedAt: "2022-10-18"
 readTimeMinutes: 8
+visualId: "sse-outbound-channel"
 tags:
   - architecture
   - networking
@@ -21,6 +22,8 @@ La réponse naïve et immédiate est généralement : "Exposons simplement une A
 C'est exactement à ce moment-là que le RSSI de l'entreprise cliente éclate d'un rire hystérique. Ouvrir un port entrant sur un pare-feu d'entreprise vers l'Internet public pour qu'un SaaS externe puisse y fouiller est un _Non_ monumental et indiscutable.
 
 Si l'on ne peut rien pousser en entrant, il reste deux options : le Polling (la scrutation) et le Streaming sortant (Outbound Streaming).
+
+<ArticleDiagram visualId="sse-outbound-channel" />
 
 ## L'option que tout le monde déteste : le Polling
 

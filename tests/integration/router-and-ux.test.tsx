@@ -2,26 +2,40 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HelmetProvider } from "react-helmet-async";
+import { MDXProvider } from "@mdx-js/react";
 import { MemoryRouter } from "react-router-dom";
 import "../../src/i18n/config";
 import { ThemeProvider } from "../../src/app/providers/ThemeProvider";
 import { AppRouter } from "../../src/app/router";
-import { GlobalHeader } from "../../src/shared/components/GlobalHeader";
+import { ArticleDiagram } from "../../src/shared/components/PostVisual";
 
 function renderApp(initialPath: string) {
   return render(
     <HelmetProvider>
       <ThemeProvider>
-        <MemoryRouter initialEntries={[initialPath]}>
-          <GlobalHeader />
-          <AppRouter />
-        </MemoryRouter>
+        <MDXProvider components={{ ArticleDiagram }}>
+          <MemoryRouter initialEntries={[initialPath]}>
+            <AppRouter />
+          </MemoryRouter>
+        </MDXProvider>
       </ThemeProvider>
     </HelmetProvider>,
   );
 }
 
 describe("routing and UX", () => {
+  async function selectTheme(
+    user: ReturnType<typeof userEvent.setup>,
+    themeName: string,
+  ) {
+    await user.click(
+      screen.getByRole("button", { name: /Appearance:|Apparence:/i }),
+    );
+    await user.click(
+      screen.getByRole("menuitemradio", { name: themeName }),
+    );
+  }
+
   it("resolves /en route", async () => {
     renderApp("/en");
     expect(await screen.findByText(/Latest Posts/i)).toBeInTheDocument();
@@ -164,14 +178,17 @@ describe("routing and UX", () => {
     renderApp("/en");
     const user = userEvent.setup();
 
+    await user.click(
+      await screen.findByRole("button", { name: /Appearance:/i }),
+    );
     expect(
-      await screen.findByRole("radio", { name: "Light" }),
+      await screen.findByRole("menuitemradio", { name: "Light" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: "Dark" })).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: "Mountain" })).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: "Rocket" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitemradio", { name: "Dark" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitemradio", { name: "Mountain" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitemradio", { name: "Rocket" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("radio", { name: "Mountain" }));
+    await user.click(screen.getByRole("menuitemradio", { name: "Mountain" }));
     expect(document.documentElement).toHaveAttribute("data-theme", "mountain");
     expect(document.querySelector(".mountain-camera-shell")).toBeTruthy();
 
@@ -181,21 +198,46 @@ describe("routing and UX", () => {
     await user.click(cardLink);
 
     expect(document.documentElement).toHaveAttribute("data-theme", "mountain");
-    expect(screen.getByRole("radio", { name: "Mountain" })).toHaveAttribute(
-      "aria-checked",
-      "true",
+    expect(
+      screen.getByRole("button", { name: "Appearance: Mountain" }),
+    ).toBeInTheDocument();
+  });
+
+  it("supports directional keyboard navigation and closes the appearance menu", async () => {
+    renderApp("/en");
+    const user = userEvent.setup();
+    const trigger = await screen.findByRole("button", { name: /Appearance:/i });
+
+    await user.click(trigger);
+    const options = screen.getAllByRole("menuitemradio");
+    const selectedIndex = options.findIndex(
+      (option) => option.getAttribute("aria-checked") === "true",
     );
+    expect(selectedIndex).toBeGreaterThanOrEqual(0);
+    expect(options[selectedIndex]).toHaveFocus();
+
+    await user.keyboard("{ArrowDown}");
+    expect(options[(selectedIndex + 1) % options.length]).toHaveFocus();
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+
+    await user.click(trigger);
+    await user.click(document.body);
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
   it("renders simple hero on home for light and dark themes", async () => {
     renderApp("/en");
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("radio", { name: "Light" }));
+    await screen.findByRole("button", { name: /Appearance:/i });
+    await selectTheme(user, "Light");
     expect(document.documentElement).toHaveAttribute("data-theme", "light");
     expect(document.querySelector(".simple-theme-hero")).toBeTruthy();
 
-    await user.click(screen.getByRole("radio", { name: "Dark" }));
+    await selectTheme(user, "Dark");
     expect(document.documentElement).toHaveAttribute("data-theme", "dark");
     expect(document.querySelector(".simple-theme-hero")).toBeTruthy();
   });
@@ -204,9 +246,47 @@ describe("routing and UX", () => {
     renderApp("/en");
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("radio", { name: "Rocket" }));
+    await screen.findByRole("button", { name: /Appearance:/i });
+    await selectTheme(user, "Rocket");
 
     expect(document.documentElement).toHaveAttribute("data-theme", "rocket");
     expect(document.querySelector(".rocket-camera-shell")).toBeTruthy();
+  });
+
+  it("keeps global header links on the active French locale", async () => {
+    renderApp("/fr");
+
+    const navigation = await screen.findByRole("navigation", {
+      name: "Navigation principale",
+    });
+    expect(within(navigation).getByRole("link", { name: "Thèmes" })).toHaveAttribute(
+      "href",
+      "/fr/topics",
+    );
+    expect(within(navigation).getByRole("link", { name: "À propos" })).toHaveAttribute(
+      "href",
+      "/fr/about",
+    );
+    expect(screen.getByRole("link", { name: "Le blog de Morgan" })).toHaveAttribute(
+      "href",
+      "/fr",
+    );
+  });
+
+  it("keeps the French shell on the topics index", async () => {
+    renderApp("/fr/topics");
+
+    const navigation = await screen.findByRole("navigation", {
+      name: "Navigation principale",
+    });
+    expect(within(navigation).getByRole("link", { name: "Thèmes" })).toHaveAttribute(
+      "href",
+      "/fr/topics",
+    );
+    expect(screen.getByRole("link", { name: "Le blog de Morgan" })).toHaveAttribute(
+      "href",
+      "/fr",
+    );
+    expect(screen.getByRole("button", { name: /Apparence:/i })).toBeInTheDocument();
   });
 });

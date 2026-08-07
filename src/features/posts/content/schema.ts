@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { postVisualIds } from "./types";
 
 const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -23,6 +24,7 @@ export const postFrontmatterSchema = z.object({
   updatedAt: z.string().refine(isValidIsoDate, "updatedAt must be YYYY-MM-DD").optional(),
   readTimeMinutes: z.number().int().positive(),
   tags: z.array(z.string().trim().min(1)).min(1),
+  visualId: z.enum(postVisualIds).optional(),
   seriesId: z.string().trim().min(1).optional(),
   seriesOrder: z.number().int().positive().optional(),
   draft: z.boolean().optional(),

@@ -4,6 +4,7 @@ subtitle: "How to push commands to a server you don't control, without causing a
 summary: "The architectural choices, joys, and sheer traumas of maintaining thousands of open HTTP connections across corporate firewalls."
 publishedAt: "2022-10-18"
 readTimeMinutes: 8
+visualId: "sse-outbound-channel"
 tags:
   - architecture
   - networking
@@ -21,6 +22,8 @@ The immediate, naive answer is usually, "Just expose an API endpoint on the cust
 This is exactly when the customer's CISO starts laughing hysterically. Opening inbound ports on a corporate firewall to the public internet so a third-party SaaS can poke around is a monumental, unquestionable _No_.
 
 If you can't push inbound, you have two remaining options: Polling and Outbound Streaming.
+
+<ArticleDiagram visualId="sse-outbound-channel" />
 
 ## The Option Everyone Hates: Polling
 

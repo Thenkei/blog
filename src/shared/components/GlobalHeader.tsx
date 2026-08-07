@@ -32,6 +32,7 @@ export function GlobalHeader() {
             themeMode={themeMode}
             onThemeChange={setThemeMode}
             labels={{
+              appearance: t("ui.appearance"),
               lightTheme: t("ui.lightTheme"),
               darkTheme: t("ui.darkTheme"),
               mountainTheme: t("ui.mountainTheme"),

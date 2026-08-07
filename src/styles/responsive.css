@@ -20,6 +20,14 @@
     grid-template-columns: 1fr;
   }
 
+  .post-header-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .post-system-visual-header {
+    max-width: 680px;
+  }
+
   .article-title {
     font-size: clamp(2rem, 7vw, 2.6rem);
   }
@@ -44,7 +52,7 @@
 
 @media (max-width: 720px) {
   .mountain-camera-shell {
-    height: 190vh;
+    height: 120vh;
   }
 
   .mountain-camera-stage.parallax-container {
@@ -69,7 +77,7 @@
   }
 
   .rocket-camera-shell {
-    height: 190vh;
+    height: 120vh;
   }
 
   .rocket-camera-stage.parallax-container {
@@ -91,21 +99,24 @@
   }
 
   .parallax-container {
-    height: min(82vh, 760px);
+    height: clamp(360px, 58vh, 520px);
   }
 
   .hero-content {
     padding-top: 1rem;
   }
 
-  .theme-switcher-container,
-  .theme-switcher-container.compact {
-    width: min(100%, 420px);
+  .post-filter-toggle {
+    display: inline-flex;
   }
 
-  .theme-btn {
-    font-size: 0.7rem;
-    padding: 0.42rem 0.2rem;
+  .post-filter-options {
+    display: none;
+    grid-template-columns: 1fr;
+  }
+
+  .post-filter-options.open {
+    display: grid;
   }
 
   .post-header {
@@ -125,6 +136,10 @@
     font-size: clamp(1.7rem, 7vw, 2.2rem);
   }
 
+  .post-system-visual-header {
+    border-radius: 16px;
+  }
+
   .blog-content {
     padding-top: 3rem;
   }
@@ -138,16 +153,20 @@
 
 @media (max-width: 600px) {
   .mountain-camera-shell {
-    height: 175vh;
+    height: 120vh;
   }
 
   .rocket-camera-shell {
-    height: 175vh;
+    height: 120vh;
   }
 
   .post-card {
     border-radius: 18px;
-    padding: 1.6rem;
+    padding: 0;
+  }
+
+  .post-system-visual-card {
+    height: 154px;
   }
 
   .post-controls,
