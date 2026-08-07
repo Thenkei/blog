@@ -24,6 +24,23 @@ npm run dev
 
 Vite prints the local URL after startup, normally `http://localhost:5173/blog/`.
 
+## Publishing an Article
+
+Each article must have the same slug directory with both `en.mdx` and `fr.mdx`.
+The MDX frontmatter drives whether the article is available in the application:
+
+- `draft: true` keeps the article out of the listing, search, topic pages, and
+  direct post resolution.
+- Remove the `draft` field (or set it to `false`) in both locale files when the
+  article is ready to publish.
+- Keep `publishedAt` as the date displayed by the application and emitted in
+  the generated RSS feed and sitemap.
+
+Before opening the change, run `npm run check` and verify the new article in
+both `/en` and `/fr`, including its direct `/posts/<slug>` route. The build
+regenerates `public/rss.xml` and `public/sitemap.xml`; include those generated
+changes when the publication set changes.
+
 ## Quality Gates
 ```bash
 npm run lint

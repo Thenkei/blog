@@ -26,16 +26,21 @@ function toSummary(post: PostDocument): PostSummary {
   };
 }
 
+function isPublished(post: PostDocument): boolean {
+  return !post.draft;
+}
+
 function nonDraft(posts: PostDocument[]): PostDocument[] {
-  return posts.filter((post) => !post.draft);
+  return posts.filter(isPublished);
 }
 
 export function hasPostSlug(slug: string): boolean {
-  return manifest.byLocaleAndSlug.en.has(slug) || manifest.byLocaleAndSlug.fr.has(slug);
+  return getPost("en", slug) !== null || getPost("fr", slug) !== null;
 }
 
 export function getPost(locale: PostLocale, slug: string): PostDocument | null {
-  return manifest.byLocaleAndSlug[locale].get(slug) ?? null;
+  const post = manifest.byLocaleAndSlug[locale].get(slug);
+  return post && isPublished(post) ? post : null;
 }
 
 export function getPostSummaries(locale: PostLocale): PostSummary[] {
@@ -134,10 +139,10 @@ export function getAdjacentPosts(
 
 export function getPostLocales(slug: string): PostLocale[] {
   const locales: PostLocale[] = [];
-  if (manifest.byLocaleAndSlug.en.has(slug)) {
+  if (getPost("en", slug)) {
     locales.push("en");
   }
-  if (manifest.byLocaleAndSlug.fr.has(slug)) {
+  if (getPost("fr", slug)) {
     locales.push("fr");
   }
   return locales;
