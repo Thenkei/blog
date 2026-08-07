@@ -943,6 +943,7 @@
 }
 
 .copy-link-heading {
+  position: relative;
   padding-right: 7.25rem;
 }
 
