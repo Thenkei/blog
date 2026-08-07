@@ -27,6 +27,13 @@ export function usePostKeyboardNavigation({
 }: UsePostKeyboardNavigationParams) {
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const cardRefs = useRef<(HTMLElement | null)[]>([]);
+  const focusedIndexRef = useRef(focusedIndex);
+  const onSelectIndexRef = useRef(onSelectIndex);
+
+  useEffect(() => {
+    focusedIndexRef.current = focusedIndex;
+    onSelectIndexRef.current = onSelectIndex;
+  }, [focusedIndex, onSelectIndex]);
 
   useEffect(() => {
     if (!enabled) {
@@ -59,9 +66,10 @@ export function usePostKeyboardNavigation({
         return;
       }
 
-      if (event.key === "Enter" && focusedIndex >= 0) {
+      const currentFocusedIndex = focusedIndexRef.current;
+      if (event.key === "Enter" && currentFocusedIndex >= 0) {
         event.preventDefault();
-        onSelectIndex(focusedIndex);
+        onSelectIndexRef.current(currentFocusedIndex);
         return;
       }
 
@@ -72,7 +80,7 @@ export function usePostKeyboardNavigation({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [count, enabled, focusedIndex, onSelectIndex]);
+  }, [count, enabled]);
 
   return {
     focusedIndex,
