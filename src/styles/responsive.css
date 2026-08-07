@@ -149,6 +149,34 @@
     left: 10px;
     right: 10px;
   }
+
+  .copy-link-heading {
+    padding-right: 3.35rem;
+  }
+
+  .copy-link-button {
+    width: 2.75rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0.65rem;
+  }
+
+  .copy-link-button-label {
+    display: none;
+  }
+
+  .copy-section-button {
+    top: 0.9rem;
+  }
+
+  .copy-code-button {
+    top: 0.55rem;
+    right: 0.55rem;
+  }
+
+  .copy-code-block code {
+    padding-top: 3.4rem;
+  }
 }
 
 @media (max-width: 600px) {
