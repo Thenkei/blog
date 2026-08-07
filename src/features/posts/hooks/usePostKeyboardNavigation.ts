@@ -48,20 +48,30 @@ export function usePostKeyboardNavigation({
 
       if (event.key === "ArrowDown" || event.key === "j") {
         event.preventDefault();
-        setFocusedIndex((prev) => {
-          const next = prev < count - 1 ? prev + 1 : 0;
-          cardRefs.current[next]?.scrollIntoView({ behavior: "smooth", block: "center" });
-          return next;
+        const next =
+          focusedIndexRef.current < count - 1
+            ? focusedIndexRef.current + 1
+            : 0;
+        focusedIndexRef.current = next;
+        setFocusedIndex(next);
+        cardRefs.current[next]?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
         });
         return;
       }
 
       if (event.key === "ArrowUp" || event.key === "k") {
         event.preventDefault();
-        setFocusedIndex((prev) => {
-          const next = prev > 0 ? prev - 1 : count - 1;
-          cardRefs.current[next]?.scrollIntoView({ behavior: "smooth", block: "center" });
-          return next;
+        const next =
+          focusedIndexRef.current > 0
+            ? focusedIndexRef.current - 1
+            : count - 1;
+        focusedIndexRef.current = next;
+        setFocusedIndex(next);
+        cardRefs.current[next]?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
         });
         return;
       }
