@@ -29,6 +29,13 @@
   padding: 0 20px;
 }
 
+.post-header-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.85fr);
+  align-items: center;
+  gap: clamp(1.4rem, 4vw, 3.2rem);
+}
+
 .post-header-actions {
   display: flex;
   justify-content: space-between;
@@ -76,7 +83,7 @@
 
 .post-header-title {
   text-align: left;
-  max-width: var(--reading-width);
+  max-width: 720px;
 }
 
 .post-hero-title {
@@ -228,11 +235,11 @@ article th {
 
 .post-visual {
   margin: 2rem 0;
-  border: 1px solid var(--divider);
+  border: 1px solid color-mix(in srgb, var(--visual-line) 28%, var(--divider));
   border-radius: 18px;
   overflow: hidden;
   background: var(--surface-raised);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
 }
 
 .post-visual img {
@@ -247,7 +254,8 @@ article th {
   font-size: 0.88rem;
   font-family: var(--font-mono);
   color: var(--text-secondary);
-  border-top: 1px solid var(--divider);
+  border-top: 1px solid color-mix(in srgb, var(--visual-line) 18%, var(--divider));
+  background: color-mix(in srgb, var(--surface-raised) 92%, var(--visual-surface));
 }
 
 .meta {
@@ -293,8 +301,8 @@ article th {
   max-width: var(--content-width);
   margin: 0 auto;
   padding: 0 20px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 1rem;
 }
@@ -317,12 +325,13 @@ article th {
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  justify-self: end;
 }
 
 .global-header-nav {
   display: flex;
   gap: 0.8rem;
-  margin-left: auto;
+  justify-self: end;
 }
 
 .global-header-nav a {
@@ -339,21 +348,23 @@ article th {
 
 @media (max-width: 768px) {
   .global-header-inner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.8rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.45rem 0.65rem;
   }
 
   .global-header-actions {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    grid-column: 2;
+    grid-row: 1;
+    gap: 0.4rem;
   }
 
   .global-header-nav {
-    order: 3;
-    width: 100%;
-    margin-left: 0;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .theme-menu-trigger-copy {
+    display: none;
   }
 }

@@ -258,3 +258,38 @@
   --circuit-opacity: 0.08;
   --circuit-filter: hue-rotate(280deg) saturate(1.2) brightness(1.25);
 }
+
+:root {
+  --visual-line: var(--accent-primary);
+  --visual-line-secondary: var(--accent-secondary);
+  --visual-ink: var(--text-primary);
+  --visual-muted: var(--text-secondary);
+  --visual-grid: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  --visual-surface: color-mix(in srgb, var(--surface-1) 90%, transparent);
+  --visual-surface-strong: color-mix(in srgb, var(--surface-2) 86%, transparent);
+  --visual-hot: #f0c277;
+  --visual-danger: #ff7f8f;
+}
+
+[data-theme="light"] {
+  --visual-grid: rgba(18, 36, 63, 0.08);
+  --visual-surface: #edf3ff;
+  --visual-surface-strong: #ffffff;
+  --visual-hot: #c86c18;
+  --visual-danger: #c63d58;
+}
+
+[data-theme="dark"] {
+  --visual-hot: #f0c277;
+  --visual-danger: #ff7f8f;
+}
+
+[data-theme="mountain"] {
+  --visual-hot: #f0c277;
+  --visual-danger: #ff9279;
+}
+
+[data-theme="rocket"] {
+  --visual-hot: #ff8f5e;
+  --visual-danger: #ff6f91;
+}

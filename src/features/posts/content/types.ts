@@ -2,6 +2,14 @@ import type { ComponentType } from "react";
 
 export type PostLocale = "en" | "fr";
 
+export const postVisualIds = [
+  "bounded-ai-loop",
+  "sse-outbound-channel",
+  "trail-endurance-profile",
+] as const;
+
+export type PostVisualId = (typeof postVisualIds)[number];
+
 export interface PostFrontmatter {
   title: string;
   subtitle: string;
@@ -10,6 +18,7 @@ export interface PostFrontmatter {
   updatedAt?: string | undefined;
   readTimeMinutes: number;
   tags: string[];
+  visualId?: PostVisualId | undefined;
   seriesId?: string | undefined;
   seriesOrder?: number | undefined;
   draft?: boolean | undefined;
@@ -30,6 +39,7 @@ export interface PostSummary {
   publishedAt: string;
   readTimeMinutes: number;
   tags: string[];
+  visualId?: PostVisualId | undefined;
 }
 
 export interface SearchDocument {

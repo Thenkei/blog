@@ -22,6 +22,7 @@ function toSummary(post: PostDocument): PostSummary {
     publishedAt: post.publishedAt,
     readTimeMinutes: post.readTimeMinutes,
     tags: post.tags,
+    visualId: post.visualId,
   };
 }
 
@@ -147,8 +148,11 @@ export type {
   PostFrontmatter,
   PostLocale,
   PostSummary,
+  PostVisualId,
   SearchDocument,
 } from "./types";
+
+export { postVisualIds } from "./types";
 
 export { buildPostManifest };
 export { postFrontmatterSchema } from "./schema";

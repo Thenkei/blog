@@ -103,6 +103,9 @@ export function PostPage({ locale, slug }: PostPageProps) {
       <PostHeader
         backToHomeLabel={`${t("ui.backToHome")} / ${t("header.title")}`}
         title={post.title}
+        locale={locale}
+        slug={post.slug}
+        visualId={post.visualId}
         metaInfo={
           <>
             <span>{formatDate(post.publishedAt, locale)}</span>

@@ -1,8 +1,16 @@
 import type { CSSProperties, ReactNode } from "react";
+import type {
+  PostLocale,
+  PostVisualId,
+} from "../../features/posts/content";
+import { PostVisual } from "./PostVisual";
 
 type PostHeaderProps = {
   backToHomeLabel: string;
   title: string;
+  locale: PostLocale;
+  slug: string;
+  visualId?: PostVisualId | undefined;
   metaInfo: ReactNode;
   onBreadcrumbClick: () => void;
   headerPadRem: number;
@@ -11,6 +19,9 @@ type PostHeaderProps = {
 export function PostHeader({
   backToHomeLabel,
   title,
+  locale,
+  slug,
+  visualId,
   metaInfo,
   onBreadcrumbClick,
   headerPadRem,
@@ -31,9 +42,17 @@ export function PostHeader({
           </button>
         </nav>
 
-        <div className="post-header-title">
-          <h1 className="post-hero-title">{title}</h1>
-          <div className="post-hero-subtitle">{metaInfo}</div>
+        <div className="post-header-grid">
+          <div className="post-header-title">
+            <h1 className="post-hero-title">{title}</h1>
+            <div className="post-hero-subtitle">{metaInfo}</div>
+          </div>
+          <PostVisual
+            locale={locale}
+            slug={slug}
+            variant="header"
+            visualId={visualId}
+          />
         </div>
       </div>
     </header>
