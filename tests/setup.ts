@@ -1,6 +1,10 @@
 import "@testing-library/jest-dom/vitest";
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
+
+// Lazily loaded routes transform their MDX on first hit, which can exceed the
+// 1s default on a cold cache or a loaded machine.
+configure({ asyncUtilTimeout: 4000 });
 
 afterEach(() => {
   cleanup();
