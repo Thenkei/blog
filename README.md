@@ -26,6 +26,8 @@ npm run build
 
 ## Design System (2026 Redesign)
 
+The full art-direction reference is documented in [`ART_DIRECTION.md`](./ART_DIRECTION.md).
+
 ### Theme Model
 The app uses four explicit themes:
 - `light`
@@ -67,7 +69,7 @@ Design intent:
 The mountain homepage hero uses a dedicated multiplane camera path inspired by theatrical staged depth.
 
 Core architecture:
-- sticky camera shell (`~240vh`) with a sticky stage viewport (`100vh`)
+- sticky camera shell (`140vh`) with a sticky stage viewport (`100vh`)
 - three SVG depth planes:
   - `mountain_camera_sky.svg` (background, ~`0.1x` speed)
   - `mountain_camera_far.svg` (midground, ~`0.3x` speed)
@@ -80,14 +82,14 @@ Scene choreography:
 - reveal threshold at `progress >= 0.78`, toggling `.mountain-camera-clearance` to lift/fade foreground and expose content
 
 Fallbacks:
-- mobile (`<=720px`): reduced amplitudes and shorter timeline intensity
+- mobile (`<=720px`): reduced amplitudes and a `120vh` camera shell
 - `prefers-reduced-motion: reduce`: static composition, no camera choreography
 
 ### Rocket Multiplane Camera
 The rocket homepage hero uses a separate sticky multiplane camera with SVG layers and a trajectory-driven ship pass.
 
 Core architecture:
-- sticky camera shell (`~240vh`) with a sticky stage viewport (`100vh`)
+- sticky camera shell (`140vh`) with a sticky stage viewport (`100vh`)
 - layered SVG scene:
   - `rocket_camera_space.svg` (deep space background, ~`0.1x`)
   - `rocket_camera_planet.svg` (planet/rings midground, ~`0.3x`)
@@ -101,7 +103,7 @@ Scene choreography:
 - reveal threshold at `progress >= 0.8` toggles `.rocket-camera-clearance` to fade foreground/ship and hand off to content
 
 Fallbacks:
-- mobile (`<=720px`): reduced travel, reduced drift amplitudes, smaller ship footprint
+- mobile (`<=720px`): `120vh` camera shell, reduced travel, reduced drift amplitudes, smaller ship footprint
 - `prefers-reduced-motion: reduce`: static layered scene with no camera choreography
 
 ### Reading Progress Variants
@@ -114,7 +116,9 @@ Variants:
 
 ## UI Components Updated for Themes
 - `/Users/sinkneath/github/blog/src/shared/components/ThemeSwitcher.tsx`
-  - segmented 4-option selector with radio semantics
+  - accessible appearance button opening a 4-option radio menu
+- `/Users/sinkneath/github/blog/src/shared/components/PostVisual.tsx`
+  - localized SVG system for card, header, and inline article diagrams
 - `/Users/sinkneath/github/blog/src/shared/components/PostHeader.tsx`
 - `/Users/sinkneath/github/blog/src/shared/components/ParallaxHero.tsx`
 - `/Users/sinkneath/github/blog/src/features/posts/PostListPage.tsx`
