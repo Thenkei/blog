@@ -99,6 +99,12 @@ export function buildPostManifest(
       throw new Error(`Missing locale variant for slug ${slug}. Both en/fr are required.`);
     }
 
+    const english = locales.get("en");
+    const french = locales.get("fr");
+    if (english?.visualId !== french?.visualId) {
+      throw new Error(`Locale variants must share visualId for slug ${slug}`);
+    }
+
     for (const locale of ["en", "fr"] as const) {
       const doc = locales.get(locale);
       if (!doc) {

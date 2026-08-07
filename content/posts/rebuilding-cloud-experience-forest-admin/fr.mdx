@@ -2,6 +2,7 @@
 title: "Refondre l'Expérience Cloud : L'Art des Compromis du Serverless à Grande Échelle"
 subtitle: "Comment nous avons géré les Lambda layers, les NAT Gateways, et l'assassinat des pools de connexions pour bâtir le Cloud Forest Admin pour presque 0€."
 summary: "Une plongée en profondeur dans notre transition d'un modèle purement self-hosted vers une offre Cloud managée. Nous abordons les Cold Starts, les AWS Lambda Layers, les VPCs, et pourquoi le scale horizontal est le pire cauchemar d'une base de données."
+visualId: "rebuilding-cloud-experience-forest-admin"
 publishedAt: "2024-03-20"
 readTimeMinutes: 12
 tags:
@@ -13,6 +14,8 @@ tags:
 ---
 
 ## Introduction : L'Illusion de "l'Onboarding Simple"
+
+<ArticleDiagram visualId="rebuilding-cloud-experience-forest-admin" />
 
 Il arrive un moment dans toute boîte B2B où le management décide que le modèle _on-premise_ ou _self-hosted_ est "trop compliqué pour les petits clients". Chez Forest Admin, le modèle historique était pur : vous hébergez l'agent, vous gardez le contrôle de la donnée, on fournit l'interface. C'était élégant.
 

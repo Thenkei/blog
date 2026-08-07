@@ -2,6 +2,7 @@
 title: "Context Engineering Beyond Prompt Engineering"
 subtitle: "A reliable AI system does not just receive instructions. It receives an authorized, current, and testable operating state."
 summary: "Why prompt quality is only one part of AI reliability, and how context selection, permissions, freshness, provenance, and validation shape agent behaviour."
+visualId: "context-engineering-beyond-prompt-engineering"
 publishedAt: "2026-08-24"
 readTimeMinutes: 15
 tags:
@@ -27,6 +28,8 @@ The engineering problem is therefore not â€œHow do I write the perfect prompt?â€
 This is the shift I keep seeing in real engineering work. Once code generation becomes cheap, the difficult part is no longer persuading the model to produce syntax. It is stopping the model from using the wrong repository convention, the superseded decision, or the configuration file that looks important only because it has an aggressively confident name.
 
 ## A prompt cannot compensate for missing state (it will still try)
+
+<ArticleDiagram visualId="context-engineering-beyond-prompt-engineering" />
 
 Imagine asking an agent to fix a repository issue with a precise instruction but no access to the failing test, the relevant module, the runtime configuration, or the project's conventions. The prompt can be excellent. The agent is still operating without the state required to act safely.
 

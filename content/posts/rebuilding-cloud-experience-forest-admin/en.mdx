@@ -2,6 +2,7 @@
 title: "Rebuilding Cloud Experience: The Trade-Offs of Serverless at Scale"
 subtitle: "How we navigated Lambda customization, NAT Gateways, and connection pool exhaustion to build Forest Admin's Cloud at nearly $0 marginal cost."
 summary: "An incredibly deep dive into our journey transitioning from a self-hosted-only model to offering a Fully Hosted Cloud agent. We tackle Cold Starts, AWS Lambda Layers, VPC structuring, and why horizontal scaling is a database's worst enemy."
+visualId: "rebuilding-cloud-experience-forest-admin"
 publishedAt: "2024-03-20"
 readTimeMinutes: 12
 tags:
@@ -13,6 +14,8 @@ tags:
 ---
 
 ## Introduction: The "Simple Onboarding" Illusion
+
+<ArticleDiagram visualId="rebuilding-cloud-experience-forest-admin" />
 
 There comes a time in every enterprise B2B company when management decides that on-premise or self-hosted is "too hard for small clients." At Forest Admin, the historical model was simple: you host the agent, you control the data, we provide the UI. It was elegant.
 

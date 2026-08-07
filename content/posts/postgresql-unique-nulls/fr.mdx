@@ -2,6 +2,7 @@
 title: "Petit retour d'expérience : ON CONFLICT DO UPDATE avec des colonnes nullable"
 subtitle: "Attention : Par défaut, PostgreSQL considère que NULL ≠ NULL."
 summary: "Comment utiliser NULLS NOT DISTINCT pour que ON CONFLICT et les index uniques se comportent comme prévu avec des colonnes nullables."
+visualId: "postgresql-unique-nulls"
 publishedAt: "2026-01-26"
 readTimeMinutes: 2
 tags:
@@ -13,6 +14,8 @@ tags:
 Je viens de brûler une honteuse heure de ma précieuse existence sur un cas "impossible". Mon `ON CONFLICT DO UPDATE` passait royalement à côté de doublons évidents alors que j'avais bétonné ma table avec une contrainte d'unicité.
 
 ## Le Dénouement
+
+<ArticleDiagram visualId="postgresql-unique-nulls" />
 
 Le piège est là : par défaut, la philosophie de PostgreSQL c'est que `NULL ≠ NULL`. C'est à dire que si vous lui présentez deux lignes `(valeur, NULL)`, il va vous soutenir mordicus que ce n'est pas la même chose. Exit la notion de doublons !
 

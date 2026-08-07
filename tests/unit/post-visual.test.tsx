@@ -5,13 +5,15 @@ import {
   PostVisual,
   type PostVisualVariant,
 } from "../../src/shared/components/PostVisual";
-import type { PostVisualId } from "../../src/features/posts/content";
+import {
+  postVisualIds,
+  type PostVisualId,
+} from "../../src/features/posts/content";
 
-const visuals: Array<{ id: PostVisualId; title: RegExp }> = [
-  { id: "bounded-ai-loop", title: /Bounded AI loop with human validation/i },
-  { id: "sse-outbound-channel", title: /Outbound SSE channel through a firewall/i },
-  { id: "trail-endurance-profile", title: /Endurance profile for a 100 km objective/i },
-];
+const visuals: Array<{ id: PostVisualId; title: RegExp }> = postVisualIds.map((id) => ({
+  id,
+  title: /.+/,
+}));
 
 describe("PostVisual", () => {
   it.each(visuals)("renders $id as an accessible inline diagram", ({ id, title }) => {
@@ -19,6 +21,18 @@ describe("PostVisual", () => {
 
     expect(screen.getByRole("img", { name: title })).toBeInTheDocument();
     expect(document.querySelector(`[data-visual-id="${id}"]`)).toBeTruthy();
+  });
+
+  it.each(postVisualIds)("renders %s in card and header variants", (id) => {
+    const { container, rerender } = render(
+      <PostVisual locale="en" slug={id} variant="card" visualId={id} />,
+    );
+    expect(container.querySelector(`[data-visual-id="${id}"]`)).toBeTruthy();
+    expect(container.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+
+    rerender(<PostVisual locale="en" slug={id} variant="header" visualId={id} />);
+    expect(container.querySelector(`[data-visual-id="${id}"]`)).toBeTruthy();
+    expect(container.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
   });
 
   it("localizes visible captions", () => {

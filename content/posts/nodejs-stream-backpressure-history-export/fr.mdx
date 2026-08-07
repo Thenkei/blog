@@ -2,6 +2,7 @@
 title: "Backpressure Node.js pour les exports historiques massifs : streams, generateurs async et S3 multipart"
 subtitle: "Propagation de pression, concurrence bornee et fiabilite des exports."
 summary: "Patterns de production pour exporter de gros volumes de donnees avec memoire bornee et debit stable."
+visualId: "nodejs-stream-backpressure-history-export"
 publishedAt: "2023-08-10"
 readTimeMinutes: 18
 tags:
@@ -28,6 +29,8 @@ Ce post ouvre une serie en 3 parties :
 **Le backpressure etait le mecanisme de controle principal.**
 
 ## Contraintes système (alias "Comment ça va inévitablement exploser en prod")
+
+<ArticleDiagram visualId="nodejs-stream-backpressure-history-export" />
 
 - **Producteur non borné :** le scroll Elasticsearch peut se transformer en lance à incendie qui noiera allègrement votre sérialisation en aval.
 - **Risque N+1 :** l'enrichissement relationnel par événement va rapidement mettre votre pool de connexions DB à genoux.

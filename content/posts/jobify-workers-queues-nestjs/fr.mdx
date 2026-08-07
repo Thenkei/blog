@@ -2,6 +2,7 @@
 title: "Jobify au-dessus de BullMQ : un pattern production pour jobs, workers et queues (avec NestJS)"
 subtitle: "De l'integration NestJS classique aux runners types, au sequentiel, et aux exports robustes."
 summary: "Pattern de production BullMQ/NestJS pour des workers plus fiables, tracables et predictibles en charge."
+visualId: "jobify-workers-queues-nestjs"
 publishedAt: "2022-11-15"
 readTimeMinutes: 16
 tags:
@@ -26,6 +27,8 @@ Ce post est la couche d'architecture entre les deux autres articles de la serie 
 **NestJS est le point d'integration framework. Jobify est le contrat d'execution.**
 
 ## Integration NestJS classique (point de depart)
+
+<ArticleDiagram visualId="jobify-workers-queues-nestjs" />
 
 ```typescript
 @Injectable()

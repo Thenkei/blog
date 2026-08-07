@@ -2,6 +2,7 @@
 title: "Security and authentication with identity federation (OpenID Connect)"
 subtitle: "Forest Admin Server as upstream SP and downstream IDP for agents."
 summary: "A production breakdown of OIDC, OAuth2 bearer tokens, and SAML assertion flows when one platform is both service provider and identity provider."
+visualId: "security-authentication-idp-openid-connect"
 publishedAt: "2021-05-12"
 readTimeMinutes: 12
 tags:
@@ -19,6 +20,8 @@ import samlRfc7522BridgeFlowDiagram from "../../../src/assets/images/posts/saml-
 import downstreamAgentValidationFlowDiagram from "../../../src/assets/images/posts/downstream-agent-validation-flow.svg";
 
 ## Context (aka "Who Do You Trust?")
+
+<ArticleDiagram visualId="security-authentication-idp-openid-connect" />
 
 At Forest Admin, our architecture essentially forced us into a massive trust exercise. We had three distinct boundaries:
 

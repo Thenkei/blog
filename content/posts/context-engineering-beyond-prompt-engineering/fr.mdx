@@ -2,6 +2,7 @@
 title: "L'ingénierie du contexte au-delà du prompt engineering"
 subtitle: "Un système IA fiable ne reçoit pas seulement des instructions. Il reçoit un état opérationnel autorisé, actuel et testable."
 summary: "Pourquoi la qualité du prompt n'est qu'une partie de la fiabilité IA, et comment la sélection du contexte, les permissions, la fraîcheur, la provenance et la validation façonnent le comportement des agents."
+visualId: "context-engineering-beyond-prompt-engineering"
 publishedAt: "2026-08-24"
 readTimeMinutes: 15
 tags:
@@ -27,6 +28,8 @@ Le problème d'ingénierie n'est donc pas « comment écrire le prompt parfait ?
 C'est le déplacement que je vois dans le vrai travail d'ingénierie. Lorsque la génération de code devient peu coûteuse, le problème n'est plus de convaincre le modèle de produire de la syntaxe. Il faut l'empêcher d'utiliser la mauvaise convention du repository, la décision déjà remplacée ou le fichier de configuration qui semble important uniquement parce que son nom affiche une confiance spectaculaire.
 
 ## Un prompt ne compense pas un état manquant (mais il essaiera quand même)
+
+<ArticleDiagram visualId="context-engineering-beyond-prompt-engineering" />
 
 Demander à un agent de corriger un problème dans un repository avec une instruction précise, mais sans le test en échec, le module concerné, la configuration runtime ou les conventions du projet, ne suffit pas. Le prompt peut être excellent. L'agent ne possède toujours pas l'état nécessaire pour agir sans danger.
 

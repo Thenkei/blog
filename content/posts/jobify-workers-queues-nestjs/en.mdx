@@ -2,6 +2,7 @@
 title: "Jobify over BullMQ: a production pattern for jobs, workers, and queues (with NestJS)"
 subtitle: "From plain NestJS queue wiring to typed runners, sequential processing, and safer exports."
 summary: "A production-ready queue orchestration pattern over BullMQ with stricter worker contracts and safer operations."
+visualId: "jobify-workers-queues-nestjs"
 publishedAt: "2022-11-15"
 readTimeMinutes: 16
 tags:
@@ -26,6 +27,8 @@ This post is the architecture layer between the two other posts in this series:
 **NestJS is the framework integration point. Jobify is the execution contract.**
 
 ## Baseline NestJS integration (where most teams start)
+
+<ArticleDiagram visualId="jobify-workers-queues-nestjs" />
 
 ```typescript
 import { Injectable } from "@nestjs/common";
