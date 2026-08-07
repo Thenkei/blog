@@ -16,6 +16,8 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 2
 ---
 
+import selfServiceAnalyticsDiagram from "../../../src/assets/images/posts/self-service-analytics-en.svg";
+
 At RockFi, self-service analytics is not a success story I can wrap in a neat retrospective. It is a goal we are actively pursuing—and one we have not cracked yet.
 
 Today, AI tools already accelerate a large part of the technical loop. They help us investigate unfamiliar data, explore hypotheses during design, understand existing models, generate queries, and perform a stronger first pass of QA after implementation. Inside an engineering or data workflow, the leverage is real.
@@ -81,21 +83,15 @@ Instead, the failed question should become a governed modeling request:
 
 The important split is between the **query plane**, which can answer from certified data, and the **modeling plane**, which can propose new certified data products. An agent may accelerate both. It must not collapse the boundary between them.
 
-```mermaid
-flowchart LR
-    A[Business question] --> B[Semantic planner and catalog]
-    B --> C{Available in certified marts?}
-    C -->|Yes| D[Guarded read-only mart query]
-    D --> E[SQL, access, and cost validation]
-    E --> F[Answer with provenance and freshness]
-    C -->|No| G[Classify metric or model gap]
-    G --> H[Specialized modeling agents]
-    H --> I[Inspect int, staging, lineage, and contracts]
-    I --> J[Propose mart, fct, or dim with tests]
-    J --> K[CI and human review]
-    K --> L[Deploy certified model]
-    L --> B
-```
+<figure className="post-visual">
+  <img
+    src={selfServiceAnalyticsDiagram}
+    alt="Governed self-service analytics flow from a business question through certified marts or a reviewed modeling path."
+  />
+  <figcaption>
+    Self-service analytics needs a governed read path and a reviewed route for missing models.
+  </figcaption>
+</figure>
 
 This is slower than allowing an agent to query anything it can find. Good. The faster version gives the company self-service SQL and a distributed truth problem in the same afternoon.
 
