@@ -5,6 +5,27 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
+<title>Why Most Engineering Documents Age Poorly</title>
+<link>https://thenkei.github.io/blog/en/posts/engineering-documents-age-poorly</link>
+<guid>https://thenkei.github.io/blog/en/posts/engineering-documents-age-poorly</guid>
+<description>Why engineering documentation drifts, which document types deserve different lifecycles, and how to keep important knowledge connected to the systems it describes.</description>
+<pubDate>Mon, 31 Aug 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Building Self-Service Analytics That Doesn&apos;t Lie</title>
+<link>https://thenkei.github.io/blog/en/posts/self-service-analytics-that-doesnt-lie</link>
+<guid>https://thenkei.github.io/blog/en/posts/self-service-analytics-that-doesnt-lie</guid>
+<description>The self-service analytics architecture we want to build at RockFi: governed mart-only queries, explicit metric contracts, and agents that propose the missing data models safely.</description>
+<pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Unknown Unknowns in Software Architecture</title>
+<link>https://thenkei.github.io/blog/en/posts/unknown-unknowns-software-architecture</link>
+<guid>https://thenkei.github.io/blog/en/posts/unknown-unknowns-software-architecture</guid>
+<description>Why architecture work should focus less on predicting every failure and more on making hidden assumptions observable, bounded, and recoverable.</description>
+<pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>AI at RockFi: Building Leverage Without Removing Human Judgment</title>
 <link>https://thenkei.github.io/blog/en/posts/ai-human-judgment-rockfi</link>
 <guid>https://thenkei.github.io/blog/en/posts/ai-human-judgment-rockfi</guid>
