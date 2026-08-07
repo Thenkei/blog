@@ -24,11 +24,15 @@ Cet état peut inclure la tâche, le code concerné, les décisions précédente
 
 Le problème d'ingénierie n'est donc pas « comment écrire le prompt parfait ? ». C'est plutôt : « comment construire le plus petit contexte suffisant pour cette décision, avec la bonne autorité et une preuve qu'il est encore valide ? »
 
-## Un prompt ne compense pas un état manquant
+C'est le déplacement que je vois dans le vrai travail d'ingénierie. Lorsque la génération de code devient peu coûteuse, le problème n'est plus de convaincre le modèle de produire de la syntaxe. Il faut l'empêcher d'utiliser la mauvaise convention du repository, la décision déjà remplacée ou le fichier de configuration qui semble important uniquement parce que son nom affiche une confiance spectaculaire.
+
+## Un prompt ne compense pas un état manquant (mais il essaiera quand même)
 
 Demander à un agent de corriger un problème dans un repository avec une instruction précise, mais sans le test en échec, le module concerné, la configuration runtime ou les conventions du projet, ne suffit pas. Le prompt peut être excellent. L'agent ne possède toujours pas l'état nécessaire pour agir sans danger.
 
 L'échec inverse est tout aussi courant : fournir le repository entier, tous les documents historiques, toutes les conversations précédentes et des permissions très larges. Le système possède alors davantage de matière, mais pas forcément davantage de compréhension. Les contraintes importantes sont enfouies. Les anciennes décisions semblent actuelles. Les données sensibles franchissent une frontière. Les contradictions sont résolues par supposition.
+
+Il possède maintenant 80 000 tokens de contexte et la confiance de quelqu'un qui a lu très attentivement le mauvais README.
 
 Plus de contexte ne signifie pas automatiquement meilleur contexte.
 
@@ -86,7 +90,7 @@ Placer les contraintes de la tâche actuelle là où le runtime peut les disting
 
 Le système doit permettre à un reviewer humain de répondre à la question : quel input a causé cette action ?
 
-## Les budgets de contexte exigent des priorités
+## Les budgets de contexte exigent des priorités (tout donner n'est pas une stratégie)
 
 Les fenêtres de contexte sont finies, même lorsque l'interface donne l'impression qu'elles sont immenses. Quand l'état disponible dépasse le budget, une partie sera tronquée, résumée ou ignorée.
 
@@ -126,6 +130,8 @@ Un **contexte ambigu** contient plusieurs interprétations, des décisions ancie
 Un **contexte dangereux** accorde une autorité supérieure à la tâche, contient inutilement des données sensibles ou encourage une action irréversible sans preuve. Il doit être bloqué ou placé en quarantaine par le runtime.
 
 Le modèle ne doit pas être le seul composant à décider de cette catégorie. La policy appartient au système autour : permissions d'outils, filtres de retrieval, redaction, scopes de tâche et états d'approbation.
+
+« Le modèle devrait comprendre » n'est pas une policy. C'est une phrase qui vieillit assez mal dès que les données de production et les permissions d'écriture entrent dans la conversation.
 
 ## Les agents transforment le contexte en boucle de contrôle
 
@@ -182,7 +188,7 @@ Ce sont des questions d'ingénierie du contexte. Ce sont aussi des questions d'a
 ## Navigation dans la série
 
 - Partie 1 — [Les inconnus inconnus de l'architecture logicielle](../posts/unknown-unknowns-software-architecture).
-- Partie 2 — [Construire une analytics self-service qui ne ment pas](../posts/self-service-analytics-that-doesnt-lie).
+- Partie 2 — [Construire un self-service analytics qui ne ment pas](../posts/self-service-analytics-that-doesnt-lie).
 - Partie 3 (actuelle) — L'ingénierie du contexte au-delà du prompt engineering.
 - Partie 4 — [Pourquoi la plupart des documents d'ingénierie vieillissent mal](../posts/engineering-documents-age-poorly).
 

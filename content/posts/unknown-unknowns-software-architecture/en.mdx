@@ -3,7 +3,7 @@ title: "Unknown Unknowns in Software Architecture"
 subtitle: "The hardest production failures begin with assumptions nobody knew they were making."
 summary: "Why architecture work should focus less on predicting every failure and more on making hidden assumptions observable, bounded, and recoverable."
 publishedAt: "2026-08-10"
-readTimeMinutes: 15
+readTimeMinutes: 17
 tags:
   - architecture
   - reliability
@@ -21,7 +21,15 @@ You can list the decisions you have not made. You can create a spike for a techn
 
 Those are the unknown unknowns.
 
-They are not a mystical category of failure. They are ordinary system properties that become visible only when a boundary is crossed: more tenants, a different provider, a deploy during a traffic spike, a new data grain, a partial outage, or a new operator using a workflow in a way nobody expected.
+The conceptual foundation came from Paul Austin Murphy's essay [Rumsfeld’s Logic of Known Knowns, Known Unknowns and Unknown Unknowns](https://medium.com/paul-austin-murphys-essays-on-philosophy/rumsfelds-logic-of-known-knowns-known-unknowns-and-unknown-unknowns-f506db31ac74). It takes the famous formulation seriously as a problem of logic and knowledge: some gaps are visible enough to investigate, while others sit outside the boundary of what we can currently describe.
+
+But the article that genuinely stayed with me was Thariq Shihipar's [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386). Thariq, who works at Anthropic, describes the gap between the **map** we give an AI system—our prompt, skills, context, and specification—and the **territory** where the work actually happens: the repository, product, users, operational constraints, and all the decisions nobody wrote down.
+
+When the map does not contain something the territory requires, the agent has to guess. Stronger models make those guesses look increasingly complete, which is useful right up until the missing assumption is the one that matters.
+
+That idea resonated far beyond AI-assisted coding. I kept thinking about architecture reviews, production incidents, and all the times a system behaved correctly according to every test we had written—then failed through an interaction that was absent from our model. The test suite was not lying. We had simply asked it yesterday's questions.
+
+Unknown unknowns are not a mystical category of failure. They are ordinary system properties that become visible only when a boundary is crossed: more tenants, a different provider, a deploy during a traffic spike, a new data grain, a partial outage, or a new operator using a workflow in a way nobody expected.
 
 The practical consequence is important: architecture cannot eliminate unknown unknowns. It can only make them cheaper to discover.
 
@@ -42,7 +50,7 @@ The fourth category is why architecture documents should not be judged only by h
 
 The diagram is not false. It is incomplete in a way that matters.
 
-## Why architecture diagrams create false confidence
+## Why architecture diagrams create false confidence (production never signed them)
 
 A system diagram normally shows stable nouns: services, databases, queues, APIs, and users. Production failures often arise from verbs and conditions instead:
 
@@ -54,6 +62,8 @@ A system diagram normally shows stable nouns: services, databases, queues, APIs,
 - an operator replays an event because the first attempt produced no visible result.
 
 These behaviours are not separate from the architecture. They are the architecture under time, failure, and concurrency.
+
+Boxes and arrows are remarkably well behaved. Retries, clocks, operators, and third-party APIs have apparently not received the memo.
 
 The useful question is therefore not only “What calls what?” It is also:
 
@@ -78,6 +88,20 @@ This is why a small architectural decision can acquire a much larger blast radiu
 The original decision did not necessarily look unreasonable. The unknown was the set of future roles the component would accumulate.
 
 The goal is not to predict every future role. The goal is to make role expansion visible before the failure becomes systemic.
+
+## From an article to an operating habit at RockFi
+
+I shared these articles with several teams at RockFi because they gave us better language for a problem we were already experiencing. Not as two more links destined for a polite thumbs-up before disappearing into Slack, but as a way to improve how we prepare, execute, and review work.
+
+The useful change is to make unknown discovery part of the delivery loop:
+
+- **Before implementation:** ask what the brief assumes, which parts of the territory have not been inspected, which owners or systems could change the design, and what would invalidate the current plan.
+- **During implementation:** compare the real repository, data, APIs, and runtime behaviour with the original map. Newly discovered dependencies should update the plan instead of being quietly absorbed into the code.
+- **After implementation:** use QA, logs, metrics, reconciliation, adversarial review, and production feedback to search for behaviours outside the expected path—not only to confirm that the expected path works.
+
+AI is useful throughout this loop because it can inspect a wider surface, challenge assumptions, and generate targeted questions. It is not an oracle for unknown unknowns. It can only discover what leaves evidence in the territory it is allowed to inspect.
+
+This has pushed us toward more explicit definitions of done, stronger QA passes, better feedback loops, and processes that preserve newly discovered constraints instead of letting them return as somebody else's production incident six months later.
 
 ## A design response: reduce, isolate, detect, recover
 
@@ -164,6 +188,8 @@ Before committing to an architecture, ask:
 
 The checklist does not make the unknown known in advance. It makes the system better at learning.
 
+It should also remain a design review, not become a three-hour philosophical investigation into whether the database itself truly exists. Proportionality still applies.
+
 ## Limits of the model
 
 Unknown unknowns are not an excuse for endless analysis. A team that treats every possibility as equally important will never ship. The correct response is proportionality: identify the assumptions with the largest blast radius, make those observable, and accept bounded uncertainty elsewhere.
@@ -188,3 +214,5 @@ The strongest architecture is not the one that claims to know everything. It is 
 - Part 4 — [Why Most Engineering Documents Age Poorly](../posts/engineering-documents-age-poorly).
 
 Related reading: [The Day Redis Reached its Limits](../posts/redis-memory-exhaustion-post-mortem), [Why We Chose Server-Sent Events](../posts/architecture-sse-agent-communication), and [Idempotency and Debounce in BullMQ](../posts/idempotency-debounce-jobify-bullmq).
+
+Original inspiration: [Rumsfeld’s Logic of Known Knowns, Known Unknowns and Unknown Unknowns](https://medium.com/paul-austin-murphys-essays-on-philosophy/rumsfelds-logic-of-known-knowns-known-unknowns-and-unknown-unknowns-f506db31ac74) and [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386).

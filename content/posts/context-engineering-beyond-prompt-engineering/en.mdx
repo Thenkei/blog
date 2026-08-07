@@ -24,11 +24,15 @@ That state may include the task, the relevant code, previous decisions, tool res
 
 The engineering problem is therefore not “How do I write the perfect prompt?” It is “How do I construct the smallest sufficient context for this decision, under the right authority, with evidence that it is still valid?”
 
-## A prompt cannot compensate for missing state
+This is the shift I keep seeing in real engineering work. Once code generation becomes cheap, the difficult part is no longer persuading the model to produce syntax. It is stopping the model from using the wrong repository convention, the superseded decision, or the configuration file that looks important only because it has an aggressively confident name.
+
+## A prompt cannot compensate for missing state (it will still try)
 
 Imagine asking an agent to fix a repository issue with a precise instruction but no access to the failing test, the relevant module, the runtime configuration, or the project's conventions. The prompt can be excellent. The agent is still operating without the state required to act safely.
 
 The opposite failure is equally common: provide the entire repository, every historical document, all previous conversations, and broad tool access. The agent now has more material but not necessarily more understanding. Important constraints are buried. Old decisions look current. Sensitive data crosses a boundary. Contradictions are resolved by guesswork.
+
+It may now have 80,000 tokens of context and the confidence of someone who read the wrong README very carefully.
 
 More context is not automatically better context.
 
@@ -86,7 +90,7 @@ Put current task constraints where the runtime can distinguish them from histori
 
 The system should make it easy for a human reviewer to answer: which input caused this action?
 
-## Context budgets require prioritisation
+## Context budgets require prioritisation (everything is not a strategy)
 
 Context windows are finite, even when the interface makes them feel large. When the available state exceeds the budget, something will be truncated, summarised, or omitted.
 
@@ -126,6 +130,8 @@ Not all context failures look the same.
 **Dangerous context** grants authority beyond the task, includes sensitive data unnecessarily, or encourages an irreversible action without evidence. It should be blocked or quarantined by the runtime.
 
 The model should not be the only component deciding which category applies. Policy belongs in the surrounding system: tool permissions, retrieval filters, redaction, task scopes, and approval states.
+
+“The model will probably understand” is not a policy. It is a sentence that tends to age badly once production data and write permissions enter the conversation.
 
 ## Agents turn context into a control loop
 

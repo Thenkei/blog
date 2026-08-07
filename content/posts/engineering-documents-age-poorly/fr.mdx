@@ -20,9 +20,11 @@ La plupart des équipes d'ingénierie ne souffrent pas d'une absence totale de d
 
 La page existe toujours. Le diagramme se rend toujours. Les instructions contiennent encore des commandes plausibles. Un nouvel ingénieur les suit et obtient un résultat presque correct, ou un opérateur modifie un système à partir d'une frontière qui n'existe plus. Le document n'a pas disparu. Il est devenu plus dangereux parce qu'il conserve l'apparence d'une connaissance actuelle.
 
+J'ai vu ce scénario suffisamment souvent pour me méfier d'une page magnifiquement formatée sans owner ni date. Rien ne projette autant d'autorité qu'un runbook pointant vers un script supprimé depuis dix-huit mois.
+
 La documentation vieillit mal lorsqu'elle est traitée comme un artefact terminé plutôt que comme une interface maintenue entre les décisions, les systèmes et les personnes.
 
-## Un document possède un cycle de vie, qu'on le gère ou non
+## Un document possède un cycle de vie (même si le wiki prétend le contraire)
 
 Dès qu'un document est publié, le système autour commence à changer. Un fournisseur modifie une réponse. Une équipe change d'ownership. Un schéma gagne un nouvel état. Un processus de déploiement supprime une étape manuelle. Une décision raisonnable sous une contrainte devient incorrecte sous une autre.
 
@@ -87,7 +89,7 @@ La dérive documentaire n'est généralement pas causée par des ingénieurs né
 - Une sortie générée est copiée dans une page sans source ni chemin de régénération.
 - Un document mélange raisonnement permanent et instruction temporaire, donc personne ne sait ce qui doit être mis à jour.
 
-Dire aux équipes de « garder la doc à jour » ne traite aucune de ces conditions. Le système a besoin d'un contrat plus petit et plus explicite.
+Dire aux équipes de « garder la doc à jour » ne traite aucune de ces conditions. C'est l'équivalent documentaire de demander à un système distribué d'« être cohérent, s'il te plaît ». Le système a besoin d'un contrat plus petit et plus explicite.
 
 ## Le contrat d'un document durable
 
@@ -120,7 +122,7 @@ Par exemple :
 
 Chaque document n'a pas besoin d'être un graphe complexe. Les relations importantes doivent simplement être explicites pour qu'un reviewer puisse demander : « Quelles connaissances doivent bouger avec ce changement ? »
 
-## Une documentation générée n'est pas automatiquement actuelle
+## Une documentation générée n'est pas automatiquement actuelle (désolé, les robots)
 
 La génération est utile lorsque la source est autoritaire et que la sortie est déterministe. Elle ne remplace pas l'ownership.
 
@@ -164,6 +166,8 @@ La documentation devient alors une partie de la frontière de changement. La rev
 L'IA peut réduire le coût de création et de mise à jour de la documentation, mais elle augmente aussi la quantité de texte plausible qu'une équipe peut produire. La discipline sur les sources devient donc plus importante.
 
 Un agent peut inspecter un repository, reconstruire un workflow, rédiger un design document et repérer des contradictions plus vite qu'une personne partant d'une page blanche. Il peut aussi résumer avec assurance des informations obsolètes ou combler un trou par une invention raisonnable.
+
+Le second résultat est souvent très bien écrit. Ce n'est pas rassurant.
 
 Un workflow sûr commence par les preuves :
 
@@ -209,7 +213,7 @@ Une bonne documentation n'empêche pas le système de changer. Elle permet à l'
 ## Navigation dans la série
 
 - Partie 1 — [Les inconnus inconnus de l'architecture logicielle](../posts/unknown-unknowns-software-architecture).
-- Partie 2 — [Construire une analytics self-service qui ne ment pas](../posts/self-service-analytics-that-doesnt-lie).
+- Partie 2 — [Construire un self-service analytics qui ne ment pas](../posts/self-service-analytics-that-doesnt-lie).
 - Partie 3 — [L'ingénierie du contexte au-delà du prompt engineering](../posts/context-engineering-beyond-prompt-engineering).
 - Partie 4 (actuelle) — Pourquoi la plupart des documents d'ingénierie vieillissent mal.
 

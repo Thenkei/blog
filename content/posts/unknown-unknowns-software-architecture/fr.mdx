@@ -3,7 +3,7 @@ title: "Les inconnus inconnus de l'architecture logicielle"
 subtitle: "Les incidents de production les plus coûteux commencent par des hypothèses dont personne ne savait qu'elles existaient."
 summary: "Pourquoi le travail d'architecture doit moins chercher à prévoir chaque panne qu'à rendre les hypothèses cachées observables, bornées et récupérables."
 publishedAt: "2026-08-10"
-readTimeMinutes: 15
+readTimeMinutes: 18
 tags:
   - architecture
   - reliability
@@ -21,7 +21,15 @@ On peut lister les décisions qui n'ont pas été prises. On peut créer un spik
 
 Ce sont les inconnus inconnus.
 
-Il ne s'agit pas d'une catégorie mystérieuse de défaillance. Ce sont des propriétés ordinaires du système qui deviennent visibles uniquement lorsqu'une frontière est franchie : davantage de tenants, un fournisseur différent, un déploiement pendant un pic de trafic, un nouveau grain de données, une panne partielle ou un nouvel opérateur qui utilise le workflow d'une manière que personne n'avait prévue.
+La fondation conceptuelle m'est venue de l'essai de Paul Austin Murphy [Rumsfeld’s Logic of Known Knowns, Known Unknowns and Unknown Unknowns](https://medium.com/paul-austin-murphys-essays-on-philosophy/rumsfelds-logic-of-known-knowns-known-unknowns-and-unknown-unknowns-f506db31ac74). Il prend la formulation au sérieux comme un problème de logique et de connaissance : certaines lacunes sont assez visibles pour être investiguées, tandis que d'autres restent en dehors de ce que l'on est aujourd'hui capable de décrire.
+
+Mais l'article qui a réellement résonné en moi est celui de Thariq Shihipar, [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386?lang=fr). Thariq, qui travaille chez Anthropic, décrit l'écart entre la **map** que l'on donne à un système IA — prompt, skills, contexte et spécification — et le **territory** où le travail se passe réellement : repository, produit, utilisateurs, contraintes opérationnelles et toutes les décisions que personne n'a écrites.
+
+Lorsque la map ne contient pas quelque chose dont le territory a besoin, l'agent doit deviner. Les modèles plus puissants donnent à ces suppositions une apparence de complétude de plus en plus convaincante. C'est formidable jusqu'au moment où l'hypothèse manquante était précisément celle qui comptait.
+
+Cette idée m'a parlé bien au-delà du développement assisté par IA. Je n'arrêtais pas de penser aux revues d'architecture, aux incidents de production et à toutes ces fois où un système respectait chaque test écrit avant d'échouer sur une interaction absente de notre modèle. La suite de tests ne mentait pas. On lui avait simplement posé les questions d'hier.
+
+Les unknown unknowns ne sont pas une catégorie mystérieuse de défaillance. Ce sont des propriétés ordinaires du système qui deviennent visibles uniquement lorsqu'une frontière est franchie : davantage de tenants, un fournisseur différent, un déploiement pendant un pic de trafic, un nouveau grain de données, une panne partielle ou un nouvel opérateur qui utilise le workflow d'une manière que personne n'avait prévue.
 
 La conséquence pratique est importante : l'architecture ne peut pas éliminer les inconnus inconnus. Elle peut seulement rendre leur découverte moins coûteuse.
 
@@ -42,7 +50,7 @@ La quatrième catégorie explique pourquoi un document d'architecture ne devrait
 
 Le diagramme n'est pas faux. Il est incomplet d'une manière qui compte.
 
-## Pourquoi les diagrammes créent une fausse confiance
+## Pourquoi les diagrammes créent une fausse confiance (la production ne les a jamais signés)
 
 Un diagramme représente généralement des noms stables : services, bases de données, queues, APIs et utilisateurs. Les incidents de production viennent souvent plutôt des verbes et des conditions :
 
@@ -54,6 +62,8 @@ Un diagramme représente généralement des noms stables : services, bases de do
 - un opérateur rejoue un événement parce que la première tentative n'a produit aucun résultat visible.
 
 Ces comportements ne sont pas séparés de l'architecture. Ils sont l'architecture soumise au temps, aux pannes et à la concurrence.
+
+Les boîtes et les flèches sont remarquablement disciplinées. Les retries, les horloges, les opérateurs et les APIs tierces n'ont visiblement pas reçu le mémo.
 
 La bonne question n'est donc pas seulement « qui appelle qui ? ». Il faut aussi demander :
 
@@ -78,6 +88,20 @@ C'est pourquoi une petite décision d'architecture peut acquérir un blast radiu
 La décision initiale n'était pas forcément déraisonnable. L'inconnu était l'ensemble des rôles futurs que le composant allait accumuler.
 
 L'objectif n'est pas de prédire chacun de ces rôles. Il est de rendre leur apparition visible avant que l'interaction ne devienne systémique.
+
+## D'un article à une habitude de travail chez RockFi
+
+J'ai partagé ces articles avec plusieurs équipes chez RockFi parce qu'ils nous donnaient de meilleurs mots pour décrire un problème que nous vivions déjà. Pas comme deux liens supplémentaires promis à un 👍 poli avant de disparaître dans Slack, mais comme un moyen d'améliorer notre manière de préparer, exécuter et reviewer le travail.
+
+Le vrai changement consiste à intégrer la découverte des inconnus dans la boucle de delivery :
+
+- **Avant l'implémentation :** demander ce que le brief suppose, quelles parties du territory n'ont pas été inspectées, quels owners ou systèmes pourraient changer le design et quelle information invaliderait le plan actuel.
+- **Pendant l'implémentation :** comparer le repository, les données, les APIs et le comportement runtime réels avec la map initiale. Les dépendances nouvellement découvertes doivent modifier le plan au lieu d'être absorbées silencieusement dans le code.
+- **Après l'implémentation :** utiliser la QA, les logs, métriques, réconciliations, revues adversariales et retours de production pour chercher des comportements hors du chemin attendu — pas seulement confirmer que le chemin attendu fonctionne.
+
+L'IA est utile dans toute cette boucle parce qu'elle peut inspecter une surface plus large, challenger les hypothèses et générer des questions ciblées. Ce n'est pas un oracle capable de révéler tous nos unknown unknowns. Elle ne peut découvrir que ce qui laisse des preuves dans le territory qu'elle est autorisée à inspecter.
+
+Cela nous pousse vers des definitions of done plus explicites, des passes de QA plus fortes, de meilleures boucles de feedback et des processus capables de conserver les contraintes découvertes au lieu de les laisser revenir sous la forme de l'incident de production de quelqu'un d'autre six mois plus tard.
 
 ## Une réponse de conception : réduire, isoler, détecter, récupérer
 
@@ -164,6 +188,8 @@ Avant de s'engager sur une architecture, demander :
 
 Cette checklist ne rend pas l'inconnu connu à l'avance. Elle rend le système meilleur pour apprendre.
 
+Elle doit aussi rester une revue de conception, pas se transformer en enquête philosophique de trois heures sur l'existence réelle de la base de données. La proportionnalité compte encore.
+
 ## Limites du modèle
 
 Les inconnus inconnus ne justifient pas une analyse infinie. Une équipe qui traite chaque possibilité comme également importante ne livrera jamais. La réponse doit être proportionnée : identifier les hypothèses au plus grand blast radius, les rendre observables et accepter une incertitude bornée ailleurs.
@@ -183,8 +209,10 @@ La meilleure architecture n'est pas celle qui prétend tout savoir. C'est celle 
 ## Navigation dans la série
 
 - Partie 1 (actuelle) — Les inconnus inconnus de l'architecture logicielle.
-- Partie 2 — [Construire une analytics self-service qui ne ment pas](../posts/self-service-analytics-that-doesnt-lie).
+- Partie 2 — [Construire un self-service analytics qui ne ment pas](../posts/self-service-analytics-that-doesnt-lie).
 - Partie 3 — [L'ingénierie du contexte au-delà du prompt engineering](../posts/context-engineering-beyond-prompt-engineering).
 - Partie 4 — [Pourquoi la plupart des documents d'ingénierie vieillissent mal](../posts/engineering-documents-age-poorly).
 
 À lire aussi : [Le jour où Redis a atteint ses limites](../posts/redis-memory-exhaustion-post-mortem), [Pourquoi nous avons choisi les Server-Sent Events](../posts/architecture-sse-agent-communication) et [Idempotence et debounce avec BullMQ](../posts/idempotency-debounce-jobify-bullmq).
+
+Les deux lectures à l'origine de l'article : [Rumsfeld’s Logic of Known Knowns, Known Unknowns and Unknown Unknowns](https://medium.com/paul-austin-murphys-essays-on-philosophy/rumsfelds-logic-of-known-knowns-known-unknowns-and-unknown-unknowns-f506db31ac74) et [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386?lang=fr).
