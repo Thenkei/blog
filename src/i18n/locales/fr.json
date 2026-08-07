@@ -45,6 +45,7 @@
     "copyLink": "Copier le lien",
     "copyCode": "Copier le code",
     "copied": "Copié",
+    "copyFailed": "Réessayer",
     "footer": {
       "copyright": "© {{year}} Le blog de Morgan.",
       "github": "GitHub",
