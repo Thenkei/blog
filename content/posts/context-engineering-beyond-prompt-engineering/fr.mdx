@@ -1,0 +1,189 @@
+---
+title: "L'ingénierie du contexte au-delà du prompt engineering"
+subtitle: "Un système IA fiable ne reçoit pas seulement des instructions. Il reçoit un état opérationnel autorisé, actuel et testable."
+summary: "Pourquoi la qualité du prompt n'est qu'une partie de la fiabilité IA, et comment la sélection du contexte, les permissions, la fraîcheur, la provenance et la validation façonnent le comportement des agents."
+publishedAt: "2026-08-24"
+readTimeMinutes: 15
+tags:
+  - ai
+  - context-engineering
+  - developer-tools
+  - agents
+  - reliability
+  - reflection
+seriesId: "engineering-ideas-that-survive-reality"
+seriesOrder: 3
+draft: true
+---
+
+Le prompt engineering est devenu populaire parce qu'il rendait une nouvelle interface plus contrôlable. Modifier l'instruction, modifier la sortie. Ajouter un rôle, un exemple ou une contrainte. Demander au modèle de raisonner étape par étape. Ces techniques sont utiles, mais elles ne décrivent qu'une couche du problème.
+
+Un prompt est une instruction. Le contexte est l'état opérationnel à partir duquel le système produit une réponse.
+
+Cet état peut inclure la tâche, le code concerné, les décisions précédentes, les résultats des outils, l'identité de l'utilisateur, les permissions, les données sensibles au temps, la mémoire, les contraintes de sortie et les preuves des tentatives précédentes. Il peut aussi contenir des éléments inutiles ou contradictoires. La fiabilité dépend donc de ce qui entre dans le contexte, de ce qui en est exclu, de l'ordre de présentation et de la possibilité de vérifier le résultat.
+
+Le problème d'ingénierie n'est donc pas « comment écrire le prompt parfait ? ». C'est plutôt : « comment construire le plus petit contexte suffisant pour cette décision, avec la bonne autorité et une preuve qu'il est encore valide ? »
+
+## Un prompt ne compense pas un état manquant
+
+Demander à un agent de corriger un problème dans un repository avec une instruction précise, mais sans le test en échec, le module concerné, la configuration runtime ou les conventions du projet, ne suffit pas. Le prompt peut être excellent. L'agent ne possède toujours pas l'état nécessaire pour agir sans danger.
+
+L'échec inverse est tout aussi courant : fournir le repository entier, tous les documents historiques, toutes les conversations précédentes et des permissions très larges. Le système possède alors davantage de matière, mais pas forcément davantage de compréhension. Les contraintes importantes sont enfouies. Les anciennes décisions semblent actuelles. Les données sensibles franchissent une frontière. Les contradictions sont résolues par supposition.
+
+Plus de contexte ne signifie pas automatiquement meilleur contexte.
+
+## La pile de contexte
+
+Un modèle de contexte utile comporte plusieurs couches :
+
+| Couche | Fonction | Échec typique |
+| --- | --- | --- |
+| Tâche | Décrit le résultat et la condition d'arrêt | Objectif vague ou scope absent |
+| Domaine | Explique les termes, invariants et contraintes métier | Résultat techniquement juste mais faux métier |
+| Système | Fournit code, schémas, configuration et dépendances | Mauvaise version ou chemin incomplet |
+| Historique | Apporte décisions, incidents et tentatives précédentes | Contexte obsolète traité comme actuel |
+| Outils | Autorise lectures, tests, changements ou actions externes | Autorité supérieure à la tâche |
+| Preuves | Montrent si le résultat fonctionne | Assertion prise pour une preuve |
+
+Ces couches interagissent. Une tâche peut demander un changement sûr pour la production alors que les outils disponibles ne permettent qu'un test local. Un fichier peut sembler correct, mais une migration historique peut révéler un invariant absent du fichier. Un résultat d'outil peut être exact mais ancien au moment où l'agent agit.
+
+L'ingénierie du contexte consiste à rendre ces relations explicites.
+
+## La sélection est une décision de sécurité et de fiabilité
+
+La sélection du contexte est souvent présentée comme un problème de pertinence : récupérer les documents les plus proches de la question. En production, c'est aussi un problème d'autorisation.
+
+Le document pertinent n'est pas forcément un document autorisé. Un utilisateur peut avoir le droit de demander un résumé sans pouvoir exposer les enregistrements sources. Un agent peut avoir besoin d'un schéma sans avoir besoin des valeurs stockées dans la table. Un reviewer peut avoir besoin du diff et des tests sans avoir besoin d'une credential de production.
+
+Le pipeline de sélection doit donc répondre à deux questions indépendantes :
+
+1. Cette information est-elle utile pour la tâche ?
+2. Cette information peut-elle entrer dans ce contexte d'exécution ?
+
+Si la seconde question reste implicite, le système demande au modèle de déduire une frontière de sécurité. Ce n'est pas une architecture sûre.
+
+## La fraîcheur fait partie du sens
+
+Un contexte peut être exact et pourtant inadapté à la décision actuelle parce qu'il est ancien.
+
+Un document décrivant l'ownership d'un service peut avoir été correct il y a six mois. Une réponse API mise en cache peut ne plus représenter l'état courant du fournisseur. Une tentative précédente de l'agent peut avoir modifié le repository. Une entrée de mémoire peut être utile comme historique sans être une instruction actuelle.
+
+Chaque source de contexte a besoin d'une politique de fraîcheur adaptée :
+
+- l'historique immuable peut être conservé comme preuve ;
+- les décisions d'architecture devraient porter un statut et une date de revue ;
+- l'état opérationnel devrait être récupéré au plus près de l'exécution ;
+- les résumés générés devraient pointer vers leur source et leur date de génération ;
+- les credentials et les permissions devraient être évaluées au moment de l'action.
+
+« Récupéré » ne signifie pas « actuel ».
+
+## L'ordre façonne l'interprétation
+
+Lorsque le contexte contient des informations contradictoires, l'ordre de présentation influence ce que le modèle traite comme faisant autorité. Ce n'est pas une raison pour cacher l'ambiguïté. C'est une raison pour représenter explicitement l'autorité.
+
+Placer les contraintes de la tâche actuelle là où le runtime peut les distinguer des exemples historiques. Étiqueter différemment les décisions, hypothèses, observations et instructions. Préserver la source et l'horodatage des informations récupérées. Lorsque deux sources divergent, exposer le conflit au lieu de concaténer les deux en espérant que le modèle choisira correctement.
+
+Le système doit permettre à un reviewer humain de répondre à la question : quel input a causé cette action ?
+
+## Les budgets de contexte exigent des priorités
+
+Les fenêtres de contexte sont finies, même lorsque l'interface donne l'impression qu'elles sont immenses. Quand l'état disponible dépasse le budget, une partie sera tronquée, résumée ou ignorée.
+
+Cette politique doit être conçue au lieu d'être abandonnée à une limite arbitraire. Un ordre de priorité sûr peut être :
+
+1. contraintes fortes et autorisation ;
+2. tâche actuelle et critères de réussite ;
+3. interfaces et invariants pertinents ;
+4. observations actuelles et résultats d'outils ;
+5. décisions récentes et modes de panne connus ;
+6. explications générales et détails historiques.
+
+L'ordre exact dépend du domaine. L'invariant important est qu'un résumé ne doit pas supprimer silencieusement la condition qui rend l'action sûre.
+
+La compression a aussi besoin de provenance. Un résumé court n'est pas équivalent à sa source si le système ne peut pas retrouver la source ou prouver que le détail omis est sans conséquence pour la décision.
+
+```mermaid
+flowchart LR
+    A[Tâche et contraintes] --> B[Sources de contexte]
+    B --> C[Filtre de pertinence]
+    C --> D[Filtre d'autorisation et de policy]
+    D --> E[Contrôle fraîcheur et provenance]
+    E --> F[Contexte priorisé d'exécution]
+    F --> G[Action de l'agent]
+    G --> H[Tests, revue et preuves]
+    H --> I[Mise à jour du contexte ou escalade]
+```
+
+## Contexte utile, ambigu et dangereux
+
+Les erreurs de contexte ne se ressemblent pas toutes.
+
+Un **contexte utile** est pertinent, suffisamment actuel, dans le scope et relié à un fait observable. Il réduit l'incertitude.
+
+Un **contexte ambigu** contient plusieurs interprétations, des décisions anciennes ou un owner manquant. Il doit déclencher une question, une hypothèse explicite ou une human gate.
+
+Un **contexte dangereux** accorde une autorité supérieure à la tâche, contient inutilement des données sensibles ou encourage une action irréversible sans preuve. Il doit être bloqué ou placé en quarantaine par le runtime.
+
+Le modèle ne doit pas être le seul composant à décider de cette catégorie. La policy appartient au système autour : permissions d'outils, filtres de retrieval, redaction, scopes de tâche et états d'approbation.
+
+## Les agents transforment le contexte en boucle de contrôle
+
+Un agent n'est pas fiable parce qu'il produit une bonne réponse une fois. Il est fiable lorsque sa boucle est bornée :
+
+- il observe un état défini ;
+- il reçoit uniquement le contexte et l'autorité nécessaires ;
+- il produit une action dont l'effet est mesurable ;
+- il vérifie une preuve contre une condition de complétion ;
+- il s'arrête, réessaie selon une policy ou escalade.
+
+C'est ici que l'ingénierie du contexte rejoint l'architecture logicielle. L'agent a besoin d'idempotence, de timeouts, de retries bornés, de logs d'audit et d'un ownership clair, comme n'importe quel workflow distribué. Un prompt peut expliquer le comportement souhaité ; il ne peut pas faire respecter seul le contrat runtime.
+
+La même règle s'applique aux human gates. « Demander une approbation » n'est pas un contrôle fiable si la demande ne contient ni le diff, ni les ressources concernées, ni les tests, ni la réversibilité de l'action. La gate doit recevoir assez de contexte pour décider sans reconstruire toute la tâche.
+
+## L'évaluation doit tester le contexte, pas seulement les réponses
+
+La plupart des évaluations IA se concentrent sur le texte final. Cela ignore les erreurs de retrieval et d'autorité.
+
+Une évaluation utile devrait demander :
+
+- Le système a-t-il récupéré la source nécessaire ?
+- A-t-il exclu les données hors du scope de permission ?
+- A-t-il utilisé la version actuelle plutôt qu'un document obsolète ?
+- A-t-il identifié les preuves contradictoires ?
+- S'est-il arrêté lorsque le contexte était insuffisant ?
+- A-t-il conservé la source d'une affirmation importante ?
+- A-t-il exécuté uniquement les outils autorisés par la tâche ?
+
+Un agent qui répond correctement pour une mauvaise raison n'est pas fiable. Un système qui refuse proprement lorsque le contexte est incomplet peut être plus utile qu'un système qui produit toujours une réponse plausible.
+
+## Le contexte est une interface entre systèmes et humains
+
+Le contexte fourni à un agent est aussi celui que recevra le reviewer humain. Si le système ne peut pas expliquer quels faits, contraintes et permissions ont façonné la sortie, la revue devient une seconde tentative de reconstruction de la tâche.
+
+C'est pourquoi le contexte doit être traité comme un artefact observable. Enregistrer les sources sélectionnées, les versions, les appels d'outils, les décisions de policy et les preuves. Le niveau de détail doit refléter le risque, mais une action importante ne devrait jamais être une boîte noire simplement parce que le modèle l'a formulée avec assurance.
+
+## Limites de l'ingénierie du contexte
+
+Un bon contexte ne peut pas réparer une décision métier manquante. Il ne peut pas rendre une source peu fiable autoritaire. Il ne supprime pas le besoin d'un expert lorsque l'erreur a des conséquences élevées.
+
+La construction et le stockage du contexte ont aussi un coût réel : latence, tokens, complexité du retrieval, exposition de données privées et difficulté de debug opérationnel. La réponse n'est pas de tout inclure. Il faut définir l'état minimal suffisant pour chaque classe de tâche et mesurer si cet état produit des résultats fiables.
+
+Enfin, le contexte ne supprime pas l'incertitude du modèle. Il change les conditions dans lesquelles cette incertitude est détectée et gérée.
+
+## Au-delà du prompt
+
+Le prompt engineering reste utile. Des instructions claires, des exemples et des formats de sortie améliorent un système. Ils ne constituent simplement pas le système complet.
+
+La question de production est plus large : que doit savoir l'agent, qu'a-t-il le droit de savoir, à quel point cette connaissance est-elle actuelle, que peut-il faire, comment saurons-nous que cela a fonctionné et que se passe-t-il lorsque la réponse n'est pas soutenue par les preuves disponibles ?
+
+Ce sont des questions d'ingénierie du contexte. Ce sont aussi des questions d'architecture.
+
+## Navigation dans la série
+
+- Partie 1 — [Les inconnus inconnus de l'architecture logicielle](../posts/unknown-unknowns-software-architecture).
+- Partie 2 — [Construire une analytics self-service qui ne ment pas](../posts/self-service-analytics-that-doesnt-lie).
+- Partie 3 (actuelle) — L'ingénierie du contexte au-delà du prompt engineering.
+- Partie 4 — [Pourquoi la plupart des documents d'ingénierie vieillissent mal](../posts/engineering-documents-age-poorly).
+
+À lire aussi : [L'IA chez RockFi](../posts/ai-human-judgment-rockfi), [L'ingénierie en 2026](../posts/engineering-2026-ai-redefined-our-job) et [Claude Code et le Product OS](../posts/claude-code-product-os).
