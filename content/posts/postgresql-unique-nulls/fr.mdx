@@ -1,6 +1,6 @@
 ---
-title: "Petit retour d'expérience : ON CONFLICT DO UPDATE avec des colonnes nullable"
-subtitle: "Attention : Par défaut, PostgreSQL considère que NULL ≠ NULL."
+title: "ON CONFLICT DO UPDATE et colonnes nullables : le piège de NULL"
+subtitle: "Attention : par défaut, PostgreSQL considère que deux valeurs NULL sont distinctes."
 summary: "Comment utiliser NULLS NOT DISTINCT pour que ON CONFLICT et les index uniques se comportent comme prévu avec des colonnes nullables."
 visualId: "postgresql-unique-nulls"
 publishedAt: "2026-01-26"
@@ -11,15 +11,15 @@ tags:
   - backend
 ---
 
-Je viens de brûler une honteuse heure de ma précieuse existence sur un cas "impossible". Mon `ON CONFLICT DO UPDATE` passait royalement à côté de doublons évidents alors que j'avais bétonné ma table avec une contrainte d'unicité.
+Je viens de perdre une heure précieuse sur un cas « impossible ». Mon `ON CONFLICT DO UPDATE` ignorait royalement des doublons évidents alors que j'avais protégé ma table avec une contrainte d'unicité.
 
-## Le Dénouement
+## Le dénouement
 
 <ArticleDiagram visualId="postgresql-unique-nulls" />
 
-Le piège est là : par défaut, la philosophie de PostgreSQL c'est que `NULL ≠ NULL`. C'est à dire que si vous lui présentez deux lignes `(valeur, NULL)`, il va vous soutenir mordicus que ce n'est pas la même chose. Exit la notion de doublons !
+Le piège est là : par défaut, PostgreSQL considère que `NULL ≠ NULL`. C'est-à-dire que si vous lui présentez deux lignes `(valeur, NULL)`, il soutiendra mordicus qu'elles ne sont pas identiques. Exit la notion de doublon !
 
-## La Formule Magique
+## La formule magique
 
 Pour éviter de vous arracher les cheveux, il suffit d'ajouter l'incantation magique `NULLS NOT DISTINCT` à l'index unique :
 
@@ -29,6 +29,6 @@ ON products (isin, provider_product_reference)
 NULLS NOT DISTINCT;
 ```
 
-Et hop, PostgreSQL accepte enfin qu'un vide ait la même saveur qu'un autre vide lors de la vérification d'unicité. Résultat : vos upserts re-fonctionnent de nouveau comme par magie.
+Et hop, PostgreSQL accepte enfin qu'une valeur NULL soit considérée comme identique à une autre lors de la vérification d'unicité. Résultat : vos upserts fonctionnent de nouveau comme prévu.
 
-_Pro tip : ce petit sauveur de vie est dispo depuis PostgreSQL 15. Jetez un œil aux docs : [Unique Nulls Not Distinct](https://www.postgresql.org/about/featurematrix/detail/unique-nulls-not-distinct/)._
+_À retenir : cette fonctionnalité est disponible depuis PostgreSQL 15. Jetez un œil à la documentation : [Unique Nulls Not Distinct](https://www.postgresql.org/about/featurematrix/detail/unique-nulls-not-distinct)._

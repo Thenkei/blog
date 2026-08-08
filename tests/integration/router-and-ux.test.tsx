@@ -63,10 +63,10 @@ describe("routing and UX", () => {
     await user.click(screen.getByRole("button", { name: "FR" }));
 
     expect(
-      await screen.findByRole("heading", { level: 2, name: "Le Dénouement" }),
+      await screen.findByRole("heading", { level: 2, name: "Le dénouement" }),
     ).toBeInTheDocument();
     expect(
-      await screen.findByRole("link", { name: "Le Dénouement" }),
+      await screen.findByRole("link", { name: "Le dénouement" }),
     ).toBeInTheDocument();
   });
 

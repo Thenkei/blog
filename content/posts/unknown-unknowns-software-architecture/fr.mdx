@@ -1,5 +1,5 @@
 ---
-title: "Les inconnus inconnus de l'architecture logicielle"
+title: "Architecture logicielle : rendre les inconnus inconnus supportables"
 subtitle: "Les incidents de production les plus coûteux commencent par des hypothèses dont personne ne savait qu'elles existaient."
 summary: "Pourquoi le travail d'architecture doit moins chercher à prévoir chaque panne qu'à rendre les hypothèses cachées observables, bornées et récupérables."
 visualId: "unknown-unknowns-software-architecture"
@@ -25,7 +25,7 @@ Ce sont les inconnus inconnus.
 
 La fondation conceptuelle m'est venue de l'essai de Paul Austin Murphy [Rumsfeld’s Logic of Known Knowns, Known Unknowns and Unknown Unknowns](https://medium.com/paul-austin-murphys-essays-on-philosophy/rumsfelds-logic-of-known-knowns-known-unknowns-and-unknown-unknowns-f506db31ac74). Il prend la formulation au sérieux comme un problème de logique et de connaissance : certaines lacunes sont assez visibles pour être investiguées, tandis que d'autres restent en dehors de ce que l'on est aujourd'hui capable de décrire.
 
-Mais l'article qui a réellement résonné en moi est celui de Thariq Shihipar, [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386?lang=fr). Thariq, qui travaille chez Anthropic, décrit l'écart entre la **map** que l'on donne à un système IA — prompt, skills, contexte et spécification — et le **territory** où le travail se passe réellement : repository, produit, utilisateurs, contraintes opérationnelles et toutes les décisions que personne n'a écrites.
+Mais l'article qui a réellement résonné en moi est celui de Thariq Shihipar, [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386?lang=fr). Thariq, qui travaille chez Anthropic, décrit l'écart entre la **map** que l'on donne à un système d'IA — prompt, skills, contexte et spécification — et le **territory** où le travail se déroule réellement : dépôt, produit, utilisateurs, contraintes opérationnelles et toutes les décisions que personne n'a écrites.
 
 Lorsque la map ne contient pas quelque chose dont le territory a besoin, l'agent doit deviner. Les modèles plus puissants donnent à ces suppositions une apparence de complétude de plus en plus convaincante. C'est formidable jusqu'au moment où l'hypothèse manquante était précisément celle qui comptait.
 
@@ -54,7 +54,7 @@ La quatrième catégorie explique pourquoi un document d'architecture ne devrait
 
 Le diagramme n'est pas faux. Il est incomplet d'une manière qui compte.
 
-## Pourquoi les diagrammes créent une fausse confiance (la production ne les a jamais signés)
+## Pourquoi les diagrammes créent une fausse confiance (la production ne les a jamais validés)
 
 Un diagramme représente généralement des noms stables : services, bases de données, queues, APIs et utilisateurs. Les incidents de production viennent souvent plutôt des verbes et des conditions :
 
@@ -95,7 +95,7 @@ L'objectif n'est pas de prédire chacun de ces rôles. Il est de rendre leur app
 
 ## D'un article à une habitude de travail chez RockFi
 
-J'ai partagé ces articles avec plusieurs équipes chez RockFi parce qu'ils nous donnaient de meilleurs mots pour décrire un problème que nous vivions déjà. Pas comme deux liens supplémentaires promis à un 👍 poli avant de disparaître dans Slack, mais comme un moyen d'améliorer notre manière de préparer, exécuter et reviewer le travail.
+J'ai partagé ces articles avec plusieurs équipes chez RockFi parce qu'ils nous donnaient de meilleurs mots pour décrire un problème que nous vivions déjà. Pas comme deux liens supplémentaires promis à un 👍 poli avant de disparaître dans Slack, mais comme un moyen d'améliorer notre manière de préparer, d'exécuter et de reviewer le travail.
 
 Le vrai changement consiste à intégrer la découverte des inconnus dans la boucle de delivery :
 
@@ -139,7 +139,7 @@ Les signaux utiles incluent l'âge des messages en queue, le nombre de retries, 
 
 Concevoir le chemin de panne avant que la panne n'existe.
 
-La récupération peut consister à rejouer un événement, reconstruire une projection, désactiver une feature flag, révoquer une credential, mettre un enregistrement en quarantaine ou demander une décision humaine. Le mécanisme dépend du domaine, mais l'invariant reste le même : la découverte ne doit pas obliger à faire un choix irréversible à l'aveugle.
+La récupération peut consister à rejouer un événement, reconstruire une projection, désactiver une feature flag, révoquer un identifiant, mettre un enregistrement en quarantaine ou demander une décision humaine. Le mécanisme dépend du domaine, mais l'invariant reste le même : la découverte ne doit pas obliger à faire un choix irréversible à l'aveugle.
 
 <figure className="post-visual">
   <img
@@ -153,7 +153,7 @@ La récupération peut consister à rejouer un événement, reconstruire une pro
 
 ## La réversibilité est un contrôle architectural
 
-On parle souvent de réversibilité comme d'un sujet de delivery : peut-on rollback le déploiement ? C'est aussi une manière de gérer les inconnus.
+On parle souvent de réversibilité comme d'un sujet de delivery : peut-on effectuer un rollback du déploiement ? C'est aussi une manière de gérer les inconnus.
 
 Une décision réversible limite le coût d'une erreur. Feature flags, migrations additives, shadow reads, dual writes avec réconciliation, événements versionnés et déploiements progressifs créent des occasions d'apprendre avant l'engagement final.
 

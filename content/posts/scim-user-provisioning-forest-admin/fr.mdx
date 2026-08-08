@@ -1,7 +1,7 @@
 ---
-title: "Provisioning SCIM : L'Illusion des Standards et la Réalité de la RFC 7644"
+title: "Provisionnement SCIM : l'illusion des standards et la réalité de la RFC 7644"
 subtitle: "Gérer les utilisateurs entreprise chez Forest Admin (et survivre aux caprices des IdP)."
-summary: "Comment nous avons implémenté SCIM pour le provisioning des utilisateurs (Okta, Azure AD, Google) et découvert que les RFC sont souvent de simples suggestions."
+summary: "Comment nous avons implémenté SCIM pour le provisionnement des utilisateurs (Okta, Azure AD, Google) et découvert que les RFC sont parfois de simples suggestions."
 visualId: "scim-user-provisioning-forest-admin"
 publishedAt: "2022-06-15"
 readTimeMinutes: 7
@@ -12,25 +12,25 @@ tags:
   - security
 ---
 
-## Introduction : La Case à Cocher "Entreprise"
+## Introduction : la case à cocher « entreprise »
 
 <ArticleDiagram visualId="scim-user-provisioning-forest-admin" />
 
-Quand vous voulez vendre votre SaaS à des boîtes comme Qonto, Mastercard ou Swan, il y a une liste de fonctionnalités obligatoires à cocher. Le Single Sign-On (SSO) est la première étape. Mais au bout d'un moment, les admins IT en ont marre d'attribuer manuellement les rôles et permissions pour 500 nouveaux recrutements chaque mois.
+Quand vous voulez vendre votre SaaS à des entreprises comme Qonto, Mastercard ou Swan, il y a une liste de fonctionnalités obligatoires à cocher. Le Single Sign-On (SSO) est la première étape. Mais au bout d'un moment, les administrateurs IT en ont assez d'attribuer manuellement les rôles et permissions pour 500 nouveaux recrutements chaque mois.
 
-C'est là qu'ils exigent le **User Provisioning via SCIM**.
+C'est là qu'ils exigent le **provisionnement des utilisateurs via SCIM**.
 
-Pour les non-initiés, SCIM (System for Cross-domain Identity Management) permet de gérer vos utilisateurs à grande échelle directement depuis votre fournisseur d'identité (IdP). La promesse ? Vous configurez tout une fois, et tout utilisateur ajouté dans Okta apparaît instantanément dans votre projet Forest Admin avec le bon niveau de permission, les bons rôles et les bons tags. S'il quitte l'entreprise, ses accès sont révoqués en temps réel.
+Pour les non-initiés, SCIM (System for Cross-domain Identity Management) permet de gérer vos utilisateurs à grande échelle directement depuis votre fournisseur d'identité (IdP). La promesse ? Vous configurez tout une fois, et chaque utilisateur ajouté dans Okta apparaît instantanément dans votre projet Forest Admin avec le bon niveau de permission, les bons rôles et les bons tags. S'il quitte l'entreprise, ses accès sont révoqués en temps réel.
 
-En 2022, chez Forest Admin, on a décidé de s'attaquer à ce monstre. Ce qu'on ignorait encore, c'est que chaque IdP considère la RFC 7644 comme "une recommandation plutôt qu'une vraie règle".
+En 2022, chez Forest Admin, nous avons décidé de nous attaquer à ce monstre. Ce que nous ignorions encore, c'est que chaque IdP considère la RFC 7644 comme « une recommandation plutôt qu'une vraie règle ».
 
-## Le "Standard" : RFC 7644 (Ou le Buffet à Volonté)
+## Le « standard » : RFC 7644 (ou le buffet à volonté)
 
-En théorie, le protocole SCIM est élégant. Vous exposez des endpoints `/Users` et `/Groups`, vous gérez des payloads JSON standardisés à coups de verbes spécifiques, et boom, la synchronisation est magique.
+En théorie, le protocole SCIM est élégant. Vous exposez des endpoints `/Users` et `/Groups`, vous gérez des payloads JSON standardisés à coups de verbes spécifiques et, hop, la synchronisation est magique.
 
 En pratique ? Chaque gros fournisseur (Okta, OneLogin, Google Workspace, Microsoft Azure Active Directory, AWS SSO) a lu la RFC et a décidé de n'implémenter **que ce qui l'arrangeait**. C'est un peu comme un repas participatif où Okta ramène la salade, Azure AD la soupe, Google le dessert, mais où personne n'a pensé au plat principal.
 
-- **Microsoft Azure AD :** Aime être "créatif" avec la façon dont il envoie les opérations PATCH pour l'appartenance aux groupes.
+- **Microsoft Azure AD :** aime être « créatif » avec la façon dont il envoie les opérations PATCH pour l'appartenance aux groupes.
 - **Google :** Synchronise les utilisateurs, mais parfois vous demande gentiment de vous débrouiller tout seul avec les rôles.
 - **Bizarreries de Validation :** Un IdP va envoyer un schéma hyper strict, pendant qu'un autre balance discrètement des champs booléens non documentés.
 
@@ -51,11 +51,11 @@ const handleScimPatch = (payload, provider) => {
 };
 ```
 
-Nous avons dû construire un _SCIM normalizer_ ultra robuste pour digérer cinq dialectes différents de payloads soi-disant "compatibles avec le standard".
+Nous avons dû construire un _SCIM normalizer_ ultra robuste pour digérer cinq dialectes différents de payloads soi-disant « compatibles avec le standard ».
 
-## L'Audit Trail : Qui a fait Quoi quand les Bots Prennent le Contrôle ?
+## La piste d'audit : qui a fait quoi quand les bots prennent le contrôle ?
 
-Avec SCIM, c'est une automatisation qui crée, met à jour et gère toute votre base d'utilisateurs. Ça crée une nouvelle dynamique terrifiante : si quelque chose plante dans l'onboarding d'un utilisateur, c'est la faute de qui ? L'admin IT ? L'IdP ? Notre backend ?
+Avec SCIM, une automatisation crée, met à jour et gère toute votre base d'utilisateurs. Cela crée une nouvelle dynamique terrifiante : si quelque chose plante dans l'onboarding d'un utilisateur, à qui la faute ? À l'administrateur IT ? À l'IdP ? À notre backend ?
 
 C'est là qu'intervient la nécessité absolue d'un **système d'Audit en béton armé**. Si un utilisateur reçoit soudainement des droits d'admin global, il nous faut une vue hyper claire et indiscutable de qui (ou quelle machine) a fait ce changement.
 
@@ -64,13 +64,13 @@ En interne, nous avions déjà un gigantesque système d'Activity Logs (je racon
 Nous avons bâti une piste d'audit qui traite chaque opération SCIM comme une transaction vitale :
 
 - **Horodatage** (à la milliseconde près).
-- **Différenciation de l'acteur** (est-ce le bot Okta, un call API Forest Admin, ou Jean de l'IT ?).
-- **Diffing précis** (pas juste "utilisateur modifié", mais "Rôle changé de _Viewer_ à _Admin_ via la synchro SCIM").
+- **Identification de l'acteur** (est-ce le bot Okta, un appel d'API Forest Admin ou Jean de l'IT ?).
+- **Comparaison précise** (pas juste « utilisateur modifié », mais « rôle passé de _Viewer_ à _Admin_ via la synchronisation SCIM »).
 
 ## Conclusion
 
 L'implémentation de SCIM, c'est typiquement la fonctionnalité qui ressemble à une tâche Jira de 2 semaines, mais qui finit par vous prendre un mois à simplement déchiffrer les caprices des différents IdP.
 
-Mais quand ça marche ? La récompense est énorme. Quand vous pouvez faire atterrir un nouvel ingénieur Qonto exactement dans le bon environnement dès son premier jour, sans le moindre ticket IT, vous vous sentez enfin comme une vraie plateforme Entreprise. Et si ça casse... au moins notre nouveau log d'audit nous dira quel fournisseur a décidé d'interpréter créativement la RFC aujourd'hui.
+Mais quand ça marche, la récompense est énorme. Quand vous pouvez faire atterrir un nouvel ingénieur Qonto exactement dans le bon environnement dès son premier jour, sans le moindre ticket IT, vous vous sentez enfin comme une vraie plateforme entreprise. Et si ça casse... au moins notre nouveau journal d'audit nous dira quel fournisseur a décidé d'interpréter la RFC à sa manière aujourd'hui.
 
 _Note : Cet article a été écrit a posteriori, après mon départ de Forest Admin._

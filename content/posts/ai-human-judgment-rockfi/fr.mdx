@@ -1,6 +1,6 @@
 ---
-title: "L'IA chez RockFi : accélérer sans retirer le jugement humain"
-subtitle: "Des challenges Claude Code aux boucles IA sécurisées que nous préparons pour la suite."
+title: "L'IA chez RockFi : accélérer sans céder le jugement humain"
+subtitle: "Des challenges Claude Code aux boucles IA encadrées que nous préparons pour la suite."
 summary: "Chez RockFi, l'IA contribue déjà à environ 70 % de nos flux de travail. Voici comment nous en amplifions l'effet tout en gardant le pilotage, la validation et les accès sous responsabilité humaine."
 visualId: "bounded-ai-loop"
 publishedAt: "2026-07-10"
@@ -32,14 +32,14 @@ C'est pour cela que l'équipe engineering a créé le programme **Claude Code Ch
 La progression suit le cycle de livraison :
 
 - Mettre en place son environnement et comprendre l'impact du contexte sur le résultat.
-- Passer d'une spécification au code, puis le reviewer et le livrer correctement.
-- Débugger des problèmes non triviaux avec des preuves reproductibles et des hypothèses falsifiables.
+- Passer d'une spécification au code, puis relire le résultat et le livrer correctement.
+- Diagnostiquer des problèmes non triviaux avec des preuves reproductibles et des hypothèses falsifiables.
 - Utiliser les agents en parallèle, les hooks et les skills réutilisables là où ils apportent une vraie valeur.
 - Contribuer à l'outillage et aux garde-fous partagés par l'équipe.
 
 Ce point est important : être compétent avec l'IA ne consiste pas à trouver des prompts astucieux. C'est savoir cadrer un problème, fournir le bon contexte, évaluer le résultat et reprendre la main quand le modèle part dans une mauvaise direction.
 
-Par exemple, le challenge de debugging ne demande pas d'écrire « corrige ce bug ». Il exige une reproduction déterministe, plusieurs hypothèses, des expériences conçues pour les invalider, et un test de régression qui échoue avant le correctif puis passe après. L'IA accélère cette démarche ; elle ne remplace pas la rigueur qui la rend fiable.
+Par exemple, le challenge de débogage ne demande pas d'écrire « corrige ce bug ». Il exige une reproduction déterministe, plusieurs hypothèses, des expériences conçues pour les invalider, et un test de régression qui échoue avant le correctif puis passe après. L'IA accélère cette démarche ; elle ne remplace pas la rigueur qui la rend fiable.
 
 La même logique s'applique à l'outillage d'équipe. Les skills encapsulent des workflows, des templates et des cas limites appris sur le terrain afin de les rendre réutilisables. Les hooks appliquent des garde-fous au bon moment dans une session agentique : bloquer une action dangereuse, exiger une suite de tests rapide, ou tracer une modification dans une zone sensible. L'objectif est de faire passer un gain individuel à une capacité collective plus sûre.
 
@@ -56,7 +56,7 @@ Ce design est volontaire. Une future boucle agentique ne doit pas pouvoir décou
 - **Exécution au moindre privilège :** environnements isolés, identifiants de courte durée et accès explicite aux seuls systèmes concernés.
 - **Fin vérifiable :** critères de sortie mesurables, preuves par les tests ou les contrôles, nombre de tours, temps et coût bornés.
 - **Traçabilité :** journaux des actions, entrées, sorties et validations permettant de comprendre ce qui s'est passé.
-- **Gates humains :** une personne relit les changements matériels, les décisions à fort impact et tout ce qui franchit une frontière sensible.
+- **Points de validation humaine :** une personne relit les changements matériels, les décisions à fort impact et tout ce qui franchit une frontière sensible.
 - **Échec sûr :** en cas de contexte manquant, de contrôle échoué ou d'instruction ambiguë, le comportement par défaut est de s'arrêter et d'escalader — pas de deviner.
 
 C'est la traduction infrastructure de la leçon que nous pratiquons dans les challenges : définir ce que signifie « terminé », le rendre testable, et ne jamais confondre une affirmation avec une preuve.
@@ -73,7 +73,7 @@ Le rôle humain devient plus important, pas moins :
 
 - Il faut définir le vrai problème et les contraintes qui comptent.
 - Il faut reconnaître qu'une réponse plausible est inadaptée à nos clients, à notre produit ou à nos obligations réglementaires.
-- Il faut valider les recommandations avant qu'elles deviennent client-facing, financières ou qu'elles aient un impact en production.
+- Il faut valider les recommandations avant qu'elles soient présentées aux clients, utilisées dans un contexte financier ou appliquées en production.
 - Il faut assumer le résultat.
 
 L'IA peut générer une première version convaincante. Elle ne porte pas la responsabilité. Chez RockFi, cette responsabilité reste humaine.
@@ -82,7 +82,7 @@ L'IA peut générer une première version convaincante. Elle ne porte pas la res
 
 Quand produire une première version devient peu coûteux, le goulot d'étranglement se déplace. Les questions difficiles ne sont plus « Peut-on produire cela ? », mais « Est-ce la bonne chose à produire ? », « Quelle preuve montrerait que c'est correct ? » et « Qui est responsable si cela ne l'est pas ? »
 
-Pour l'engineering, cela implique des reviews plus solides, une meilleure architecture, des frontières métier plus claires et une vérification plus rigoureuse. Pour l'entreprise, cela implique de meilleures décisions opérationnelles, des boucles de feedback plus rapides et une place explicite pour le jugement humain dans chaque workflow conséquent.
+Pour l'ingénierie, cela implique des revues plus solides, une meilleure architecture, des frontières métier plus claires et une vérification plus rigoureuse. Pour l'entreprise, cela implique de meilleures décisions opérationnelles, des boucles de retour plus rapides et une place explicite pour le jugement humain dans chaque flux de travail conséquent.
 
 Nous ne voyons pas l'IA comme un remplacement des personnes qui connaissent RockFi, nos clients et les conséquences réelles d'une décision. Nous la voyons comme un levier pour ces personnes.
 

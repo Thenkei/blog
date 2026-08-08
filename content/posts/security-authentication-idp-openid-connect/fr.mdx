@@ -1,7 +1,7 @@
 ---
-title: "Sécurité et authentification avec fédération d'identité (OpenID Connect)"
-subtitle: "Forest Admin Server comme SP en amont et IDP en aval pour les agents."
-summary: "Décomposition production des flux OIDC, des bearer tokens OAuth2, et des assertions SAML quand une plateforme joue à la fois le rôle de SP et d'IDP."
+title: "Fédération d'identité : sécuriser les flux OIDC, OAuth2 et SAML"
+subtitle: "Forest Admin Server comme SP en amont et IdP en aval pour les agents."
+summary: "Décomposition des flux OIDC, des bearer tokens OAuth2 et des assertions SAML lorsqu'une plateforme joue à la fois le rôle de SP et d'IdP."
 visualId: "security-authentication-idp-openid-connect"
 publishedAt: "2021-05-12"
 readTimeMinutes: 12
@@ -19,34 +19,34 @@ import oidcAuthorizationCodeFlowDiagram from "../../../src/assets/images/posts/o
 import samlRfc7522BridgeFlowDiagram from "../../../src/assets/images/posts/saml-rfc7522-bridge-flow.svg";
 import downstreamAgentValidationFlowDiagram from "../../../src/assets/images/posts/downstream-agent-validation-flow.svg";
 
-## Contexte (ou "À qui peut-on vraiment faire confiance ?")
+## Contexte (ou « à qui peut-on vraiment faire confiance ? »)
 
 <ArticleDiagram visualId="security-authentication-idp-openid-connect" />
 
 Chez Forest Admin, notre architecture nous imposait un véritable exercice d'équilibriste. Nous avions trois frontières de confiance bien distinctes :
 
-1. **Utilisateur vers Forest Admin Server** (La frontière "Es-tu vraiment Bob de la compta ?", via SAML, OAuth, ou juste password + 2FA)
+1. **Utilisateur vers Forest Admin Server** (la frontière « Es-tu vraiment Bob de la compta ? », via SAML, OAuth ou simplement mot de passe + 2FA)
 2. **Frontend vers agent hébergé chez le client** (La frontière "Le serveur Forest se porte garant pour moi, laisse-moi lire la base")
 3. **Agent hébergé chez le client vers Forest Admin Server** (La frontière "Je suis l'agent légitime, voici mon secret d'environnement")
 
-Pour pimenter un peu le tout, **nous n'hébergions pas les agents**. Ils tournaient bien au chaud derrière les pare-feux d'entreprise de nos clients. Vous vous demandez sûrement : "Comment un serveur SaaS peut-il bien envoyer des commandes à un serveur planqué derrière un firewall ?" La réponse magique : les Server-Sent Events (SSE). L'agent ouvre une connexion sortante, et nous y poussons nos datas. (Mais honnêtement, la joie et le traumatisme absolu de maintenir des connexions SSE actives à travers des milliers de pare-feux méritent [un article dédié à part entière](../posts/architecture-sse-agent-communication)).
+Pour pimenter un peu le tout, **nous n'hébergions pas les agents**. Ils tournaient bien au chaud derrière les pare-feu d'entreprise de nos clients. Vous vous demandez sûrement : « Comment un serveur SaaS peut-il envoyer des commandes à un serveur caché derrière un firewall ? » La réponse magique : les Server-Sent Events (SSE). L'agent ouvre une connexion sortante et nous y poussons nos données. (Mais honnêtement, la joie et le traumatisme absolu de maintenir des connexions SSE actives à travers des milliers de pare-feu méritent [un article dédié à part entière](../posts/architecture-sse-agent-communication)).
 
 Cela nous imposait un modèle à double rôle merveilleusement complexe vis-à-vis de l'utilisateur :
 
-- Forest Admin Server devait agir comme **Service Provider (SP)** vis-à-vis des mastodontes de l'identité externe (SAML entreprise comme Okta/Azure AD, et OAuth2/OIDC comme Google).
-- Mais en même temps, Forest Admin Server devait aussi se comporter en **Identity Provider (IDP)** vis-à-vis des agents. Le client (frontend) est déjà authentifié au niveau de notre serveur, mais pour aller récupérer les données de l'application, le frontend a besoin d'un token à fournir directement à l'agent hébergé chez le client. L'agent fait une confiance aveugle à ces artefacts d'identité émis par Forest.
+- Forest Admin Server devait agir comme **Service Provider (SP)** vis-à-vis des grands fournisseurs d'identité externes (SAML d'entreprise comme Okta/Azure AD, et OAuth2/OIDC comme Google).
+- Mais en même temps, Forest Admin Server devait aussi se comporter en **Identity Provider (IdP)** vis-à-vis des agents. Le client (frontend) est déjà authentifié au niveau de notre serveur, mais, pour récupérer les données de l'application, le frontend a besoin d'un token à fournir directement à l'agent hébergé chez le client. L'agent accorde une confiance aveugle à ces artefacts d'identité émis par Forest.
 
 Ce dédoublement de personnalité est ultra-classique pour une control plane SaaS. C'est aussi l'endroit exact où l'architecture s'effondre dans un grand fracas si les frontières protocolaires deviennent floues. Creusons un peu.
 
 <figure className="post-visual">
   <img
     src={federationOverviewDiagram}
-    alt="Vue d'ensemble de federation d'identite montrant Forest Admin Server comme SP en amont et IDP en aval."
+    alt="Vue d'ensemble de la fédération d'identité montrant Forest Admin Server comme SP en amont et IdP en aval."
     loading="lazy"
     decoding="async"
   />
   <figcaption>
-    Topologie globale : federation amont vers Forest, puis acces delegue aval de
+    Topologie globale : fédération amont vers Forest, puis accès délégué aval de
     Forest vers les agents.
   </figcaption>
 </figure>
@@ -78,8 +78,8 @@ Forest Admin initie la connexion vers un IdP amont.
     decoding="async"
   />
   <figcaption>
-    Detail du flow OIDC amont : redirections, callback code, echange token et
-    verification de signature.
+    Détail du flux OIDC amont : redirections, callback code, échange de token et
+    vérification de signature.
   </figcaption>
 </figure>
 
@@ -115,13 +115,13 @@ Contrat minimal du token aval :
 <figure className="post-visual">
   <img
     src={downstreamAgentValidationFlowDiagram}
-    alt="Flow de validation bearer aval ou Forest emet un token et l'agent valide signature et claims avant allow ou deny."
+    alt="Flux de validation bearer aval où Forest émet un token et l'agent valide la signature et les claims avant allow ou deny."
     loading="lazy"
     decoding="async"
   />
   <figcaption>
-    Chemin de controle aval : chaque verification de claim est explicite et la
-    decision est observable.
+    Chemin de contrôle aval : chaque vérification de claim est explicite et la
+    décision est observable.
   </figcaption>
 </figure>
 
@@ -168,13 +168,13 @@ Pour une control plane, garder la séparation explicite :
 <figure className="post-visual">
   <img
     src={samlRfc7522BridgeFlowDiagram}
-    alt="Pont SAML vers OAuth2 via RFC7522 ou Forest valide une assertion puis effectue un echange de token contraint."
+    alt="Pont SAML vers OAuth2 via RFC 7522 où Forest valide une assertion puis effectue un échange de token contraint."
     loading="lazy"
     decoding="async"
   />
   <figcaption>
-    Pont RFC7522 : validation stricte de l'assertion SAML amont avant echange et
-    emission de l'acces aval.
+    Pont RFC 7522 : validation stricte de l'assertion SAML amont avant échange et
+    émission de l'accès aval.
   </figcaption>
 </figure>
 

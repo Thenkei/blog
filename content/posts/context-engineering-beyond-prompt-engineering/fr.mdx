@@ -1,5 +1,5 @@
 ---
-title: "L'ingénierie du contexte au-delà du prompt engineering"
+title: "Ingénierie du contexte : au-delà du prompt"
 subtitle: "Un système IA fiable ne reçoit pas seulement des instructions. Il reçoit un état opérationnel autorisé, actuel et testable."
 summary: "Pourquoi la qualité du prompt n'est qu'une partie de la fiabilité IA, et comment la sélection du contexte, les permissions, la fraîcheur, la provenance et la validation façonnent le comportement des agents."
 visualId: "context-engineering-beyond-prompt-engineering"
@@ -26,7 +26,7 @@ Cet état peut inclure la tâche, le code concerné, les décisions précédente
 
 Le problème d'ingénierie n'est donc pas « comment écrire le prompt parfait ? ». C'est plutôt : « comment construire le plus petit contexte suffisant pour cette décision, avec la bonne autorité et une preuve qu'il est encore valide ? »
 
-C'est le déplacement que je vois dans le vrai travail d'ingénierie. Lorsque la génération de code devient peu coûteuse, le problème n'est plus de convaincre le modèle de produire de la syntaxe. Il faut l'empêcher d'utiliser la mauvaise convention du repository, la décision déjà remplacée ou le fichier de configuration qui semble important uniquement parce que son nom affiche une confiance spectaculaire.
+C'est le déplacement que je vois dans le vrai travail d'ingénierie. Lorsque la génération de code devient peu coûteuse, le problème n'est plus de convaincre le modèle de produire de la syntaxe. Il faut l'empêcher d'utiliser la mauvaise convention du dépôt, la décision déjà remplacée ou le fichier de configuration qui semble important uniquement parce que son nom affiche une confiance spectaculaire.
 
 ## Un prompt ne compense pas un état manquant (mais il essaiera quand même)
 
@@ -46,7 +46,7 @@ Un modèle de contexte utile comporte plusieurs couches :
 
 | Couche | Fonction | Échec typique |
 | --- | --- | --- |
-| Tâche | Décrit le résultat et la condition d'arrêt | Objectif vague ou scope absent |
+| Tâche | Décrit le résultat et la condition d'arrêt | Objectif vague ou périmètre absent |
 | Domaine | Explique les termes, invariants et contraintes métier | Résultat techniquement juste mais faux métier |
 | Système | Fournit code, schémas, configuration et dépendances | Mauvaise version ou chemin incomplet |
 | Historique | Apporte décisions, incidents et tentatives précédentes | Contexte obsolète traité comme actuel |
@@ -61,7 +61,7 @@ L'ingénierie du contexte consiste à rendre ces relations explicites.
 
 La sélection du contexte est souvent présentée comme un problème de pertinence : récupérer les documents les plus proches de la question. En production, c'est aussi un problème d'autorisation.
 
-Le document pertinent n'est pas forcément un document autorisé. Un utilisateur peut avoir le droit de demander un résumé sans pouvoir exposer les enregistrements sources. Un agent peut avoir besoin d'un schéma sans avoir besoin des valeurs stockées dans la table. Un reviewer peut avoir besoin du diff et des tests sans avoir besoin d'une credential de production.
+Le document pertinent n'est pas forcément un document autorisé. Un utilisateur peut avoir le droit de demander un résumé sans pouvoir exposer les enregistrements sources. Un agent peut avoir besoin d'un schéma sans avoir besoin des valeurs stockées dans la table. Un reviewer peut avoir besoin du diff et des tests sans avoir besoin d'un identifiant de production.
 
 Le pipeline de sélection doit donc répondre à deux questions indépendantes :
 
@@ -92,7 +92,7 @@ Lorsque le contexte contient des informations contradictoires, l'ordre de prése
 
 Placer les contraintes de la tâche actuelle là où le runtime peut les distinguer des exemples historiques. Étiqueter différemment les décisions, hypothèses, observations et instructions. Préserver la source et l'horodatage des informations récupérées. Lorsque deux sources divergent, exposer le conflit au lieu de concaténer les deux en espérant que le modèle choisira correctement.
 
-Le système doit permettre à un reviewer humain de répondre à la question : quel input a causé cette action ?
+Le système doit permettre à un reviewer humain de répondre à la question : quelle entrée a causé cette action ?
 
 ## Les budgets de contexte exigent des priorités (tout donner n'est pas une stratégie)
 
@@ -127,11 +127,11 @@ Les erreurs de contexte ne se ressemblent pas toutes.
 
 Un **contexte utile** est pertinent, suffisamment actuel, dans le scope et relié à un fait observable. Il réduit l'incertitude.
 
-Un **contexte ambigu** contient plusieurs interprétations, des décisions anciennes ou un owner manquant. Il doit déclencher une question, une hypothèse explicite ou une human gate.
+Un **contexte ambigu** contient plusieurs interprétations, des décisions anciennes ou un owner manquant. Il doit déclencher une question, une hypothèse explicite ou une validation humaine.
 
 Un **contexte dangereux** accorde une autorité supérieure à la tâche, contient inutilement des données sensibles ou encourage une action irréversible sans preuve. Il doit être bloqué ou placé en quarantaine par le runtime.
 
-Le modèle ne doit pas être le seul composant à décider de cette catégorie. La policy appartient au système autour : permissions d'outils, filtres de retrieval, redaction, scopes de tâche et états d'approbation.
+Le modèle ne doit pas être le seul composant à décider de cette catégorie. La policy appartient au système autour : permissions d'outils, filtres de retrieval, caviardage, périmètres de tâche et états d'approbation.
 
 « Le modèle devrait comprendre » n'est pas une policy. C'est une phrase qui vieillit assez mal dès que les données de production et les permissions d'écriture entrent dans la conversation.
 

@@ -1,7 +1,7 @@
 ---
-title: "Backpressure Node.js pour les exports historiques massifs : streams, generateurs async et S3 multipart"
-subtitle: "Propagation de pression, concurrence bornee et fiabilite des exports."
-summary: "Patterns de production pour exporter de gros volumes de donnees avec memoire bornee et debit stable."
+title: "Backpressure dans Node.js : exporter de gros volumes avec des streams et S3 multipart"
+subtitle: "Propagation de la pression, concurrence bornée et fiabilité des exports."
+summary: "Des patterns de production pour exporter de gros volumes de données avec une mémoire bornée et un débit stable."
 visualId: "nodejs-stream-backpressure-history-export"
 publishedAt: "2023-08-10"
 readTimeMinutes: 18
@@ -18,28 +18,28 @@ Ce pipeline d'export est littéralement né d'un traumatisme opérationnel : les
 
 Sur nos plus gros clients, les exports prenaient entre 10 et 15 minutes de calcul intensif. La grosse contrainte n'était pas seulement d'avoir le bon CSV à la fin, mais de garantir la survie des workers avec une empreinte mémoire en béton armé.
 
-**Serie: Async Workloads at Scale (Partie 1/3)**
+**Série : Async Workloads at Scale (partie 1/3)**
 
-Ce post ouvre une serie en 3 parties :
+Ce post ouvre une série en trois parties :
 
-- Partie 1 (courante) - backpressure, transforms stream et exports multipart.
+- Partie 1 (courante) - backpressure, transformations de flux et exports multipart.
 - Partie 2 - [Jobify + BullMQ + contrats worker/queue dans NestJS](../posts/jobify-workers-queues-nestjs)
 - Partie 3 - [durcissement idempotence + debounce (reschedule vs time-frame)](../posts/idempotency-debounce-jobify-bullmq)
 
-**Le backpressure etait le mecanisme de controle principal.**
+**La backpressure était le mécanisme de contrôle principal.**
 
 ## Contraintes système (alias "Comment ça va inévitablement exploser en prod")
 
 <ArticleDiagram visualId="nodejs-stream-backpressure-history-export" />
 
-- **Producteur non borné :** le scroll Elasticsearch peut se transformer en lance à incendie qui noiera allègrement votre sérialisation en aval.
+- **Producteur non borné :** le scroll Elasticsearch peut se transformer en lance à incendie qui noiera votre sérialisation en aval.
 - **Risque N+1 :** l'enrichissement relationnel par événement va rapidement mettre votre pool de connexions DB à genoux.
 - **Risque de starvation worker :** un export de 15 minutes va joyeusement prendre un worker en otage pendant que vos petits jobs critiques patientent.
 - **Risque de retry tardif :** si un upload de 3GB plante à 99%, un retry naïf signifie tout recommencer depuis le début. Votre facture AWS appréciera.
 
-## Approche A : pipeline streams + Transform
+## Approche A : pipeline de streams + Transform
 
-C'est le modèle le plus proche de ce que vous verrez dans un environnement de prod qui a survécu à la guerre. On utilise `Readable.from(asyncIterator)`, des étapes Transform explicites, puis un writable multipart S3. C'est verbeux, ce n'est pas le plus beau code du monde, mais opérationnellement, c'est du béton armé.
+C'est le modèle le plus proche de ce que vous verrez dans un environnement de production qui a survécu à la guerre. On utilise `Readable.from(asyncIterator)`, des étapes Transform explicites, puis un writable multipart S3. C'est verbeux, ce n'est pas le plus beau code du monde, mais opérationnellement, c'est du béton armé.
 
 ```typescript
 import { Readable, Transform, pipeline } from "node:stream";
@@ -55,11 +55,11 @@ await pipelineAsync([
 ]);
 ```
 
-**Pourquoi ca marche :** chaque etape peut ralentir la precedente quand elle est saturee. La pression remonte jusqu'au lecteur Elasticsearch.
+**Pourquoi ça marche :** chaque étape peut ralentir la précédente lorsqu'elle est saturée. La pression remonte jusqu'au lecteur Elasticsearch.
 
-## Approche B : generateurs async
+## Approche B : générateurs async
 
-Les generateurs async sont souvent plus simples a tester pour la logique metier. On garde le backpressure avec `Readable.from` a la frontiere du pipeline.
+Les générateurs async sont souvent plus simples à tester pour la logique métier. On conserve la backpressure avec `Readable.from` à la frontière du pipeline.
 
 ```typescript
 import { Readable } from "node:stream";
@@ -78,7 +78,7 @@ await pipeline(
 );
 ```
 
-## Approche C : enrichissement parallèle borné (Parce qu'attendre séquentiellement c'est pour les débutants)
+## Approche C : enrichissement parallèle borné (attendre séquentiellement n'est pas toujours nécessaire)
 
 Si l'enrichissement DB domine la latence, un mapping purement séquentiel sous-utilise bêtement vos ressources. Une concurrence bornée explose le débit tout en gardant une empreinte mémoire prévisible.
 
@@ -90,16 +90,16 @@ const enriched = parallelMapOrdered(events, 8, async (event) => {
 });
 ```
 
-**Regle:** ne jamais depasser ce que le pool DB et le serializer aval peuvent absorber.
+**Règle :** ne jamais dépasser ce que le pool DB et le serializer aval peuvent absorber.
 
 ## S3 multipart : deux patterns valides
 
-- **Writable custom:** controle fin des parts, retries, metriques.
+- **Writable custom :** contrôle fin des parts, retries, métriques.
 - **Upload SDK gere:** moins de code applicatif, mais vigilance sur `partSize` et `queueSize`.
 
-## Isolation BullMQ pour proteger la capacite worker
+## Isolation BullMQ pour protéger la capacité worker
 
-Les exports ne doivent pas concurrencer les jobs sensibles a la latence. Queue dediee, concurrence 2-3, et `jobId` deterministe.
+Les exports ne doivent pas concurrencer les jobs sensibles à la latence. Queue dédiée, concurrence de 2 à 3 et `jobId` déterministe.
 
 ```typescript
 new Worker("activity-log-export", processExport, {
@@ -107,37 +107,37 @@ new Worker("activity-log-export", processExport, {
 });
 ```
 
-## Controles operationnels critiques
+## Contrôles opérationnels critiques
 
-- **Idempotence:** cle deterministe tenant/environment/date-range/timezone.
+- **Idempotence :** clé déterministe tenant/environment/date-range/timezone.
 - **Budgets de timeout:** separer ES, DB et commit multipart.
-- **Telemetry structuree:** attente queue, lignes/s, bytes/s, watermark memoire, retries.
-- **Support:** checkpoints de progression + URL signee TTL (24 heures dans cette implementation).
+- **Telemetry structurée :** attente queue, lignes/s, bytes/s, watermark mémoire, retries.
+- **Support :** checkpoints de progression + URL signée TTL (24 heures dans cette implémentation).
 
-## Profil de benchmark et deltas observes
+## Profil de benchmark et écarts observés
 
-Nous avons utilise un profil de staging representatif pour comparer les approches : 5 millions d'activity logs, ~3.2 GB de CSV final, ES et Postgres dans la meme region que les workers, et upload S3 multipart avec des parts de 50 MB.
+Nous avons utilisé un profil de staging représentatif pour comparer les approches : 5 millions de journaux d'activité, environ 3,2 Go de CSV final, ES et Postgres dans la même région que les workers, et un upload S3 multipart avec des parts de 50 Mo.
 
 Ces chiffres ne sont pas universels, mais ils sont utiles pour analyser le comportement sous charge.
 
-| Approche                                      | Duree            | RSS max          | Pression DB      | Notes                                     |
+| Approche                                      | Durée            | RSS max          | Pression DB      | Notes                                     |
 | :-------------------------------------------- | :--------------- | :--------------- | :--------------- | :---------------------------------------- |
-| A - Transform stream (mapping sequentiel)     | 1.00x (baseline) | 1.00x (baseline) | Faible et stable | Le plus previsible en production          |
-| B - Generateurs async (mapping sequentiel)    | 1.03x            | 0.97x            | Faible et stable | Meilleure lisibilite et testabilite       |
-| C - Mapping parallele borne (concurrence = 8) | 0.62x            | 1.18x            | Moderee a forte  | Meilleur debit, cout de tuning plus eleve |
+| A - Transform stream (mapping séquentiel)     | 1.00x (baseline) | 1.00x (baseline) | Faible et stable | Le plus prévisible en production          |
+| B - Générateurs async (mapping séquentiel)    | 1.03x            | 0.97x            | Faible et stable | Meilleure lisibilité et testabilité       |
+| C - Mapping parallèle borné (concurrence = 8) | 0.62x            | 1.18x            | Modérée à forte  | Meilleur débit, coût de tuning plus élevé |
 
-## Matrice de decision (choix rapide)
+## Matrice de décision (choix rapide)
 
-| Contrainte                                                 | Approche recommandee               | Pourquoi                                                    |
+| Contrainte                                                 | Approche recommandée               | Pourquoi                                                    |
 | :--------------------------------------------------------- | :--------------------------------- | :---------------------------------------------------------- |
-| Budget memoire strict, faible tolerance au risque ops      | A - Transform stream               | Backpressure natif fort et frontieres de pannes simples     |
-| Mapping metier complexe, base de tests importante          | B - Generateurs async              | Fonctions composables et verification unitaire plus simple  |
-| Latence d'enrichissement dominante et marge sur le pool DB | C - Mapping parallele borne        | Debit plus eleve si la concurrence est strictement capee    |
-| Equipe peu familiere avec les internals stream             | A puis B/C de maniere incrementale | Charge cognitive plus faible et rollout production plus sur |
+| Budget mémoire strict, faible tolérance au risque ops      | A - Transform stream               | Backpressure natif fort et frontières de pannes simples     |
+| Mapping métier complexe, base de tests importante          | B - Générateurs async              | Fonctions composables et vérification unitaire plus simple  |
+| Latence d'enrichissement dominante et marge sur le pool DB | C - Mapping parallèle borné        | Débit plus élevé si la concurrence est strictement capée    |
+| Équipe peu familière avec les internals stream             | A puis B/C de manière incrémentale | Charge cognitive plus faible et rollout production plus sûr |
 
-Dans notre cas, la combinaison gagnante etait : backpressure stream + isolation de queue + concurrence bornee. C'est ce qui a rendu le systeme stable sur les gros volumes.
+Dans notre cas, la combinaison gagnante était : backpressure stream + isolation de queue + concurrence bornée. C'est ce qui a rendu le système stable sur les gros volumes.
 
-## Navigation dans la serie
+## Navigation dans la série
 
 - Continuer avec les contrats d'architecture worker/queue dans [Partie 2](../posts/jobify-workers-queues-nestjs).
 - Puis durcir dedupe et tempetes de triggers dans [Partie 3](../posts/idempotency-debounce-jobify-bullmq).
