@@ -1,7 +1,7 @@
 ---
-title: "Construire un self-service analytics qui ne ment pas"
+title: "Construire une analytique en libre-service qui ne ment pas"
 subtitle: "Le vrai travail n'est pas de donner un dashboard à tout le monde. C'est de donner un contrat à chaque chiffre."
-summary: "L'architecture self-service analytics que nous voulons construire chez RockFi : des requêtes limitées aux marts gouvernés, des contrats de métriques explicites et des agents qui proposent les modèles manquants sans contourner les contrôles."
+summary: "L'architecture d'analytique en libre-service que nous voulons construire chez RockFi : des requêtes limitées aux marts gouvernés, des contrats de métriques explicites et des agents qui proposent les modèles manquants sans contourner les contrôles."
 visualId: "self-service-analytics-that-doesnt-lie"
 publishedAt: "2026-08-17"
 readTimeMinutes: 19
@@ -18,7 +18,7 @@ seriesOrder: 2
 
 import selfServiceAnalyticsDiagram from "../../../src/assets/images/posts/self-service-analytics-fr.svg";
 
-Chez RockFi, le self-service analytics n'est pas une success story que je peux emballer dans un joli retour d'expérience. C'est un objectif que nous poursuivons activement — et que nous n'avons pas encore complètement craqué.
+Chez RockFi, l'analytique en libre-service n'est pas une success story que je peux emballer dans un joli retour d'expérience. C'est un objectif que nous poursuivons activement — et que nous ne maîtrisons pas encore complètement.
 
 Aujourd'hui, les outils d'IA accélèrent déjà une grande partie de la boucle technique. Ils nous aident à explorer des données que l'on connaît mal, tester des hypothèses pendant la conception, comprendre les modèles existants, générer des requêtes et renforcer la première passe de QA après l'implémentation. Dans un workflow engineering ou data, le levier est réel.
 
@@ -32,7 +32,7 @@ Le problème ne vient pas principalement de l'outil de visualisation. Il vient d
 
 Le self-service analytics devient fiable lorsque chacun peut explorer librement, mais que l'organisation explicite les définitions, les grains, les sources et les signaux de qualité qui peuvent être utilisés pour prendre une décision.
 
-## Des données disponibles ne sont pas forcément des données fiables
+## Des données disponibles ne sont pas forcément fiables
 
 <ArticleDiagram visualId="self-service-analytics-that-doesnt-lie" />
 
@@ -157,9 +157,9 @@ Cette frontière ne doit pas restreindre la curiosité. Elle empêche une requê
 
 L'équipe data ne devrait pas être la seule à pouvoir interroger les données. Elle devrait posséder les contrats et les chemins balisés qui rendent l'interrogation sûre. Chez RockFi, c'est précisément ce manque d'infrastructure que nous essayons de combler.
 
-## À quoi sert réellement une semantic layer
+## À quoi sert réellement une couche sémantique
 
-On décrit souvent une semantic layer comme un moyen d'éviter de répéter du SQL. C'est utile, mais incomplet. Son rôle le plus important est de donner un sens métier partagé aux champs et aux mesures.
+On décrit souvent une couche sémantique comme un moyen d'éviter de répéter du SQL. C'est utile, mais incomplet. Son rôle le plus important est de donner un sens métier partagé aux champs et aux mesures.
 
 Elle peut définir :
 
@@ -170,7 +170,7 @@ Elle peut définir :
 - les agrégations autorisées ;
 - les métadonnées de fraîcheur et de qualité exposées aux consommateurs.
 
-Cela ne rend pas la semantic layer autoritaire par simple déclaration. Elle le devient lorsque ses définitions sont testées contre la réalité opérationnelle et que les changements ont un owner et une date d'effet.
+Cela ne rend pas la couche sémantique autoritaire par simple déclaration. Elle le devient lorsque ses définitions sont testées contre la réalité opérationnelle et que les changements ont un owner et une date d'effet.
 
 Il faut aussi prévoir une sortie. Une métrique gouvernée incapable d'expliquer ses exceptions repoussera les utilisateurs sérieux vers le SQL brut. Le bon design permet l'exploration tout en gardant une distinction claire entre analyse personnalisée et sortie certifiée.
 
@@ -227,7 +227,7 @@ Les modèles générés par des agents ajoutent une autre limite : la vitesse au
 
 Un chiffre de dashboard n'est pas un fait isolé. Il est l'aboutissement d'une chaîne de systèmes sources, transformations, définitions, filtres, limites temporelles et hypothèses.
 
-Le self-service analytics fonctionne lorsque cette chaîne est suffisamment visible pour être utilisée correctement. Donnez aux équipes la liberté d'explorer, mais rendez le sens certifié explicite. Publiez le grain. Affichez la fraîcheur. Nommez l'owner. Réconciliez le résultat. Rendez l'incertitude visible avant qu'elle ne devienne une décision.
+L'analytique en libre-service fonctionne lorsque cette chaîne est suffisamment visible pour être utilisée correctement. Donnez aux équipes la liberté d'explorer, mais rendez le sens certifié explicite. Publiez le grain. Affichez la fraîcheur. Nommez l'owner. Réconciliez le résultat. Rendez l'incertitude visible avant qu'elle ne devienne une décision.
 
 L'objectif n'est pas de rendre l'analytics incapable d'être faux. C'est de rendre l'erreur détectable avant qu'un chiffre plausible ne gagne de l'autorité.
 
