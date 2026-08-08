@@ -1,5 +1,5 @@
 ---
-title: "Des Claude Code Challenges à un Product OS"
+title: "Des challenges Claude Code au Product OS"
 subtitle: "Comment nous avons transformé l'expérimentation IA en système de delivery partagé et piloté par des humains chez RockFi."
 summary: "Les Claude Code Challenges et les plugins internes de RockFi n'automatisent pas le jugement. Ils rendent le chemin entre une décision produit et une release reviewée plus explicite, réutilisable et fiable."
 visualId: "claude-code-product-os"
@@ -16,9 +16,9 @@ tags:
 
 Chez RockFi, nous ne voulions pas que Claude Code devienne une astuce de productivité personnelle de plus : utile pour quelques early adopters, impossible à reproduire et déconnectée de notre manière réelle de livrer.
 
-Nous voulions quelque chose de plus durable. Une manière commune d'apprendre l'outil, d'encoder les workflows qui comptent et de faire circuler le bon contexte d'une décision produit jusqu'à une release reviewée.
+Nous voulions quelque chose de plus durable : une manière commune d'apprendre l'outil, d'encoder les workflows qui comptent et de faire circuler le bon contexte d'une décision produit jusqu'à une release reviewée.
 
-Ce travail a deux volets. Nous avons d'abord créé **Claude Code Challenges: From Zero to Hero**, un programme interne conçu pour transformer l'expérimentation individuelle en pratique d'ingénierie. Nous avons ensuite commencé à packager les parties répétables de notre processus de delivery sous forme de plugins Claude Code internes.
+Ce travail a deux volets. Nous avons d'abord créé **Claude Code Challenges: From Zero to Hero**, un programme interne conçu pour transformer l'expérimentation individuelle en pratique d'ingénierie. Nous avons ensuite commencé à regrouper les parties répétables de notre processus de delivery sous forme de plugins Claude Code internes.
 
 Ensemble, ces éléments deviennent ce que nous appelons notre **Product OS** : ni une usine produit autonome, ni un remplacement du jugement produit ou technique. C'est un ensemble de boucles pilotées par des humains qui facilite le lien entre l'intention, les décisions, les documents, l'implémentation et la release.
 
@@ -26,25 +26,25 @@ Ensemble, ces éléments deviennent ce que nous appelons notre **Product OS** : 
 
 <ArticleDiagram visualId="claude-code-product-os" />
 
-Donner à un ingénieur accès à un agent de code puissant ne garantit pas un meilleur engineering. Sans méthode, l'expérience est incohérente : une personne découvre un workflow efficace, une autre se bat avec du contexte obsolète, et une troisième génère une grosse diff que personne ne peut reviewer avec confiance.
+Donner à un ingénieur accès à un agent de code puissant ne garantit pas une meilleure ingénierie. Sans méthode, l'expérience est incohérente : une personne découvre un workflow efficace, une autre se bat avec du contexte obsolète, et une troisième génère une grosse diff que personne ne peut reviewer avec confiance.
 
 Les Claude Code Challenges sont notre réponse. Le programme est volontairement pratique : dix challenges courts, dont des bonus, réalisés de manière asynchrone sur du vrai code. Chaque challenge prend environ 60 à 90 minutes et demande un livrable concret — pas un score de quiz.
 
 La progression reflète le travail réel des ingénieurs :
 
-- Poser un baseline fiable et apprendre à gérer le contexte.
+- Poser une base de référence fiable et apprendre à gérer le contexte.
 - Partir d'une spécification, reviewer le résultat et le livrer dans le workflow normal.
-- Débugger des problèmes difficiles avec des preuves reproductibles et des hypothèses falsifiables.
+- Déboguer des problèmes difficiles avec des preuves reproductibles et des hypothèses falsifiables.
 - Travailler avec des subagents et des worktrees parallèles quand le parallélisme est justifié.
 - Construire des hooks et des skills, puis contribuer des workflows utiles à l'équipe.
 
-Le choix de design le plus précieux est que le programme est **Slack-first et favorable au partage des échecs**. Les participants partagent le prompt qui a marché, l'approche qui a échoué, un screenshot ou l'insight inattendu d'une session. Il n'y a pas de classement. L'objectif est de rendre visible la partie invisible de l'usage de l'IA : comment chacun cadre le travail, inspecte la sortie, corrige la trajectoire et décide qu'un résultat est suffisamment bon pour avancer.
+Le choix de design le plus précieux est que le programme est **Slack-first et favorable au partage des échecs**. Les participants partagent le prompt qui a marché, l'approche qui a échoué, une capture d'écran ou l'enseignement inattendu d'une session. Il n'y a pas de classement. L'objectif est de rendre visible la partie invisible de l'usage de l'IA : comment chacun cadre le travail, inspecte la sortie, corrige la trajectoire et décide qu'un résultat est suffisamment bon pour avancer.
 
 C'est plus important que des recettes de prompts. Un bon ingénieur utilisant Claude Code doit toujours comprendre le système, définir les contraintes et vérifier le résultat. L'outil peut produire rapidement une réponse plausible. Il ne peut pas savoir si cette réponse préserve le bon invariant dans notre domaine sans le contexte que nous lui donnons et sans notre jugement.
 
 ## Des workflows individuels à des capacités d'équipe
 
-Dès qu'un workflow a prouvé son utilité, il ne doit pas vivre uniquement dans l'historique de terminal d'une personne. Nous le packagons sous forme de plugin : versionné, documenté, installable et disponible pour les personnes qui en ont besoin.
+Dès qu'un workflow a prouvé son utilité, il ne doit pas vivre uniquement dans l'historique de terminal d'une personne. Nous le regroupons sous forme de plugin : versionné, documenté, installable et disponible pour les personnes qui en ont besoin.
 
 C'est une étape significative au-delà d'un prompt partagé. Un bon plugin interne porte la procédure, les garde-fous, les templates et les cas limites qui rendent un workflow fiable dans la manière de travailler de RockFi.
 
@@ -72,7 +72,7 @@ L'IA enlève de la friction mécanique dans ce flux. Elle ne retire pas la revie
 
 Le problème le plus difficile n'est pas de créer une PR. C'est de s'assurer que la PR reste connectée à la décision qui la justifie.
 
-Produit et tech peuvent facilement dériver. Un workshop produit une décision ; la décision devient un document ; le document devient des issues ; l'implémentation commence ; et, quelques semaines plus tard, le contexte qui explique *pourquoi* un choix a été fait est dispersé entre conversations et pages.
+Produit et tech peuvent facilement dériver. Un workshop produit une décision ; la décision devient un document ; le document devient des issues ; l'implémentation commence ; et, quelques semaines plus tard, le contexte qui explique *pourquoi* un choix a été fait se trouve dispersé entre conversations et pages.
 
 Le plugin `rockfi-ve` est conçu pour réduire cette dérive. Il accompagne notre processus de Value Engineering, de la facilitation structurée des workshops jusqu'au document de conception final DiveIn, en s'appuyant sur les templates Notion officiels.
 
@@ -81,7 +81,7 @@ Il a deux modes complémentaires :
 - **Facilitation :** quand la réflexion reste à faire, il guide un workshop ou un DiveIn section par section. L'équipe explore le problème, compare les solutions, documente la décision et définit le résultat attendu.
 - **Distillation :** quand la discussion a déjà eu lieu, il projette le contenu existant dans la bonne structure documentaire, fait remonter les informations manquantes, signale les hypothèses et prépare un draft à confirmer avant publication.
 
-La structure du DiveIn rend le handoff concret : contexte, definition of done, solution fonctionnelle, solution technique, slicing et ressources. La sortie n'est pas simplement un document plus propre. C'est un meilleur contrat entre produit et tech : quel problème nous résolvons, ce que signifie « terminé », ce qui est volontairement hors périmètre et comment livrer le travail en incréments indépendamment utiles.
+La structure du DiveIn rend le handoff concret : contexte, definition of done, solution fonctionnelle, solution technique, slicing et ressources. La sortie n'est pas simplement un document plus propre. C'est un meilleur contrat entre produit et tech : quel problème nous résolvons, ce que signifie « terminé », ce qui est volontairement hors périmètre et comment livrer le travail en incréments utiles et indépendants.
 
 Le plugin connaît aussi le mouvement le plus probable ensuite. Un workshop peut mener à un DiveIn ; un DiveIn peut mener à des slices, des plans QA, des plans de rollout et des issues. Cette continuité en fait une brique du Product OS, plutôt qu'un assistant de documentation.
 
