@@ -1,6 +1,6 @@
 ---
 title: "Pourquoi la plupart des documents d'ingénierie vieillissent mal"
-subtitle: "Un document reste utile lorsque sa décision, son owner, ses preuves et ses conditions d'expiration sont visibles."
+subtitle: "Un document reste utile lorsque sa décision, son owner, ses preuves et ses conditions d'expiration sont explicites."
 summary: "Pourquoi la documentation dérive, pourquoi chaque type de document mérite un cycle de vie différent et comment garder les connaissances importantes reliées aux systèmes qu'elles décrivent."
 visualId: "engineering-documents-age-poorly"
 publishedAt: "2026-08-31"
@@ -124,7 +124,7 @@ Par exemple :
 
 Chaque document n'a pas besoin d'être un graphe complexe. Les relations importantes doivent simplement être explicites pour qu'un reviewer puisse demander : « Quelles connaissances doivent bouger avec ce changement ? »
 
-## Une documentation générée n'est pas automatiquement actuelle (désolé, les robots)
+## Une documentation générée n'est pas automatiquement à jour (désolé, les robots)
 
 La génération est utile lorsque la source est autoritaire et que la sortie est déterministe. Elle ne remplace pas l'ownership.
 
@@ -144,13 +144,13 @@ La revue humaine reste nécessaire lorsque la documentation communique une déci
 
 Les équipes hésitent souvent à marquer un document comme obsolète parce que la suppression donne l'impression de perdre de la connaissance. Le résultat est une bibliothèque où des conseils actuels sont en concurrence avec des fragments historiques et des propositions abandonnées.
 
-L'expiration n'est pas la destruction. Archiver un document avec son statut, sa date et sa raison. Pointer vers le remplacement lorsqu'il existe. Préserver les décisions historiques lorsqu'elles expliquent le chemin vers le présent, mais les retirer du parcours par défaut de la personne qui opère le système aujourd'hui.
+L'expiration n'est pas la destruction. Archivez un document avec son statut, sa date et sa raison. Pointez vers le remplacement lorsqu'il existe. Préservez les décisions historiques lorsqu'elles expliquent le chemin vers le présent, mais retirez-les du parcours par défaut de la personne qui opère le système aujourd'hui.
 
 Un état explicite « remplacé » est plus sûr que de laisser silencieusement deux documents contradictoires actifs.
 
 ## Revoir au moment du changement
 
-Le meilleur moment pour revoir la documentation est celui où le système change, pas celui où un audit annuel de documentation apparaît dans le calendrier.
+Le meilleur moment pour revoir la documentation est celui où le système change, pas celui où un audit annuel apparaît dans le calendrier.
 
 Pour un changement significatif, demander :
 
@@ -202,7 +202,7 @@ La documentation ne peut pas compenser une architecture floue, un owner absent o
 
 Tous les détails d'implémentation ne doivent pas non plus devenir des documents permanents. Certains sont mieux représentés par des tests exécutables, des schémas, des commentaires de code, des dashboards ou une référence générée. Le bon support est celui qui garde l'affirmation proche du signal capable de l'invalider.
 
-Enfin, la fraîcheur n'est pas la vérité. Un document peut avoir été revu hier et décrire quand même une mauvaise décision. La revue confirme l'alignement avec le système courant ; elle ne remplace pas le jugement d'ingénierie.
+Enfin, la fraîcheur n'est pas la vérité. Un document peut avoir été revu hier et décrire quand même une mauvaise décision. La revue confirme son alignement avec le système courant ; elle ne remplace pas le jugement d'ingénierie.
 
 ## Le document fait partie du système
 
