@@ -1,25 +1,73 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
   <defs>
-    <linearGradient id="rockA" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#d7b688" />
-      <stop offset="100%" stop-color="#8a6443" />
+    <linearGradient id="rockGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f2c38e" />
+      <stop offset="48%" stop-color="#bd8557" />
+      <stop offset="100%" stop-color="#674463" />
     </linearGradient>
-    <linearGradient id="rockB" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#b89ad8" />
-      <stop offset="100%" stop-color="#5d4a78" />
+    <linearGradient id="rockViolet" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d7b5ef" />
+      <stop offset="50%" stop-color="#8d68bd" />
+      <stop offset="100%" stop-color="#44365f" />
     </linearGradient>
+    <linearGradient id="rockCoral" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffb18f" />
+      <stop offset="48%" stop-color="#cb6e68" />
+      <stop offset="100%" stop-color="#62395f" />
+    </linearGradient>
+
+    <g id="asteroidGold">
+      <path d="M-52 -12 L-31 -43 L9 -52 L43 -28 L54 10 L31 43 L-8 51 L-43 29 Z" fill="url(#rockGold)" stroke="#f6d5ac" stroke-width="2" stroke-opacity="0.28" />
+      <path d="M-35 -25 L-11 -41 L7 -36 L-2 -18 L-27 -9 Z" fill="#fff1d2" opacity="0.2" />
+      <ellipse cx="22" cy="10" rx="13" ry="9" fill="#63415d" opacity="0.42" />
+      <ellipse cx="-18" cy="24" rx="8" ry="6" fill="#6d4b56" opacity="0.3" />
+    </g>
+    <g id="asteroidViolet">
+      <path d="M-49 -20 L-18 -50 L24 -42 L52 -8 L40 35 L5 53 L-38 38 L-55 6 Z" fill="url(#rockViolet)" stroke="#ead8f8" stroke-width="2" stroke-opacity="0.26" />
+      <path d="M-28 -31 L-5 -42 L17 -31 L8 -12 L-20 -7 Z" fill="#f2e5ff" opacity="0.18" />
+      <ellipse cx="25" cy="16" rx="12" ry="8" fill="#3f315c" opacity="0.46" />
+      <circle cx="-20" cy="22" r="7" fill="#594170" opacity="0.34" />
+    </g>
+    <g id="asteroidCoral">
+      <path d="M-53 -4 L-37 -38 L2 -52 L40 -35 L56 3 L37 39 L-2 54 L-42 34 Z" fill="url(#rockCoral)" stroke="#ffd0bd" stroke-width="2" stroke-opacity="0.24" />
+      <path d="M-34 -26 L-7 -42 L13 -34 L3 -14 L-27 -8 Z" fill="#ffe1cf" opacity="0.18" />
+      <ellipse cx="23" cy="12" rx="14" ry="10" fill="#633a5d" opacity="0.42" />
+      <ellipse cx="-17" cy="27" rx="9" ry="6" fill="#7c455d" opacity="0.32" />
+    </g>
   </defs>
 
-  <path d="M270 650 L318 614 L374 634 L356 690 L300 702 Z" fill="url(#rockA)" />
-  <path d="M430 560 L462 530 L516 542 L504 594 L444 604 Z" fill="url(#rockB)" />
-  <path d="M610 720 L670 676 L732 694 L706 760 L640 772 Z" fill="url(#rockA)" />
-  <path d="M860 615 L908 582 L956 596 L938 648 L888 658 Z" fill="url(#rockB)" />
-  <path d="M1040 690 L1084 652 L1140 670 L1118 726 L1064 738 Z" fill="url(#rockA)" />
-  <path d="M1240 760 L1298 720 L1354 742 L1326 804 L1264 816 Z" fill="url(#rockB)" />
-  <path d="M1500 650 L1552 612 L1608 634 L1588 692 L1530 708 Z" fill="url(#rockA)" />
-  <path d="M1680 730 L1722 700 L1772 714 L1758 762 L1708 772 Z" fill="url(#rockB)" />
+  <g opacity="0.34">
+    <use href="#asteroidViolet" transform="translate(170 300) rotate(-18) scale(0.24)" />
+    <use href="#asteroidGold" transform="translate(438 238) rotate(26) scale(0.19)" />
+    <use href="#asteroidCoral" transform="translate(735 354) rotate(-34) scale(0.22)" />
+    <use href="#asteroidViolet" transform="translate(1038 230) rotate(18) scale(0.18)" />
+    <use href="#asteroidGold" transform="translate(1395 302) rotate(-12) scale(0.23)" />
+    <use href="#asteroidCoral" transform="translate(1750 250) rotate(32) scale(0.2)" />
+  </g>
 
-  <circle cx="542" cy="834" r="13" fill="#f8bf85" opacity="0.68" />
-  <circle cx="814" cy="784" r="11" fill="#b79ddf" opacity="0.64" />
-  <circle cx="1420" cy="850" r="15" fill="#f8bf85" opacity="0.66" />
+  <g opacity="0.68">
+    <use href="#asteroidViolet" transform="translate(346 600) rotate(12) scale(0.58)" />
+    <use href="#asteroidGold" transform="translate(676 690) rotate(-24) scale(0.68)" />
+    <use href="#asteroidCoral" transform="translate(980 584) rotate(34) scale(0.52)" />
+    <use href="#asteroidViolet" transform="translate(1320 704) rotate(-15) scale(0.72)" />
+    <use href="#asteroidGold" transform="translate(1610 612) rotate(22) scale(0.6)" />
+  </g>
+
+  <g opacity="0.94">
+    <use href="#asteroidGold" transform="translate(242 794) rotate(18) scale(1.04)" />
+    <use href="#asteroidViolet" transform="translate(514 850) rotate(-28) scale(0.82)" />
+    <use href="#asteroidGold" transform="translate(846 796) rotate(10) scale(0.9)" />
+    <use href="#asteroidCoral" transform="translate(1134 880) rotate(30) scale(1.14)" />
+    <use href="#asteroidViolet" transform="translate(1470 824) rotate(-18) scale(0.92)" />
+    <use href="#asteroidGold" transform="translate(1770 862) rotate(24) scale(1.08)" />
+  </g>
+
+  <g fill="#f7eaff">
+    <circle cx="126" cy="710" r="5" opacity="0.46" />
+    <circle cx="414" cy="748" r="3" opacity="0.4" />
+    <circle cx="752" cy="916" r="4" opacity="0.44" />
+    <circle cx="1042" cy="760" r="3" opacity="0.38" />
+    <circle cx="1378" cy="938" r="5" opacity="0.42" />
+    <circle cx="1694" cy="716" r="3" opacity="0.38" />
+  </g>
 </svg>

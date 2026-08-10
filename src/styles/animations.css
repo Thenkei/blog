@@ -29,12 +29,76 @@
   }
 }
 
-@keyframes orbitSpin {
-  from {
+@keyframes rocketProgressOrbit {
+  0% {
     transform: rotate(0deg);
   }
+  20% {
+    transform: rotate(45deg);
+  }
+  35% {
+    transform: rotate(90deg);
+  }
+  43% {
+    transform: rotate(135deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  57% {
+    transform: rotate(225deg);
+  }
+  65% {
+    transform: rotate(270deg);
+  }
+  80% {
+    transform: rotate(315deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rocketProgressLaunchRing {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  18% {
+    opacity: 0.82;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(3.8) scaleY(1.35);
+  }
+}
+
+@keyframes rocketProgressLaunchDust {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+  20% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+        calc(-50% + var(--rocket-dust-x)),
+        calc(-50% + var(--rocket-dust-y))
+      )
+      scale(1.25);
+  }
+}
+
+@keyframes rocketProgressEnginePulse {
+  from {
+    transform: translateX(-50%) scaleY(0.9);
+    opacity: calc(0.2 + (var(--rocket-boost) * 0.48));
+  }
   to {
-    transform: rotate(-360deg);
+    transform: translateX(-50%) scaleY(1.08);
+    opacity: calc(0.3 + (var(--rocket-boost) * 0.6));
   }
 }
 
@@ -113,6 +177,32 @@
   75% {
     transform: rotate(-2deg);
   }
+}
+
+@keyframes arrivalOrbitOuter {
+  from {
+    transform: rotate(-18deg) scaleY(0.42);
+  }
+  to {
+    transform: rotate(-378deg) scaleY(0.42);
+  }
+}
+
+@keyframes arrivalOrbitInner {
+  from {
+    transform: rotate(54deg) scaleY(0.56);
+  }
+  to {
+    transform: rotate(414deg) scaleY(0.56);
+  }
+}
+
+.rocket-arrival-orbit-outer {
+  animation: arrivalOrbitOuter 9s linear infinite;
+}
+
+.rocket-arrival-orbit-inner {
+  animation: arrivalOrbitInner 6s linear infinite;
 }
 
 .post-card {
@@ -202,39 +292,34 @@ article,
   }
 
   .mountain-camera-shell {
-    height: 100vh !important;
+    height: 100svh !important;
   }
 
   .rocket-camera-shell {
-    height: 100vh !important;
+    height: 100svh !important;
   }
 
-  .mountain-camera-sticky {
-    position: relative;
-  }
-
+  .mountain-camera-sticky,
   .rocket-camera-sticky {
     position: relative;
+    height: 100svh;
   }
 
-  .mountain-layer,
-  .mountain-camera-stage::before,
-  .mountain-camera-stage::after {
-    transform: none !important;
-    opacity: 1;
-    filter: none;
+  .mountain-camera-stage,
+  .rocket-camera-stage {
+    height: 100svh;
   }
 
-  .mountain-camera-stage::after {
+  .mountain-camera-stage::after,
+  .rocket-camera-stage::after {
     opacity: 0 !important;
   }
 
-  .rocket-layer,
-  .rocket-camera-stage::before,
-  .rocket-camera-stage::after {
-    transform: none !important;
-    opacity: 1;
-    filter: none;
+  .rocket-progress[data-orbiting="true"] .rocket-progress-flight-carrier {
+    transform: rotate(360deg);
   }
 
+  .rocket-progress-engine-glow {
+    opacity: 0.18;
+  }
 }

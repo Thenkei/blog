@@ -49,16 +49,18 @@ body {
   border-bottom: 1px solid var(--card-border);
 }
 
-.mountain-camera-shell {
+.mountain-camera-shell,
+.rocket-camera-shell {
   position: relative;
-  height: 140vh;
+  height: calc(100svh + clamp(760px, 120svh, 1400px));
   border-bottom: 1px solid var(--card-border);
 }
 
-.mountain-camera-sticky {
+.mountain-camera-sticky,
+.rocket-camera-sticky {
   position: sticky;
   top: 0;
-  height: 100vh;
+  height: 100svh;
   overflow: hidden;
 }
 
@@ -66,15 +68,28 @@ body {
   --camera-progress: 0;
   --sky-shift: 0;
   --far-shift: 0;
+  --far-scale: 1;
   --near-shift: 0;
   --near-scale: 1;
   --near-drift: 0;
-  --near-tilt: 4;
-  --trail-speed: 0;
-  --atmosphere-shift: 0;
-  height: 100vh;
+  --route-progress: 0.04;
+  --runner-progress: 0;
+  --runner-x: 6;
+  --runner-y: 92;
+  --runner-rotate: -18;
+  --runner-scale: 1.08;
+  --runner-opacity: 0.62;
+  --foreground-opacity: 1;
+  --cinematic-title-opacity: 1;
+  --cinematic-title-shift: 0;
+  --cinematic-title-scale: 1;
+  --summit-glow: 0.16;
+  --mountain-atmosphere: 0.22;
+  --cinematic-handoff: 0;
+  height: 100svh;
   border-bottom: none;
-  perspective: 1200px;
+  isolation: isolate;
+  background: #102d3b;
 }
 
 .mountain-camera-stage::before {
@@ -83,123 +98,222 @@ body {
   inset: 0;
   pointer-events: none;
   z-index: 5;
-  transform: translateY(calc(var(--atmosphere-shift) * 1px));
-  background-image:
-    radial-gradient(
-      circle at 18% 24%,
-      rgba(255, 255, 255, 0.12),
-      transparent 42%
-    ),
-    radial-gradient(
-      circle at 82% 42%,
-      rgba(255, 255, 255, 0.08),
-      transparent 52%
-    ),
-    linear-gradient(180deg, transparent 30%, rgba(7, 18, 18, 0.44));
+  opacity: var(--mountain-atmosphere);
+  background:
+    radial-gradient(circle at 86% 16%, rgba(255, 226, 164, 0.3), transparent 26%),
+    linear-gradient(180deg, transparent 45%, rgba(5, 17, 19, 0.54));
 }
 
-.mountain-camera-stage::after {
+.mountain-camera-stage::after,
+.rocket-camera-stage::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 6;
-  opacity: calc(var(--trail-speed) * 0.72);
-  mix-blend-mode: screen;
-  background-image:
-    radial-gradient(
-      ellipse at 50% 88%,
-      rgba(244, 212, 147, 0.3),
-      transparent 62%
-    ),
-    repeating-linear-gradient(
-      112deg,
-      rgba(255, 255, 255, 0) 0 16px,
-      rgba(255, 255, 255, 0.14) 16px 20px,
-      rgba(255, 255, 255, 0) 20px 42px
-    ),
-    repeating-linear-gradient(
-      68deg,
-      rgba(255, 255, 255, 0) 0 18px,
-      rgba(255, 255, 255, 0.1) 18px 22px,
-      rgba(255, 255, 255, 0) 22px 46px
-    );
-  background-size:
-    100% 100%,
-    calc(220px - (var(--trail-speed) * 92px)) 74px,
-    calc(206px - (var(--trail-speed) * 86px)) 68px;
-  background-position:
-    center center,
-    calc(50% + (var(--near-drift) * 0.45px))
-      calc(80% + (var(--camera-progress) * 6%)),
-    calc(50% - (var(--near-drift) * 0.35px))
-      calc(84% + (var(--camera-progress) * 7%));
-  background-repeat: no-repeat;
+  opacity: var(--cinematic-handoff);
+  background: linear-gradient(180deg, transparent 55%, var(--bg-color) 100%);
 }
 
-.mountain-layer {
+.mountain-layer,
+.rocket-layer {
   position: absolute;
-  inset: -4% -4% -8%;
+  inset: -6% -5% -10%;
   background-size: cover;
   background-position: center bottom;
   background-repeat: no-repeat;
   will-change: transform, opacity;
-  transition:
-    opacity var(--motion-base) var(--motion-ease-standard),
-    filter var(--motion-base) var(--motion-ease-standard);
 }
 
 .mountain-layer-sky {
   z-index: 1;
   background-image: url("../assets/images/mountain_camera_sky.svg");
-  transform: translate3d(0, calc(var(--sky-shift) * 1px), 0);
+  transform: translate3d(0, calc(var(--sky-shift) * 1px), 0) scale(1.035);
 }
 
 .mountain-layer-far {
   z-index: 2;
   background-image: url("../assets/images/mountain_camera_far.svg");
   transform: translate3d(
-    calc(var(--near-drift) * -0.18px),
-    calc(var(--far-shift) * 1px),
-    0
-  );
+      calc(var(--near-drift) * -0.22px),
+      calc(var(--far-shift) * 1px),
+      0
+    )
+    scale(var(--far-scale));
+  transform-origin: 70% 62%;
 }
 
 .mountain-layer-near {
   z-index: 4;
+  opacity: var(--foreground-opacity);
   background-image: url("../assets/images/mountain_camera_near.svg");
-  transform: perspective(1200px)
-    translate3d(calc(var(--near-drift) * 1px), calc(var(--near-shift) * 1px), 0)
-    scale(var(--near-scale)) rotateX(calc(var(--near-tilt) * 1deg));
-  transform-origin: center 88%;
-  filter: saturate(1.08) contrast(1.05)
-    brightness(calc(0.95 + (var(--trail-speed) * 0.22)));
+  transform: translate3d(
+      calc(var(--near-drift) * 1px),
+      calc(var(--near-shift) * 1px),
+      0
+    )
+    scale(var(--near-scale));
+  transform-origin: 54% 82%;
 }
 
-.mountain-camera-stage.mountain-camera-clearance .mountain-layer-near {
-  opacity: 0.14;
-  filter: saturate(0.86) blur(2.1px);
+.mountain-trail-journey,
+.rocket-flight-journey {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
-.mountain-camera-stage.mountain-camera-clearance::after {
-  opacity: 0.12;
+.mountain-trail-journey {
+  z-index: 7;
 }
 
-.mountain-camera-stage .hero-content {
-  z-index: 8;
+.mountain-trail-map,
+.rocket-flight-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
-.rocket-camera-shell {
-  position: relative;
-  height: 140vh;
-  border-bottom: 1px solid var(--card-border);
+.mountain-route-bed,
+.mountain-route-line,
+.rocket-flight-ghost,
+.rocket-flight-line {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.rocket-camera-sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow: hidden;
+.mountain-route-bed {
+  stroke: rgba(9, 24, 24, 0.74);
+  stroke-width: clamp(12px, 1.35vw, 22px);
+  opacity: 0.74;
+}
+
+.mountain-route-line {
+  stroke: url("#mountain-route-gradient");
+  stroke-width: clamp(3px, 0.38vw, 6px);
+}
+
+.mountain-route-reveal-clip,
+.rocket-flight-reveal-clip {
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+
+.mountain-route-reveal-clip {
+  transform: scaleX(var(--route-progress));
+}
+
+.mountain-route-trailhead {
+  fill: #f1d38e;
+  stroke: rgba(8, 26, 25, 0.88);
+  stroke-width: 5;
+  vector-effect: non-scaling-stroke;
+  opacity: calc(1 - (var(--runner-progress) * 0.72));
+}
+
+.mountain-route-summit-ring {
+  fill: none;
+  stroke: rgba(255, 237, 187, 0.72);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  opacity: calc(var(--summit-glow) * 0.8);
+}
+
+.mountain-route-summit {
+  fill: #fff0bc;
+  opacity: var(--summit-glow);
+}
+
+.mountain-summit-glow {
+  position: absolute;
+  left: 88.1%;
+  top: 30.2%;
+  width: clamp(130px, 18vw, 280px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: calc(var(--summit-glow) * 0.68);
+  transform: translate(-50%, -50%)
+    scale(calc(0.72 + (var(--summit-glow) * 0.28)));
+  background: radial-gradient(circle, rgba(255, 229, 159, 0.42), transparent 68%);
+}
+
+.mountain-cinematic-runner {
+  position: absolute;
+  left: calc(var(--runner-x) * 1%);
+  top: calc(var(--runner-y) * 1%);
+  width: clamp(34px, 4.8vw, 66px);
+  aspect-ratio: 1;
+  overflow: visible;
+  opacity: var(--runner-opacity);
+  transform: translate(-50%, -54%) rotate(calc(var(--runner-rotate) * 1deg))
+    scale(var(--runner-scale));
+  transform-origin: center;
+  filter: drop-shadow(0 8px 10px rgba(5, 15, 15, 0.58));
+  will-change: left, top, transform, opacity;
+}
+
+.mountain-runner-silhouette {
+  fill: none;
+  stroke: #fff0c7;
+  stroke-width: 6.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mountain-runner-silhouette circle {
+  fill: #ffe6ad;
+  stroke: #153a39;
+  stroke-width: 3;
+}
+
+.mountain-runner-pack {
+  fill: #ef8658;
+  stroke: #173b39;
+  stroke-width: 3.5;
+}
+
+.mountain-runner-torso {
+  fill: #f4d99c;
+  stroke: #173b39;
+  stroke-width: 3.5;
+}
+
+.mountain-runner-limb {
+  fill: none;
+}
+
+.mountain-runner-pole {
+  stroke: rgba(255, 240, 199, 0.72);
+  stroke-width: 3;
+}
+
+.mountain-camera-stage .hero-content,
+.rocket-camera-stage .hero-content {
+  z-index: 9;
+  opacity: var(--cinematic-title-opacity);
+  transform: translate3d(0, calc(var(--cinematic-title-shift) * 1px), 0)
+    scale(var(--cinematic-title-scale));
+  transform-origin: center;
+  will-change: transform, opacity;
+  isolation: isolate;
+}
+
+.mountain-camera-stage .hero-content::before,
+.rocket-camera-stage .hero-content::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -54% -14%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    color-mix(in srgb, var(--gradient-end) 62%, transparent),
+    transparent 70%
+  );
 }
 
 .rocket-camera-stage {
@@ -209,11 +323,25 @@ body {
   --asteroid-shift: 0;
   --asteroid-drift: 0;
   --planet-scale: 1;
-  --rocket-x: -240;
-  --rocket-y: 132;
-  --rocket-rotate: -14;
-  height: 100vh;
+  --planet-opacity: 1;
+  --asteroid-opacity: 1;
+  --flight-progress: 0;
+  --flight-reveal: 0.0625;
+  --rocket-x: 3;
+  --rocket-y: 79;
+  --rocket-rotate: 38;
+  --rocket-scale: 0.72;
+  --rocket-opacity: 0.76;
+  --rocket-boost: 0.18;
+  --cinematic-title-opacity: 1;
+  --cinematic-title-shift: 0;
+  --cinematic-title-scale: 1;
+  --rocket-arrival: 0;
+  --cinematic-handoff: 0;
+  height: 100svh;
   border-bottom: none;
+  isolation: isolate;
+  background: #050817;
 }
 
 .rocket-camera-stage::before {
@@ -223,75 +351,28 @@ body {
   pointer-events: none;
   z-index: 5;
   background:
-    radial-gradient(
-      circle at 76% 24%,
-      rgba(255, 176, 129, 0.22),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 22% 70%,
-      rgba(124, 174, 255, 0.2),
-      transparent 42%
-    );
-}
-
-.rocket-camera-stage::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 6;
-  opacity: calc(var(--rocket-camera-progress) * 0.6);
-  background-image:
-    linear-gradient(
-      112deg,
-      rgba(255, 255, 255, 0) 42%,
-      rgba(255, 255, 255, 0.18) 50%,
-      rgba(255, 255, 255, 0) 58%
-    ),
-    linear-gradient(
-      108deg,
-      rgba(255, 255, 255, 0) 46%,
-      rgba(255, 255, 255, 0.14) 52%,
-      rgba(255, 255, 255, 0) 60%
-    );
-  background-size:
-    290px 80px,
-    360px 90px;
-  background-position:
-    calc(35% + var(--rocket-camera-progress) * 80%) 65%,
-    calc(15% + var(--rocket-camera-progress) * 120%) 48%;
-  background-repeat: no-repeat;
-}
-
-.rocket-layer {
-  position: absolute;
-  inset: -4% -4% -8%;
-  background-size: cover;
-  background-position: center bottom;
-  background-repeat: no-repeat;
-  will-change: transform, opacity;
-  transition:
-    opacity var(--motion-base) var(--motion-ease-standard),
-    filter var(--motion-base) var(--motion-ease-standard);
+    radial-gradient(circle at 88% 10%, rgba(255, 170, 116, 0.2), transparent 27%),
+    radial-gradient(circle at 20% 76%, rgba(107, 192, 255, 0.16), transparent 40%);
 }
 
 .rocket-layer-space {
   z-index: 1;
   background-image: url("../assets/images/rocket_camera_space.svg");
-  transform: translate3d(0, calc(var(--space-shift) * 1px), 0);
+  transform: translate3d(0, calc(var(--space-shift) * 1px), 0) scale(1.035);
 }
 
 .rocket-layer-planet {
   z-index: 2;
+  opacity: var(--planet-opacity);
   background-image: url("../assets/images/rocket_camera_planet.svg");
   transform: translate3d(0, calc(var(--planet-shift) * 1px), 0)
     scale(var(--planet-scale));
-  transform-origin: 70% 40%;
+  transform-origin: 72% 38%;
 }
 
 .rocket-layer-asteroids {
   z-index: 4;
+  opacity: var(--asteroid-opacity);
   background-image: url("../assets/images/rocket_camera_asteroids.svg");
   transform: translate3d(
     calc(var(--asteroid-drift) * 1px),
@@ -300,36 +381,108 @@ body {
   );
 }
 
-.rocket-layer-ship {
+.rocket-flight-journey {
   z-index: 7;
-  left: 18%;
-  top: 38%;
-  bottom: auto;
-  width: clamp(120px, 13vw, 184px);
-  aspect-ratio: 1 / 1;
+}
+
+.rocket-flight-map {
+  opacity: calc(1 - (var(--cinematic-handoff) * 0.7));
+}
+
+.rocket-flight-ghost {
+  stroke: rgba(138, 214, 255, 0.15);
+  stroke-width: 2;
+  stroke-dasharray: 4 12;
+}
+
+.rocket-flight-line {
+  stroke: url("#rocket-flight-gradient");
+  stroke-width: clamp(2px, 0.28vw, 4.5px);
+  opacity: calc(0.28 + (var(--rocket-boost) * 0.72));
+}
+
+.rocket-flight-reveal-clip {
+  transform: scaleX(var(--flight-reveal));
+}
+
+.rocket-layer-ship {
+  z-index: 8;
+  inset: auto;
+  left: calc(var(--rocket-x) * 1%);
+  top: calc(var(--rocket-y) * 1%);
+  width: clamp(112px, 12vw, 178px);
+  aspect-ratio: 420 / 520;
+  opacity: var(--rocket-opacity);
   background-image: url("../assets/images/rocket_camera_ship.svg");
   background-size: contain;
   background-position: center;
-  transform: translate3d(
-      calc(var(--rocket-x) * 1px),
-      calc(var(--rocket-y) * 1px),
-      0
-    )
-    rotate(calc(var(--rocket-rotate) * 1deg));
-  filter: drop-shadow(0 14px 28px rgba(202, 120, 255, 0.28));
+  transform: translate(-50%, -50%) rotate(calc(var(--rocket-rotate) * 1deg))
+    scale(var(--rocket-scale));
+  transform-origin: center;
+  filter: drop-shadow(0 14px 24px rgba(202, 120, 255, 0.28));
+  will-change: left, top, transform, opacity;
 }
 
-.rocket-camera-stage.rocket-camera-clearance .rocket-layer-asteroids {
-  opacity: 0.26;
-  filter: blur(1.5px);
+.rocket-layer-ship::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 42%;
+  top: 79%;
+  width: 16%;
+  height: 55%;
+  border-radius: 50%;
+  opacity: calc(var(--rocket-boost) * 0.72);
+  transform: scaleY(calc(0.52 + (var(--rocket-boost) * 0.72)));
+  transform-origin: center top;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 244, 190, 0.92),
+    rgba(255, 129, 87, 0.42) 42%,
+    transparent 100%
+  );
+  filter: blur(5px);
 }
 
-.rocket-camera-stage.rocket-camera-clearance .rocket-layer-ship {
-  opacity: 0.38;
+.rocket-arrival {
+  position: absolute;
+  left: 91%;
+  top: 15%;
+  width: clamp(80px, 10vw, 150px);
+  aspect-ratio: 1;
+  opacity: var(--rocket-arrival);
+  transform: translate(-50%, -50%)
+    scale(calc(0.62 + (var(--rocket-arrival) * 0.38)));
 }
 
-.rocket-camera-stage .hero-content {
-  z-index: 8;
+.rocket-arrival-orbit,
+.rocket-arrival-core {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.rocket-arrival-orbit {
+  inset: 0;
+  border: 1px solid rgba(154, 224, 255, 0.54);
+  box-shadow: 0 0 28px rgba(202, 120, 255, 0.26);
+}
+
+.rocket-arrival-orbit-inner {
+  inset: 23%;
+  border-color: rgba(255, 155, 112, 0.7);
+  transform: rotate(54deg) scaleY(0.56);
+}
+
+.rocket-arrival-orbit-outer {
+  transform: rotate(-18deg) scaleY(0.42);
+}
+
+.rocket-arrival-core {
+  inset: 42%;
+  background: #fff4ce;
+  box-shadow:
+    0 0 16px rgba(255, 244, 206, 0.95),
+    0 0 42px rgba(202, 120, 255, 0.72);
 }
 
 .simple-theme-hero {
@@ -390,7 +543,9 @@ body {
 
 .mountain-camera-stage .topographic-field,
 .rocket-camera-stage .topographic-field {
-  opacity: 0.24;
+  z-index: 3;
+  opacity: 0.1;
+  mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.42) 48%, transparent 82%);
 }
 
 .hero-content {
@@ -410,6 +565,7 @@ body {
   font-weight: 750;
   line-height: 1.02;
   letter-spacing: -0.03em;
+  color: var(--accent-primary);
   background: linear-gradient(
     115deg,
     var(--accent-primary),
@@ -419,9 +575,10 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  cursor: pointer;
   padding-bottom: 0.15em;
   margin-bottom: -0.15em;
+  text-wrap: balance;
+  text-shadow: 0 8px 32px color-mix(in srgb, var(--gradient-end) 35%, transparent);
 }
 
 .hero-subtitle {
@@ -429,6 +586,8 @@ body {
   font-size: clamp(1rem, 2.2vw, 1.35rem);
   color: var(--text-secondary);
   font-family: var(--font-mono);
+  text-wrap: balance;
+  text-shadow: 0 2px 18px color-mix(in srgb, var(--gradient-end) 82%, transparent);
 }
 
 .view-transition {

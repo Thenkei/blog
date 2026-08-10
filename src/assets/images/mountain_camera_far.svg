@@ -1,11 +1,34 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
   <defs>
-    <linearGradient id="farMountains" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#375d67" />
-      <stop offset="100%" stop-color="#1f3f4e" />
+    <linearGradient id="distant-ridge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#789298" />
+      <stop offset="1" stop-color="#34545f" />
+    </linearGradient>
+    <linearGradient id="middle-ridge" x1="0.18" y1="0" x2="0.78" y2="1">
+      <stop offset="0" stop-color="#476d72" />
+      <stop offset="0.62" stop-color="#274b52" />
+      <stop offset="1" stop-color="#17373d" />
+    </linearGradient>
+    <linearGradient id="valley-mist" x1="0" y1="0" x2="1" y2="0.22">
+      <stop offset="0" stop-color="#cbd8cb" stop-opacity="0.02" />
+      <stop offset="0.5" stop-color="#dce1cd" stop-opacity="0.18" />
+      <stop offset="1" stop-color="#f1d5a0" stop-opacity="0.08" />
+    </linearGradient>
+    <linearGradient id="snow-dawn" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0ead7" stop-opacity="0.88" />
+      <stop offset="1" stop-color="#dfbb86" stop-opacity="0.48" />
     </linearGradient>
   </defs>
 
-  <path d="M0 660 L220 520 L350 590 L520 450 L710 615 L880 510 L1040 620 L1240 420 L1430 620 L1620 520 L1780 620 L1920 560 L1920 1080 L0 1080 Z" fill="url(#farMountains)" />
-  <path d="M0 740 L220 620 L340 670 L520 560 L730 700 L920 610 L1120 700 L1320 560 L1520 710 L1720 620 L1920 700 L1920 1080 L0 1080 Z" fill="#183443" fill-opacity="0.55" />
+  <path d="M0 690 L180 578 L318 620 L472 464 L584 548 L720 424 L862 556 L1012 442 L1138 566 L1286 432 L1398 496 L1500 252 L1608 382 L1684 340 L1818 214 L1920 318 L1920 1080 L0 1080 Z" fill="url(#distant-ridge)" fill-opacity="0.82" />
+
+  <path d="M430 500 L472 464 L510 492 L548 522 L584 548 L536 530 L504 506 L474 522 Z" fill="url(#snow-dawn)" />
+  <path d="M670 474 L720 424 L768 470 L818 518 L862 556 L804 524 L760 484 L724 506 Z" fill="#e2e8df" fill-opacity="0.7" />
+  <path d="M1434 408 L1500 252 L1548 310 L1608 382 L1554 352 L1512 332 L1484 380 Z" fill="url(#snow-dawn)" />
+  <path d="M1742 318 L1818 214 L1874 270 L1920 318 L1870 292 L1830 278 L1798 320 Z" fill="#e6e8dc" fill-opacity="0.66" />
+
+  <path d="M0 814 L204 668 L356 724 L516 596 L666 742 L824 626 L978 756 L1146 604 L1290 708 L1414 578 L1512 674 L1634 516 L1768 638 L1920 544 L1920 1080 L0 1080 Z" fill="url(#middle-ridge)" fill-opacity="0.92" />
+  <path d="M0 814 L204 668 L356 724 L516 596 L666 742 L824 626 L978 756 L1146 604 L1290 708 L1414 578 L1512 674 L1634 516 L1768 638 L1920 544" fill="none" stroke="#9bb2ab" stroke-opacity="0.11" stroke-width="4" />
+
+  <path d="M-60 832 C262 778 494 806 716 836 C946 866 1168 816 1368 706 C1530 616 1690 586 1980 620 L1980 856 C1662 794 1460 824 1270 900 C1022 1000 760 1008 510 958 C284 914 96 908 -60 940 Z" fill="url(#valley-mist)" />
 </svg>

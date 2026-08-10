@@ -245,7 +245,7 @@ Tous les liens sont construits depuis la locale active. Une page française ne d
 
 - `light` et `dark` : hero atmosphérique contenu dans `clamp(420px, 68vh, 680px)` ;
 - mobile : `clamp(360px, 58vh, 520px)` ;
-- `mountain` et `rocket` : expérience parallax de `140vh` sur desktop et `120vh` sur mobile ;
+- `mountain` et `rocket` : scène sticky de `100svh` dans un parcours long borné, avec une distance physique suffisante pour raconter le trajet sur desktop comme sur mobile ;
 - grille topographique commune aux quatre thèmes.
 
 Le titre reste le point focal. Les scènes Montagne et Rocket enrichissent l’atmosphère sans créer une identité concurrente.
@@ -282,6 +282,7 @@ Règles :
 
 - transitions courtes pour menus, cartes et états de focus ;
 - parallax réservé aux thèmes Montagne et Rocket ;
+- dans la progression de lecture Rocket, la position de la fusée reste strictement linéaire avec la lecture ; la puissance visuelle des gaz monte progressivement avant de retomber à l'approche, le décollage émet une onde de poussière stylisée, puis la fusée reste en orbite continue autour de la lune avec une accélération sur l'arc inférieur ;
 - aucune animation indispensable à la compréhension d’un diagramme ;
 - respect systématique de `prefers-reduced-motion` ;
 - état statique complet et lisible lorsque le mouvement est réduit.

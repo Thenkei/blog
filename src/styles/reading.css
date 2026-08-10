@@ -25,8 +25,8 @@
 }
 
 .rocket-progress-label {
-  top: calc(env(safe-area-inset-top) + 10px);
-  right: 100px;
+  top: calc(env(safe-area-inset-top) + 70px);
+  right: 162px;
 }
 
 .clean-progress[data-progress-placement="top"],
@@ -187,111 +187,427 @@
 }
 
 .rocket-progress[data-progress-placement="right"] {
-  top: calc(env(safe-area-inset-top) + 8px);
-  right: clamp(4px, 1vw, 10px);
-  width: 104px;
-  height: calc(100vh - env(safe-area-inset-top) - 16px);
-  z-index: 120;
+  --rocket-orbit-size: 108px;
+  --rocket-orbit-radius: 54px;
+  --rocket-moon-size: 62px;
+  --rocket-moon-inset: 23px;
+  --rocket-ship-width: 48px;
+  --rocket-orbit-top: 38px;
+  --rocket-track-bottom: 116px;
+
+  top: calc(env(safe-area-inset-top) + 64px);
+  right: 34px;
+  bottom: calc(env(safe-area-inset-bottom) + 16px);
+  width: 122px;
+  z-index: 98;
+  isolation: isolate;
 }
 
-.rocket-progress .moon {
+.rocket-progress-space {
   position: absolute;
-  width: 58px;
-  height: 58px;
-  right: 20px;
-  top: 6px;
-  filter: drop-shadow(0 0 10px rgba(255, 210, 138, 0.28));
+  inset: 0;
 }
 
-.moon-disc {
-  fill: #f3d587;
+.rocket-progress-space::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(225, 246, 255, 0.72) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 34% 32%, rgba(202, 120, 255, 0.62) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 70% 48%, rgba(255, 143, 94, 0.66) 0 1.2px, transparent 1.8px),
+    radial-gradient(circle at 45% 67%, rgba(226, 241, 255, 0.54) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 82% 84%, rgba(134, 226, 255, 0.58) 0 1px, transparent 1.7px);
+  mask-image: linear-gradient(180deg, transparent, black 8%, black 94%, transparent);
+  opacity: 0.62;
 }
 
-.moon-crater {
-  fill: #d8b263;
-  opacity: 0.72;
+.rocket-progress-flight-path {
+  position: absolute;
+  top: var(--rocket-orbit-top);
+  right: calc(var(--rocket-orbit-radius) - 0.5px);
+  bottom: var(--rocket-track-bottom);
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(137, 224, 255, 0.18),
+    rgba(200, 132, 255, 0.12) 62%,
+    rgba(255, 143, 94, 0.08)
+  );
 }
 
-.rocket-orbit {
+.rocket-progress-flight-path-fill {
+  position: absolute;
+  right: -1px;
+  bottom: 0;
+  width: 3px;
+  height: calc(var(--reading-progress, 0) * 1%);
+  border-radius: 999px;
+  background: linear-gradient(
+    0deg,
+    rgba(255, 143, 94, 0.32),
+    rgba(202, 120, 255, 0.78) 48%,
+    rgba(123, 226, 255, 0.92)
+  );
+  box-shadow:
+    0 0 8px rgba(202, 120, 255, 0.44),
+    0 0 16px rgba(110, 223, 255, 0.24);
+  transition: opacity var(--motion-base) var(--motion-ease-standard);
+}
+
+.rocket-progress-orbit-ring,
+.rocket-progress-orbit-arc {
+  position: absolute;
+  top: var(--rocket-orbit-top);
+  right: 0;
+  width: var(--rocket-orbit-size);
+  height: var(--rocket-orbit-size);
+  border-radius: 50%;
+  pointer-events: none;
+  transition: opacity var(--motion-base) var(--motion-ease-standard);
+}
+
+.rocket-progress-orbit-ring {
+  border: 1px solid rgba(164, 213, 255, 0.2);
+  box-shadow:
+    0 0 20px rgba(140, 109, 255, 0.08) inset,
+    0 0 22px rgba(106, 219, 255, 0.08);
+}
+
+.rocket-progress-orbit-arc {
+  border: 1.5px solid transparent;
+  border-top-color: rgba(129, 229, 255, 0.66);
+  border-right-color: rgba(197, 131, 255, 0.48);
+  transform: rotate(-34deg);
+  opacity: 0.42;
+  transition: opacity var(--motion-base) var(--motion-ease-standard);
+}
+
+.rocket-progress[data-orbiting="true"] .rocket-progress-orbit-arc {
+  opacity: 0.96;
+}
+
+.rocket-progress-moon {
+  position: absolute;
+  top: calc(var(--rocket-orbit-top) + var(--rocket-moon-inset));
+  right: var(--rocket-moon-inset);
+  width: var(--rocket-moon-size);
+  height: var(--rocket-moon-size);
+  filter: drop-shadow(0 0 12px rgba(255, 210, 138, 0.26));
+  transition: opacity var(--motion-base) var(--motion-ease-standard);
+}
+
+.rocket-progress-moon svg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.rocket-progress-moon-halo {
+  position: absolute;
+  inset: -28%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 220, 154, 0.3),
+    rgba(255, 184, 128, 0.1) 45%,
+    transparent 72%
+  );
+  opacity: 0.78;
+}
+
+.rocket-progress-moon-disc {
+  stroke: rgba(255, 244, 210, 0.72);
+  stroke-width: 1.8px;
+}
+
+.rocket-progress-moon-shade {
+  opacity: 0.74;
+}
+
+.rocket-progress-moon-crater {
+  fill: rgba(127, 75, 83, 0.42);
+  stroke: rgba(255, 232, 183, 0.28);
+  stroke-width: 1.5px;
+}
+
+.rocket-progress-moon-rim {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.54);
+  stroke-width: 3px;
+  stroke-linecap: round;
+}
+
+.rocket-progress-launch-pad {
+  position: absolute;
+  right: calc(var(--rocket-orbit-radius) - 21px);
+  bottom: calc(var(--rocket-track-bottom) - 8px);
+  width: 42px;
+  height: 10px;
+  border: 1px solid rgba(255, 177, 120, 0.36);
+  border-bottom: 0;
+  border-radius: 50% 50% 0 0;
+  opacity: calc(0.86 - (var(--reading-progress, 0) * 0.006));
+}
+
+.rocket-progress-ignition-glow {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 54px;
+  height: 28px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse,
+    rgba(255, 157, 93, 0.42),
+    rgba(193, 102, 255, 0.18) 42%,
+    transparent 72%
+  );
+  opacity: calc(0.18 + (var(--rocket-boost) * 0.52));
+}
+
+.rocket-progress-launch-effects {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 2px;
+  width: 0;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.rocket-progress-launch-ring,
+.rocket-progress-dust-particle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.rocket-progress-launch-ring {
+  width: 18px;
+  height: 18px;
+  border: 1.25px solid rgba(250, 253, 255, 0.9);
+  box-shadow:
+    0 0 8px rgba(255, 255, 255, 0.3),
+    0 0 14px rgba(133, 223, 255, 0.2);
+  transform: translate(-50%, -50%) scale(0.2);
+}
+
+.rocket-progress-launch-ring-secondary {
+  width: 13px;
+  height: 13px;
+  border-color: rgba(222, 238, 255, 0.72);
+}
+
+.rocket-progress-dust-particle {
+  width: var(--rocket-dust-size, 5px);
+  height: var(--rocket-dust-size, 5px);
+  background: rgba(249, 252, 255, 0.94);
+  box-shadow:
+    0 0 5px rgba(255, 255, 255, 0.44),
+    0 0 9px rgba(183, 136, 255, 0.2);
+  transform: translate(-50%, -50%) scale(0.35);
+}
+
+.rocket-progress-dust-particle-1 {
+  --rocket-dust-x: -38px;
+  --rocket-dust-y: -9px;
+  --rocket-dust-size: 5px;
+  --rocket-dust-delay: 20ms;
+}
+
+.rocket-progress-dust-particle-2 {
+  --rocket-dust-x: -29px;
+  --rocket-dust-y: -22px;
+  --rocket-dust-size: 4px;
+  --rocket-dust-delay: 90ms;
+}
+
+.rocket-progress-dust-particle-3 {
+  --rocket-dust-x: -18px;
+  --rocket-dust-y: -12px;
+  --rocket-dust-size: 6px;
+  --rocket-dust-delay: 180ms;
+}
+
+.rocket-progress-dust-particle-4 {
+  --rocket-dust-x: -8px;
+  --rocket-dust-y: -27px;
+  --rocket-dust-size: 3px;
+  --rocket-dust-delay: 250ms;
+}
+
+.rocket-progress-dust-particle-5 {
+  --rocket-dust-x: 10px;
+  --rocket-dust-y: -24px;
+  --rocket-dust-size: 4px;
+  --rocket-dust-delay: 120ms;
+}
+
+.rocket-progress-dust-particle-6 {
+  --rocket-dust-x: 20px;
+  --rocket-dust-y: -13px;
+  --rocket-dust-size: 6px;
+  --rocket-dust-delay: 210ms;
+}
+
+.rocket-progress-dust-particle-7 {
+  --rocket-dust-x: 31px;
+  --rocket-dust-y: -20px;
+  --rocket-dust-size: 4px;
+  --rocket-dust-delay: 70ms;
+}
+
+.rocket-progress-dust-particle-8 {
+  --rocket-dust-x: 40px;
+  --rocket-dust-y: -7px;
+  --rocket-dust-size: 5px;
+  --rocket-dust-delay: 160ms;
+}
+
+.rocket-progress[data-launch-sequence]:not([data-launch-sequence="0"]):not(
+    [data-reduced-motion="true"]
+  )
+  .rocket-progress-launch-ring-primary {
+  animation: rocketProgressLaunchRing 1.45s var(--motion-ease-enter) 1 both;
+  will-change: transform, opacity;
+}
+
+.rocket-progress[data-launch-sequence]:not([data-launch-sequence="0"]):not(
+    [data-reduced-motion="true"]
+  )
+  .rocket-progress-launch-ring-secondary {
+  animation: rocketProgressLaunchRing 1.3s var(--motion-ease-enter) 140ms 1 both;
+  will-change: transform, opacity;
+}
+
+.rocket-progress[data-launch-sequence]:not([data-launch-sequence="0"]):not(
+    [data-reduced-motion="true"]
+  )
+  .rocket-progress-dust-particle {
+  animation: rocketProgressLaunchDust 1.35s var(--motion-ease-enter)
+    var(--rocket-dust-delay) 1 both;
+  will-change: transform, opacity;
+}
+
+.rocket-progress-flight-track {
+  position: absolute;
+  top: var(--rocket-orbit-top);
+  right: 0;
+  bottom: var(--rocket-track-bottom);
+  width: var(--rocket-orbit-size);
+}
+
+.rocket-progress-flight-carrier {
   position: absolute;
   right: 0;
-  top: 0;
-  bottom: 0;
-  width: 92px;
-  transition: width var(--motion-slow) var(--motion-ease-enter);
+  bottom: calc(var(--reading-progress, 0) * 1%);
+  width: var(--rocket-orbit-size);
+  height: 0;
+  transform-origin: var(--rocket-orbit-radius) var(--rocket-orbit-radius);
+  will-change: transform;
 }
 
-.rocket-orbit .rocket {
+.rocket-progress-ship-frame {
   position: absolute;
-  top: 50%;
-  right: 12px;
-  width: 52px;
-  transform: translateY(-50%) rotate(7deg);
-  filter: drop-shadow(0 8px 12px rgb(27 42 73 / 0.24));
+  top: 0;
+  left: 50%;
+  width: var(--rocket-ship-width);
+  transform: translate(-50%, -50%);
+  transform-origin: 50% 50%;
+  filter:
+    drop-shadow(0 8px 12px rgba(4, 8, 23, 0.46))
+    drop-shadow(0 0 10px rgba(126, 221, 255, 0.2));
+  transition:
+    transform 480ms var(--motion-ease-enter),
+    filter 480ms var(--motion-ease-standard);
+  will-change: transform;
 }
 
-.rocket-orbit .rocket svg {
+.rocket-progress-ship-artwork,
+.rocket-progress-ship-artwork svg {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: auto;
 }
 
-.rocket-body {
-  fill: color-mix(in srgb, var(--progress-marker-bg) 88%, white);
-  stroke: color-mix(in srgb, var(--text-primary) 68%, #111827);
-  stroke-width: 2.6;
+.rocket-progress-ship-artwork .rocket-ship-exhaust {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  transition:
+    transform 240ms var(--motion-ease-standard),
+    opacity 240ms var(--motion-ease-standard);
 }
 
-.rocket-fin {
-  fill: color-mix(in srgb, var(--accent-secondary) 82%, #ff9f68);
-  stroke: color-mix(in srgb, var(--text-primary) 62%, #111827);
-  stroke-width: 2.6;
+.rocket-progress-ship-artwork .rocket-ship-exhaust-outer {
+  opacity: calc(0.2 + (var(--rocket-boost) * 0.46));
+  transform: scaleY(calc(0.5 + (var(--rocket-boost) * 0.88)));
 }
 
-.rocket-stripe {
-  fill: color-mix(in srgb, var(--accent-primary) 76%, #ca78ff);
+.rocket-progress-ship-artwork .rocket-ship-exhaust-main {
+  opacity: calc(0.48 + (var(--rocket-boost) * 0.52));
+  transform: scaleY(calc(0.64 + (var(--rocket-boost) * 0.62)));
 }
 
-.rocket-window-ring {
-  fill: color-mix(in srgb, var(--text-primary) 88%, #0f172a);
-}
-
-.rocket-window-core {
-  fill: color-mix(in srgb, #8fd8ff 82%, white);
-}
-
-.rocket-nozzle {
-  fill: color-mix(in srgb, var(--accent-secondary) 88%, #ff8f5e);
-}
-
-.rocket-trail {
+.rocket-progress-engine-glow {
   position: absolute;
+  z-index: 0;
+  top: 76%;
   left: 50%;
-  top: 84%;
-  width: 7px;
-  height: 58px;
+  width: calc(12px + (var(--rocket-boost) * 13px));
+  height: calc(16px + (var(--rocket-boost) * 34px));
+  border-radius: 50% 50% 68% 68%;
   transform: translateX(-50%);
-  background: linear-gradient(to bottom, rgba(255, 159, 104, 0.88), rgba(255, 159, 104, 0));
-  filter: blur(1px);
+  transform-origin: 50% 0%;
+  background: linear-gradient(
+    180deg,
+    rgba(181, 245, 255, 0.76),
+    rgba(188, 104, 255, 0.62) 42%,
+    rgba(255, 113, 94, 0) 100%
+  );
+  filter: blur(5px);
+  opacity: calc(0.24 + (var(--rocket-boost) * 0.56));
+  animation: rocketProgressEnginePulse 520ms ease-in-out infinite alternate;
 }
 
-.rocket-orbit.active {
-  top: 8px;
+.rocket-progress[data-orbiting="true"] .rocket-progress-flight-carrier {
+  top: 0;
   bottom: auto;
-  right: 8px;
-  width: 90px;
-  height: 90px;
-  transform-origin: 42px 42px;
-  animation: orbitSpin 9.4s linear infinite;
+  height: var(--rocket-orbit-size);
+  animation: rocketProgressOrbit 7.2s linear infinite;
 }
 
-.rocket-orbit.active .rocket {
-  top: 50%;
-  right: -2px;
-  transform: translateY(-50%) rotate(14deg);
+.rocket-progress[data-orbiting="true"] .rocket-progress-ship-frame {
+  transform: translate(-50%, -50%) rotate(90deg) scale(0.92);
+  filter:
+    drop-shadow(0 6px 10px rgba(4, 8, 23, 0.4))
+    drop-shadow(0 0 13px rgba(150, 221, 255, 0.32));
 }
 
-.rocket-orbit.active .rocket-trail {
-  height: 34px;
-  opacity: 0.58;
+.rocket-progress[data-orbiting="true"] .rocket-progress-flight-path-fill {
+  opacity: 0.34;
+}
+
+.rocket-progress[data-orbiting="true"] .rocket-progress-launch-pad {
+  opacity: 0.16;
+}
+
+.rocket-progress[data-reduced-motion="true"] .rocket-progress-engine-glow {
+  animation: none;
+  opacity: 0.18;
+}
+
+.rocket-progress[data-reduced-motion="true"][data-orbiting="true"]
+  .rocket-progress-flight-carrier {
+  animation: none;
+  transform: rotate(360deg);
 }

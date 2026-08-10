@@ -1,93 +1,150 @@
-import { useEffect, type RefObject } from "react";
-
-const CAMERA_REVEAL_THRESHOLD = 0.78;
-const CAMERA_TRAVEL_DESKTOP = 320;
-const CAMERA_TRAVEL_MOBILE = 190;
+import { useCallback, type RefObject } from "react";
+import {
+  computeCinematicProgress,
+  useCinematicScroll,
+  type CinematicProgressRenderer,
+} from "./useCinematicScroll";
 
 type UseMultiplaneCameraOptions = {
   shellRef: RefObject<HTMLElement | null>;
   stageRef: RefObject<HTMLElement | null>;
   enabled: boolean;
   isReducedMotion: boolean;
-  mobileReduced: boolean;
+  compactLayout: boolean;
+};
+
+type TrailPose = {
+  at: number;
+  x: number;
+  y: number;
+  rotate: number;
+  scale: number;
 };
 
 export type MultiplaneCameraVars = {
   progress: number;
   skyShift: number;
   farShift: number;
+  farScale: number;
   nearShift: number;
   nearScale: number;
   nearDrift: number;
-  nearTilt: number;
-  trailSpeed: number;
-  atmosphereShift: number;
-  clearance: boolean;
+  routeProgress: number;
+  runnerProgress: number;
+  runnerX: number;
+  runnerY: number;
+  runnerRotate: number;
+  runnerScale: number;
+  runnerOpacity: number;
+  foregroundOpacity: number;
+  titleOpacity: number;
+  titleShift: number;
+  titleScale: number;
+  summitGlow: number;
+  atmosphere: number;
+  handoff: number;
 };
+
+const TRAIL_POSES: readonly [TrailPose, ...TrailPose[]] = [
+  { at: 0, x: 6, y: 92, rotate: -18, scale: 1.08 },
+  { at: 0.18, x: 23, y: 88, rotate: -24, scale: 1 },
+  { at: 0.38, x: 38, y: 69, rotate: -28, scale: 0.88 },
+  { at: 0.58, x: 54, y: 60, rotate: -22, scale: 0.76 },
+  { at: 0.78, x: 72, y: 46, rotate: -29, scale: 0.63 },
+  { at: 1, x: 88, y: 30, rotate: -32, scale: 0.48 },
+];
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-export function computeCameraProgress(scrollY: number, startY: number, range: number): number {
-  if (range <= 0) {
-    return 0;
+function smoothstep(start: number, end: number, value: number): number {
+  const progress = clamp((value - start) / (end - start), 0, 1);
+  return progress * progress * (3 - 2 * progress);
+}
+
+function interpolatePose(progress: number): Omit<TrailPose, "at"> {
+  const normalized = clamp(progress, 0, 1);
+  const nextIndex = TRAIL_POSES.findIndex((pose) => pose.at >= normalized);
+  const first = TRAIL_POSES[0];
+
+  if (nextIndex <= 0) {
+    const { x, y, rotate, scale } = first;
+    return { x, y, rotate, scale };
   }
 
-  return clamp((scrollY - startY) / range, 0, 1);
+  const next = TRAIL_POSES[nextIndex];
+  const previous = TRAIL_POSES[nextIndex - 1];
+  if (!next || !previous) {
+    const { x, y, rotate, scale } = first;
+    return { x, y, rotate, scale };
+  }
+  const localProgress = smoothstep(
+    previous.at,
+    next.at,
+    normalized,
+  );
+  const mix = (from: number, to: number) =>
+    from + (to - from) * localProgress;
+
+  return {
+    x: mix(previous.x, next.x),
+    y: mix(previous.y, next.y),
+    rotate: mix(previous.rotate, next.rotate),
+    scale: mix(previous.scale, next.scale),
+  };
 }
+
+export const computeCameraProgress = computeCinematicProgress;
 
 export function computeMultiplaneVars(
   progress: number,
-  mobileReduced: boolean,
+  compactLayout: boolean,
+  reducedMotion = false,
 ): MultiplaneCameraVars {
   const normalizedProgress = clamp(progress, 0, 1);
-  const travel = mobileReduced ? CAMERA_TRAVEL_MOBILE : CAMERA_TRAVEL_DESKTOP;
-
-  const nearSpeedBoostPhase = clamp(
-    (normalizedProgress - CAMERA_REVEAL_THRESHOLD) / (1 - CAMERA_REVEAL_THRESHOLD),
-    0,
-    1,
-  );
-  const nearSpeed = 0.8 + nearSpeedBoostPhase * 0.2;
-  const pacePulse = Math.sin(normalizedProgress * Math.PI * (mobileReduced ? 4.6 : 6.2));
-  const paceEnvelope = 0.35 + normalizedProgress * 0.65;
-
-  const nearScale =
-    1 +
-    normalizedProgress * (mobileReduced ? 0.09 : 0.16) +
-    nearSpeedBoostPhase * (mobileReduced ? 0.09 : 0.18);
-
-  const nearDrift =
-    Math.sin(normalizedProgress * Math.PI * 1.75) * (mobileReduced ? 5 : 9) +
-    pacePulse * (mobileReduced ? 2.6 : 4.8) * paceEnvelope +
-    normalizedProgress * (mobileReduced ? 2.1 : 4.2);
-
-  const nearTilt =
-    (mobileReduced ? 2.4 : 4.2) +
-    normalizedProgress * (mobileReduced ? 2.3 : 4.6) +
-    nearSpeedBoostPhase * (mobileReduced ? 2.1 : 3.8);
-
-  const trailSpeed = clamp(
-    0.16 +
-      normalizedProgress * (mobileReduced ? 0.5 : 0.7) +
-      nearSpeedBoostPhase * 0.45 +
-      Math.abs(pacePulse) * (mobileReduced ? 0.12 : 0.18),
-    0,
-    1,
-  );
+  const sceneProgress = reducedMotion ? 0.46 : normalizedProgress;
+  const routeProgress = reducedMotion
+    ? 1
+    : 0.04 + smoothstep(0.04, 0.9, sceneProgress) * 0.96;
+  const runnerProgress = reducedMotion
+    ? 0.5
+    : smoothstep(0.08, 0.9, sceneProgress);
+  const runnerPose = interpolatePose(runnerProgress);
+  const handoff = reducedMotion ? 0 : smoothstep(0.88, 1, sceneProgress);
+  const titleTravel = reducedMotion
+    ? 0
+    : smoothstep(0.14, 0.5, sceneProgress);
 
   return {
-    progress: normalizedProgress,
-    skyShift: -travel * normalizedProgress * 0.1,
-    farShift: -travel * normalizedProgress * 0.3,
-    nearShift: -travel * normalizedProgress * nearSpeed,
-    nearScale,
-    nearDrift,
-    nearTilt,
-    trailSpeed,
-    atmosphereShift: normalizedProgress * (mobileReduced ? 10 : 18),
-    clearance: normalizedProgress >= CAMERA_REVEAL_THRESHOLD,
+    progress: sceneProgress,
+    skyShift: sceneProgress * (compactLayout ? -10 : -18),
+    farShift: sceneProgress * (compactLayout ? -34 : -56),
+    farScale: 1 + sceneProgress * (compactLayout ? 0.025 : 0.04),
+    nearShift: sceneProgress * (compactLayout ? -58 : -92),
+    nearScale: 1 + sceneProgress * (compactLayout ? 0.13 : 0.2),
+    nearDrift:
+      Math.sin(sceneProgress * Math.PI * 1.4) * (compactLayout ? 2.5 : 5.5),
+    routeProgress,
+    runnerProgress,
+    runnerX: runnerPose.x,
+    runnerY: runnerPose.y,
+    runnerRotate: runnerPose.rotate,
+    runnerScale: runnerPose.scale * (compactLayout ? 0.84 : 1),
+    runnerOpacity: reducedMotion
+      ? 1
+      : 0.62 + smoothstep(0.02, 0.12, sceneProgress) * 0.38 - handoff * 0.6,
+    foregroundOpacity: reducedMotion
+      ? 1
+      : 1 - smoothstep(0.76, 1, sceneProgress) * 0.44,
+    titleOpacity: reducedMotion
+      ? 1
+      : clamp(1 - titleTravel * 0.69 - handoff * 0.17, 0.14, 1),
+    titleShift: reducedMotion ? 0 : titleTravel * (compactLayout ? -24 : -38),
+    titleScale: reducedMotion ? 1 : 1 - titleTravel * 0.07,
+    summitGlow: 0.16 + smoothstep(0.58, 0.95, sceneProgress) * 0.84,
+    atmosphere: 0.22 + smoothstep(0.24, 0.92, sceneProgress) * 0.64,
+    handoff,
   };
 }
 
@@ -95,19 +152,24 @@ function applyStageVars(stage: HTMLElement, vars: MultiplaneCameraVars) {
   stage.style.setProperty("--camera-progress", vars.progress.toFixed(4));
   stage.style.setProperty("--sky-shift", vars.skyShift.toFixed(3));
   stage.style.setProperty("--far-shift", vars.farShift.toFixed(3));
+  stage.style.setProperty("--far-scale", vars.farScale.toFixed(4));
   stage.style.setProperty("--near-shift", vars.nearShift.toFixed(3));
   stage.style.setProperty("--near-scale", vars.nearScale.toFixed(4));
   stage.style.setProperty("--near-drift", vars.nearDrift.toFixed(3));
-  stage.style.setProperty("--near-tilt", vars.nearTilt.toFixed(3));
-  stage.style.setProperty("--trail-speed", vars.trailSpeed.toFixed(3));
-  stage.style.setProperty("--atmosphere-shift", vars.atmosphereShift.toFixed(3));
-  stage.classList.toggle("mountain-camera-clearance", vars.clearance);
-}
-
-function resetStageVars(stage: HTMLElement) {
-  const vars = computeMultiplaneVars(0, false);
-  applyStageVars(stage, vars);
-  stage.classList.remove("mountain-camera-clearance");
+  stage.style.setProperty("--route-progress", vars.routeProgress.toFixed(4));
+  stage.style.setProperty("--runner-progress", vars.runnerProgress.toFixed(4));
+  stage.style.setProperty("--runner-x", vars.runnerX.toFixed(3));
+  stage.style.setProperty("--runner-y", vars.runnerY.toFixed(3));
+  stage.style.setProperty("--runner-rotate", vars.runnerRotate.toFixed(3));
+  stage.style.setProperty("--runner-scale", vars.runnerScale.toFixed(4));
+  stage.style.setProperty("--runner-opacity", vars.runnerOpacity.toFixed(4));
+  stage.style.setProperty("--foreground-opacity", vars.foregroundOpacity.toFixed(4));
+  stage.style.setProperty("--cinematic-title-opacity", vars.titleOpacity.toFixed(4));
+  stage.style.setProperty("--cinematic-title-shift", vars.titleShift.toFixed(3));
+  stage.style.setProperty("--cinematic-title-scale", vars.titleScale.toFixed(4));
+  stage.style.setProperty("--summit-glow", vars.summitGlow.toFixed(4));
+  stage.style.setProperty("--mountain-atmosphere", vars.atmosphere.toFixed(4));
+  stage.style.setProperty("--cinematic-handoff", vars.handoff.toFixed(4));
 }
 
 export function useMultiplaneCamera({
@@ -115,76 +177,23 @@ export function useMultiplaneCamera({
   stageRef,
   enabled,
   isReducedMotion,
-  mobileReduced,
+  compactLayout,
 }: UseMultiplaneCameraOptions) {
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!enabled || !stage) {
-      if (stage) {
-        resetStageVars(stage);
-      }
-      return;
-    }
+  const renderProgress = useCallback<CinematicProgressRenderer>(
+    (stage, progress, reducedMotion) => {
+      applyStageVars(
+        stage,
+        computeMultiplaneVars(progress, compactLayout, reducedMotion),
+      );
+    },
+    [compactLayout],
+  );
 
-    const shell = shellRef.current;
-    if (!shell) {
-      return;
-    }
-
-    let startY = 0;
-    let range = 1;
-    let rafId = 0;
-
-    const measure = () => {
-      const rect = shell.getBoundingClientRect();
-      startY = window.scrollY + rect.top;
-      range = Math.max(1, shell.offsetHeight - window.innerHeight);
-    };
-
-    const renderProgress = (nextProgress: number) => {
-      const vars = computeMultiplaneVars(nextProgress, mobileReduced);
-      applyStageVars(stage, vars);
-    };
-
-    const update = () => {
-      const progress = isReducedMotion
-        ? 0
-        : computeCameraProgress(window.scrollY, startY, range);
-
-      renderProgress(progress);
-    };
-
-    const requestUpdate = () => {
-      if (rafId) {
-        return;
-      }
-
-      rafId = window.requestAnimationFrame(() => {
-        rafId = 0;
-        update();
-      });
-    };
-
-    const handleResize = () => {
-      measure();
-      requestUpdate();
-    };
-
-    measure();
-    update();
-
-    if (!isReducedMotion) {
-      window.addEventListener("scroll", requestUpdate, { passive: true });
-      window.addEventListener("resize", handleResize);
-    }
-
-    return () => {
-      if (rafId) {
-        window.cancelAnimationFrame(rafId);
-      }
-
-      window.removeEventListener("scroll", requestUpdate);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [enabled, isReducedMotion, mobileReduced, shellRef, stageRef]);
+  useCinematicScroll({
+    shellRef,
+    stageRef,
+    enabled,
+    isReducedMotion,
+    renderProgress,
+  });
 }

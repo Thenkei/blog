@@ -8,6 +8,8 @@ import {
 } from "react";
 import { useTheme } from "../../app/providers/ThemeProvider";
 import { MountainTrailRunnerIcon } from "./MountainTrailRunnerIcon";
+import { RocketReadingProgress } from "./RocketReadingProgress";
+import { computeArticleReadingProgress } from "./readingProgressState";
 import { useTranslation } from "react-i18next";
 
 type ReadingProgressBarProps = {
@@ -15,9 +17,12 @@ type ReadingProgressBarProps = {
   contentKey: string;
 };
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
+const ROCKET_LAUNCH_THRESHOLD = 0.5;
+
+type RocketLaunchState = {
+  sessionKey: string;
+  sequence: number;
+};
 
 export function ReadingProgressBar({
   articleRef,
@@ -25,50 +30,132 @@ export function ReadingProgressBar({
 }: ReadingProgressBarProps) {
   const [progress, setProgress] = useState(0);
   const [direction, setDirection] = useState<"down" | "up">("down");
-  const [orbitActive, setOrbitActive] = useState(false);
   const lastProgressRef = useRef(0);
+  const lastScrollYRef = useRef(0);
+  const pendingDirectionRef = useRef<"down" | "up" | null>(null);
+  const launchArmedRef = useRef(true);
+  const pendingLaunchCheckRef = useRef(false);
   const { appliedTheme } = useTheme();
   const { t } = useTranslation();
+  const launchSessionKey = `${contentKey}:${appliedTheme}`;
+  const [rocketLaunchState, setRocketLaunchState] =
+    useState<RocketLaunchState>({
+      sessionKey: launchSessionKey,
+      sequence: 0,
+    });
+
+  const rocketLaunchSequence =
+    rocketLaunchState.sessionKey === launchSessionKey
+      ? rocketLaunchState.sequence
+      : 0;
 
   useEffect(() => {
-    const computeProgress = () => {
+    let animationFrame: number | null = null;
+
+    const computeProgress = (allowLaunch: boolean) => {
       const article = articleRef.current;
       if (!article) {
         setProgress(0);
-        setOrbitActive(false);
+        lastProgressRef.current = 0;
+        launchArmedRef.current = true;
         return;
       }
 
       const rect = article.getBoundingClientRect();
-      const viewport = window.innerHeight || 1;
-      const topOffset = viewport * 0.2;
-      const bottomOffset = viewport * 0.8;
+      const next = computeArticleReadingProgress({
+        articleTop: rect.top + window.scrollY,
+        articleBottom: rect.bottom + window.scrollY,
+        scrollY: window.scrollY,
+        viewportHeight: window.innerHeight,
+      });
 
-      const start = rect.top + window.scrollY - topOffset;
-      const end = rect.bottom + window.scrollY - bottomOffset;
-      const range = Math.max(1, end - start);
-      const raw = ((window.scrollY - start) / range) * 100;
-      const next = clamp(raw, 0, 100);
+      if (allowLaunch && appliedTheme === "rocket") {
+        if (next <= ROCKET_LAUNCH_THRESHOLD) {
+          launchArmedRef.current = true;
+        } else if (launchArmedRef.current) {
+          launchArmedRef.current = false;
+          setRocketLaunchState((current) => ({
+            sessionKey: launchSessionKey,
+            sequence:
+              current.sessionKey === launchSessionKey
+                ? current.sequence + 1
+                : 1,
+          }));
+        }
+      } else if (next <= ROCKET_LAUNCH_THRESHOLD) {
+        launchArmedRef.current = true;
+      }
 
       const delta = next - lastProgressRef.current;
-      if (Math.abs(delta) > 0.1) {
+      if (pendingDirectionRef.current) {
+        setDirection(pendingDirectionRef.current);
+      } else if (Math.abs(delta) > 0.1) {
         setDirection(delta > 0 ? "down" : "up");
       }
 
+      pendingDirectionRef.current = null;
       setProgress(next);
-      setOrbitActive(next >= 99.5);
       lastProgressRef.current = next;
     };
 
-    computeProgress();
-    window.addEventListener("scroll", computeProgress, { passive: true });
-    window.addEventListener("resize", computeProgress);
+    const scheduleProgressUpdate = (source: "scroll" | "layout") => {
+      if (source === "scroll") {
+        const scrollDelta = window.scrollY - lastScrollYRef.current;
+        if (Math.abs(scrollDelta) > 0.1) {
+          pendingDirectionRef.current = scrollDelta > 0 ? "down" : "up";
+          lastScrollYRef.current = window.scrollY;
+          pendingLaunchCheckRef.current = true;
+        }
+      }
+
+      if (animationFrame !== null) {
+        return;
+      }
+
+      animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = null;
+        const allowLaunch = pendingLaunchCheckRef.current;
+        pendingLaunchCheckRef.current = false;
+        computeProgress(allowLaunch);
+      });
+    };
+
+    const handleScroll = () => scheduleProgressUpdate("scroll");
+    const handleLayoutChange = () => scheduleProgressUpdate("layout");
+
+    lastScrollYRef.current = window.scrollY;
+    pendingLaunchCheckRef.current = false;
+    setRocketLaunchState((current) =>
+      current.sessionKey === launchSessionKey && current.sequence === 0
+        ? current
+        : { sessionKey: launchSessionKey, sequence: 0 },
+    );
+    computeProgress(false);
+    launchArmedRef.current = lastProgressRef.current <= ROCKET_LAUNCH_THRESHOLD;
+    window.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
+    window.addEventListener("resize", handleLayoutChange);
+
+    const articleResizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(handleLayoutChange);
+
+    if (articleRef.current) {
+      articleResizeObserver?.observe(articleRef.current);
+    }
 
     return () => {
-      window.removeEventListener("scroll", computeProgress);
-      window.removeEventListener("resize", computeProgress);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleLayoutChange);
+      articleResizeObserver?.disconnect();
+
+      if (animationFrame !== null) {
+        window.cancelAnimationFrame(animationFrame);
+      }
     };
-  }, [articleRef, contentKey]);
+  }, [appliedTheme, articleRef, contentKey, launchSessionKey]);
 
   const isRunnerMoving = progress > 0 && progress < 100;
   const roundedProgress = Math.round(progress);
@@ -86,45 +173,12 @@ export function ReadingProgressBar({
 
   if (appliedTheme === "rocket") {
     return (
-      <>
-        <p className="reading-progress-label rocket-progress-label">{t("ui.readingProgress", { progress: roundedProgress })}</p>
-        <div className="rocket-progress" data-progress-placement="right" aria-hidden="true" style={cssVars}>
-        <div className="moon">
-          <svg viewBox="0 0 120 120" role="presentation">
-            <circle cx="60" cy="60" r="42" className="moon-disc" />
-            <circle cx="47" cy="47" r="7" className="moon-crater" />
-            <circle cx="73" cy="69" r="9" className="moon-crater" />
-            <circle cx="63" cy="40" r="4.5" className="moon-crater" />
-          </svg>
-        </div>
-        <div className={`rocket-orbit ${orbitActive ? "active" : ""}`}>
-          <div
-            className="rocket"
-            style={orbitActive ? undefined : { top: `${100 - progress}%` }}
-          >
-            <svg viewBox="0 0 92 168" role="presentation">
-              <path className="rocket-fin" d="M31 105 L14 125 L31 126 Z" />
-              <path className="rocket-fin" d="M61 105 L78 125 L61 126 Z" />
-              <path
-                className="rocket-body"
-                d="M46 7 C33 18 24 36 24 58 L24 102 C24 117 34 129 46 139 C58 129 68 117 68 102 L68 58 C68 36 59 18 46 7 Z"
-              />
-              <path
-                className="rocket-stripe"
-                d="M46 20 C38 29 34 41 34 56 L34 83 C40 85 52 85 58 83 L58 56 C58 41 54 29 46 20 Z"
-              />
-              <circle className="rocket-window-ring" cx="46" cy="67" r="12.5" />
-              <circle className="rocket-window-core" cx="46" cy="67" r="6.5" />
-              <path
-                className="rocket-nozzle"
-                d="M46 139 L34 157 L46 151 L58 157 Z"
-              />
-            </svg>
-            <span className="rocket-trail" />
-          </div>
-        </div>
-        </div>
-      </>
+      <RocketReadingProgress
+        key={contentKey}
+        progress={progress}
+        launchSequence={rocketLaunchSequence}
+        label={t("ui.readingProgress", { progress: roundedProgress })}
+      />
     );
   }
 
