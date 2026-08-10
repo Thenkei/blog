@@ -69,8 +69,8 @@ export function computeRocketReadingState(
       progress,
       travelProgress,
       boostPower: interpolate(
-        0.28,
-        1,
+        0.22,
+        0.5,
         smoothstep(0, 0.12, travelProgress),
       ),
       phase: "ignition",
@@ -83,8 +83,8 @@ export function computeRocketReadingState(
       progress,
       travelProgress,
       boostPower: interpolate(
+        0.5,
         1,
-        0.62,
         smoothstep(0.12, 0.72, travelProgress),
       ),
       phase: "boost",
@@ -96,8 +96,8 @@ export function computeRocketReadingState(
     progress,
     travelProgress,
     boostPower: interpolate(
-      0.62,
-      0.35,
+      1,
+      0.32,
       smoothstep(0.72, 1, travelProgress),
     ),
     phase: "approach",

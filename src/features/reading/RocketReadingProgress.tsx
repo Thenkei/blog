@@ -4,6 +4,7 @@ import { computeRocketReadingState } from "./readingProgressState";
 
 type RocketReadingProgressProps = {
   progress: number;
+  launchSequence: number;
   label: string;
 };
 
@@ -18,6 +19,7 @@ function readsReducedMotionPreference(): boolean {
 
 export function RocketReadingProgress({
   progress,
+  launchSequence,
   label,
 }: RocketReadingProgressProps) {
   const labelId = useId();
@@ -61,8 +63,10 @@ export function RocketReadingProgress({
         className="rocket-progress"
         data-flight-phase={state.phase}
         data-orbiting={state.orbitActive ? "true" : "false"}
+        data-orbit-motion={isReducedMotion ? "parked" : "continuous"}
         data-reduced-motion={isReducedMotion ? "true" : "false"}
         data-started={state.progress > 0 ? "true" : "false"}
+        data-launch-sequence={launchSequence}
         data-progress-placement="right"
         style={cssVars}
         role="progressbar"
@@ -130,6 +134,22 @@ export function RocketReadingProgress({
           </span>
 
           <span className="rocket-progress-launch-pad">
+            <span
+              key={launchSequence}
+              className="rocket-progress-launch-effects"
+              data-launch-sequence={launchSequence}
+            >
+              <span className="rocket-progress-launch-ring rocket-progress-launch-ring-primary" />
+              <span className="rocket-progress-launch-ring rocket-progress-launch-ring-secondary" />
+              <span className="rocket-progress-dust-particle rocket-progress-dust-particle-1" />
+              <span className="rocket-progress-dust-particle rocket-progress-dust-particle-2" />
+              <span className="rocket-progress-dust-particle rocket-progress-dust-particle-3" />
+              <span className="rocket-progress-dust-particle rocket-progress-dust-particle-4" />
+              <span className="rocket-progress-dust-particle rocket-progress-dust-particle-5" />
+              <span className="rocket-progress-dust-particle rocket-progress-dust-particle-6" />
+              <span className="rocket-progress-dust-particle rocket-progress-dust-particle-7" />
+              <span className="rocket-progress-dust-particle rocket-progress-dust-particle-8" />
+            </span>
             <span className="rocket-progress-ignition-glow" />
           </span>
 

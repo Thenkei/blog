@@ -138,9 +138,9 @@ Implemented in `/Users/sinkneath/github/blog/src/features/reading/ReadingProgres
 Variants:
 - `light` / `dark`: minimal clean rail + marker
 - `mountain`: animated trail runner tied to article progress
-- `rocket`: the canonical cinematic ship launches linearly from the viewport bottom while boost power changes independently; at `100%` it completes one orbit around the moon and parks above it
+- `rocket`: the canonical cinematic ship launches linearly from the viewport bottom while boost power changes independently; lift-off emits expanding dust rings and particles, then at `100%` the ship enters a continuous orbit around the moon
 
-The Rocket variant uses a single `requestAnimationFrame`-coalesced scroll driver, preserves the article's direct progress-to-position mapping, and exposes semantic `progressbar` values. Reduced-motion mode keeps the completed orbital composition without time-based motion.
+The Rocket variant uses a single `requestAnimationFrame`-coalesced scroll driver, preserves the article's direct progress-to-position mapping, and exposes semantic `progressbar` values. Engine power rises from a restrained lift-off to a late-flight peak before settling for approach. Launch particles replay only after the reader returns to the launch point; the completed orbit moves slowly across its upper arc and accelerates around the lower arc. Reduced-motion mode suppresses the burst and keeps the completed orbital composition without time-based motion.
 
 ## UI Components Updated for Themes
 - `/Users/sinkneath/github/blog/src/shared/components/ThemeSwitcher.tsx`

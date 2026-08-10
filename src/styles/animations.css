@@ -33,11 +33,61 @@
   0% {
     transform: rotate(0deg);
   }
-  72% {
-    transform: rotate(312deg);
+  20% {
+    transform: rotate(45deg);
+  }
+  35% {
+    transform: rotate(90deg);
+  }
+  43% {
+    transform: rotate(135deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  57% {
+    transform: rotate(225deg);
+  }
+  65% {
+    transform: rotate(270deg);
+  }
+  80% {
+    transform: rotate(315deg);
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes rocketProgressLaunchRing {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  18% {
+    opacity: 0.82;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(3.8) scaleY(1.35);
+  }
+}
+
+@keyframes rocketProgressLaunchDust {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+  20% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+        calc(-50% + var(--rocket-dust-x)),
+        calc(-50% + var(--rocket-dust-y))
+      )
+      scale(1.25);
   }
 }
 

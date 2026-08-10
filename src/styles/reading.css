@@ -26,7 +26,7 @@
 
 .rocket-progress-label {
   top: calc(env(safe-area-inset-top) + 70px);
-  right: 138px;
+  right: 162px;
 }
 
 .clean-progress[data-progress-placement="top"],
@@ -196,7 +196,7 @@
   --rocket-track-bottom: 116px;
 
   top: calc(env(safe-area-inset-top) + 64px);
-  right: clamp(4px, 1vw, 10px);
+  right: 34px;
   bottom: calc(env(safe-area-inset-bottom) + 16px);
   width: 122px;
   z-index: 98;
@@ -369,6 +369,134 @@
   opacity: calc(0.18 + (var(--rocket-boost) * 0.52));
 }
 
+.rocket-progress-launch-effects {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 2px;
+  width: 0;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.rocket-progress-launch-ring,
+.rocket-progress-dust-particle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.rocket-progress-launch-ring {
+  width: 18px;
+  height: 18px;
+  border: 1.25px solid rgba(250, 253, 255, 0.9);
+  box-shadow:
+    0 0 8px rgba(255, 255, 255, 0.3),
+    0 0 14px rgba(133, 223, 255, 0.2);
+  transform: translate(-50%, -50%) scale(0.2);
+}
+
+.rocket-progress-launch-ring-secondary {
+  width: 13px;
+  height: 13px;
+  border-color: rgba(222, 238, 255, 0.72);
+}
+
+.rocket-progress-dust-particle {
+  width: var(--rocket-dust-size, 5px);
+  height: var(--rocket-dust-size, 5px);
+  background: rgba(249, 252, 255, 0.94);
+  box-shadow:
+    0 0 5px rgba(255, 255, 255, 0.44),
+    0 0 9px rgba(183, 136, 255, 0.2);
+  transform: translate(-50%, -50%) scale(0.35);
+}
+
+.rocket-progress-dust-particle-1 {
+  --rocket-dust-x: -38px;
+  --rocket-dust-y: -9px;
+  --rocket-dust-size: 5px;
+  --rocket-dust-delay: 20ms;
+}
+
+.rocket-progress-dust-particle-2 {
+  --rocket-dust-x: -29px;
+  --rocket-dust-y: -22px;
+  --rocket-dust-size: 4px;
+  --rocket-dust-delay: 90ms;
+}
+
+.rocket-progress-dust-particle-3 {
+  --rocket-dust-x: -18px;
+  --rocket-dust-y: -12px;
+  --rocket-dust-size: 6px;
+  --rocket-dust-delay: 180ms;
+}
+
+.rocket-progress-dust-particle-4 {
+  --rocket-dust-x: -8px;
+  --rocket-dust-y: -27px;
+  --rocket-dust-size: 3px;
+  --rocket-dust-delay: 250ms;
+}
+
+.rocket-progress-dust-particle-5 {
+  --rocket-dust-x: 10px;
+  --rocket-dust-y: -24px;
+  --rocket-dust-size: 4px;
+  --rocket-dust-delay: 120ms;
+}
+
+.rocket-progress-dust-particle-6 {
+  --rocket-dust-x: 20px;
+  --rocket-dust-y: -13px;
+  --rocket-dust-size: 6px;
+  --rocket-dust-delay: 210ms;
+}
+
+.rocket-progress-dust-particle-7 {
+  --rocket-dust-x: 31px;
+  --rocket-dust-y: -20px;
+  --rocket-dust-size: 4px;
+  --rocket-dust-delay: 70ms;
+}
+
+.rocket-progress-dust-particle-8 {
+  --rocket-dust-x: 40px;
+  --rocket-dust-y: -7px;
+  --rocket-dust-size: 5px;
+  --rocket-dust-delay: 160ms;
+}
+
+.rocket-progress[data-launch-sequence]:not([data-launch-sequence="0"]):not(
+    [data-reduced-motion="true"]
+  )
+  .rocket-progress-launch-ring-primary {
+  animation: rocketProgressLaunchRing 1.45s var(--motion-ease-enter) 1 both;
+  will-change: transform, opacity;
+}
+
+.rocket-progress[data-launch-sequence]:not([data-launch-sequence="0"]):not(
+    [data-reduced-motion="true"]
+  )
+  .rocket-progress-launch-ring-secondary {
+  animation: rocketProgressLaunchRing 1.3s var(--motion-ease-enter) 140ms 1 both;
+  will-change: transform, opacity;
+}
+
+.rocket-progress[data-launch-sequence]:not([data-launch-sequence="0"]):not(
+    [data-reduced-motion="true"]
+  )
+  .rocket-progress-dust-particle {
+  animation: rocketProgressLaunchDust 1.35s var(--motion-ease-enter)
+    var(--rocket-dust-delay) 1 both;
+  will-change: transform, opacity;
+}
+
 .rocket-progress-flight-track {
   position: absolute;
   top: var(--rocket-orbit-top);
@@ -455,7 +583,7 @@
   top: 0;
   bottom: auto;
   height: var(--rocket-orbit-size);
-  animation: rocketProgressOrbit 4.8s cubic-bezier(0.42, 0, 0.16, 1) 1 both;
+  animation: rocketProgressOrbit 7.2s linear infinite;
 }
 
 .rocket-progress[data-orbiting="true"] .rocket-progress-ship-frame {

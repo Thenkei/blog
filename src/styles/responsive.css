@@ -7,12 +7,17 @@
     --rocket-ship-width: 42px;
     --rocket-track-bottom: 108px;
 
-    right: 0;
+    right: 28px;
     width: 104px;
   }
 
   .rocket-progress-label {
-    right: 116px;
+    right: 138px;
+  }
+
+  [data-theme="rocket"] .blog-content article {
+    box-sizing: border-box;
+    padding-right: 6rem;
   }
 
   .mountain-progress[data-progress-placement="top"],
@@ -276,18 +281,23 @@
     --rocket-track-bottom: 96px;
 
     top: calc(env(safe-area-inset-top) + 112px);
-    right: 2px;
+    right: 24px;
     width: 88px;
   }
 
   .rocket-progress-label {
     top: calc(env(safe-area-inset-top) + 108px);
-    right: 94px;
+    right: 118px;
   }
 
   [data-theme="rocket"] .blog-content article {
     box-sizing: border-box;
-    padding-right: 3rem;
+    padding-right: 4.375rem;
+  }
+
+  .rocket-progress-launch-effects {
+    transform: scale(0.82);
+    transform-origin: 50% 50%;
   }
 
   .rocket-progress[data-started="false"] .rocket-progress-moon,

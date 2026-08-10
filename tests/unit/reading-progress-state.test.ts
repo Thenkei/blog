@@ -44,12 +44,15 @@ describe("reading progress state", () => {
   it("keeps ship travel linear while boost follows a separate envelope", () => {
     const ignition = computeRocketReadingState(0);
     const midFlight = computeRocketReadingState(50);
+    const peakBoost = computeRocketReadingState(72);
     const approach = computeRocketReadingState(98);
 
     expect(ignition.travelProgress).toBe(0);
     expect(midFlight.travelProgress).toBe(0.5);
     expect(approach.travelProgress).toBe(0.98);
     expect(midFlight.boostPower).toBeGreaterThan(ignition.boostPower);
+    expect(peakBoost.boostPower).toBeGreaterThan(midFlight.boostPower);
+    expect(peakBoost.boostPower).toBe(1);
     expect(midFlight.boostPower).toBeGreaterThan(approach.boostPower);
   });
 

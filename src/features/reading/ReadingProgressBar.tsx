@@ -17,6 +17,13 @@ type ReadingProgressBarProps = {
   contentKey: string;
 };
 
+const ROCKET_LAUNCH_THRESHOLD = 0.5;
+
+type RocketLaunchState = {
+  sessionKey: string;
+  sequence: number;
+};
+
 export function ReadingProgressBar({
   articleRef,
   contentKey,
@@ -26,17 +33,31 @@ export function ReadingProgressBar({
   const lastProgressRef = useRef(0);
   const lastScrollYRef = useRef(0);
   const pendingDirectionRef = useRef<"down" | "up" | null>(null);
+  const launchArmedRef = useRef(true);
+  const pendingLaunchCheckRef = useRef(false);
   const { appliedTheme } = useTheme();
   const { t } = useTranslation();
+  const launchSessionKey = `${contentKey}:${appliedTheme}`;
+  const [rocketLaunchState, setRocketLaunchState] =
+    useState<RocketLaunchState>({
+      sessionKey: launchSessionKey,
+      sequence: 0,
+    });
+
+  const rocketLaunchSequence =
+    rocketLaunchState.sessionKey === launchSessionKey
+      ? rocketLaunchState.sequence
+      : 0;
 
   useEffect(() => {
     let animationFrame: number | null = null;
 
-    const computeProgress = () => {
+    const computeProgress = (allowLaunch: boolean) => {
       const article = articleRef.current;
       if (!article) {
         setProgress(0);
         lastProgressRef.current = 0;
+        launchArmedRef.current = true;
         return;
       }
 
@@ -47,6 +68,23 @@ export function ReadingProgressBar({
         scrollY: window.scrollY,
         viewportHeight: window.innerHeight,
       });
+
+      if (allowLaunch && appliedTheme === "rocket") {
+        if (next <= ROCKET_LAUNCH_THRESHOLD) {
+          launchArmedRef.current = true;
+        } else if (launchArmedRef.current) {
+          launchArmedRef.current = false;
+          setRocketLaunchState((current) => ({
+            sessionKey: launchSessionKey,
+            sequence:
+              current.sessionKey === launchSessionKey
+                ? current.sequence + 1
+                : 1,
+          }));
+        }
+      } else if (next <= ROCKET_LAUNCH_THRESHOLD) {
+        launchArmedRef.current = true;
+      }
 
       const delta = next - lastProgressRef.current;
       if (pendingDirectionRef.current) {
@@ -60,11 +98,14 @@ export function ReadingProgressBar({
       lastProgressRef.current = next;
     };
 
-    const scheduleProgressUpdate = () => {
-      const scrollDelta = window.scrollY - lastScrollYRef.current;
-      if (Math.abs(scrollDelta) > 0.1) {
-        pendingDirectionRef.current = scrollDelta > 0 ? "down" : "up";
-        lastScrollYRef.current = window.scrollY;
+    const scheduleProgressUpdate = (source: "scroll" | "layout") => {
+      if (source === "scroll") {
+        const scrollDelta = window.scrollY - lastScrollYRef.current;
+        if (Math.abs(scrollDelta) > 0.1) {
+          pendingDirectionRef.current = scrollDelta > 0 ? "down" : "up";
+          lastScrollYRef.current = window.scrollY;
+          pendingLaunchCheckRef.current = true;
+        }
       }
 
       if (animationFrame !== null) {
@@ -73,36 +114,48 @@ export function ReadingProgressBar({
 
       animationFrame = window.requestAnimationFrame(() => {
         animationFrame = null;
-        computeProgress();
+        const allowLaunch = pendingLaunchCheckRef.current;
+        pendingLaunchCheckRef.current = false;
+        computeProgress(allowLaunch);
       });
     };
 
+    const handleScroll = () => scheduleProgressUpdate("scroll");
+    const handleLayoutChange = () => scheduleProgressUpdate("layout");
+
     lastScrollYRef.current = window.scrollY;
-    computeProgress();
-    window.addEventListener("scroll", scheduleProgressUpdate, {
+    pendingLaunchCheckRef.current = false;
+    setRocketLaunchState((current) =>
+      current.sessionKey === launchSessionKey && current.sequence === 0
+        ? current
+        : { sessionKey: launchSessionKey, sequence: 0 },
+    );
+    computeProgress(false);
+    launchArmedRef.current = lastProgressRef.current <= ROCKET_LAUNCH_THRESHOLD;
+    window.addEventListener("scroll", handleScroll, {
       passive: true,
     });
-    window.addEventListener("resize", scheduleProgressUpdate);
+    window.addEventListener("resize", handleLayoutChange);
 
     const articleResizeObserver =
       typeof ResizeObserver === "undefined"
         ? null
-        : new ResizeObserver(scheduleProgressUpdate);
+        : new ResizeObserver(handleLayoutChange);
 
     if (articleRef.current) {
       articleResizeObserver?.observe(articleRef.current);
     }
 
     return () => {
-      window.removeEventListener("scroll", scheduleProgressUpdate);
-      window.removeEventListener("resize", scheduleProgressUpdate);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleLayoutChange);
       articleResizeObserver?.disconnect();
 
       if (animationFrame !== null) {
         window.cancelAnimationFrame(animationFrame);
       }
     };
-  }, [articleRef, contentKey]);
+  }, [appliedTheme, articleRef, contentKey, launchSessionKey]);
 
   const isRunnerMoving = progress > 0 && progress < 100;
   const roundedProgress = Math.round(progress);
@@ -121,7 +174,9 @@ export function ReadingProgressBar({
   if (appliedTheme === "rocket") {
     return (
       <RocketReadingProgress
+        key={contentKey}
         progress={progress}
+        launchSequence={rocketLaunchSequence}
         label={t("ui.readingProgress", { progress: roundedProgress })}
       />
     );

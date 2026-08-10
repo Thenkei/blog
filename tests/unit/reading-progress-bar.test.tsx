@@ -183,12 +183,76 @@ describe("ReadingProgressBar", () => {
     );
     expect(rocketProgress).toHaveAttribute("data-flight-phase", "ignition");
     expect(rocketProgress).toHaveAttribute("data-orbiting", "false");
+    expect(rocketProgress).toHaveAttribute("data-orbit-motion", "continuous");
+    expect(rocketProgress).toHaveAttribute("data-launch-sequence", "0");
+    expect(
+      container.querySelectorAll(".rocket-progress-launch-ring"),
+    ).toHaveLength(2);
+    expect(
+      container.querySelectorAll(".rocket-progress-dust-particle"),
+    ).toHaveLength(8);
     expect(container.querySelector(".rocket-ship-vector")).toBeTruthy();
     expect(container.querySelector(".rocket-ship-exhaust-main")).toBeTruthy();
     expect(
       container.querySelector('[data-artwork-source="rocket-camera-ship"]'),
     ).toBeTruthy();
     expect(container.querySelector(".rocket-body")).toBeNull();
+  });
+
+  it("emits one launch burst per departure from the launch point", async () => {
+    const { container } = renderProgress("rocket");
+    const rocketProgress = container.querySelector(".rocket-progress");
+
+    expect(rocketProgress).toHaveAttribute("data-launch-sequence", "0");
+
+    window.scrollY = 1200;
+    window.dispatchEvent(new Event("scroll"));
+
+    await waitFor(() => {
+      expect(rocketProgress).toHaveAttribute("data-launch-sequence", "1");
+    });
+    const firstBurst = container.querySelector(
+      ".rocket-progress-launch-effects",
+    );
+    expect(firstBurst).toHaveAttribute("data-launch-sequence", "1");
+
+    window.scrollY = 1650;
+    window.dispatchEvent(new Event("scroll"));
+    await waitFor(() => {
+      expect(rocketProgress).toHaveAttribute("aria-valuenow", "75");
+    });
+    expect(rocketProgress).toHaveAttribute("data-launch-sequence", "1");
+    expect(
+      container.querySelector(".rocket-progress-launch-effects"),
+    ).toBe(firstBurst);
+
+    window.scrollY = 200;
+    window.dispatchEvent(new Event("scroll"));
+    await waitFor(() => {
+      expect(rocketProgress).toHaveAttribute("aria-valuenow", "0");
+    });
+    expect(rocketProgress).toHaveAttribute("data-launch-sequence", "1");
+
+    window.scrollY = 1200;
+    window.dispatchEvent(new Event("scroll"));
+    await waitFor(() => {
+      expect(rocketProgress).toHaveAttribute("data-launch-sequence", "2");
+    });
+    expect(
+      container.querySelector(".rocket-progress-launch-effects"),
+    ).not.toBe(firstBurst);
+  });
+
+  it("does not fake a launch when Rocket mounts mid-article", async () => {
+    window.scrollY = 1200;
+    const { container } = renderProgress("rocket");
+    const rocketProgress = container.querySelector(".rocket-progress");
+
+    await waitFor(() => {
+      expect(rocketProgress).toHaveAttribute("aria-valuenow", "50");
+    });
+    expect(rocketProgress).toHaveAttribute("data-started", "true");
+    expect(rocketProgress).toHaveAttribute("data-launch-sequence", "0");
   });
 
   it("keeps linear travel while changing boost power", async () => {
@@ -233,6 +297,7 @@ describe("ReadingProgressBar", () => {
       expect(rocketProgress).toHaveAttribute("data-orbiting", "true");
     });
     expect(rocketProgress).toHaveAttribute("data-flight-phase", "orbit");
+    expect(rocketProgress).toHaveAttribute("data-orbit-motion", "continuous");
 
     window.scrollY = 1650;
     window.dispatchEvent(new Event("scroll"));
@@ -259,6 +324,7 @@ describe("ReadingProgressBar", () => {
     });
     expect(container.querySelector(".mountain-progress")).toBeTruthy();
     expect(container.querySelector(".rocket-ship-vector")).toBeNull();
+    expect(container.querySelector(".rocket-progress-launch-effects")).toBeNull();
   });
 
   it("cancels a pending progress frame when unmounted", () => {
@@ -304,6 +370,7 @@ describe("ReadingProgressBar", () => {
       const rocketProgress = container.querySelector(".rocket-progress");
 
       expect(rocketProgress).toHaveAttribute("data-reduced-motion", "true");
+      expect(rocketProgress).toHaveAttribute("data-orbit-motion", "parked");
 
       window.scrollY = 2100;
       window.dispatchEvent(new Event("scroll"));
