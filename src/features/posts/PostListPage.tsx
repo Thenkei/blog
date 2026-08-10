@@ -1,12 +1,19 @@
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTheme } from "../../app/providers/ThemeProvider";
-import { getAvailableTags, getSearchDocuments, getPostSummaries, type PostLocale } from "./content";
+import {
+  getAvailableTags,
+  getSearchDocuments,
+  getPostSummaries,
+  getThemeExclusivePostSummaries,
+  type PostLocale,
+} from "./content";
 import { usePostKeyboardNavigation } from "./hooks/usePostKeyboardNavigation";
 import { ParallaxHero } from "../../shared/components/ParallaxHero";
 import { PageMeta } from "../../shared/seo/PageMeta";
 import { PostVisual } from "../../shared/components/PostVisual";
+import { RocketLogbook } from "./RocketLogbook";
 
 type PostListPageProps = {
   locale: PostLocale;
@@ -40,7 +47,8 @@ function includesQuery(
 export function PostListPage({ locale }: PostListPageProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { themeMode } = useTheme();
+  const location = useLocation();
+  const { appliedTheme, themeMode } = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
   const [areFiltersOpen, setAreFiltersOpen] = useState(false);
   const filterOptionsId = useId();
@@ -52,9 +60,27 @@ export function PostListPage({ locale }: PostListPageProps) {
     void navigate(`/${locale}/posts/${slug}`);
   };
 
-  const posts = useMemo(() => getPostSummaries(locale), [locale]);
-  const searchDocuments = useMemo(() => getSearchDocuments(locale), [locale]);
-  const tags = useMemo(() => getAvailableTags(locale), [locale]);
+  const posts = useMemo(() => getPostSummaries(locale, "public"), [locale]);
+  const searchDocuments = useMemo(
+    () => getSearchDocuments(locale, "public"),
+    [locale],
+  );
+  const tags = useMemo(() => getAvailableTags(locale, "public"), [locale]);
+  const rocketPosts = useMemo(
+    () =>
+      appliedTheme === "rocket"
+        ? getThemeExclusivePostSummaries(locale, "rocket")
+        : [],
+    [appliedTheme, locale],
+  );
+
+  useEffect(() => {
+    if (appliedTheme === "rocket" && location.hash === "#rocket-logbook") {
+      document.getElementById("rocket-logbook")?.scrollIntoView({
+        block: "start",
+      });
+    }
+  }, [appliedTheme, location.hash]);
 
   const updateFilters = (next: { query?: string; tag?: string; sort?: "newest" | "oldest" }) => {
     const params = new URLSearchParams(searchParams);
@@ -115,10 +141,16 @@ export function PostListPage({ locale }: PostListPageProps) {
         themeMode={themeMode}
         title={t("header.title")}
         subtitle={t("header.subtitle")}
+        signal={
+          appliedTheme === "rocket" && rocketPosts.length > 0
+            ? t("ui.rocketSignal", { count: rocketPosts.length })
+            : undefined
+        }
       />
 
       <main className="blog-content">
         <div className="container">
+          <RocketLogbook locale={locale} posts={rocketPosts} />
           <section className="post-controls" aria-label={t("ui.discovery")}>
             <div className="post-controls-header">
               <h2 className="post-list-title">{t("ui.latestPosts")}</h2>

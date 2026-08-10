@@ -23,12 +23,14 @@ type ParallaxHeroProps = {
   themeMode: ThemeMode;
   title: string;
   subtitle: string;
+  signal?: string | undefined;
 };
 
 export function ParallaxHero({
   themeMode,
   title,
   subtitle,
+  signal,
 }: ParallaxHeroProps) {
   const mountainShellRef = useRef<HTMLElement | null>(null);
   const mountainStageRef = useRef<HTMLElement | null>(null);
@@ -98,6 +100,13 @@ export function ParallaxHero({
     <div className="hero-content">
       <h1 className="hero-title">{title}</h1>
       <p className="hero-subtitle">{subtitle}</p>
+      {signal ? (
+        <div className="hero-signal-slot" aria-live="polite">
+          <a className="hero-signal" href="#rocket-logbook">
+            {signal}
+          </a>
+        </div>
+      ) : null}
     </div>
   );
 

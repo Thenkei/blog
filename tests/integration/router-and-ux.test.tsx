@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HelmetProvider } from "react-helmet-async";
@@ -32,6 +32,11 @@ async function waitForPostHeading(name: string) {
     { timeout: lazyContentTimeout },
   );
 }
+
+beforeEach(() => {
+  localStorage.clear();
+  document.documentElement.removeAttribute("data-theme");
+});
 
 describe("routing and UX", () => {
   async function selectTheme(
@@ -318,6 +323,92 @@ describe("routing and UX", () => {
 
     expect(document.documentElement).toHaveAttribute("data-theme", "rocket");
     expect(document.querySelector(".rocket-camera-shell")).toBeTruthy();
+  });
+
+  it("reveals the personal logbook only inside the Rocket theme", async () => {
+    renderApp("/en");
+    const user = userEvent.setup();
+
+    await screen.findByText(/Latest Posts/i);
+    expect(screen.queryByRole("heading", { name: "Logbook" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /Signal detected/i }),
+    ).not.toBeInTheDocument();
+
+    await selectTheme(user, "Rocket");
+
+    expect(
+      await screen.findByRole("link", {
+        name: "Signal detected // 3 personal transmissions",
+      }),
+    ).toHaveAttribute("href", "#rocket-logbook");
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Logbook" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", {
+        name: /Between Stars and Volcanoes - Transmission 001 - visible only here - Read post/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Transmission 001")).toBeInTheDocument();
+  });
+
+  it("treats a Rocket transmission as absent outside Rocket", async () => {
+    renderApp("/en/posts/stars-volcanoes-childhood-curiosity");
+
+    expect(await screen.findByText(/Latest Posts/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Between Stars and Volcanoes" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("guards a Rocket transmission when the active theme changes", async () => {
+    localStorage.setItem("themeMode", "rocket");
+    renderApp("/en/posts/stars-volcanoes-childhood-curiosity");
+    const user = userEvent.setup();
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: "Between Stars and Volcanoes",
+      }),
+    ).toBeInTheDocument();
+    expect(await waitForPostHeading("Looking up")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute(
+        "content",
+        "noindex,nofollow,noarchive",
+      );
+    });
+
+    await selectTheme(user, "Light");
+
+    expect(await screen.findByText(/Latest Posts/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Between Stars and Volcanoes" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("preserves the active locale switch inside the Rocket logbook", async () => {
+    localStorage.setItem("themeMode", "rocket");
+    renderApp("/fr/posts/heavencraft-first-systems");
+    const user = userEvent.setup();
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: /HeavenCraft : quand mon code/i,
+      }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "EN" }));
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: /HeavenCraft: When My Code Met Its First Real Players/i,
+      }),
+    ).toBeInTheDocument();
   });
 
   it("keeps global header links on the active French locale", async () => {

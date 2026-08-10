@@ -33,6 +33,11 @@ The MDX frontmatter drives whether the article is available in the application:
   direct post resolution.
 - Remove the `draft` field (or set it to `false`) in both locale files when the
   article is ready to publish.
+- `visibility: rocket` publishes a personal transmission only inside the
+  persisted Rocket theme. It stays out of public discovery, RSS, and the
+  sitemap, and its direct route resolves only while Rocket is active.
+- Omit `visibility` for a normal public article. English and French variants
+  must share both visibility and draft status.
 - Keep `publishedAt` as the date displayed by the application and emitted in
   the generated RSS feed and sitemap.
 
@@ -40,6 +45,11 @@ Before opening the change, run `npm run check` and verify the new article in
 both `/en` and `/fr`, including its direct `/posts/<slug>` route. The build
 regenerates `public/rss.xml` and `public/sitemap.xml`; include those generated
 changes when the publication set changes.
+
+Rocket visibility is an interface and indexing boundary, not access control.
+This is a static client application: MDX chunks still ship with the build and
+can be inspected. Content requiring confidentiality needs a server-side
+authorization boundary.
 
 ## Quality Gates
 ```bash

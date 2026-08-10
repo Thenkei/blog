@@ -1,5 +1,11 @@
 export type PostLocale = "en" | "fr";
 
+export const postVisibilities = ["public", "rocket"] as const;
+
+export type PostVisibility = (typeof postVisibilities)[number];
+
+export type PostAccessScope = PostVisibility;
+
 export const postVisualIds = [
   "agent-battle-2026",
   "bounded-ai-loop",
@@ -20,6 +26,9 @@ export const postVisualIds = [
   "postgresql-unique-nulls",
   "rebuilding-cloud-experience-forest-admin",
   "redis-memory-exhaustion-post-mortem",
+  "rocket-curiosity",
+  "rocket-earthbound-engineering",
+  "rocket-heavencraft-systems",
   "scaling-ci-github-actions-forest-admin",
   "scim-user-provisioning-forest-admin",
   "security-authentication-idp-openid-connect",
@@ -41,6 +50,7 @@ export interface PostFrontmatter {
   visualId: PostVisualId;
   seriesId?: string | undefined;
   seriesOrder?: number | undefined;
+  visibility: PostVisibility;
   draft?: boolean | undefined;
 }
 
@@ -59,6 +69,9 @@ export interface PostSummary {
   readTimeMinutes: number;
   tags: string[];
   visualId: PostVisualId;
+  seriesId?: string | undefined;
+  seriesOrder?: number | undefined;
+  visibility: PostVisibility;
 }
 
 export interface SearchDocument {

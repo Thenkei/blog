@@ -41,6 +41,10 @@
     grid-template-columns: 1fr;
   }
 
+  .rocket-logbook-grid {
+    grid-template-columns: 1fr;
+  }
+
   .post-header-grid {
     grid-template-columns: 1fr;
   }
@@ -72,6 +76,10 @@
 }
 
 @media (max-width: 720px) {
+  .rocket-logbook-header {
+    grid-template-columns: 1fr;
+  }
+
   .mountain-camera-shell,
   .rocket-camera-shell {
     height: calc(100svh + clamp(560px, 85svh, 780px));

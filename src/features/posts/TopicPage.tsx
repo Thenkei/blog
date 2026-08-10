@@ -2,6 +2,7 @@ import { Link, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getTopic, getTopicPosts, topics, type PostLocale } from "./content";
 import { PageMeta } from "../../shared/seo/PageMeta";
+import { useTheme } from "../../app/providers/ThemeProvider";
 
 type TopicPageProps = {
   locale: PostLocale;
@@ -18,6 +19,8 @@ function formatDate(date: string, locale: PostLocale): string {
 
 export function TopicPage({ locale, topicSlug }: TopicPageProps) {
   const { t } = useTranslation();
+  const { appliedTheme } = useTheme();
+  const postAccess = appliedTheme === "rocket" ? "rocket" : "public";
 
   if (!topicSlug) {
     return (
@@ -46,7 +49,7 @@ export function TopicPage({ locale, topicSlug }: TopicPageProps) {
     return <Navigate to={`/${locale}/topics`} replace />;
   }
 
-  const posts = getTopicPosts(locale, topicSlug);
+  const posts = getTopicPosts(locale, topicSlug, postAccess);
   return (
     <main className="blog-content">
       <div className="container topic-page">

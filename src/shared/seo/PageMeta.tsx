@@ -6,9 +6,16 @@ type PageMetaProps = {
   description: string;
   path: string;
   type?: "article" | "website";
+  indexable?: boolean;
 };
 
-export function PageMeta({ title, description, path, type = "article" }: PageMetaProps) {
+export function PageMeta({
+  title,
+  description,
+  path,
+  type = "article",
+  indexable = true,
+}: PageMetaProps) {
   const canonical = `${SITE_URL}${path}`;
   const fullTitle = `${title} | ${SITE_NAME}`;
 
@@ -16,6 +23,10 @@ export function PageMeta({ title, description, path, type = "article" }: PageMet
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
+      <meta
+        name="robots"
+        content={indexable ? "index,follow" : "noindex,nofollow,noarchive"}
+      />
       <link rel="canonical" href={canonical} />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />

@@ -33,6 +33,7 @@ describe("buildPostManifest", () => {
       locale: "en",
       title: "Example",
       visualId: "sse-outbound-channel",
+      visibility: "public",
     });
     expect(manifest.byLocale.fr[0]?.visualId).toBe("sse-outbound-channel");
   });
@@ -122,5 +123,65 @@ describe("buildPostManifest", () => {
         },
       }),
     ).toThrow(/share visualId/);
+  });
+
+  it("fails when locale variants use different visibility", () => {
+    expect(() =>
+      buildPostManifest({
+        "/content/posts/example/en.mdx": {
+          meta: {
+            title: "Example",
+            subtitle: "Subtitle",
+            summary: "Summary",
+            publishedAt: "2026-01-01",
+            readTimeMinutes: 2,
+            tags: ["example"],
+            visualId: "rocket-curiosity",
+            visibility: "rocket",
+          },
+        },
+        "/content/posts/example/fr.mdx": {
+          meta: {
+            title: "Exemple",
+            subtitle: "Sous-titre",
+            summary: "Résumé",
+            publishedAt: "2026-01-01",
+            readTimeMinutes: 2,
+            tags: ["example"],
+            visualId: "rocket-curiosity",
+          },
+        },
+      }),
+    ).toThrow(/share visibility/);
+  });
+
+  it("fails when locale variants use different draft status", () => {
+    expect(() =>
+      buildPostManifest({
+        "/content/posts/example/en.mdx": {
+          meta: {
+            title: "Example",
+            subtitle: "Subtitle",
+            summary: "Summary",
+            publishedAt: "2026-01-01",
+            readTimeMinutes: 2,
+            tags: ["example"],
+            visualId: "sse-outbound-channel",
+            draft: true,
+          },
+        },
+        "/content/posts/example/fr.mdx": {
+          meta: {
+            title: "Exemple",
+            subtitle: "Sous-titre",
+            summary: "Résumé",
+            publishedAt: "2026-01-01",
+            readTimeMinutes: 2,
+            tags: ["example"],
+            visualId: "sse-outbound-channel",
+          },
+        },
+      }),
+    ).toThrow(/share draft status/);
   });
 });

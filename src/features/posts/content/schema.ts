@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { postVisualIds } from "./types";
+import { postVisibilities, postVisualIds } from "./types";
 
 const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -27,5 +27,6 @@ export const postFrontmatterSchema = z.object({
   visualId: z.enum(postVisualIds),
   seriesId: z.string().trim().min(1).optional(),
   seriesOrder: z.number().int().positive().optional(),
+  visibility: z.enum(postVisibilities).default("public"),
   draft: z.boolean().optional(),
 });
