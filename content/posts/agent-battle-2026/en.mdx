@@ -1,38 +1,76 @@
 ---
-title: "Antigravity vs Cursor vs Claude Code: The Battle for the Developer's Soul"
-subtitle: "Value propositions, hardware moats, and the road to 2027."
-summary: "A comparative analysis of developer AI agents through value, workflow impact, and infrastructure economics."
+title: "Codex, Claude Code, and Herd: Finding the Right Place for Each Tool"
+subtitle: "The useful choice is not made from a demo, but from the shape of the work, its controls, and supervision cost."
+summary: "Our framework for choosing interactive agents, delegated tasks, and parallel orchestration without turning engineers into queue supervisors."
 visualId: "agent-battle-2026"
-publishedAt: "2026-01-14"
-readTimeMinutes: 7
+publishedAt: "2026-06-19"
+readTimeMinutes: 6
 tags:
   - ai
   - developer-tools
+  - engineering
   - strategy
 ---
 
-It's 2026, and the "AI coding assistant" is no longer a cute novelty—it's basically our oxygen. I've spent the last few weeks in the trenches trialing the big three heavyweights: **Antigravity**, **Cursor**, and **Claude Code** (both the CLI and the IDE integration). The verdict? They are all absolutely absurd. If you told me three years ago I'd have tools this ridiculously capable, I would have asked what you were smoking.
+## Context
 
-But "absurd" doesn't help me justify my expanding SaaS budget. The real question is: _How do they actually impact our real-world spaghetti code?_
+In a few months, we moved from an editor assistant to agents that can explore a repository, edit files, run tests, and prepare a PR. We use **Claude Code** and **Codex**, among others, and we are experimenting with **Herd** to operate several native agents from one interface.
 
-## The Value Proposition: Quantifying the Unquantifiable
+“Which one is best?” proved unhelpful. The right tool depends on the shape of the work: an interactive investigation, a well-specified task that can be delegated, or several independent units that need coordination.
 
 <ArticleDiagram visualId="agent-battle-2026" />
 
-We're way past the "look, it can write a sorting algorithm!" phase. Now we're in the realm of autonomous agents. How do you measure their value? Lines of code generated per hour? (Please no.) Bugs preemptively caught? Or is it something softer, like "brain cells conserved per sprint"?
+## The problem
 
-To me, the core differentiator is how they digest **context** and infer your true **intent** (even when you barely know it yourself). Antigravity feels like pair-programming with that 10x staff engineer who actually read the whole monorepo. Cursor is the caffeinated speed demon, predicting your next move before your fingers hit the keyboard. Claude Code offers that deep, thoughtful code review that feels like a patient mentor gently asking why you wrote a O(n^3) loop.
+Every agent promises throughput. The hidden cost sits in context preparation, supervision, conflict resolution, and review. Running ten agents against an uncertain design does not multiply capacity by ten; it produces ten interpretations to reconcile.
 
-> The profound shift isn't in typing faster; it's in thinking bigger, with fewer mental roadblocks.
+Tool choice also changes operational boundaries: where code runs, which secrets are available, how actions are approved, where logs remain, and who can stop a task.
 
-## The Under-the-Hood Angle: Google's Hardware Moat
+## Bad ideas
 
-Here's a spicy take I can't shake: **Infrastructure**. We all obsess over the UX, but the LLMs powering these agents are ravenous beasts. They crave compute. Massive, specialized, and hyper-localized compute.
+- Choose from a benchmark or isolated demo.
+- Assign one tool to every team workflow.
+- Confuse parallel work with independent work.
+- Supervise more sessions than the team can review seriously.
+- Give an exploration agent and a delivery agent identical permissions.
+- Measure gains in lines of code instead of time to a reliable, reviewed change.
 
-This is where Google is sitting on a terrifyingly massive moat. They actually own the silicon (TPUs) and the datacenters that house them. In the long run, as context windows stretch to infinity and models get wider, the sheer cost of inference will dictate who survives.
+Agent output is not throughput until it is integrable.
 
-If Google can spin up a model that’s 10x larger for 10% of the cost just because they control the entire vertical stack, are they the inevitable kings of the hill? Maybe. Does it mean we count out the scrappy innovators? Absolutely not. Constraints breed incredible engineering, and the dogfight right now is glorious.
+## What did not work
 
-## Buckle Up for 2026
+Constantly switching tools lost the context we expected to gain. Every transfer required another summary and reintroduced assumptions.
 
-One thing is certain: having test-driven all three, the results are legitimately mind-blowing. We are standing on the edge of a fundamental shift in software architecture. I am genuinely hyped to see what the rest of 2026 cooks up. If the compute curves keep bending like this, we won't be "writing" code anymore; we'll be conducting symphonies of logic.
+Parallelising coupled tasks created file collisions and incompatible decisions. An orchestrator exposes these collisions; it does not remove them.
+
+Long tasks without checkpoints also produced impressive but difficult-to-review diffs. The agent optimised its completion condition, not our ability to understand the change.
+
+## Alternatives
+
+We distinguish three modes rather than three brands:
+
+| Mode | Good fit | Primary control |
+| --- | --- | --- |
+| Interactive pairing | Ambiguous problem, exploration, debugging | Frequent human direction |
+| Bounded delegation | Clear issue, testable criteria, isolated diff | Sandbox, budget, completion evidence |
+| Orchestration | Genuinely independent tasks | Worktree isolation and explicit integration |
+
+Claude Code and Codex can cover several modes depending on their environment. Herd adds multi-agent supervision; its value appears when decomposition is already sound and an operator must track several flows, not while the problem is still being discovered.
+
+## The solution
+
+We select the mode from risk and uncertainty:
+
+1. **Understand before parallelising.** One person and one agent explore until boundaries are clear.
+2. **Define a task contract.** Scope, authorised files or systems, completion criteria, expected tests, and stop condition.
+3. **Delegate the smallest unit that produces reviewable value.**
+4. **Parallelise only independent units.** Each agent works in an isolated environment.
+5. **Integrate under human accountability.** Review invariants, not only the diff and tests.
+
+Our decision framework considers five costs: time to first evidence, context handling quality, action controllability, review effort, and supervision load. The best tool minimises total workflow cost; it is not necessarily the fastest writer.
+
+## Limits
+
+This framework reflects our organisation, repositories, and security constraints. Products evolve quickly; a model or interface advantage can disappear within weeks. We must reassess real workflows rather than defend an old ranking.
+
+Multi-agent orchestration adds a distributed system to engineering work: queues, partial states, conflicts, and recovery. For short or tightly coupled tasks, it often increases total time. The right place for a tool can be outside the workflow.

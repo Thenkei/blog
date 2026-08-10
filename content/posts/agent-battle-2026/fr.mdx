@@ -1,38 +1,76 @@
 ---
-title: "Antigravity, Cursor et Claude Code : quelle place pour les agents de programmation ?"
-subtitle: "Valeur proposée, avantages matériels et trajectoire vers 2027."
-summary: "Analyse comparative des agents IA pour développeurs selon la valeur, l'impact concret et les coûts d'infrastructure."
+title: "Codex, Claude Code et Herd : trouver la bonne place pour chaque outil"
+subtitle: "Le choix utile ne se fait pas sur une démo, mais sur la forme du travail, ses contrôles et son coût de supervision."
+summary: "Notre grille pour choisir entre agent interactif, tâche déléguée et orchestration parallèle sans transformer l'équipe en superviseur de files d'attente."
 visualId: "agent-battle-2026"
-publishedAt: "2026-01-14"
+publishedAt: "2026-06-19"
 readTimeMinutes: 7
 tags:
   - ia
   - developer-tools
+  - engineering
   - strategie
 ---
 
-Nous sommes en 2026, et l'assistant de programmation fondé sur l'IA n'est plus un simple jouet : il est devenu notre oxygène. J'ai passé les dernières semaines dans les tranchées à tester les trois titans : **Antigravity**, **Cursor** et **Claude Code** (le CLI et l'IDE). Le verdict ? Ils sont tous impressionnants. Si vous m'aviez dit il y a trois ans que j'aurais accès à des outils d'une telle puissance, je vous aurais demandé ce que vous aviez fumé.
+## Le contexte
 
-Mais « impressionnant » ne m'aide pas vraiment à justifier l'explosion de mon budget SaaS. La vraie question est : _quel est leur impact réel sur notre code spaghetti quotidien ?_
+En quelques mois, nous sommes passés d'un assistant dans l'éditeur à plusieurs agents capables d'explorer un dépôt, modifier des fichiers, lancer des tests et préparer une PR. Nous utilisons notamment **Claude Code** et **Codex**, et nous expérimentons **Herd** pour piloter plusieurs agents natifs depuis une même interface.
 
-## La valeur réelle : mesurer l'immesurable
+La question « quel est le meilleur ? » s'est révélée peu utile. Le bon outil dépend de la forme du travail : une investigation interactive, une tâche bien spécifiée que l'on peut déléguer, ou plusieurs unités indépendantes à coordonner.
 
 <ArticleDiagram visualId="agent-battle-2026" />
 
-Nous avons quitté l'époque du « regarde, ça génère un algorithme de tri tout seul ! ». Nous sommes dans l'ère des agents autonomes. Comment la mesurer ? En lignes de code générées par heure ? (Pitié, non.) En bugs évités de justesse ? Ou en « neurones épargnés par sprint » ?
+## Le problème
 
-Pour moi, la ligne de fracture se situe dans leur façon de digérer le **contexte** et de deviner votre **intention**. Antigravity donne l'impression de programmer en binôme avec le staff engineer mythique qui a lu le monorepo de A à Z. Cursor est le démon caféiné de la vitesse, qui génère la suite avant même que vous n'y pensiez. Claude Code, lui, propose des revues de code très posées, comme un mentor qui vous demande doucement pourquoi vous avez écrit cette boucle en O(n^3).
+Tous les agents promettent du débit. Mais le coût caché se trouve dans la préparation du contexte, la surveillance, la résolution des conflits et la review. Lancer dix agents sur une conception incertaine ne multiplie pas la capacité par dix ; cela produit dix interprétations à réconcilier.
 
-> Le vrai changement systémique ne réside pas dans la vitesse de frappe : c'est l'échelle à laquelle on peut réfléchir.
+Le choix d'outil modifie aussi les frontières opérationnelles : où tourne le code, quels secrets sont disponibles, comment une action est approuvée, où restent les logs et qui peut interrompre la tâche.
 
-## Sous le capot : la forteresse matérielle de Google
+## Les mauvaises idées
 
-Voilà une théorie dont je n'arrive pas à me défaire : **l'infrastructure**. On se concentre souvent sur la couche logicielle, mais ces modèles sont très gourmands en calcul, spécialisé et massivement concentré.
+- Choisir sur un benchmark ou une démo isolée.
+- Affecter un outil unique à tous les workflows de l'équipe.
+- Confondre parallélisme et indépendance des tâches.
+- Superviser plus de sessions que l'on ne peut en reviewer sérieusement.
+- Donner les mêmes permissions à un agent d'exploration et à un agent de delivery.
+- Mesurer les gains en lignes de code plutôt qu'en temps jusqu'à une modification fiable et reviewée.
 
-C'est là, je pense, que Google possède un avantage considérable. L'entreprise maîtrise le matériel (les fameux TPU) et les centres de données. Elle contrôle la matière au service des bits. À mesure que les fenêtres de contexte s'allongent, le coût brut de l'inférence décidera de qui survivra.
+La sortie d'un agent n'est pas du throughput tant qu'elle n'est pas intégrable.
 
-Si Google peut faire tourner des modèles dix fois plus gros pour 10 % du coût parce qu'il contrôle toute la chaîne de valeur, est-ce que cela en fait le futur roi du monde ? Peut-être. Faut-il enterrer ses concurrents agressifs ? Pas du tout. La contrainte force l'innovation, et le combat actuel est passionnant à observer.
+## Ce qui n'a pas marché
 
-## Attachez vos ceintures pour la suite
+Le ping-pong permanent entre outils nous faisait perdre le contexte que nous pensions gagner. Chaque transfert exigeait un nouveau résumé et réintroduisait des hypothèses.
 
-Une chose est gravée dans le marbre : tester les trois m'a retourné le cerveau. Nous sommes au bord d'une rupture majeure dans l'ingénierie logicielle, et je suis sincèrement impatient de voir ce que la fin de 2026 nous réserve. Vu la courbe actuelle, bientôt nous n'« écrirons » plus autant : nous deviendrons les chefs d'orchestre de la logique.
+Le parallélisme appliqué à des tâches couplées a créé des collisions de fichiers et des décisions incompatibles. Un orchestrateur rend ces collisions visibles ; il ne les supprime pas.
+
+Enfin, les tâches longues sans checkpoints produisaient des diffs impressionnantes mais difficiles à reviewer. L'agent avait optimisé sa condition de fin, pas notre capacité à comprendre le changement.
+
+## Les alternatives
+
+Nous distinguons trois modes plutôt que trois marques :
+
+| Mode | Bon cas d'usage | Contrôle principal |
+| --- | --- | --- |
+| Pairing interactif | Problème ambigu, exploration, debug | Direction humaine fréquente |
+| Délégation bornée | Issue claire, critères testables, diff isolée | Sandbox, budget et preuve de fin |
+| Orchestration | Tâches réellement indépendantes | Isolation des worktrees et intégration explicite |
+
+Claude Code et Codex peuvent couvrir plusieurs modes selon leur environnement. Herd ajoute une couche de supervision multi-agent ; sa valeur apparaît lorsque le découpage est déjà bon et que l'opérateur doit suivre plusieurs flux, pas lorsqu'il faut encore découvrir le problème.
+
+## La solution
+
+Nous choisissons le mode à partir du risque et de l'incertitude :
+
+1. **Comprendre avant de paralléliser.** Une personne et un agent explorent le problème jusqu'à obtenir des frontières nettes.
+2. **Définir un contrat de tâche.** Périmètre, fichiers ou systèmes autorisés, critères de fin, tests attendus et condition d'arrêt.
+3. **Déléguer l'unité la plus petite qui produit une valeur reviewable.**
+4. **Paralléliser seulement les unités indépendantes.** Chaque agent travaille dans un environnement isolé.
+5. **Intégrer sous responsabilité humaine.** La review porte sur les invariants, pas seulement sur le diff et les tests.
+
+Notre grille de décision regarde cinq coûts : temps jusqu'à la première preuve, qualité de la gestion du contexte, contrôlabilité des actions, effort de review et charge cognitive de supervision. Le meilleur outil est celui qui minimise le coût total pour ce workflow, pas celui qui écrit le plus vite.
+
+## Les limites
+
+Cette grille reste liée à notre organisation, nos dépôts et nos contraintes de sécurité. Les produits évoluent vite ; un avantage d'interface ou de modèle peut disparaître en quelques semaines. Il faut donc réévaluer des workflows réels, pas défendre un classement historique.
+
+L'orchestration multi-agent ajoute un système distribué au travail d'ingénierie : files d'attente, états partiels, conflits et reprises. Pour une tâche courte ou fortement couplée, elle augmente souvent le temps total. La bonne place d'un outil peut être de ne pas l'utiliser.
