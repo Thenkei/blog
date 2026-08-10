@@ -137,8 +137,10 @@ Implemented in `/Users/sinkneath/github/blog/src/features/reading/ReadingProgres
 
 Variants:
 - `light` / `dark`: minimal clean rail + marker
-- `mountain`: runner + trail checkpoints + altitude badge
-- `rocket`: telemetry rail + rocket + orbit completion state
+- `mountain`: animated trail runner tied to article progress
+- `rocket`: the canonical cinematic ship launches linearly from the viewport bottom while boost power changes independently; at `100%` it completes one orbit around the moon and parks above it
+
+The Rocket variant uses a single `requestAnimationFrame`-coalesced scroll driver, preserves the article's direct progress-to-position mapping, and exposes semantic `progressbar` values. Reduced-motion mode keeps the completed orbital composition without time-based motion.
 
 ## UI Components Updated for Themes
 - `/Users/sinkneath/github/blog/src/shared/components/ThemeSwitcher.tsx`
@@ -164,7 +166,9 @@ Relevant tests for the redesign:
 - `/Users/sinkneath/github/blog/tests/unit/theme-provider.test.tsx`
   - theme initialization + migration behavior
 - `/Users/sinkneath/github/blog/tests/unit/reading-progress-bar.test.tsx`
-  - variant rendering and state behavior
+  - variant rendering, theme isolation, semantic progress, launch, and orbit behavior
+- `/Users/sinkneath/github/blog/tests/unit/reading-progress-state.test.ts`
+  - article mapping, linear Rocket travel, independent boost envelope, and completion threshold
 
 Run all tests:
 ```bash

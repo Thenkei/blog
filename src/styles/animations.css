@@ -29,12 +29,26 @@
   }
 }
 
-@keyframes orbitSpin {
-  from {
+@keyframes rocketProgressOrbit {
+  0% {
     transform: rotate(0deg);
   }
+  72% {
+    transform: rotate(312deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rocketProgressEnginePulse {
+  from {
+    transform: translateX(-50%) scaleY(0.9);
+    opacity: calc(0.2 + (var(--rocket-boost) * 0.48));
+  }
   to {
-    transform: rotate(-360deg);
+    transform: translateX(-50%) scaleY(1.08);
+    opacity: calc(0.3 + (var(--rocket-boost) * 0.6));
   }
 }
 
@@ -249,5 +263,13 @@ article,
   .mountain-camera-stage::after,
   .rocket-camera-stage::after {
     opacity: 0 !important;
+  }
+
+  .rocket-progress[data-orbiting="true"] .rocket-progress-flight-carrier {
+    transform: rotate(360deg);
+  }
+
+  .rocket-progress-engine-glow {
+    opacity: 0.18;
   }
 }

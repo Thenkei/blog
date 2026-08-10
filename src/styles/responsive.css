@@ -1,7 +1,18 @@
 @media (max-width: 1024px) {
   .rocket-progress[data-progress-placement="right"] {
+    --rocket-orbit-size: 92px;
+    --rocket-orbit-radius: 46px;
+    --rocket-moon-size: 54px;
+    --rocket-moon-inset: 19px;
+    --rocket-ship-width: 42px;
+    --rocket-track-bottom: 108px;
+
     right: 0;
-    width: 96px;
+    width: 104px;
+  }
+
+  .rocket-progress-label {
+    right: 116px;
   }
 
   .mountain-progress[data-progress-placement="top"],
@@ -256,11 +267,36 @@
   }
 
   .rocket-progress[data-progress-placement="right"] {
+    --rocket-orbit-size: 78px;
+    --rocket-orbit-radius: 39px;
+    --rocket-moon-size: 46px;
+    --rocket-moon-inset: 16px;
+    --rocket-ship-width: 34px;
+    --rocket-orbit-top: 0px;
+    --rocket-track-bottom: 96px;
+
+    top: calc(env(safe-area-inset-top) + 112px);
     right: 2px;
-    width: 84px;
+    width: 88px;
   }
 
   .rocket-progress-label {
-    right: 76px;
+    top: calc(env(safe-area-inset-top) + 108px);
+    right: 94px;
+  }
+
+  [data-theme="rocket"] .blog-content article {
+    box-sizing: border-box;
+    padding-right: 3rem;
+  }
+
+  .rocket-progress[data-started="false"] .rocket-progress-moon,
+  .rocket-progress[data-started="false"] .rocket-progress-orbit-ring,
+  .rocket-progress[data-started="false"] .rocket-progress-orbit-arc {
+    opacity: 0.2;
+  }
+
+  .rocket-progress[data-started="false"] .rocket-progress-flight-path {
+    opacity: 0.28;
   }
 }

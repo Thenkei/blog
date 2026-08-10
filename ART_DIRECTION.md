@@ -282,6 +282,7 @@ Règles :
 
 - transitions courtes pour menus, cartes et états de focus ;
 - parallax réservé aux thèmes Montagne et Rocket ;
+- dans la progression de lecture Rocket, la position de la fusée reste strictement linéaire avec la lecture ; seule la puissance visuelle des gaz varie, puis une orbite terminale courte se termine au-dessus de la lune ;
 - aucune animation indispensable à la compréhension d’un diagramme ;
 - respect systématique de `prefers-reduced-motion` ;
 - état statique complet et lisible lorsque le mouvement est réduit.
