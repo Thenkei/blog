@@ -53,7 +53,9 @@ export function PostPage({ locale, slug }: PostPageProps) {
   }, [post]);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if (!window.location.hash) {
+      window.scrollTo(0, 0);
+    }
   }, [slug, locale]);
 
   if (!post) {
@@ -101,7 +103,9 @@ export function PostPage({ locale, slug }: PostPageProps) {
           <article ref={articleRef} key={contentKey}>
             <TableOfContents articleRef={articleRef} contentKey={contentKey} />
             <CopyLinkButtons articleRef={articleRef} contentKey={contentKey} />
-            <post.Component />
+            <div className="post-document">
+              <post.Component />
+            </div>
             <div className="trail-line article-end-line" />
             <section className="post-nav" aria-label={t("ui.seriesNavigation")}>
               {adjacent.previous ? (
