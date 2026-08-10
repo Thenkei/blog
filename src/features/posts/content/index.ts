@@ -3,14 +3,44 @@ import { getTopic } from "./topics";
 import type { ComponentType } from "react";
 import type { PostDocument, PostLocale, PostSummary, SearchDocument } from "./types";
 
-const rawModules = import.meta.glob<{ default: ComponentType; meta?: unknown }>(
+type PostModule = {
+  default: ComponentType;
+};
+
+const rawMetadata = import.meta.glob<{ meta?: unknown }>(
   "/content/posts/*/*.mdx",
   {
     eager: true,
+    import: "meta",
+    query: "?meta",
   },
 );
 
-const manifest = buildPostManifest(rawModules);
+const postModules = import.meta.glob<PostModule>("/content/posts/*/*.mdx");
+
+const manifest = buildPostManifest(
+  Object.fromEntries(
+    Object.entries(rawMetadata).map(([path, meta]) => [path, { meta }]),
+  ),
+);
+
+type PostContentKey = Pick<PostDocument, "locale" | "slug">;
+
+function getPostPath({ locale, slug }: PostContentKey): string {
+  return `/content/posts/${slug}/${locale}.mdx`;
+}
+
+export async function loadPostComponent(
+  post: PostContentKey,
+): Promise<ComponentType> {
+  const load = postModules[getPostPath(post)];
+  if (!load) {
+    throw new Error(`Missing post module for ${post.slug}/${post.locale}`);
+  }
+
+  const module = await load();
+  return module.default;
+}
 
 function toSummary(post: PostDocument): PostSummary {
   return {
