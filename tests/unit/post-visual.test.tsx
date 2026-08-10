@@ -20,7 +20,20 @@ const editorialPrototypeIds = [
   "context-engineering-beyond-prompt-engineering",
   "self-service-analytics-that-doesnt-lie",
   "unknown-unknowns-software-architecture",
+  "the-onboarding-matrix-forest-admin",
+  "rebuilding-cloud-experience-forest-admin",
+  "scaling-ci-github-actions-forest-admin",
 ] as const satisfies readonly PostVisualId[];
+
+const editorialPrototypeTextBudgets = [
+  { id: "engineering-documents-age-poorly", inlineLabels: 3 },
+  { id: "context-engineering-beyond-prompt-engineering", inlineLabels: 3 },
+  { id: "self-service-analytics-that-doesnt-lie", inlineLabels: 3 },
+  { id: "unknown-unknowns-software-architecture", inlineLabels: 3 },
+  { id: "the-onboarding-matrix-forest-admin", inlineLabels: 3 },
+  { id: "rebuilding-cloud-experience-forest-admin", inlineLabels: 5 },
+  { id: "scaling-ci-github-actions-forest-admin", inlineLabels: 4 },
+] as const satisfies ReadonlyArray<{ id: PostVisualId; inlineLabels: number }>;
 
 const localizedPrototypeLabels = [
   { id: "engineering-documents-age-poorly", en: "Decision", fr: "Décision" },
@@ -31,6 +44,13 @@ const localizedPrototypeLabels = [
   },
   { id: "self-service-analytics-that-doesnt-lie", en: "Contract", fr: "Contrat" },
   { id: "unknown-unknowns-software-architecture", en: "Recover", fr: "Récupérer" },
+  {
+    id: "the-onboarding-matrix-forest-admin",
+    en: "Adapter / Flow",
+    fr: "Adaptateur / Flow",
+  },
+  { id: "rebuilding-cloud-experience-forest-admin", en: "Database", fr: "Base" },
+  { id: "scaling-ci-github-actions-forest-admin", en: "Artifacts", fr: "Artefacts" },
 ] as const satisfies ReadonlyArray<{ id: PostVisualId; en: string; fr: string }>;
 
 function geometrySignature(container: HTMLElement) {
@@ -100,9 +120,9 @@ describe("PostVisual", () => {
     },
   );
 
-  it.each(editorialPrototypeIds)(
-    "keeps %s within its placement text budgets",
-    (id) => {
+  it.each(editorialPrototypeTextBudgets)(
+    "keeps $id within its placement text budgets",
+    ({ id, inlineLabels }) => {
       for (const variant of ["card", "header"] satisfies PostVisualVariant[]) {
         const { container, unmount } = render(
           <PostVisual locale="en" slug={id} variant={variant} visualId={id} />,
@@ -115,9 +135,25 @@ describe("PostVisual", () => {
       const { container } = render(
         <PostVisual locale="en" slug={id} variant="inline" visualId={id} />,
       );
-      expect(container.querySelectorAll("svg text")).toHaveLength(3);
+      expect(container.querySelectorAll("svg text")).toHaveLength(inlineLabels);
     },
   );
+
+  it("exposes a complete animated radar motif without relying on text", () => {
+    const { container } = render(
+      <PostVisual
+        locale="en"
+        slug="unknown-unknowns-software-architecture"
+        variant="card"
+        visualId="unknown-unknowns-software-architecture"
+      />,
+    );
+
+    expect(container.querySelector(".visual-editorial-radar-sweep")).toBeTruthy();
+    expect(container.querySelectorAll(".visual-editorial-radar-target")).toHaveLength(3);
+    expect(container.querySelector(".visual-editorial-radar-ping")).toBeTruthy();
+    expect(container.querySelectorAll("svg text")).toHaveLength(0);
+  });
 
   it.each(localizedPrototypeLabels)(
     "localizes the editorial labels for $id",
