@@ -10,6 +10,7 @@ import {
   useParams,
 } from "react-router-dom";
 import { hasPostSlug, type PostLocale } from "../features/posts/content";
+import { useTheme } from "./providers/ThemeProvider";
 const PostListPage = lazy(() =>
   import("../features/posts/PostListPage").then((m) => ({
     default: m.PostListPage,
@@ -30,11 +31,13 @@ import { normalizeLocale } from "../shared/routing";
 
 function RootRedirect() {
   const { i18n } = useTranslation();
+  const { appliedTheme } = useTheme();
   const location = useLocation();
   const locale = normalizeLocale(i18n.resolvedLanguage ?? i18n.language);
   const postFromLegacyQuery = new URLSearchParams(location.search).get("post");
+  const postAccess = appliedTheme === "rocket" ? "rocket" : "public";
 
-  if (postFromLegacyQuery && hasPostSlug(postFromLegacyQuery)) {
+  if (postFromLegacyQuery && hasPostSlug(postFromLegacyQuery, postAccess)) {
     return <Navigate replace to={`/${locale}/posts/${postFromLegacyQuery}`} />;
   }
 
@@ -43,10 +46,12 @@ function RootRedirect() {
 
 function LocaleLayout() {
   const { i18n } = useTranslation();
+  const { appliedTheme } = useTheme();
   const params = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const locale = normalizeLocale(params.locale);
+  const postAccess = appliedTheme === "rocket" ? "rocket" : "public";
 
   useEffect(() => {
     if (i18n.language !== locale) {
@@ -56,7 +61,7 @@ function LocaleLayout() {
 
   useEffect(() => {
     const legacyPost = new URLSearchParams(location.search).get("post");
-    if (!legacyPost || !hasPostSlug(legacyPost)) {
+    if (!legacyPost || !hasPostSlug(legacyPost, postAccess)) {
       return;
     }
 
@@ -64,7 +69,7 @@ function LocaleLayout() {
     if (location.pathname !== target || location.search) {
       void navigate(target, { replace: true });
     }
-  }, [locale, location.pathname, location.search, navigate]);
+  }, [locale, location.pathname, location.search, navigate, postAccess]);
 
   if (!params.locale || (params.locale !== "en" && params.locale !== "fr")) {
     return <Navigate replace to={`/${locale}`} />;

@@ -19,6 +19,7 @@ const frontmatterSchema = z.object({
   tags: z.array(z.string().min(1)).min(1),
   seriesId: z.string().min(1).optional(),
   seriesOrder: z.number().int().positive().optional(),
+  visibility: z.enum(["public", "rocket"]).default("public"),
   draft: z.boolean().optional(),
 });
 
@@ -54,6 +55,7 @@ async function loadEntries() {
       }
     }
 
+    const localizedEntries = {};
     for (const locale of ["en", "fr"]) {
       const filePath = localeFiles[locale];
       const source = await fs.readFile(filePath, "utf8");
@@ -64,15 +66,27 @@ async function loadEntries() {
         throw new Error(`updatedAt cannot be before publishedAt for ${slug}/${locale}`);
       }
 
-      entries.push({
+      localizedEntries[locale] = {
         slug,
         locale,
         ...meta,
-      });
+      };
     }
+
+    if (localizedEntries.en.visibility !== localizedEntries.fr.visibility) {
+      throw new Error(`Locale variants must share visibility for slug ${slug}`);
+    }
+
+    if (Boolean(localizedEntries.en.draft) !== Boolean(localizedEntries.fr.draft)) {
+      throw new Error(`Locale variants must share draft status for slug ${slug}`);
+    }
+
+    entries.push(localizedEntries.en, localizedEntries.fr);
   }
 
-  return entries.filter((entry) => !entry.draft);
+  return entries.filter(
+    (entry) => !entry.draft && entry.visibility === "public",
+  );
 }
 
 function buildSitemap(entries) {

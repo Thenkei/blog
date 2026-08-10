@@ -15,6 +15,37 @@ describe("postFrontmatterSchema", () => {
 
     expect(parsed.title).toBe("Valid title");
     expect(parsed.visualId).toBe("bounded-ai-loop");
+    expect(parsed.visibility).toBe("public");
+  });
+
+  it("accepts Rocket-only visibility", () => {
+    const parsed = postFrontmatterSchema.parse({
+      title: "Personal transmission",
+      subtitle: "Subtitle",
+      summary: "Summary",
+      publishedAt: "2026-01-26",
+      readTimeMinutes: 3,
+      tags: ["personal"],
+      visualId: "rocket-curiosity",
+      visibility: "rocket",
+    });
+
+    expect(parsed.visibility).toBe("rocket");
+  });
+
+  it("rejects unknown visibility values", () => {
+    expect(() =>
+      postFrontmatterSchema.parse({
+        title: "Hidden post",
+        subtitle: "Subtitle",
+        summary: "Summary",
+        publishedAt: "2026-01-26",
+        readTimeMinutes: 3,
+        tags: ["personal"],
+        visualId: "rocket-curiosity",
+        visibility: "private",
+      }),
+    ).toThrow();
   });
 
   it("rejects invalid date values", () => {

@@ -101,6 +101,12 @@ export function buildPostManifest(
     if (english?.visualId !== french?.visualId) {
       throw new Error(`Locale variants must share visualId for slug ${slug}`);
     }
+    if (english?.visibility !== french?.visibility) {
+      throw new Error(`Locale variants must share visibility for slug ${slug}`);
+    }
+    if (Boolean(english?.draft) !== Boolean(french?.draft)) {
+      throw new Error(`Locale variants must share draft status for slug ${slug}`);
+    }
 
     for (const locale of ["en", "fr"] as const) {
       const doc = locales.get(locale);

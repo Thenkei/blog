@@ -1,7 +1,14 @@
 import { buildPostManifest } from "./manifest";
 import { getTopic } from "./topics";
 import type { ComponentType } from "react";
-import type { PostDocument, PostLocale, PostSummary, SearchDocument } from "./types";
+import type {
+  PostDocument,
+  PostAccessScope,
+  PostLocale,
+  PostSummary,
+  PostVisibility,
+  SearchDocument,
+} from "./types";
 
 type PostModule = {
   default: ComponentType;
@@ -32,7 +39,12 @@ function getPostPath({ locale, slug }: PostContentKey): string {
 
 export async function loadPostComponent(
   post: PostContentKey,
+  access: PostAccessScope,
 ): Promise<ComponentType> {
+  if (!getPost(post.locale, post.slug, access)) {
+    throw new Error(`Post is not accessible: ${post.slug}/${post.locale}`);
+  }
+
   const load = postModules[getPostPath(post)];
   if (!load) {
     throw new Error(`Missing post module for ${post.slug}/${post.locale}`);
@@ -53,6 +65,9 @@ function toSummary(post: PostDocument): PostSummary {
     readTimeMinutes: post.readTimeMinutes,
     tags: post.tags,
     visualId: post.visualId,
+    seriesId: post.seriesId,
+    seriesOrder: post.seriesOrder,
+    visibility: post.visibility,
   };
 }
 
@@ -60,26 +75,68 @@ function isPublished(post: PostDocument): boolean {
   return !post.draft;
 }
 
-function nonDraft(posts: PostDocument[]): PostDocument[] {
-  return posts.filter(isPublished);
+function isAccessible(
+  post: PostDocument,
+  access: PostAccessScope,
+): boolean {
+  return isPublished(post) &&
+    (post.visibility === "public" || post.visibility === access);
 }
 
-export function hasPostSlug(slug: string): boolean {
-  return getPost("en", slug) !== null || getPost("fr", slug) !== null;
+function accessiblePosts(
+  posts: PostDocument[],
+  access: PostAccessScope,
+): PostDocument[] {
+  return posts.filter((post) => isAccessible(post, access));
 }
 
-export function getPost(locale: PostLocale, slug: string): PostDocument | null {
+export function hasPostSlug(
+  slug: string,
+  access: PostAccessScope,
+): boolean {
+  return getPost("en", slug, access) !== null ||
+    getPost("fr", slug, access) !== null;
+}
+
+export function getPost(
+  locale: PostLocale,
+  slug: string,
+  access: PostAccessScope,
+): PostDocument | null {
   const post = manifest.byLocaleAndSlug[locale].get(slug);
-  return post && isPublished(post) ? post : null;
+  return post && isAccessible(post, access) ? post : null;
 }
 
-export function getPostSummaries(locale: PostLocale): PostSummary[] {
-  return nonDraft(manifest.byLocale[locale]).map(toSummary);
+export function getPostSummaries(
+  locale: PostLocale,
+  access: PostAccessScope,
+): PostSummary[] {
+  return accessiblePosts(manifest.byLocale[locale], access).map(toSummary);
 }
 
-export function getAvailableTags(locale: PostLocale): string[] {
+export function getThemeExclusivePostSummaries(
+  locale: PostLocale,
+  theme: Exclude<PostVisibility, "public">,
+): PostSummary[] {
+  return accessiblePosts(manifest.byLocale[locale], theme)
+    .filter((post) => post.visibility === theme)
+    .sort((a, b) => {
+      const orderA = a.seriesOrder ?? Number.MAX_SAFE_INTEGER;
+      const orderB = b.seriesOrder ?? Number.MAX_SAFE_INTEGER;
+      if (orderA === orderB) {
+        return b.publishedAt.localeCompare(a.publishedAt);
+      }
+      return orderA - orderB;
+    })
+    .map(toSummary);
+}
+
+export function getAvailableTags(
+  locale: PostLocale,
+  access: PostAccessScope,
+): string[] {
   const tags = new Set<string>();
-  for (const post of nonDraft(manifest.byLocale[locale])) {
+  for (const post of accessiblePosts(manifest.byLocale[locale], access)) {
     for (const tag of post.tags) {
       tags.add(tag);
     }
@@ -91,19 +148,23 @@ export function getAvailableTags(locale: PostLocale): string[] {
 export function getTopicPosts(
   locale: PostLocale,
   topicSlug: string,
+  access: PostAccessScope,
 ): PostSummary[] {
   const topic = getTopic(topicSlug);
   if (!topic) {
     return [];
   }
 
-  return nonDraft(manifest.byLocale[locale])
+  return accessiblePosts(manifest.byLocale[locale], access)
     .filter((post) => post.tags.some((tag) => topic.tags.includes(tag)))
     .map(toSummary);
 }
 
-export function getSearchDocuments(locale: PostLocale): SearchDocument[] {
-  return nonDraft(manifest.byLocale[locale]).map((post) => ({
+export function getSearchDocuments(
+  locale: PostLocale,
+  access: PostAccessScope,
+): SearchDocument[] {
+  return accessiblePosts(manifest.byLocale[locale], access).map((post) => ({
     slug: post.slug,
     locale: post.locale,
     title: post.title,
@@ -122,14 +183,15 @@ function overlapScore(a: string[], b: string[]): number {
 export function getRelatedPosts(
   locale: PostLocale,
   slug: string,
+  access: PostAccessScope,
   limit = 3,
 ): PostSummary[] {
-  const current = getPost(locale, slug);
+  const current = getPost(locale, slug, access);
   if (!current) {
     return [];
   }
 
-  const candidates = nonDraft(manifest.byLocale[locale])
+  const candidates = accessiblePosts(manifest.byLocale[locale], access)
     .filter((post) => post.slug !== slug)
     .map((post) => ({
       post,
@@ -151,8 +213,22 @@ export function getRelatedPosts(
 export function getAdjacentPosts(
   locale: PostLocale,
   slug: string,
+  access: PostAccessScope,
 ): { previous: PostSummary | null; next: PostSummary | null } {
-  const posts = nonDraft(manifest.byLocale[locale]);
+  const current = getPost(locale, slug, access);
+  if (!current) {
+    return { previous: null, next: null };
+  }
+
+  const posts = accessiblePosts(manifest.byLocale[locale], access)
+    .filter((post) => post.visibility === current.visibility)
+    .sort((a, b) => {
+      if (current.visibility === "public") {
+        return 0;
+      }
+
+      return (b.seriesOrder ?? 0) - (a.seriesOrder ?? 0);
+    });
   const index = posts.findIndex((post) => post.slug === slug);
 
   if (index === -1) {
@@ -167,12 +243,15 @@ export function getAdjacentPosts(
   return { previous, next };
 }
 
-export function getPostLocales(slug: string): PostLocale[] {
+export function getPostLocales(
+  slug: string,
+  access: PostAccessScope,
+): PostLocale[] {
   const locales: PostLocale[] = [];
-  if (getPost("en", slug)) {
+  if (getPost("en", slug, access)) {
     locales.push("en");
   }
-  if (getPost("fr", slug)) {
+  if (getPost("fr", slug, access)) {
     locales.push("fr");
   }
   return locales;
@@ -180,14 +259,16 @@ export function getPostLocales(slug: string): PostLocale[] {
 
 export type {
   PostDocument,
+  PostAccessScope,
   PostFrontmatter,
   PostLocale,
   PostSummary,
+  PostVisibility,
   PostVisualId,
   SearchDocument,
 } from "./types";
 
-export { postVisualIds } from "./types";
+export { postVisibilities, postVisualIds } from "./types";
 
 export { buildPostManifest };
 export { postFrontmatterSchema } from "./schema";

@@ -99,7 +99,10 @@ Règles :
 
 ## Les quatre thèmes
 
-Les thèmes changent l’atmosphère, pas la structure ni la sémantique du blog.
+Les thèmes changent d’abord l’atmosphère, pas la signification des composants
+partagés. Le thème `rocket` porte toutefois une exception éditoriale assumée :
+il ouvre un **Carnet de bord** de textes personnels qui n’apparaît dans aucun
+autre thème.
 
 | Thème | Atmosphère | Accent principal | Rôle narratif |
 | --- | --- | --- | --- |
@@ -110,11 +113,23 @@ Les thèmes changent l’atmosphère, pas la structure ni la sémantique du blog
 
 Invariants entre les thèmes :
 
-- même structure de page ;
+- même structure pour les pages et articles publics ;
 - mêmes diagrammes et mêmes informations ;
 - mêmes significations pour checkpoint, succès et danger ;
 - contraste suffisant pour les textes et les lignes essentielles ;
 - aucun contenu exclusivement transmis par la couleur.
+
+Contrat du Carnet de bord Rocket :
+
+- le frontmatter `visibility: rocket` est distinct de `draft` ;
+- les transmissions sont montées conditionnellement en React, jamais seulement
+  masquées en CSS ;
+- liste, recherche, tags, topics, recommandations, navigation et routes directes
+  appliquent tous le même scope de visibilité ;
+- RSS et sitemap restent publics et excluent les transmissions ;
+- les pages de transmission émettent `noindex, nofollow, noarchive` ;
+- cette exclusivité est un Easter egg d’interface et de SEO, pas une barrière de
+  confidentialité sur un site statique.
 
 Les couleurs des diagrammes proviennent uniquement des tokens suivants :
 

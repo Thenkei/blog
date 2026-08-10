@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import { useTheme } from "../../app/providers/ThemeProvider";
 import { PageMeta } from "../../shared/seo/PageMeta";
 
 const socialLinks = [
@@ -8,6 +10,7 @@ const socialLinks = [
 
 export function AboutPage({ locale }: { locale: "en" | "fr" }) {
   const { t } = useTranslation();
+  const { appliedTheme } = useTheme();
   const projects = t("about.projects", { returnObjects: true }) as Array<{ title: string; description: string }>;
 
   return (
@@ -18,6 +21,16 @@ export function AboutPage({ locale }: { locale: "en" | "fr" }) {
         <h1>{t("about.title")}</h1>
         <p className="about-summary">{t("about.summary")}</p>
         <section className="about-section"><h2>{t("about.currentFocus")}</h2><p>{t("about.currentFocusText")}</p></section>
+        {appliedTheme === "rocket" ? (
+          <section className="about-section rocket-coordinates">
+            <p className="section-eyebrow">{t("about.rocketEyebrow")}</p>
+            <h2>{t("about.rocketCoordinates")}</h2>
+            <p>{t("about.rocketCoordinatesText")}</p>
+            <Link className="rocket-coordinates-link" to={`/${locale}#rocket-logbook`}>
+              {t("about.openRocketLogbook")} →
+            </Link>
+          </section>
+        ) : null}
         <section className="about-section"><h2>{t("about.selectedProjects")}</h2><div className="about-project-grid">{projects.map((project) => <article key={project.title} className="about-project"><h3>{project.title}</h3><p>{project.description}</p></article>)}</div></section>
         <section className="about-section"><h2>{t("about.findMe")}</h2><div className="about-social-links">{socialLinks.map((link) => <a key={link.key} href={link.href} target="_blank" rel="noopener noreferrer">{t(`ui.footer.${link.key}`)}</a>)}</div></section>
       </div>

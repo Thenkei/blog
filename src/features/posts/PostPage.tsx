@@ -17,8 +17,10 @@ import {
   getPost,
   getRelatedPosts,
   loadPostComponent,
+  type PostAccessScope,
   type PostLocale,
 } from "./content";
+import { useTheme } from "../../app/providers/ThemeProvider";
 import { PostHeader } from "../../shared/components/PostHeader";
 import { PageMeta } from "../../shared/seo/PageMeta";
 import { ReadingProgressBar } from "../reading/ReadingProgressBar";
@@ -40,15 +42,19 @@ const postContentComponents = new Map<
   ComponentType<LoadedPostContentProps>
 >();
 
-function getPostContentComponent(locale: PostLocale, slug: string) {
-  const key = `${locale}:${slug}`;
+function getPostContentComponent(
+  locale: PostLocale,
+  slug: string,
+  access: PostAccessScope,
+) {
+  const key = `${access}:${locale}:${slug}`;
   const existing = postContentComponents.get(key);
   if (existing) {
     return existing;
   }
 
   const PostContent = lazy(async () => {
-    const MdxContent = await loadPostComponent({ locale, slug });
+    const MdxContent = await loadPostComponent({ locale, slug }, access);
 
     function LoadedPostContent({ onReady }: LoadedPostContentProps) {
       useEffect(() => {
@@ -81,15 +87,23 @@ export function PostPage({ locale, slug }: PostPageProps) {
   const articleRef = useRef<HTMLElement | null>(null);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { appliedTheme } = useTheme();
+  const postAccess = appliedTheme === "rocket" ? "rocket" : "public";
   const [readyContentKey, setReadyContentKey] = useState<string | null>(null);
   const postKey = `${locale}:${slug}`;
   const isContentReady = readyContentKey === postKey;
 
-  const post = useMemo(() => getPost(locale, slug), [locale, slug]);
-  const related = useMemo(() => getRelatedPosts(locale, slug, 4), [locale, slug]);
+  const post = useMemo(
+    () => getPost(locale, slug, postAccess),
+    [locale, postAccess, slug],
+  );
+  const related = useMemo(
+    () => getRelatedPosts(locale, slug, postAccess, 4),
+    [locale, postAccess, slug],
+  );
   const adjacent = useMemo(
-    () => getAdjacentPosts(locale, slug),
-    [locale, slug],
+    () => getAdjacentPosts(locale, slug, postAccess),
+    [locale, postAccess, slug],
   );
 
   useEffect(() => {
@@ -114,7 +128,7 @@ export function PostPage({ locale, slug }: PostPageProps) {
     return <Navigate to={`/${locale}`} replace />;
   }
 
-  const PostContent = getPostContentComponent(locale, slug);
+  const PostContent = getPostContentComponent(locale, slug, postAccess);
   const contentKey = `${locale}:${slug}:${isContentReady ? "ready" : "loading"}`;
   const [recommended, ...moreRelated] = related;
   const headerPadRem = Math.min(
@@ -128,6 +142,7 @@ export function PostPage({ locale, slug }: PostPageProps) {
         title={post.title}
         description={post.summary}
         path={`/${locale}/posts/${post.slug}`}
+        indexable={post.visibility === "public"}
       />
 
       <PostHeader
@@ -138,6 +153,16 @@ export function PostPage({ locale, slug }: PostPageProps) {
         visualId={post.visualId}
         metaInfo={
           <>
+            {post.visibility === "rocket" ? (
+              <>
+                <span className="rocket-post-badge">
+                  {t("ui.rocketTransmission", {
+                    count: String(post.seriesOrder ?? 0).padStart(3, "0"),
+                  })}
+                </span>
+                <span>•</span>
+              </>
+            ) : null}
             <span>{formatDate(post.publishedAt, locale)}</span>
             <span>•</span>
             <span>{t("ui.readTime", { count: post.readTimeMinutes })}</span>

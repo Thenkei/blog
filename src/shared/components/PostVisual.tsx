@@ -182,6 +182,24 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       caption: "Des cycles de vie différents ne doivent pas être forcés dans une même enveloppe mémoire.",
       labels: { a: "Cache", b: "Queues", c: "Sessions", d: "Mémoire", e: "Isolation" },
     },
+    "rocket-curiosity": {
+      title: "Une curiosité tournée vers les étoiles et les volcans",
+      description: "Des constellations au-dessus de l'horizon répondent aux forces volcaniques sous la surface terrestre, reliées par une même curiosité.",
+      caption: "Lever les yeux et regarder sous nos pieds sont deux directions d'une même envie de comprendre.",
+      labels: { a: "Constellations", b: "Observer", c: "Curiosité", d: "Terre", e: "Volcans" },
+    },
+    "rocket-earthbound-engineering": {
+      title: "Exploration spatiale et responsabilité terrestre",
+      description: "Une trajectoire de fusée traverse l'orbite terrestre tandis que les satellites, les débris et une limite de responsabilité restent visibles autour de la planète.",
+      caption: "L'admiration pour l'exploration n'efface ni la responsabilité orbitale ni notre attachement à la Terre.",
+      labels: { a: "Terre", b: "Orbite", c: "Explorer", d: "Responsabilité", e: "Ingénierie" },
+    },
+    "rocket-heavencraft-systems": {
+      title: "HeavenCraft comme premier système vivant",
+      description: "Une communauté de joueurs entre dans un système central qui relie mini-jeux, mondes, parcelles et économie partagée.",
+      caption: "Le code est devenu un produit quand de vrais joueurs se sont emparés des règles, des mondes et de l'économie.",
+      labels: { a: "Joueurs", b: "HeavenCraft", c: "Mini-jeux", d: "Mondes", e: "Économie" },
+    },
     "scaling-ci-github-actions-forest-admin": {
       title: "Pipeline CI partitionné",
       description: "Les tests sont répartis sur plusieurs jobs, puis réunis par une étape d'artefacts et une gate déterministe.",
@@ -376,6 +394,24 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       description: "Cache, queues, and sessions share memory until eviction, saturation, and outage occur.",
       caption: "Different lifecycles should not be forced into one memory envelope.",
       labels: { a: "Cache", b: "Queues", c: "Sessions", d: "Memory", e: "Isolation" },
+    },
+    "rocket-curiosity": {
+      title: "A curiosity aimed at stars and volcanoes",
+      description: "Constellations above the horizon mirror volcanic forces beneath Earth's surface, connected by the same curiosity.",
+      caption: "Looking up and looking beneath our feet are two directions of the same desire to understand.",
+      labels: { a: "Constellations", b: "Observe", c: "Curiosity", d: "Earth", e: "Volcanoes" },
+    },
+    "rocket-earthbound-engineering": {
+      title: "Space exploration and responsibility on Earth",
+      description: "A rocket trajectory crosses Earth orbit while satellites, debris, and a responsibility boundary remain visible around the planet.",
+      caption: "Admiration for exploration does not erase orbital responsibility or our attachment to Earth.",
+      labels: { a: "Earth", b: "Orbit", c: "Explore", d: "Responsibility", e: "Engineering" },
+    },
+    "rocket-heavencraft-systems": {
+      title: "HeavenCraft as a first living system",
+      description: "A player community enters a central system connecting minigames, worlds, land ownership, and a shared economy.",
+      caption: "Code became a product when real players adopted its rules, worlds, and economy.",
+      labels: { a: "Players", b: "HeavenCraft", c: "Minigames", d: "Worlds", e: "Economy" },
     },
     "scaling-ci-github-actions-forest-admin": {
       title: "Partitioned CI pipeline",
@@ -985,6 +1021,159 @@ function ArticleEssenceDiagram({
         <path d="M568 240H666" className="visual-flow-line visual-flow-danger" markerEnd={arrow} />
         {[{ x: 682, y: 104 }, { x: 682, y: 206 }, { x: 682, y: 308 }].map((cell, index) => <g key={cell.y} className="visual-node visual-node-success"><rect x={cell.x} y={cell.y} width="168" height="74" rx="18" /><text x={cell.x + 84} y={cell.y + 44} textAnchor="middle">{label(["a", "b", "c"][index]!)}</text></g>)}
         {!compact ? <text x="766" y="410" textAnchor="middle" className="visual-note">{label("e")}</text> : null}
+      </DiagramFrame>
+    );
+  }
+
+  if (visualId === "rocket-curiosity") {
+    const stars = [
+      { x: 92, y: 112 },
+      { x: 176, y: 78 },
+      { x: 246, y: 132 },
+      { x: 332, y: 88 },
+      { x: 398, y: 142 },
+    ];
+
+    return (
+      <DiagramFrame markerId={markerId}>
+        <text x="44" y="58" className="visual-kicker">LOOK UP · LOOK DOWN</text>
+        <path d="M40 240H860" className="visual-axis" />
+        <path
+          d="M92 112L176 78L246 132L332 88L398 142"
+          className="visual-flow-line visual-flow-muted"
+        />
+        {stars.map((star, index) => (
+          <circle
+            key={`${star.x}-${star.y}`}
+            cx={star.x}
+            cy={star.y}
+            r={index === 1 ? 10 : 7}
+            className="visual-checkpoint"
+          />
+        ))}
+        {!compact ? (
+          <text x="92" y="174" className="visual-micro-label">{label("a")}</text>
+        ) : null}
+        <path
+          d="M500 408L610 250L704 408Z"
+          className="visual-elevation-fill"
+        />
+        <path
+          d="M500 408L610 250L704 408"
+          className="visual-elevation-line"
+        />
+        <path
+          d="M610 388C570 348 650 324 610 276"
+          className="visual-flow-line visual-flow-hot"
+        />
+        <circle cx="610" cy="376" r="22" className="visual-checkpoint" />
+        {!compact ? (
+          <text x="610" y="440" textAnchor="middle" className="visual-micro-label">
+            {label("e")} · {label("d")}
+          </text>
+        ) : null}
+        <circle cx="450" cy="240" r="74" className="visual-boundary" />
+        <text x="450" y="232" textAnchor="middle" className="visual-fallback-title">
+          {label("c")}
+        </text>
+        <text x="450" y="263" textAnchor="middle" className="visual-micro-label">
+          {label("b")}
+        </text>
+        <path d="M398 142L430 186" className="visual-flow-line" markerEnd={arrow} />
+        <path d="M500 278L548 316" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
+      </DiagramFrame>
+    );
+  }
+
+  if (visualId === "rocket-earthbound-engineering") {
+    return (
+      <DiagramFrame markerId={markerId}>
+        <text x="44" y="58" className="visual-kicker">ENGINEERING · VISION · CONSEQUENCES</text>
+        <circle cx="266" cy="260" r="112" className="visual-elevation-fill" />
+        <circle cx="266" cy="260" r="112" className="visual-elevation-line" />
+        <path d="M174 236C226 196 298 194 356 226M190 302C250 330 314 322 352 286" className="visual-flow-line visual-flow-muted" />
+        <text x="266" y="268" textAnchor="middle" className="visual-fallback-title">{label("a")}</text>
+        <ellipse cx="266" cy="260" rx="184" ry="146" className="visual-boundary" />
+        {[{ x: 104, y: 206 }, { x: 168, y: 116 }, { x: 390, y: 146 }, { x: 438, y: 282 }].map((object, index) => (
+          <g key={`${object.x}-${object.y}`}>
+            <rect
+              x={object.x}
+              y={object.y}
+              width={index === 3 ? 9 : 18}
+              height={index === 3 ? 9 : 12}
+              rx="3"
+              className={index === 3 ? "visual-firewall" : "visual-symbol"}
+            />
+          </g>
+        ))}
+        {!compact ? <text x="82" y="92" className="visual-micro-label">{label("b")} · {label("d")}</text> : null}
+        <path
+          d="M390 330C502 294 544 194 674 150S812 92 854 76"
+          className="visual-flow-line visual-flow-hot"
+          markerEnd={arrow}
+        />
+        <g transform="translate(632 118) rotate(-18)" className="visual-node visual-node-success">
+          <path d="M0 38L58 12L92 38L58 64Z" className="visual-symbol-success" />
+          <path d="M16 32L0 12M16 44L0 64" className="visual-flow-line" />
+        </g>
+        <rect x="530" y="332" width="302" height="72" rx="18" className="visual-boundary" />
+        <text x="681" y="362" textAnchor="middle" className="visual-note visual-note-hot">{label("e")}</text>
+        <text x="681" y="388" textAnchor="middle" className="visual-micro-label">{label("c")} ≠ ABANDON EARTH</text>
+      </DiagramFrame>
+    );
+  }
+
+  if (visualId === "rocket-heavencraft-systems") {
+    const playerNodes = [
+      { x: 68, y: 130 },
+      { x: 68, y: 224 },
+      { x: 68, y: 318 },
+    ];
+    const capabilities = [
+      { y: 104, key: "c" },
+      { y: 204, key: "d" },
+      { y: 304, key: "e" },
+    ];
+
+    return (
+      <DiagramFrame markerId={markerId}>
+        <text x="44" y="58" className="visual-kicker">CODE → RULES → COMMUNITY</text>
+        {playerNodes.map((player, index) => (
+          <g key={player.y}>
+            <circle cx={player.x} cy={player.y} r="22" className="visual-checkpoint" />
+            <path
+              d={`M${player.x + 22} ${player.y}C180 ${player.y} 190 240 276 240`}
+              className="visual-flow-line visual-flow-muted"
+              markerEnd={arrow}
+            />
+            {!compact ? (
+              <text x="68" y={player.y + 42} textAnchor="middle" className="visual-micro-label">
+                P{index + 1}
+              </text>
+            ) : null}
+          </g>
+        ))}
+        <rect x="276" y="112" width="286" height="256" rx="30" className="visual-boundary" />
+        <text x="419" y="220" textAnchor="middle" className="visual-fallback-title">{label("b")}</text>
+        <text x="419" y="252" textAnchor="middle" className="visual-micro-label">LIVE SERVER SYSTEM</text>
+        <path d="M332 298H506" className="visual-axis" />
+        {[354, 418, 482].map((x) => (
+          <circle key={x} cx={x} cy="298" r="9" className="visual-checkpoint" />
+        ))}
+        {capabilities.map((capability, index) => (
+          <g key={capability.key}>
+            <path
+              d={`M562 240C618 240 618 ${capability.y + 34} 660 ${capability.y + 34}`}
+              className={index === 2 ? "visual-flow-line visual-flow-hot" : "visual-flow-line"}
+              markerEnd={arrow}
+            />
+            <g className={`visual-node ${index === 2 ? "visual-node-hot" : "visual-node-success"}`}>
+              <rect x="660" y={capability.y} width="190" height="68" rx="18" />
+              <text x="755" y={capability.y + 40} textAnchor="middle">{label(capability.key)}</text>
+            </g>
+          </g>
+        ))}
+        {!compact ? <text x="68" y="408" className="visual-note">{label("a")} · REAL USAGE</text> : null}
       </DiagramFrame>
     );
   }
