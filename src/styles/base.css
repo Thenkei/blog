@@ -33,18 +33,6 @@ body {
   isolation: isolate;
 }
 
-.circuit-overlay {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image: url("../assets/images/circuit_pattern_overlay_1768397274823.png");
-  background-size: 700px auto;
-  background-repeat: repeat;
-  opacity: var(--circuit-opacity);
-  filter: var(--circuit-filter);
-  z-index: 0;
-}
-
 .parallax-container {
   position: relative;
   height: clamp(420px, 68vh, 680px);
