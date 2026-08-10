@@ -1,5 +1,3 @@
-import type { ComponentType } from "react";
-
 export type PostLocale = "en" | "fr";
 
 export const postVisualIds = [
@@ -49,7 +47,6 @@ export interface PostFrontmatter {
 export interface PostDocument extends PostFrontmatter {
   slug: string;
   locale: PostLocale;
-  Component: ComponentType;
 }
 
 export interface PostSummary {

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getRelatedPosts, getTopicPosts } from "../../src/features/posts/content";
+import {
+  getRelatedPosts,
+  getTopicPosts,
+  loadPostComponent,
+} from "../../src/features/posts/content";
 
 describe("getRelatedPosts", () => {
   it("returns relevant architecture neighbors for a BullMQ post", () => {
@@ -17,5 +21,13 @@ describe("getTopicPosts", () => {
     expect(posts.map((post) => post.slug)).toContain(
       "idempotency-debounce-jobify-bullmq",
     );
+  });
+});
+
+describe("loadPostComponent", () => {
+  it("loads the requested MDX component on demand", async () => {
+    await expect(
+      loadPostComponent({ locale: "en", slug: "jobify-workers-queues-nestjs" }),
+    ).resolves.toBeTypeOf("function");
   });
 });

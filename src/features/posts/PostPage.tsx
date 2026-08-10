@@ -1,4 +1,14 @@
-import { useEffect, useMemo, useRef } from "react";
+import {
+  createElement,
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
 
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate } from "react-router-dom";
@@ -6,6 +16,7 @@ import {
   getAdjacentPosts,
   getPost,
   getRelatedPosts,
+  loadPostComponent,
   type PostLocale,
 } from "./content";
 import { PostHeader } from "../../shared/components/PostHeader";
@@ -19,6 +30,40 @@ type PostPageProps = {
   locale: PostLocale;
   slug: string;
 };
+
+type LoadedPostContentProps = {
+  onReady: () => void;
+};
+
+const postContentComponents = new Map<
+  string,
+  ComponentType<LoadedPostContentProps>
+>();
+
+function getPostContentComponent(locale: PostLocale, slug: string) {
+  const key = `${locale}:${slug}`;
+  const existing = postContentComponents.get(key);
+  if (existing) {
+    return existing;
+  }
+
+  const PostContent = lazy(async () => {
+    const MdxContent = await loadPostComponent({ locale, slug });
+
+    function LoadedPostContent({ onReady }: LoadedPostContentProps) {
+      useEffect(() => {
+        onReady();
+      }, [onReady]);
+
+      return createElement(MdxContent);
+    }
+
+    return { default: LoadedPostContent };
+  });
+
+  postContentComponents.set(key, PostContent);
+  return PostContent;
+}
 
 function formatDate(date: string, locale: PostLocale): string {
   const formatter = new Intl.DateTimeFormat(
@@ -36,6 +81,9 @@ export function PostPage({ locale, slug }: PostPageProps) {
   const articleRef = useRef<HTMLElement | null>(null);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [readyContentKey, setReadyContentKey] = useState<string | null>(null);
+  const postKey = `${locale}:${slug}`;
+  const isContentReady = readyContentKey === postKey;
 
   const post = useMemo(() => getPost(locale, slug), [locale, slug]);
   const related = useMemo(() => getRelatedPosts(locale, slug, 4), [locale, slug]);
@@ -45,12 +93,12 @@ export function PostPage({ locale, slug }: PostPageProps) {
   );
 
   useEffect(() => {
-    if (!articleRef.current || !post) {
+    if (!articleRef.current || !post || !isContentReady) {
       return;
     }
 
     return enhanceCodeBlocks(articleRef.current);
-  }, [post]);
+  }, [isContentReady, post]);
 
   useEffect(() => {
     if (!window.location.hash) {
@@ -58,11 +106,16 @@ export function PostPage({ locale, slug }: PostPageProps) {
     }
   }, [slug, locale]);
 
+  const markContentReady = useCallback(() => {
+    setReadyContentKey(postKey);
+  }, [postKey]);
+
   if (!post) {
     return <Navigate to={`/${locale}`} replace />;
   }
 
-  const contentKey = `${locale}:${slug}`;
+  const PostContent = getPostContentComponent(locale, slug);
+  const contentKey = `${locale}:${slug}:${isContentReady ? "ready" : "loading"}`;
   const [recommended, ...moreRelated] = related;
   const headerPadRem = Math.min(
     3.5,
@@ -100,12 +153,16 @@ export function PostPage({ locale, slug }: PostPageProps) {
       <main className="blog-content">
         <div className="container">
           <ReadingProgressBar articleRef={articleRef} contentKey={contentKey} />
-          <article ref={articleRef} key={contentKey}>
+          <article ref={articleRef}>
             <TableOfContents articleRef={articleRef} contentKey={contentKey} />
             <CopyLinkButtons articleRef={articleRef} contentKey={contentKey} />
-            <div className="post-document">
-              <post.Component />
-            </div>
+            {post ? (
+              <Suspense key={`${locale}:${slug}`} fallback={<div aria-busy="true" />}>
+                <div className="post-document">
+                  {createElement(PostContent, { onReady: markContentReady })}
+                </div>
+              </Suspense>
+            ) : null}
             <div className="trail-line article-end-line" />
             <section className="post-nav" aria-label={t("ui.seriesNavigation")}>
               {adjacent.previous ? (

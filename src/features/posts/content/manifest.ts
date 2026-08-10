@@ -1,4 +1,3 @@
-import type { ComponentType } from "react";
 import { postFrontmatterSchema } from "./schema";
 import type {
   ManifestBuildOutput,
@@ -8,7 +7,6 @@ import type {
 } from "./types";
 
 type MdxModule = {
-  default: ComponentType;
   meta?: unknown;
 };
 
@@ -61,7 +59,6 @@ function createPostDocument(
   return {
     slug,
     locale,
-    Component: module.default,
     ...meta,
   };
 }

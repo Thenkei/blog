@@ -1,15 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { buildPostManifest } from "../../src/features/posts/content";
 
-function DummyPost() {
-  return null;
-}
-
 describe("buildPostManifest", () => {
-  it("propagates visual identifiers into post documents", () => {
+  it("builds metadata without loading a post component", () => {
     const manifest = buildPostManifest({
       "/content/posts/example/en.mdx": {
-        default: DummyPost,
         meta: {
           title: "Example",
           subtitle: "Subtitle",
@@ -21,7 +16,6 @@ describe("buildPostManifest", () => {
         },
       },
       "/content/posts/example/fr.mdx": {
-        default: DummyPost,
         meta: {
           title: "Exemple",
           subtitle: "Sous-titre",
@@ -34,7 +28,12 @@ describe("buildPostManifest", () => {
       },
     });
 
-    expect(manifest.byLocale.en[0]?.visualId).toBe("sse-outbound-channel");
+    expect(manifest.byLocale.en[0]).toMatchObject({
+      slug: "example",
+      locale: "en",
+      title: "Example",
+      visualId: "sse-outbound-channel",
+    });
     expect(manifest.byLocale.fr[0]?.visualId).toBe("sse-outbound-channel");
   });
 
@@ -42,15 +41,14 @@ describe("buildPostManifest", () => {
     expect(() =>
       buildPostManifest({
         "/content/posts/example/en.mdx": {
-          default: DummyPost,
           meta: {
             title: "Example",
             subtitle: "Subtitle",
             summary: "Summary",
             publishedAt: "2026-01-01",
             readTimeMinutes: 2,
-          tags: ["example"],
-          visualId: "sse-outbound-channel",
+            tags: ["example"],
+            visualId: "sse-outbound-channel",
           },
         },
       }),
@@ -61,39 +59,36 @@ describe("buildPostManifest", () => {
     expect(() =>
       buildPostManifest({
         "/content/posts/example/en.mdx": {
-          default: DummyPost,
           meta: {
             title: "Example",
             subtitle: "Subtitle",
             summary: "Summary",
             publishedAt: "2026-01-01",
             readTimeMinutes: 2,
-          tags: ["example"],
-          visualId: "sse-outbound-channel",
+            tags: ["example"],
+            visualId: "sse-outbound-channel",
           },
         },
         "/tmp/content/posts/example/en.mdx": {
-          default: DummyPost,
           meta: {
             title: "Example duplicate",
             subtitle: "Subtitle",
             summary: "Summary",
             publishedAt: "2026-01-01",
             readTimeMinutes: 2,
-          tags: ["example"],
-          visualId: "sse-outbound-channel",
+            tags: ["example"],
+            visualId: "sse-outbound-channel",
           },
         },
         "/content/posts/example/fr.mdx": {
-          default: DummyPost,
           meta: {
             title: "Exemple",
             subtitle: "Sous-titre",
             summary: "Résumé",
             publishedAt: "2026-01-01",
             readTimeMinutes: 2,
-          tags: ["example"],
-          visualId: "sse-outbound-channel",
+            tags: ["example"],
+            visualId: "sse-outbound-channel",
           },
         },
       }),
@@ -104,7 +99,6 @@ describe("buildPostManifest", () => {
     expect(() =>
       buildPostManifest({
         "/content/posts/example/en.mdx": {
-          default: DummyPost,
           meta: {
             title: "Example",
             subtitle: "Subtitle",
@@ -116,7 +110,6 @@ describe("buildPostManifest", () => {
           },
         },
         "/content/posts/example/fr.mdx": {
-          default: DummyPost,
           meta: {
             title: "Exemple",
             subtitle: "Sous-titre",

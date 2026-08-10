@@ -10,6 +10,8 @@ import { AppRouter } from "../../src/app/router";
 import { ArticleDiagram } from "../../src/shared/components/PostVisual";
 import { enhanceCodeBlocks } from "../../src/features/reading/enhanceCodeBlocks";
 
+const lazyContentTimeout = 3_000;
+
 function renderApp(initialPath: string) {
   return render(
     <HelmetProvider>
@@ -21,6 +23,13 @@ function renderApp(initialPath: string) {
         </MDXProvider>
       </ThemeProvider>
     </HelmetProvider>,
+  );
+}
+
+async function waitForPostHeading(name: string) {
+  return waitFor(
+    () => screen.getByText(name, { selector: "h2" }),
+    { timeout: lazyContentTimeout },
   );
 }
 
@@ -50,21 +59,18 @@ describe("routing and UX", () => {
         name: /ON CONFLICT DO UPDATE with nullable columns/i,
       }),
     ).toBeInTheDocument();
+    expect(await waitForPostHeading("The Plot Twist")).toBeInTheDocument();
   });
 
   it("updates post content and table of contents on locale switch", async () => {
     renderApp("/en/posts/postgresql-unique-nulls");
 
-    expect(
-      await screen.findByRole("heading", { level: 2, name: "The Plot Twist" }),
-    ).toBeInTheDocument();
+    expect(await waitForPostHeading("The Plot Twist")).toBeInTheDocument();
 
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "FR" }));
 
-    expect(
-      await screen.findByRole("heading", { level: 2, name: "Le dénouement" }),
-    ).toBeInTheDocument();
+    expect(await waitForPostHeading("Le dénouement")).toBeInTheDocument();
     expect(
       await screen.findByRole("link", { name: "Le dénouement" }),
     ).toBeInTheDocument();
