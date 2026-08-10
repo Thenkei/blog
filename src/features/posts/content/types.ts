@@ -15,6 +15,7 @@ export const postVisualIds = [
   "claude-code-product-os",
   "context-engineering-beyond-prompt-engineering",
   "trail-endurance-profile",
+  "trail-saint-jacques-100k-2026",
   "engineering-2026-ai-redefined-our-job",
   "engineering-documents-age-poorly",
   "forest-admin-activity-logs-elasticsearch",

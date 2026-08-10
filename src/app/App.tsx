@@ -3,7 +3,10 @@ import { HelmetProvider } from "react-helmet-async";
 import { MDXProvider } from "@mdx-js/react";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import { AppRouter } from "./router";
-import { ArticleDiagram } from "../shared/components/PostVisual";
+import {
+  ArticleDiagram,
+  SecurityDiagram,
+} from "../shared/components/PostVisual";
 
 import type { ComponentProps } from "react";
 
@@ -13,6 +16,7 @@ const components = {
   ),
   picture: (props: ComponentProps<"picture">) => <picture {...props} />,
   ArticleDiagram,
+  SecurityDiagram,
 };
 
 export default function App() {

@@ -15,8 +15,6 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 3
 ---
 
-import contextDiagram from "../../../src/assets/images/posts/context-engineering-fr.svg";
-
 ## Le contexte
 
 Le prompt engineering optimise une instruction. L'ingénierie du contexte conçoit tout ce qui permet à l'agent d'interpréter cette instruction : état du dépôt, décision produit, conventions d'équipe, permissions, historique pertinent et signaux d'exécution.
@@ -64,15 +62,6 @@ Nous traitons le contexte comme une pile ordonnée :
 3. **Contrats** : invariants métier, conventions et critères de fin.
 4. **Historique pertinent** : décisions et échecs qui expliquent l'état courant.
 5. **Preuves** : tests, métriques, logs et sources permettant de vérifier la sortie.
-
-<figure className="article-figure">
-  <img
-    src={contextDiagram}
-    alt="Pile de contexte combinant état, permissions, fraîcheur, provenance et validation."
-    loading="lazy"
-  />
-  <figcaption>Chaque élément doit justifier sa présence, son autorité et sa durée de validité.</figcaption>
-</figure>
 
 Chaque source porte un owner ou une provenance, une date de validité et un périmètre. Les outils sont accordés au moindre privilège, au moment où ils deviennent nécessaires. Si une source critique manque ou se contredit, l'agent s'arrête et rend l'ambiguïté visible.
 

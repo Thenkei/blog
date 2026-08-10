@@ -86,6 +86,22 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
         checkpoint: "CHECKPOINT",
       },
     },
+    "trail-saint-jacques-100k-2026": {
+      title: "Route du Trail du Saint-Jacques 100K",
+      description:
+        "Le parcours relie Monistrol-d'Allier au Puy-en-Velay par une trace de crête ponctuée d'un départ trop rapide, d'un ravitaillement décisif après une déshydratation, puis d'une arrivée de nuit à la cathédrale.",
+      caption:
+        "Les ravitaillements, les rencontres et le retour des jambes ont compté autant que les kilomètres jusqu'à la cathédrale.",
+      labels: {
+        course: "86 KM · 3 500 M D+",
+        start: "Départ trop rapide",
+        water: "Eau vide",
+        crew: "Ravitaillement · soutien",
+        finish: "Le Puy · arrivée",
+        monistrol: "Monistrol-d'Allier",
+        cathedral: "Cathédrale",
+      },
+    },
     "agent-battle-2026": {
       title: "Comparaison des agents de développement",
       description: "Trois agents sont comparés par leur valeur de workflow, leur contexte d'exécution et leur économie d'infrastructure.",
@@ -299,6 +315,22 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
         checkpoint: "CHECKPOINT",
       },
     },
+    "trail-saint-jacques-100k-2026": {
+      title: "Trail du Saint-Jacques 100K route",
+      description:
+        "The route connects Monistrol-d'Allier to Le Puy-en-Velay along a ridge line marked by an over-fast start, a decisive aid station after dehydration, and a night finish at the cathedral.",
+      caption:
+        "Aid stations, strangers on the trail, and legs that came back mattered as much as the kilometres to the cathedral.",
+      labels: {
+        course: "86 KM · 3,500 M+",
+        start: "Too-fast start",
+        water: "Water empty",
+        crew: "Aid station · crew",
+        finish: "Le Puy · finish",
+        monistrol: "Monistrol-d'Allier",
+        cathedral: "Cathedral",
+      },
+    },
     "agent-battle-2026": {
       title: "Developer agent comparison",
       description: "Three agents are compared through workflow value, execution context, and infrastructure economics.",
@@ -459,6 +491,159 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
   },
 };
 
+export type SecurityDiagramId =
+  | "federation-overview"
+  | "oidc-authorization-code"
+  | "downstream-validation"
+  | "saml-rfc7522-bridge";
+
+type SecurityDiagramCopy = {
+  title: string;
+  description: string;
+  caption: string;
+  labels: Record<string, string>;
+};
+
+const SECURITY_DIAGRAM_COPY: Record<
+  PostLocale,
+  Record<SecurityDiagramId, SecurityDiagramCopy>
+> = {
+  en: {
+    "federation-overview": {
+      title: "Identity federation across two trust boundaries",
+      description:
+        "An upstream identity proof reaches Forest, where policy is translated before a narrow token is issued to a customer-hosted agent.",
+      caption:
+        "Forest is an upstream service provider and downstream identity provider: it translates trust rather than passing it through.",
+      labels: {
+        browser: "Browser",
+        forest: "Forest",
+        upstream: "Upstream IdP",
+        agent: "Customer agent",
+        sp: "SP boundary",
+        idp: "IDP boundary",
+        proof: "Identity proof",
+        token: "Narrow token",
+      },
+    },
+    "oidc-authorization-code": {
+      title: "OIDC authorization code flow",
+      description:
+        "The browser is redirected to the identity provider, returns an authorization code to Forest, then Forest redeems the code before a session is established.",
+      caption:
+        "The authorization code is not the session: Forest verifies the redemption and issuer material before it trusts the result.",
+      labels: {
+        browser: "Browser",
+        forest: "Forest",
+        idp: "OIDC IdP",
+        redirect: "Redirect",
+        code: "Authorization code",
+        redeem: "Redeem + verify",
+        session: "Scoped session",
+      },
+    },
+    "downstream-validation": {
+      title: "Downstream bearer-token validation",
+      description:
+        "A frontend bearer token reaches a customer-hosted agent, which checks signature and issuer, audience tenant and scope, then time and replay conditions before allowing access.",
+      caption:
+        "The agent makes every claim check explicit; both allow and deny outcomes remain auditable.",
+      labels: {
+        frontend: "Frontend",
+        agent: "Agent gate",
+        allow: "Allow",
+        deny: "Deny",
+        signature: "Signature + issuer",
+        audience: "Audience + tenant + scope",
+        time: "Time + replay",
+        audit: "Audit",
+      },
+    },
+    "saml-rfc7522-bridge": {
+      title: "SAML-to-OAuth bridge with RFC 7522",
+      description:
+        "A signed enterprise SAML assertion enters Forest validation, then a constrained RFC 7522 exchange produces an agent token with a narrow audience tenant and scope.",
+      caption:
+        "Forest validates the signed assertion before the exchange; a broad or bypassed token is never the output.",
+      labels: {
+        enterprise: "Enterprise IdP",
+        assertion: "Signed SAML assertion",
+        validate: "Validate",
+        exchange: "RFC 7522 exchange",
+        token: "aud + tenant + scope",
+        unsafe: "Unsafe bypass",
+      },
+    },
+  },
+  fr: {
+    "federation-overview": {
+      title: "Fédération d'identité à travers deux frontières de confiance",
+      description:
+        "Une preuve d'identité amont atteint Forest, où la politique est traduite avant l'émission d'un token étroit vers un agent hébergé chez le client.",
+      caption:
+        "Forest est service provider vers l'amont et identity provider vers l'aval : il traduit la confiance au lieu de la transmettre telle quelle.",
+      labels: {
+        browser: "Navigateur",
+        forest: "Forest",
+        upstream: "IdP amont",
+        agent: "Agent client",
+        sp: "Frontière SP",
+        idp: "Frontière IdP",
+        proof: "Preuve d'identité",
+        token: "Token borné",
+      },
+    },
+    "oidc-authorization-code": {
+      title: "Flux OIDC Authorization Code",
+      description:
+        "Le navigateur est redirigé vers l'identity provider, renvoie un code d'autorisation à Forest, puis Forest échange ce code avant d'établir une session.",
+      caption:
+        "Le code d'autorisation n'est pas une session : Forest vérifie l'échange et le matériel d'issuer avant de faire confiance au résultat.",
+      labels: {
+        browser: "Navigateur",
+        forest: "Forest",
+        idp: "IdP OIDC",
+        redirect: "Redirection",
+        code: "Code d'autorisation",
+        redeem: "Échange + vérification",
+        session: "Session bornée",
+      },
+    },
+    "downstream-validation": {
+      title: "Validation d'un bearer token côté agent",
+      description:
+        "Un bearer token présenté par le frontend atteint l'agent client, qui vérifie signature et issuer, audience tenant et scope, puis les conditions de temps et de replay avant d'autoriser l'accès.",
+      caption:
+        "L'agent rend chaque vérification de claim explicite ; les décisions allow et deny restent auditables.",
+      labels: {
+        frontend: "Frontend",
+        agent: "Gate agent",
+        allow: "Autoriser",
+        deny: "Refuser",
+        signature: "Signature + issuer",
+        audience: "Audience + tenant + scope",
+        time: "Temps + replay",
+        audit: "Audit",
+      },
+    },
+    "saml-rfc7522-bridge": {
+      title: "Pont SAML-vers-OAuth avec RFC 7522",
+      description:
+        "Une assertion SAML d'entreprise signée entre dans la validation Forest, puis un échange RFC 7522 contraint produit un token agent avec audience tenant et scope étroits.",
+      caption:
+        "Forest valide l'assertion signée avant l'échange : il ne produit jamais un token large ou qui contourne cette frontière.",
+      labels: {
+        enterprise: "IdP entreprise",
+        assertion: "Assertion SAML signée",
+        validate: "Valider",
+        exchange: "Échange RFC 7522",
+        token: "aud + tenant + scope",
+        unsafe: "Contournement dangereux",
+      },
+    },
+  },
+};
+
 function hashString(value: string): number {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -514,10 +699,27 @@ function DiagramFrame({
       <defs>
         <linearGradient id={`${markerId}-wash`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="var(--visual-surface-strong)" />
-          <stop offset="1" stopColor="var(--visual-surface)" />
+          <stop offset="0.52" stopColor="var(--visual-surface)" />
+          <stop offset="1" stopColor="var(--visual-surface-strong)" />
         </linearGradient>
+        <radialGradient id={`${markerId}-atmosphere`} cx="18%" cy="12%" r="76%">
+          <stop offset="0" stopColor="var(--visual-line)" stopOpacity="0.2" />
+          <stop offset="0.38" stopColor="var(--visual-line-secondary)" stopOpacity="0.08" />
+          <stop offset="1" stopColor="var(--visual-surface)" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={`${markerId}-hotspot`} cx="76%" cy="24%" r="52%">
+          <stop offset="0" stopColor="var(--visual-hot)" stopOpacity="0.16" />
+          <stop offset="1" stopColor="var(--visual-hot)" stopOpacity="0" />
+        </radialGradient>
         <pattern id={`${markerId}-grid`} width="42" height="42" patternUnits="userSpaceOnUse">
           <path d="M42 0H0V42" className="visual-grid-line" />
+        </pattern>
+        <pattern id={`${markerId}-stars`} width="160" height="120" patternUnits="userSpaceOnUse">
+          <circle cx="22" cy="26" r="1.4" className="visual-star" />
+          <circle cx="94" cy="18" r="0.9" className="visual-star visual-star-muted" />
+          <circle cx="138" cy="54" r="1.2" className="visual-star" />
+          <circle cx="62" cy="96" r="0.8" className="visual-star visual-star-muted" />
+          <circle cx="152" cy="108" r="1" className="visual-star" />
         </pattern>
         <marker
           id={`${markerId}-arrow`}
@@ -530,10 +732,553 @@ function DiagramFrame({
           <path d="M0 0L12 5L0 10Z" className="visual-arrow-head" />
         </marker>
       </defs>
-      <rect width="900" height="480" rx="28" fill={`url(#${markerId}-wash)`} />
+      <rect width="900" height="480" rx="28" className="visual-frame-base" fill={`url(#${markerId}-wash)`} />
+      <rect width="900" height="480" rx="28" fill={`url(#${markerId}-atmosphere)`} />
+      <rect width="900" height="480" rx="28" fill={`url(#${markerId}-hotspot)`} />
       <rect width="900" height="480" rx="28" fill={`url(#${markerId}-grid)`} />
+      <rect width="900" height="480" rx="28" fill={`url(#${markerId}-stars)`} className="visual-starfield" />
+      <path d="M-44 392C168 268 318 504 514 318S726 144 944 248" className="visual-frame-orbit" />
+      <circle cx="794" cy="102" r="56" className="visual-frame-orbit visual-frame-orbit-secondary" />
+      <circle cx="794" cy="102" r="4" className="visual-frame-beacon" />
+      <rect x="1" y="1" width="898" height="478" rx="27" className="visual-frame-border" />
       {children}
     </>
+  );
+}
+
+type EmblemTone = "default" | "hot" | "success" | "danger";
+
+function EmblemCapsule({
+  x,
+  y,
+  width = 112,
+  height = 62,
+  tone = "default",
+}: {
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  tone?: EmblemTone;
+}) {
+  return (
+    <g className={`visual-emblem-capsule visual-emblem-capsule-${tone}`}>
+      <rect x={x} y={y} width={width} height={height} rx={Math.min(22, height / 2)} />
+      <path d={`M${x + 24} ${y + height / 2}H${x + width - 24}`} />
+    </g>
+  );
+}
+
+function EmblemCheckpoint({
+  x,
+  y,
+  tone = "hot",
+  radius = 10,
+}: {
+  x: number;
+  y: number;
+  tone?: EmblemTone;
+  radius?: number;
+}) {
+  return (
+    <g className={`visual-emblem-checkpoint visual-emblem-checkpoint-${tone}`}>
+      <circle cx={x} cy={y} r={radius + 7} className="visual-emblem-checkpoint-ring" />
+      <circle cx={x} cy={y} r={radius} />
+    </g>
+  );
+}
+
+function EmblemScene({
+  markerId,
+  children,
+}: {
+  markerId: string;
+  children: ReactNode;
+}) {
+  return <DiagramFrame markerId={markerId}>{children}</DiagramFrame>;
+}
+
+function PostVisualEmblem({
+  markerId,
+  visualId,
+}: {
+  markerId: string;
+  visualId?: PostVisualId | undefined;
+}) {
+  const arrow = `url(#${markerId}-arrow)`;
+
+  if (visualId === "bounded-ai-loop") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <rect x="138" y="92" width="606" height="290" rx="44" className="visual-emblem-boundary" />
+        <path d="M198 238H692" className="visual-emblem-route" markerEnd={arrow} />
+        {[198, 312, 426, 540, 654].map((x, index) => (
+          <EmblemCheckpoint
+            key={x}
+            x={x}
+            y={238}
+            tone={index === 3 ? "hot" : index === 4 ? "success" : "default"}
+            radius={index === 3 ? 15 : 10}
+          />
+        ))}
+        <path d="M426 248V326H584" className="visual-emblem-route visual-emblem-route-danger" />
+        <EmblemCapsule x={532} y={294} width={152} height={62} tone="danger" />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "sse-outbound-channel") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <EmblemCapsule x={90} y={190} width={182} height={88} />
+        <rect x="408" y="96" width="48" height="288" rx="24" className="visual-emblem-firewall" />
+        <EmblemCapsule x={628} y={190} width={182} height={88} tone="success" />
+        <path d="M272 208C356 120 536 120 628 208" className="visual-emblem-route" markerEnd={arrow} />
+        <path d="M628 260C536 348 356 348 272 260" className="visual-emblem-route visual-emblem-route-hot" markerEnd={arrow} />
+        <EmblemCheckpoint x={538} y={298} tone="hot" radius={7} />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "trail-endurance-profile") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <path
+          d="M72 290L142 256L204 280L276 184L342 236L424 126L494 210L568 166L638 242L710 186L828 272L828 316H72Z"
+          className="visual-emblem-terrain"
+        />
+        <path
+          d="M72 290L142 256L204 280L276 184L342 236L424 126L494 210L568 166L638 242L710 186L828 272"
+          className="visual-emblem-terrain-line"
+        />
+        <path d="M108 370H370" className="visual-emblem-capacity visual-emblem-capacity-danger" />
+        <path d="M108 408H778" className="visual-emblem-capacity visual-emblem-capacity-success" />
+        <path d="M696 338V434" className="visual-emblem-target" />
+        <EmblemCheckpoint x={424} y={126} tone="hot" radius={10} />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "trail-saint-jacques-100k-2026") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <path
+          d="M54 336C126 290 168 268 234 286S334 320 402 224S516 104 610 182S726 334 846 142"
+          className="visual-emblem-route visual-emblem-route-trail"
+          markerEnd={arrow}
+        />
+        <path
+          d="M52 358L138 312L214 342L310 264L382 330L486 176L558 236L650 140L728 268L846 184"
+          className="visual-emblem-terrain-line visual-emblem-terrain-muted"
+        />
+        <EmblemCheckpoint x={118} y={300} tone="hot" radius={9} />
+        <EmblemCheckpoint x={402} y={224} tone="danger" radius={10} />
+        <EmblemCheckpoint x={610} y={182} tone="success" radius={11} />
+        <g className="visual-emblem-cathedral">
+          <path d="M804 112V174H852V112L828 82Z" />
+          <path d="M816 112V92H840V112" />
+        </g>
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "agent-battle-2026") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <circle cx="450" cy="238" r="88" className="visual-emblem-orbit-core" />
+        <EmblemCapsule x={394} y={208} width={112} height={60} tone="hot" />
+        {[
+          { x: 200, y: 138, tone: "default" as const },
+          { x: 636, y: 146, tone: "success" as const },
+          { x: 430, y: 350, tone: "hot" as const },
+        ].map((node) => (
+          <g key={`${node.x}-${node.y}`}>
+            <path
+              d={`M${node.x + 56} ${node.y + 31}Q450 238 ${node.x < 400 ? 394 : 506} ${node.y < 250 ? 208 : 268}`}
+              className="visual-emblem-route visual-emblem-route-muted"
+            />
+            <EmblemCapsule x={node.x} y={node.y} width={112} height={62} tone={node.tone} />
+          </g>
+        ))}
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "ai-force-multiplier") {
+    return (
+      <EmblemScene markerId={markerId}>
+        {[104, 168, 232, 296].map((y) => (
+          <g key={y}>
+            <EmblemCapsule x={72} y={y} width={112} height={38} />
+            <path d={`M184 ${y + 19}C272 ${y + 19} 292 240 364 240`} className="visual-emblem-route visual-emblem-route-muted" />
+          </g>
+        ))}
+        <EmblemCapsule x={364} y={184} width={172} height={112} tone="hot" />
+        <path d="M536 240H746" className="visual-emblem-route" markerEnd={arrow} />
+        <EmblemCapsule x={708} y={190} width={130} height={100} tone="success" />
+        <path d="M430 182C430 86 680 82 760 164" className="visual-emblem-route visual-emblem-route-hot" />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "backend-to-data-engineer-rockfi") {
+    return (
+      <EmblemScene markerId={markerId}>
+        {[128, 214, 300].map((y, index) => (
+          <EmblemCheckpoint key={y} x={104} y={y} tone={index === 2 ? "hot" : "default"} radius={14 - index * 2} />
+        ))}
+        <path d="M120 128C232 128 202 210 300 210S366 256 404 290" className="visual-emblem-route" markerEnd={arrow} />
+        <path d="M120 214C230 214 260 256 404 290M120 300C240 300 304 320 404 290" className="visual-emblem-route visual-emblem-route-muted" />
+        {[{ x: 422, y: 270, h: 98 }, { x: 560, y: 204, h: 164 }, { x: 698, y: 126, h: 242 }].map((layer, index) => (
+          <rect
+            key={layer.x}
+            x={layer.x}
+            y={layer.y}
+            width="104"
+            height={layer.h}
+            rx="28"
+            className={`visual-emblem-terrace visual-emblem-terrace-${index}`}
+          />
+        ))}
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "claude-code-product-os") {
+    const points = [{ x: 450, y: 106 }, { x: 674, y: 190 }, { x: 596, y: 350 }, { x: 304, y: 350 }, { x: 226, y: 190 }];
+    return (
+      <EmblemScene markerId={markerId}>
+        <circle cx="450" cy="238" r="82" className="visual-emblem-orbit-core" />
+        <EmblemCapsule x={392} y={206} width={116} height={64} tone="hot" />
+        {points.map((point, index) => {
+          const next = points[(index + 1) % points.length]!;
+          return (
+            <g key={`${point.x}-${point.y}`}>
+              <path d={`M${point.x} ${point.y}Q450 238 ${next.x} ${next.y}`} className="visual-emblem-route" markerEnd={arrow} />
+              <EmblemCheckpoint x={point.x} y={point.y} tone={index === 2 ? "success" : "default"} radius={14} />
+            </g>
+          );
+        })}
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "context-engineering-beyond-prompt-engineering") {
+    return (
+      <EmblemScene markerId={markerId}>
+        {[{ x: 126, y: 84, w: 480, h: 304 }, { x: 168, y: 126, w: 396, h: 220 }, { x: 210, y: 168, w: 312, h: 136 }].map((layer, index) => (
+          <rect key={layer.x} x={layer.x} y={layer.y} width={layer.w} height={layer.h} rx={38 - index * 6} className="visual-emblem-stack" />
+        ))}
+        <EmblemCapsule x={298} y={205} width={136} height={62} tone="hot" />
+        <path d="M434 236H686" className="visual-emblem-route" markerEnd={arrow} />
+        <rect x="688" y="158" width="58" height="156" rx="29" className="visual-emblem-firewall" />
+        <EmblemCheckpoint x={798} y={236} tone="success" radius={20} />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "engineering-2026-ai-redefined-our-job") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <EmblemCapsule x={142} y={128} width={176} height={74} />
+        <EmblemCapsule x={142} y={278} width={176} height={74} tone="hot" />
+        <EmblemCheckpoint x={450} y={238} tone="hot" radius={34} />
+        <path d="M318 165C372 165 368 216 412 226M318 315C372 315 368 260 412 250" className="visual-emblem-route" />
+        <path d="M488 226C544 214 548 160 604 160M488 250C544 262 548 316 604 316" className="visual-emblem-route visual-emblem-route-hot" />
+        <EmblemCapsule x={604} y={130} width={146} height={60} tone="success" />
+        <EmblemCapsule x={604} y={286} width={146} height={60} tone="success" />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "engineering-documents-age-poorly") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <path d="M174 116H474L554 196V362H174Z" className="visual-emblem-document" />
+        <path d="M474 116V196H554M232 214H468M232 256H430M232 298H388" className="visual-emblem-document-line" />
+        <path d="M556 142C726 128 782 214 742 326C708 410 574 402 548 320" className="visual-emblem-route visual-emblem-route-hot" markerEnd={arrow} />
+        <EmblemCheckpoint x={730} y={216} tone="hot" radius={16} />
+        <EmblemCapsule x={626} y={300} width={132} height={66} tone="success" />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "forest-admin-activity-logs-elasticsearch") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <g className="visual-emblem-vault">
+          <ellipse cx="202" cy="158" rx="92" ry="30" />
+          <path d="M110 158V336C110 376 294 376 294 336V158" />
+          <ellipse cx="202" cy="336" rx="92" ry="30" />
+          {[202, 236, 270].map((y) => <path key={y} d={`M136 ${y}H268`} />)}
+        </g>
+        <path d="M294 244H548" className="visual-emblem-route" markerEnd={arrow} />
+        <g className="visual-emblem-index">
+          {[{ x: 612, y: 142 }, { x: 724, y: 188 }, { x: 650, y: 304 }, { x: 760, y: 330 }].map((node) => (
+            <circle key={`${node.x}-${node.y}`} cx={node.x} cy={node.y} r="24" />
+          ))}
+          <path d="M612 142L724 188L650 304L760 330M724 188L760 330" />
+        </g>
+        <circle cx="794" cy="116" r="42" className="visual-emblem-lens" />
+        <path d="M824 146L856 178" className="visual-emblem-lens" />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "idempotency-debounce-jobify-bullmq") {
+    return (
+      <EmblemScene markerId={markerId}>
+        {[116, 194, 272].map((y, index) => (
+          <g key={y}>
+            <EmblemCapsule x={96} y={y} width={150} height={54} tone={index === 1 ? "hot" : "default"} />
+            <path d={`M246 ${y + 27}H370`} className="visual-emblem-route visual-emblem-route-muted" />
+          </g>
+        ))}
+        <rect x="370" y="142" width="148" height="182" rx="42" className="visual-emblem-stamp" />
+        <path d="M518 232H712" className="visual-emblem-route" markerEnd={arrow} />
+        <EmblemCapsule x={680} y={196} width={142} height={72} tone="success" />
+        <path d="M206 326V380H340" className="visual-emblem-route visual-emblem-route-danger" />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "jobify-workers-queues-nestjs") {
+    return (
+      <EmblemScene markerId={markerId}>
+        {[108, 184, 260].map((y, index) => <EmblemCapsule key={y} x={80} y={y} width={142} height={48} tone={index === 1 ? "hot" : "default"} />)}
+        <path d="M222 132C290 132 288 226 358 226M222 208H358M222 284C290 284 288 226 358 226" className="visual-emblem-route" />
+        <rect x="358" y="176" width="164" height="100" rx="32" className="visual-emblem-queue" />
+        <path d="M522 226H630" className="visual-emblem-route" markerEnd={arrow} />
+        <EmblemCapsule x={630} y={176} width={118} height={100} tone="hot" />
+        <path d="M748 226H830" className="visual-emblem-route" markerEnd={arrow} />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "joining-rockfi") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <path d="M68 366C190 330 206 274 320 272S458 182 564 184S694 118 834 110" className="visual-emblem-route visual-emblem-route-trail" markerEnd={arrow} />
+        {[{ x: 156, y: 334 }, { x: 338, y: 268 }, { x: 548, y: 184 }, { x: 740, y: 130 }].map((point, index) => (
+          <EmblemCheckpoint key={`${point.x}-${point.y}`} {...point} tone={index === 3 ? "success" : "default"} radius={index === 3 ? 16 : 11} />
+        ))}
+        <path d="M694 182L742 102L790 182Z" className="visual-emblem-launchpad" />
+        <path d="M742 102V68" className="visual-emblem-launchpad" />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "nodejs-stream-backpressure-history-export") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <path d="M82 164H684C748 164 774 210 774 258V306" className="visual-emblem-pipe" />
+        <path d="M82 316H684C718 316 726 290 726 258" className="visual-emblem-pipe" />
+        {[180, 334, 488, 642].map((x, index) => <rect key={x} x={x} y="142" width="84" height="196" rx="26" className={`visual-emblem-valve visual-emblem-valve-${index}`} />)}
+        <path d="M786 162V354C786 382 834 382 834 354V162" className="visual-emblem-reservoir" />
+        <path d="M116 238H716" className="visual-emblem-route visual-emblem-route-hot" markerEnd={arrow} />
+        {[268, 422, 576].map((x) => <path key={x} d={`M${x} 188V288`} className="visual-emblem-pressure" />)}
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "polymagine-industry-4-eyewear-2017") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <path d="M244 128C160 164 152 314 224 360C300 410 436 396 478 316C514 244 468 138 388 118C338 106 286 108 244 128Z" className="visual-emblem-face" />
+        {[{ x: 252, y: 180 }, { x: 316, y: 140 }, { x: 386, y: 174 }, { x: 232, y: 250 }, { x: 300, y: 302 }, { x: 400, y: 282 }].map((point) => <circle key={`${point.x}-${point.y}`} {...point} r="5" className="visual-emblem-scan-dot" />)}
+        <path d="M238 230C266 208 310 208 338 230M338 230C366 208 410 208 438 230M338 230H354" className="visual-emblem-glasses" />
+        <path d="M494 236H746" className="visual-emblem-route" markerEnd={arrow} />
+        <path d="M664 166L746 236L664 306" className="visual-emblem-mesh" />
+        <path d="M664 166V306M664 236H746" className="visual-emblem-mesh" />
+        <EmblemCheckpoint x={786} y={236} tone="success" radius={30} />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "postgresql-unique-nulls") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <EmblemCapsule x={108} y={138} width={170} height={74} />
+        <EmblemCapsule x={108} y={270} width={170} height={74} />
+        <path d="M278 174C360 174 350 230 414 230M278 306C360 306 350 250 414 250" className="visual-emblem-route" />
+        <rect x="414" y="158" width="150" height="164" rx="42" className="visual-emblem-lock" />
+        <path d="M452 216V196C452 152 526 152 526 196V216M470 216H508V274H470Z" className="visual-emblem-lock-glyph" />
+        <path d="M564 240H760" className="visual-emblem-route" markerEnd={arrow} />
+        <EmblemCapsule x={702} y={198} width={126} height={84} tone="success" />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "rebuilding-cloud-experience-forest-admin") {
+    return (
+      <EmblemScene markerId={markerId}>
+        {[{ x: 96, y: 126 }, { x: 96, y: 226 }, { x: 96, y: 326 }, { x: 238, y: 176 }, { x: 238, y: 276 }].map((node, index) => (
+          <EmblemCapsule key={`${node.x}-${node.y}`} {...node} width={88} height={56} tone={index === 4 ? "hot" : "default"} />
+        ))}
+        <path d="M184 154C328 154 332 238 410 238M184 254H410M184 354C328 354 332 242 410 242M326 204C366 204 370 238 410 238M326 304C366 304 370 242 410 242" className="visual-emblem-route visual-emblem-route-muted" />
+        <path d="M410 140H484L534 240L484 340H410L460 240Z" className="visual-emblem-nat" />
+        <path d="M534 240H640" className="visual-emblem-route visual-emblem-route-hot" markerEnd={arrow} />
+        <g className="visual-emblem-db">
+          <ellipse cx="730" cy="170" rx="92" ry="28" />
+          <path d="M638 170V330C638 368 822 368 822 330V170" />
+          <ellipse cx="730" cy="330" rx="92" ry="28" />
+        </g>
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "redis-memory-exhaustion-post-mortem") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <rect x="142" y="110" width="344" height="260" rx="56" className="visual-emblem-pressure-vessel" />
+        {[{ y: 142, tone: "default" as const }, { y: 214, tone: "hot" as const }, { y: 286, tone: "danger" as const }].map((segment) => (
+          <EmblemCapsule key={segment.y} x={180} y={segment.y} width={268} height={44} tone={segment.tone} />
+        ))}
+        <path d="M486 240H616" className="visual-emblem-route visual-emblem-route-danger" />
+        <path d="M568 240L636 166M568 240L636 240M568 240L636 314" className="visual-emblem-split" />
+        {[166, 240, 314].map((y, index) => <EmblemCapsule key={y} x={636} y={y - 24} width={164} height={48} tone={index === 2 ? "success" : "default"} />)}
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "rocket-curiosity") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <path d="M104 156L212 102L312 166L412 92L510 146" className="visual-emblem-constellation" />
+        {[{ x: 104, y: 156 }, { x: 212, y: 102 }, { x: 312, y: 166 }, { x: 412, y: 92 }, { x: 510, y: 146 }].map((point) => <EmblemCheckpoint key={`${point.x}-${point.y}`} {...point} tone="default" radius={7} />)}
+        <path d="M72 354C214 324 292 376 430 338S666 300 836 344" className="visual-emblem-horizon" />
+        <path d="M542 338C572 220 612 176 652 338Z" className="visual-emblem-volcano" />
+        <path d="M596 236C620 210 648 202 678 184" className="visual-emblem-volcano-glow" />
+        <path d="M510 146C568 184 594 232 596 272" className="visual-emblem-route visual-emblem-route-hot" />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "rocket-earthbound-engineering") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <circle cx="348" cy="270" r="132" className="visual-emblem-earth" />
+        <path d="M196 260C264 200 366 194 474 240M218 320C302 274 398 288 466 336" className="visual-emblem-earth-line" />
+        <ellipse cx="348" cy="270" rx="252" ry="128" className="visual-emblem-orbit" />
+        <path d="M484 186C610 112 694 118 788 72" className="visual-emblem-route" markerEnd={arrow} />
+        <path d="M544 158L578 178L548 200Z" className="visual-emblem-ship" />
+        {[{ x: 528, y: 224 }, { x: 586, y: 166 }, { x: 634, y: 128 }].map((point) => <circle key={`${point.x}-${point.y}`} {...point} r="5" className="visual-emblem-debris" />)}
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "rocket-heavencraft-systems") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <g className="visual-emblem-voxel-core">
+          <path d="M450 144L548 200V312L450 368L352 312V200Z" />
+          <path d="M450 144V256L548 200M450 256L352 200M450 256V368" />
+        </g>
+        {[{ x: 156, y: 126 }, { x: 656, y: 126 }, { x: 672, y: 302 }, { x: 144, y: 306 }].map((node, index) => (
+          <g key={`${node.x}-${node.y}`}>
+            <path d={`M${node.x + 54} ${node.y + 38}Q450 256 ${index < 2 ? 396 : 504} ${index < 2 ? 208 : 304}`} className="visual-emblem-route visual-emblem-route-muted" />
+            <EmblemCapsule x={node.x} y={node.y} width={108} height={76} tone={index === 2 ? "success" : "default"} />
+          </g>
+        ))}
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "scaling-ci-github-actions-forest-admin") {
+    return (
+      <EmblemScene markerId={markerId}>
+        {[110, 250, 390, 530].map((x, index) => (
+          <g key={x} className="visual-emblem-booster">
+            <path d={`M${x} 324L${x + 44} 124L${x + 88} 324Z`} />
+            <path d={`M${x + 44} 324V364`} />
+            <circle cx={x + 44} cy="216" r="14" className={index === 3 ? "visual-emblem-hot-fill" : undefined} />
+          </g>
+        ))}
+        <path d="M154 364C308 430 526 430 690 330" className="visual-emblem-route" markerEnd={arrow} />
+        <rect x="674" y="252" width="132" height="128" rx="36" className="visual-emblem-gate" />
+        <path d="M714 316L738 340L776 288" className="visual-emblem-gate-check" />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "scim-user-provisioning-forest-admin") {
+    return (
+      <EmblemScene markerId={markerId}>
+        {[104, 202, 300].map((y, index) => (
+          <g key={y}>
+            <rect x="94" y={y} width="170" height="72" rx="20" className={`visual-emblem-passport visual-emblem-passport-${index}`} />
+            <circle cx="128" cy={y + 36} r="12" />
+            <path d={`M154 ${y + 26}H230M154 ${y + 46}H210`} />
+          </g>
+        ))}
+        <path d="M264 140C360 140 346 236 410 236M264 238H410M264 336C360 336 346 240 410 240" className="visual-emblem-route" />
+        <rect x="410" y="146" width="104" height="184" rx="42" className="visual-emblem-airlock" />
+        <path d="M514 238H654" className="visual-emblem-route" markerEnd={arrow} />
+        <EmblemCapsule x={654} y={186} width={154} height={104} tone="success" />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "security-authentication-idp-openid-connect") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <rect x="72" y="116" width="230" height="246" rx="40" className="visual-emblem-trust-zone" />
+        <rect x="598" y="78" width="230" height="154" rx="40" className="visual-emblem-trust-zone" />
+        <rect x="598" y="248" width="230" height="154" rx="40" className="visual-emblem-trust-zone" />
+        <EmblemCapsule x={116} y={210} width={142} height={60} />
+        <rect x="366" y="154" width="168" height="168" rx="52" className="visual-emblem-trust-tower" />
+        <path d="M258 240H366M534 192C576 182 570 156 598 156M534 284C576 294 570 324 598 324" className="visual-emblem-route" markerEnd={arrow} />
+        <EmblemCapsule x={642} y={124} width={142} height={54} tone="hot" />
+        <EmblemCapsule x={642} y={294} width={142} height={54} tone="success" />
+        <EmblemCheckpoint x={450} y={238} tone="hot" radius={18} />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "self-service-analytics-that-doesnt-lie") {
+    return (
+      <EmblemScene markerId={markerId}>
+        {[118, 220, 322].map((y) => <EmblemCheckpoint key={y} x={112} y={y} tone="default" radius={12} />)}
+        <path d="M128 118C236 118 258 184 346 212M128 220H346M128 322C236 322 258 274 346 252" className="visual-emblem-route visual-emblem-route-muted" />
+        <rect x="346" y="148" width="182" height="164" rx="46" className="visual-emblem-certified-core" />
+        <path d="M528 230H676" className="visual-emblem-route" markerEnd={arrow} />
+        <rect x="676" y="154" width="142" height="152" rx="38" className="visual-emblem-dashboard" />
+        <path d="M704 260H790M704 228H760M704 196H776" className="visual-emblem-dashboard-line" />
+        <path d="M194 382C378 432 528 416 660 332" className="visual-emblem-route visual-emblem-route-danger" />
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "the-onboarding-matrix-forest-admin") {
+    return (
+      <EmblemScene markerId={markerId}>
+        {[{ x: 106, y: 120 }, { x: 216, y: 120 }, { x: 106, y: 230 }, { x: 216, y: 230 }].map((cell) => <rect key={`${cell.x}-${cell.y}`} {...cell} width="92" height="92" rx="18" className="visual-emblem-matrix-cell" />)}
+        <path d="M152 166C290 86 278 372 414 238M262 166C330 116 320 328 414 238M152 276C294 394 312 84 414 238M262 276C356 362 358 128 414 238" className="visual-emblem-tangle" />
+        <EmblemCheckpoint x={414} y={238} tone="hot" radius={22} />
+        <path d="M436 238H564" className="visual-emblem-route" markerEnd={arrow} />
+        {[120, 220, 320].map((y, index) => <EmblemCapsule key={y} x={596} y={y} width={166} height={52} tone={index === 1 ? "success" : "default"} />)}
+      </EmblemScene>
+    );
+  }
+
+  if (visualId === "unknown-unknowns-software-architecture") {
+    return (
+      <EmblemScene markerId={markerId}>
+        <path d="M116 360A246 246 0 0 1 468 108" className="visual-emblem-radar" />
+        <path d="M116 360L466 142L400 360Z" className="visual-emblem-radar-cone" />
+        {[{ x: 256, y: 254 }, { x: 330, y: 196 }, { x: 398, y: 290 }].map((point, index) => <EmblemCheckpoint key={`${point.x}-${point.y}`} {...point} tone={index === 1 ? "danger" : "hot"} radius={10} />)}
+        <path d="M470 102V378" className="visual-emblem-boundary-line" />
+        <path d="M492 330C570 280 620 222 720 234S788 160 836 114" className="visual-emblem-route" markerEnd={arrow} />
+        {[{ x: 568, y: 286 }, { x: 688, y: 234 }, { x: 788, y: 170 }].map((point, index) => <EmblemCheckpoint key={`${point.x}-${point.y}`} {...point} tone={index === 2 ? "success" : "default"} radius={index === 2 ? 15 : 10} />)}
+      </EmblemScene>
+    );
+  }
+
+  return (
+    <EmblemScene markerId={markerId}>
+      <path d="M84 332C212 238 292 348 414 224S646 194 816 122" className="visual-emblem-route" markerEnd={arrow} />
+      {[{ x: 84, y: 332 }, { x: 414, y: 224 }, { x: 816, y: 122 }].map((point, index) => <EmblemCheckpoint key={`${point.x}-${point.y}`} {...point} tone={index === 2 ? "success" : "default"} />)}
+    </EmblemScene>
   );
 }
 
@@ -739,6 +1484,73 @@ function TrailEnduranceProfile({
   );
 }
 
+function TrailSaintJacquesProfile({
+  copy,
+  markerId,
+}: {
+  copy: DiagramCopy;
+  markerId: string;
+}) {
+  const labels = copy.labels;
+  const arrow = `url(#${markerId}-arrow)`;
+  const route = "M64 352C134 300 188 280 252 300S340 344 414 242S526 96 624 180S744 336 846 132";
+  const checkpoints = [
+    { x: 134, y: 308, label: labels.start, tone: "hot" as const },
+    { x: 414, y: 242, label: labels.water, tone: "danger" as const },
+    { x: 624, y: 180, label: labels.crew, tone: "success" as const },
+    { x: 808, y: 160, label: labels.finish, tone: "success" as const },
+  ];
+
+  return (
+    <DiagramFrame markerId={markerId}>
+      <text x="52" y="62" className="visual-kicker">
+        {labels.course}
+      </text>
+      <path
+        d="M54 382L136 330L212 360L312 278L384 340L492 192L568 254L658 144L736 284L846 178"
+        className="visual-elevation-line visual-elevation-line-muted"
+      />
+      <path d={route} className="visual-route visual-route-hot" markerEnd={arrow} />
+      <path d="M64 398H846" className="visual-axis" />
+      <text x="64" y="430" className="visual-micro-label">
+        {labels.monistrol}
+      </text>
+      <text x="846" y="430" textAnchor="end" className="visual-micro-label visual-micro-label-hot">
+        {labels.cathedral}
+      </text>
+      {checkpoints.map((checkpoint, index) => (
+        <g key={checkpoint.label}>
+          <circle
+            cx={checkpoint.x}
+            cy={checkpoint.y}
+            r={index === 3 ? 18 : 12}
+            className={
+              checkpoint.tone === "danger"
+                ? "visual-checkpoint visual-checkpoint-danger"
+                : checkpoint.tone === "success"
+                  ? "visual-checkpoint visual-checkpoint-success"
+                  : "visual-checkpoint"
+            }
+          />
+          <text
+            x={checkpoint.x}
+            y={checkpoint.y - (index === 2 ? 34 : 26)}
+            textAnchor="middle"
+            className={checkpoint.tone === "danger" ? "visual-micro-label visual-micro-label-danger" : "visual-micro-label"}
+          >
+            {checkpoint.label}
+          </text>
+        </g>
+      ))}
+      <g className="visual-cathedral">
+        <path d="M778 112V172H842V112L810 76Z" />
+        <path d="M794 112V90H826V112" />
+        <path d="M810 76V54" />
+      </g>
+    </DiagramFrame>
+  );
+}
+
 function ArticleEssenceDiagram({
   copy,
   markerId,
@@ -757,7 +1569,7 @@ function ArticleEssenceDiagram({
     return (
       <DiagramFrame markerId={markerId}>
         <text x="44" y="58" className="visual-kicker">AGENT ARENA · 2026</text>
-        {[{ x: 58, name: "ANTIGRAVITY", y: 138 }, { x: 338, name: "CURSOR", y: 174 }, { x: 618, name: "CLAUDE CODE", y: 116 }].map((agent) => (
+        {[{ x: 58, name: "CODEX", y: 138 }, { x: 338, name: "CLAUDE CODE", y: 174 }, { x: 618, name: "HERD", y: 116 }].map((agent) => (
           <g key={agent.name}>
             <path d={`M${agent.x + 104} 362V${agent.y + 72}`} className="visual-flow-line visual-flow-muted" />
             <g className="visual-node"><rect x={agent.x} y={agent.y} width="208" height="72" rx="18" /><text x={agent.x + 104} y={agent.y + 42} textAnchor="middle">{agent.name}</text></g>
@@ -1333,6 +2145,99 @@ function FallbackMap({
   );
 }
 
+function SecurityDiagramScene({
+  copy,
+  markerId,
+  diagramId,
+}: {
+  copy: SecurityDiagramCopy;
+  markerId: string;
+  diagramId: SecurityDiagramId;
+}) {
+  const labels = copy.labels;
+  const arrow = `url(#${markerId}-arrow)`;
+
+  if (diagramId === "federation-overview") {
+    return (
+      <DiagramFrame markerId={markerId}>
+        <rect x="42" y="100" width="232" height="272" rx="30" className="visual-boundary" />
+        <rect x="592" y="56" width="264" height="154" rx="30" className="visual-boundary" />
+        <rect x="592" y="270" width="264" height="154" rx="30" className="visual-boundary" />
+        <text x="64" y="132" className="visual-kicker">{labels.sp}</text>
+        <text x="614" y="88" className="visual-kicker">{labels.idp}</text>
+        <DiagramNode x={82} y={212} width={154} label={labels.browser ?? ""} />
+        <DiagramNode x={358} y={194} width={156} label={labels.forest ?? ""} tone="hot" />
+        <DiagramNode x={636} y={112} width={176} label={labels.upstream ?? ""} />
+        <DiagramNode x={636} y={322} width={176} label={labels.agent ?? ""} tone="success" />
+        <path d="M236 248H358M514 224C574 220 566 148 636 148" className="visual-flow-line" markerEnd={arrow} />
+        <path d="M514 266C574 270 566 358 636 358" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
+        <text x="538" y="172" textAnchor="middle" className="visual-micro-label">{labels.proof}</text>
+        <text x="548" y="334" textAnchor="middle" className="visual-micro-label visual-micro-label-hot">{labels.token}</text>
+        <EmblemCheckpoint x={436} y={248} tone="hot" radius={12} />
+      </DiagramFrame>
+    );
+  }
+
+  if (diagramId === "oidc-authorization-code") {
+    return (
+      <DiagramFrame markerId={markerId}>
+        <DiagramNode x={82} y={172} width={166} label={labels.browser ?? ""} />
+        <DiagramNode x={368} y={292} width={166} label={labels.forest ?? ""} tone="hot" />
+        <DiagramNode x={654} y={172} width={166} label={labels.idp ?? ""} />
+        <path d="M248 198C358 88 542 88 654 198" className="visual-flow-line" markerEnd={arrow} />
+        <path d="M654 242C550 354 352 354 248 242" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
+        <path d="M248 242V330H368" className="visual-flow-line visual-flow-muted" markerEnd={arrow} />
+        <path d="M534 330H654V250" className="visual-flow-line" markerEnd={arrow} />
+        <text x="450" y="102" textAnchor="middle" className="visual-micro-label">{labels.redirect}</text>
+        <text x="450" y="384" textAnchor="middle" className="visual-micro-label visual-micro-label-hot">{labels.code}</text>
+        <text x="622" y="310" textAnchor="middle" className="visual-micro-label">{labels.redeem}</text>
+        <EmblemCheckpoint x={451} y={330} tone="hot" radius={10} />
+        <path d="M450 408H756" className="visual-axis" />
+        <text x="756" y="434" textAnchor="end" className="visual-micro-label">{labels.session}</text>
+      </DiagramFrame>
+    );
+  }
+
+  if (diagramId === "downstream-validation") {
+    return (
+      <DiagramFrame markerId={markerId}>
+        <DiagramNode x={64} y={190} width={150} label={labels.frontend ?? ""} />
+        <rect x="328" y="90" width="190" height="302" rx="38" className="visual-firewall" />
+        <text x="423" y="136" textAnchor="middle" className="visual-kicker">{labels.agent}</text>
+        {[labels.signature, labels.audience, labels.time].map((label, index) => (
+          <g key={label}>
+            <circle cx="374" cy={190 + index * 66} r="9" className="visual-checkpoint" />
+            <text x="396" y={195 + index * 66} className="visual-micro-label">{label}</text>
+          </g>
+        ))}
+        <DiagramNode x={676} y={140} width={150} label={labels.allow ?? ""} tone="success" />
+        <DiagramNode x={676} y={290} width={150} label={labels.deny ?? ""} />
+        <path d="M214 226H328M518 200H676" className="visual-flow-line" markerEnd={arrow} />
+        <path d="M518 282H612V326H676" className="visual-flow-line visual-flow-danger" markerEnd={arrow} />
+        <path d="M422 392V432H612" className="visual-flow-line visual-flow-muted" markerEnd={arrow} />
+        <text x="638" y="436" className="visual-micro-label">{labels.audit}</text>
+      </DiagramFrame>
+    );
+  }
+
+  return (
+    <DiagramFrame markerId={markerId}>
+      <DiagramNode x={54} y={190} width={150} label={labels.enterprise ?? ""} />
+      <DiagramNode x={254} y={190} width={170} label={labels.assertion ?? ""} />
+      <rect x="484" y="132" width="100" height="192" rx="36" className="visual-firewall" />
+      <text x="534" y="238" textAnchor="middle" transform="rotate(-90 534 238)" className="visual-firewall-label">{labels.validate}</text>
+      <DiagramNode x={634} y={190} width={156} label={labels.exchange ?? ""} tone="hot" />
+      <path d="M204 226H254M424 226H484M584 226H634" className="visual-flow-line" markerEnd={arrow} />
+      <path d="M790 226H846" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
+      <text x="450" y="112" textAnchor="middle" className="visual-micro-label visual-micro-label-hot">{labels.unsafe}</text>
+      <path d="M424 140C512 52 628 58 724 140" className="visual-flow-line visual-flow-danger" />
+      <path d="M446 118L468 142M468 118L446 142" className="visual-flow-danger-cross" />
+      <text x="846" y="198" textAnchor="end" className="visual-micro-label">{labels.token}</text>
+      <EmblemCheckpoint x={534} y={226} tone="hot" radius={12} />
+    </DiagramFrame>
+  );
+}
+
 export function PostVisual({
   locale,
   slug,
@@ -1344,17 +2249,21 @@ export function PostVisual({
   const copy = VISUAL_COPY[resolvedLocale][visualId ?? "fallback"];
   const instanceId = useId().replaceAll(":", "");
   const markerId = `post-visual-${instanceId}`;
-  const compact = variant === "card";
+  const compact = false;
   const titleId = `${markerId}-title`;
   const descriptionId = `${markerId}-description`;
 
   let diagram: ReactNode;
-  if (visualId === "bounded-ai-loop") {
+  if (variant !== "inline" && visualId) {
+    diagram = <PostVisualEmblem markerId={markerId} visualId={visualId} />;
+  } else if (visualId === "bounded-ai-loop") {
     diagram = <BoundedAiLoop copy={copy} markerId={markerId} compact={compact} />;
   } else if (visualId === "sse-outbound-channel") {
     diagram = <SseOutboundChannel copy={copy} markerId={markerId} compact={compact} />;
   } else if (visualId === "trail-endurance-profile") {
     diagram = <TrailEnduranceProfile copy={copy} markerId={markerId} compact={compact} />;
+  } else if (visualId === "trail-saint-jacques-100k-2026") {
+    diagram = <TrailSaintJacquesProfile copy={copy} markerId={markerId} />;
   } else if (visualId) {
     diagram = (
       <ArticleEssenceDiagram
@@ -1414,4 +2323,33 @@ export function PostVisual({
 
 export function ArticleDiagram({ visualId }: ArticleDiagramProps) {
   return <PostVisual slug={visualId} variant="inline" visualId={visualId} />;
+}
+
+export function SecurityDiagram({ diagramId }: { diagramId: SecurityDiagramId }) {
+  const { i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.resolvedLanguage ?? i18n.language);
+  const copy = SECURITY_DIAGRAM_COPY[locale][diagramId];
+  const instanceId = useId().replaceAll(":", "");
+  const markerId = `security-diagram-${instanceId}`;
+  const titleId = `${markerId}-title`;
+  const descriptionId = `${markerId}-description`;
+
+  return (
+    <figure
+      className="post-visual post-system-visual post-system-visual-inline"
+      data-visual-id={`security-${diagramId}`}
+    >
+      <svg
+        className="post-system-visual-svg"
+        viewBox="0 0 900 480"
+        role="img"
+        aria-labelledby={`${titleId} ${descriptionId}`}
+      >
+        <title id={titleId}>{copy.title}</title>
+        <desc id={descriptionId}>{copy.description}</desc>
+        <SecurityDiagramScene copy={copy} markerId={markerId} diagramId={diagramId} />
+      </svg>
+      <figcaption>{copy.caption}</figcaption>
+    </figure>
+  );
 }

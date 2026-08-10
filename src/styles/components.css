@@ -353,6 +353,24 @@
   background: var(--visual-surface);
 }
 
+.post-system-visual-card {
+  background:
+    radial-gradient(circle at 16% 18%, color-mix(in srgb, var(--visual-line) 16%, transparent), transparent 42%),
+    var(--visual-surface);
+}
+
+.post-system-visual-header {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 84% 8%, color-mix(in srgb, var(--visual-line-secondary) 12%, transparent), transparent 34%),
+    color-mix(in srgb, var(--visual-surface) 92%, transparent);
+}
+
+.post-system-visual-card .post-system-visual-svg {
+  transform: scale(1.04);
+  transform-origin: center;
+}
+
 .post-system-visual-svg {
   display: block;
   width: 100%;
@@ -363,10 +381,474 @@
   aspect-ratio: 15 / 8;
 }
 
+.visual-frame-base {
+  stroke: none;
+}
+
+.visual-frame-border {
+  fill: none;
+  stroke: color-mix(in srgb, var(--visual-line) 30%, var(--divider));
+  stroke-width: 2;
+}
+
+.visual-frame-orbit {
+  fill: none;
+  stroke: color-mix(in srgb, var(--visual-line-secondary) 20%, transparent);
+  stroke-width: 2;
+  stroke-dasharray: 7 12;
+}
+
+.visual-frame-orbit-secondary {
+  stroke: color-mix(in srgb, var(--visual-hot) 28%, transparent);
+  stroke-dasharray: 3 8;
+}
+
+.visual-frame-beacon {
+  fill: var(--visual-hot);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--visual-hot) 75%, transparent));
+}
+
+.visual-starfield {
+  opacity: 0.54;
+}
+
+.visual-star {
+  fill: color-mix(in srgb, var(--visual-line) 80%, var(--visual-ink));
+}
+
+.visual-star-muted {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 54%, transparent);
+}
+
 .visual-grid-line {
   fill: none;
   stroke: var(--visual-grid);
   stroke-width: 1;
+}
+
+.visual-emblem-capsule rect {
+  fill: color-mix(in srgb, var(--visual-surface-strong) 86%, transparent);
+  stroke: color-mix(in srgb, var(--visual-line) 64%, var(--divider));
+  stroke-width: 2.25;
+}
+
+.visual-emblem-capsule path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--visual-line) 78%, transparent);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.visual-emblem-capsule-hot rect {
+  fill: color-mix(in srgb, var(--visual-hot) 18%, var(--visual-surface-strong));
+  stroke: var(--visual-hot);
+}
+
+.visual-emblem-capsule-hot path {
+  stroke: var(--visual-hot);
+}
+
+.visual-emblem-capsule-success rect {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 18%, var(--visual-surface-strong));
+  stroke: var(--visual-line-secondary);
+}
+
+.visual-emblem-capsule-success path {
+  stroke: var(--visual-line-secondary);
+}
+
+.visual-emblem-capsule-danger rect {
+  fill: color-mix(in srgb, var(--visual-danger) 18%, var(--visual-surface-strong));
+  stroke: var(--visual-danger);
+}
+
+.visual-emblem-capsule-danger path {
+  stroke: var(--visual-danger);
+}
+
+.visual-emblem-route,
+.visual-emblem-terrain-line,
+.visual-emblem-document-line,
+.visual-emblem-earth-line,
+.visual-emblem-constellation,
+.visual-emblem-horizon,
+.visual-emblem-volcano-glow,
+.visual-emblem-split,
+.visual-emblem-mesh,
+.visual-emblem-pipe,
+.visual-emblem-reservoir,
+.visual-emblem-pressure,
+.visual-emblem-glasses,
+.visual-emblem-radar,
+.visual-emblem-boundary-line,
+.visual-emblem-tangle {
+  fill: none;
+  stroke: var(--visual-line);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.visual-emblem-route-hot,
+.visual-emblem-volcano-glow {
+  stroke: var(--visual-hot);
+}
+
+.visual-emblem-route-danger {
+  stroke: var(--visual-danger);
+  stroke-dasharray: 8 8;
+}
+
+.visual-emblem-route-muted,
+.visual-emblem-terrain-muted {
+  stroke: color-mix(in srgb, var(--visual-muted) 65%, transparent);
+  stroke-dasharray: 7 8;
+}
+
+.visual-emblem-route-trail {
+  stroke-width: 5;
+  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--visual-hot) 52%, transparent));
+}
+
+.visual-emblem-boundary,
+.visual-emblem-stack,
+.visual-emblem-trust-zone {
+  fill: color-mix(in srgb, var(--visual-line) 5%, transparent);
+  stroke: color-mix(in srgb, var(--visual-line) 58%, transparent);
+  stroke-width: 2.5;
+  stroke-dasharray: 10 9;
+}
+
+.visual-emblem-stack:nth-of-type(2) {
+  stroke: color-mix(in srgb, var(--visual-line-secondary) 60%, transparent);
+}
+
+.visual-emblem-stack:nth-of-type(3) {
+  stroke: color-mix(in srgb, var(--visual-hot) 64%, transparent);
+}
+
+.visual-emblem-firewall,
+.visual-emblem-airlock,
+.visual-emblem-stamp,
+.visual-emblem-nat {
+  fill: color-mix(in srgb, var(--visual-hot) 16%, var(--visual-surface-strong));
+  stroke: var(--visual-hot);
+  stroke-width: 2.5;
+}
+
+.visual-emblem-checkpoint > circle:last-child {
+  fill: var(--visual-hot);
+  stroke: color-mix(in srgb, var(--visual-ink) 88%, transparent);
+  stroke-width: 3;
+}
+
+.visual-emblem-checkpoint-ring {
+  fill: none;
+  stroke: color-mix(in srgb, var(--visual-hot) 38%, transparent);
+  stroke-width: 2;
+}
+
+.visual-emblem-checkpoint-default > circle:last-child {
+  fill: var(--visual-line);
+}
+
+.visual-emblem-checkpoint-success > circle:last-child {
+  fill: var(--visual-line-secondary);
+}
+
+.visual-emblem-checkpoint-danger > circle:last-child {
+  fill: var(--visual-danger);
+}
+
+.visual-emblem-checkpoint-success .visual-emblem-checkpoint-ring {
+  stroke: color-mix(in srgb, var(--visual-line-secondary) 44%, transparent);
+}
+
+.visual-emblem-checkpoint-danger .visual-emblem-checkpoint-ring {
+  stroke: color-mix(in srgb, var(--visual-danger) 44%, transparent);
+}
+
+.visual-emblem-terrain {
+  fill: color-mix(in srgb, var(--visual-line) 14%, transparent);
+}
+
+.visual-emblem-terrain-line {
+  stroke-width: 4;
+}
+
+.visual-emblem-capacity {
+  fill: none;
+  stroke-width: 20;
+  stroke-linecap: round;
+}
+
+.visual-emblem-capacity-danger {
+  stroke: color-mix(in srgb, var(--visual-danger) 76%, transparent);
+}
+
+.visual-emblem-capacity-success {
+  stroke: color-mix(in srgb, var(--visual-line-secondary) 76%, transparent);
+}
+
+.visual-emblem-target {
+  fill: none;
+  stroke: var(--visual-hot);
+  stroke-width: 2.5;
+  stroke-dasharray: 6 7;
+}
+
+.visual-emblem-cathedral,
+.visual-cathedral {
+  fill: color-mix(in srgb, var(--visual-hot) 18%, var(--visual-surface-strong));
+  stroke: var(--visual-hot);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.visual-emblem-orbit-core {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 9%, var(--visual-surface-strong));
+  stroke: color-mix(in srgb, var(--visual-line-secondary) 70%, var(--divider));
+  stroke-width: 3;
+}
+
+.visual-emblem-terrace {
+  fill: color-mix(in srgb, var(--visual-line) 11%, var(--visual-surface-strong));
+  stroke: color-mix(in srgb, var(--visual-line) 68%, var(--divider));
+  stroke-width: 2.5;
+}
+
+.visual-emblem-terrace-1 {
+  fill: color-mix(in srgb, var(--visual-hot) 16%, var(--visual-surface-strong));
+  stroke: var(--visual-hot);
+}
+
+.visual-emblem-terrace-2 {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 17%, var(--visual-surface-strong));
+  stroke: var(--visual-line-secondary);
+}
+
+.visual-emblem-document,
+.visual-emblem-lock,
+.visual-emblem-queue,
+.visual-emblem-pressure-vessel,
+.visual-emblem-certified-core,
+.visual-emblem-dashboard,
+.visual-emblem-matrix-cell {
+  fill: color-mix(in srgb, var(--visual-surface-strong) 88%, transparent);
+  stroke: color-mix(in srgb, var(--visual-line) 70%, var(--divider));
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.visual-emblem-document-line,
+.visual-emblem-dashboard-line {
+  stroke: color-mix(in srgb, var(--visual-muted) 80%, transparent);
+  stroke-width: 3;
+}
+
+.visual-emblem-vault ellipse,
+.visual-emblem-vault path,
+.visual-emblem-db ellipse,
+.visual-emblem-db path {
+  fill: color-mix(in srgb, var(--visual-surface-strong) 86%, transparent);
+  stroke: var(--visual-line);
+  stroke-width: 3;
+}
+
+.visual-emblem-vault path,
+.visual-emblem-db path {
+  fill: none;
+}
+
+.visual-emblem-index circle,
+.visual-emblem-index path {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 14%, var(--visual-surface-strong));
+  stroke: var(--visual-line-secondary);
+  stroke-width: 3;
+}
+
+.visual-emblem-index path {
+  fill: none;
+}
+
+.visual-emblem-lens {
+  fill: color-mix(in srgb, var(--visual-hot) 12%, transparent);
+  stroke: var(--visual-hot);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.visual-emblem-stamp {
+  fill: color-mix(in srgb, var(--visual-hot) 18%, var(--visual-surface-strong));
+}
+
+.visual-emblem-lock-glyph {
+  fill: color-mix(in srgb, var(--visual-hot) 44%, transparent);
+  stroke: var(--visual-hot);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.visual-emblem-nat {
+  fill: color-mix(in srgb, var(--visual-hot) 18%, var(--visual-surface-strong));
+}
+
+.visual-emblem-pressure-vessel {
+  fill: color-mix(in srgb, var(--visual-danger) 10%, var(--visual-surface-strong));
+  stroke: color-mix(in srgb, var(--visual-danger) 74%, var(--divider));
+}
+
+.visual-emblem-face {
+  fill: color-mix(in srgb, var(--visual-line) 13%, var(--visual-surface-strong));
+  stroke: var(--visual-line);
+  stroke-width: 3;
+}
+
+.visual-emblem-scan-dot {
+  fill: var(--visual-hot);
+}
+
+.visual-emblem-glasses {
+  stroke: var(--visual-hot);
+  stroke-width: 6;
+}
+
+.visual-emblem-mesh {
+  stroke: color-mix(in srgb, var(--visual-line-secondary) 76%, transparent);
+}
+
+.visual-emblem-horizon {
+  stroke: color-mix(in srgb, var(--visual-line-secondary) 48%, transparent);
+}
+
+.visual-emblem-volcano {
+  fill: color-mix(in srgb, var(--visual-danger) 15%, transparent);
+  stroke: var(--visual-danger);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.visual-emblem-earth {
+  fill: color-mix(in srgb, var(--visual-line) 16%, var(--visual-surface-strong));
+  stroke: var(--visual-line);
+  stroke-width: 3;
+}
+
+.visual-emblem-orbit {
+  fill: none;
+  stroke: color-mix(in srgb, var(--visual-line-secondary) 72%, transparent);
+  stroke-width: 3;
+  stroke-dasharray: 10 10;
+}
+
+.visual-emblem-ship {
+  fill: var(--visual-hot);
+  stroke: color-mix(in srgb, var(--visual-ink) 72%, transparent);
+  stroke-width: 2;
+}
+
+.visual-emblem-debris {
+  fill: var(--visual-danger);
+}
+
+.visual-emblem-voxel-core path {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 18%, var(--visual-surface-strong));
+  stroke: var(--visual-line-secondary);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.visual-emblem-booster path {
+  fill: color-mix(in srgb, var(--visual-line) 17%, var(--visual-surface-strong));
+  stroke: var(--visual-line);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.visual-emblem-booster path + path {
+  stroke: var(--visual-hot);
+}
+
+.visual-emblem-booster circle {
+  fill: var(--visual-line-secondary);
+  stroke: color-mix(in srgb, var(--visual-ink) 80%, transparent);
+  stroke-width: 2;
+}
+
+.visual-emblem-hot-fill {
+  fill: var(--visual-hot) !important;
+}
+
+.visual-emblem-gate {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 16%, var(--visual-surface-strong));
+  stroke: var(--visual-line-secondary);
+  stroke-width: 3;
+}
+
+.visual-emblem-gate-check {
+  fill: none;
+  stroke: var(--visual-line-secondary);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.visual-emblem-passport {
+  fill: color-mix(in srgb, var(--visual-surface-strong) 88%, transparent);
+  stroke: var(--visual-line);
+  stroke-width: 2.5;
+}
+
+.visual-emblem-passport-1 {
+  stroke: var(--visual-hot);
+}
+
+.visual-emblem-passport-2 {
+  stroke: var(--visual-line-secondary);
+}
+
+.visual-emblem-passport + circle,
+.visual-emblem-passport + path {
+  fill: var(--visual-hot);
+}
+
+.visual-emblem-trust-tower {
+  fill: color-mix(in srgb, var(--visual-hot) 15%, var(--visual-surface-strong));
+  stroke: var(--visual-hot);
+  stroke-width: 3;
+}
+
+.visual-emblem-certified-core {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 14%, var(--visual-surface-strong));
+  stroke: var(--visual-line-secondary);
+}
+
+.visual-emblem-dashboard {
+  fill: color-mix(in srgb, var(--visual-line) 12%, var(--visual-surface-strong));
+}
+
+.visual-emblem-dashboard-line {
+  fill: none;
+  stroke: var(--visual-line);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.visual-emblem-radar {
+  stroke: color-mix(in srgb, var(--visual-line) 58%, transparent);
+  stroke-width: 3;
+}
+
+.visual-emblem-radar-cone {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 14%, transparent);
+  stroke: color-mix(in srgb, var(--visual-line-secondary) 58%, transparent);
+  stroke-width: 2;
+}
+
+.visual-emblem-boundary-line {
+  stroke: var(--visual-hot);
+  stroke-width: 3;
+  stroke-dasharray: 8 8;
 }
 
 .visual-boundary {
@@ -432,6 +914,13 @@
   stroke-dasharray: 8 7;
 }
 
+.visual-flow-danger-cross {
+  fill: none;
+  stroke: var(--visual-danger);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
 .visual-flow-muted {
   stroke: var(--visual-muted);
   stroke-dasharray: 7 7;
@@ -468,6 +957,10 @@
   font-size: 12px;
 }
 
+.visual-micro-label-danger {
+  fill: var(--visual-danger);
+}
+
 .visual-fallback-title {
   fill: var(--visual-ink);
   font-size: 19px;
@@ -500,6 +993,14 @@
   stroke-width: 3;
 }
 
+.visual-checkpoint-danger {
+  fill: var(--visual-danger);
+}
+
+.visual-checkpoint-success {
+  fill: var(--visual-line-secondary);
+}
+
 .visual-elevation-fill {
   fill: color-mix(in srgb, var(--visual-line) 15%, transparent);
   stroke: none;
@@ -512,6 +1013,16 @@
   stroke-width: 4;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.visual-elevation-line-muted {
+  stroke: color-mix(in srgb, var(--visual-muted) 60%, transparent);
+  stroke-dasharray: 8 8;
+}
+
+.visual-route-hot {
+  stroke: var(--visual-hot);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--visual-hot) 48%, transparent));
 }
 
 .visual-axis,

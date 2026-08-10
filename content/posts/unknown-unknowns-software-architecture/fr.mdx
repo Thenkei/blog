@@ -15,8 +15,6 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 1
 ---
 
-import unknownUnknownsDiagram from "../../../src/assets/images/posts/unknown-unknowns-fr.svg";
-
 ## Le contexte
 
 Une revue d'architecture traite bien les risques que l'équipe sait formuler : charge attendue, disponibilité d'un fournisseur, cohérence d'une migration, stratégie de retry. Le vrai danger se trouve hors de cette liste : une hypothèse partagée mais jamais écrite, une interaction absente du diagramme ou un mode de panne que personne n'a encore rencontré.
@@ -67,15 +65,6 @@ Nous ne cherchons plus à prédire chaque panne. Nous cherchons à rendre les su
 2. **Isoler** les composants et les permissions pour borner le blast radius.
 3. **Détecter** les divergences avec métriques, traces, rapprochements et alertes métier.
 4. **Récupérer** avec idempotence, replay contrôlé, kill switch, rollback ou compensation.
-
-<figure className="article-figure">
-  <img
-    src={unknownUnknownsDiagram}
-    alt="Boucle de conception qui expose les hypothèses, cherche les angles morts, borne l'impact et prépare la récupération."
-    loading="lazy"
-  />
-  <figcaption>Une review utile transforme une hypothèse en preuve, en signal ou en risque explicitement accepté.</figcaption>
-</figure>
 
 La question de sortie devient simple : si cette hypothèse est fausse demain, saurons-nous le voir, limiter l'impact et revenir à un état sûr ?
 

@@ -15,8 +15,6 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 2
 ---
 
-import selfServiceDiagram from "../../../src/assets/images/posts/self-service-analytics-en.svg";
-
 ## Context
 
 A central data team quickly becomes a queue: every business question requires a ticket, an extract, and another explanation. Self-service analytics promises autonomy. At RockFi, that autonomy must preserve stricter constraints: confidentiality, auditability, and consistent definitions for assets, flows, clients, and performance.
@@ -70,15 +68,6 @@ We define every shared metric as a product with a minimum contract:
 | Owner | Who resolves ambiguity? |
 | Evidence | Which tests and reconciliations protect the calculation? |
 | Freshness | When is the result no longer usable? |
-
-<figure className="article-figure">
-  <img
-    src={selfServiceDiagram}
-    alt="A trust chain connecting sources, governed models, metric contracts, and decisions."
-    loading="lazy"
-  />
-  <figcaption>Self-service starts after modelling and controls, not at the raw-table layer.</figcaption>
-</figure>
 
 AI assistants receive certified contracts and models first. They may propose an exploration, but must expose sources and flag when a question exceeds the certified boundary. Output remains reviewable before publication.
 

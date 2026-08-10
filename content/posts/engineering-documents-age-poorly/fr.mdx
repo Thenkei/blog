@@ -15,8 +15,6 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 4
 ---
 
-import documentDiagram from "../../../src/assets/images/posts/document-lifecycle-fr.svg";
-
 ## Le contexte
 
 Une décision d'architecture, un runbook ou un DiveIn est exact au moment où l'équipe l'écrit. Puis le code change, un fournisseur modifie son contrat, l'organisation déplace une responsabilité et la production révèle une exception. Le document reste au même endroit avec la même apparence d'autorité.
@@ -73,15 +71,6 @@ Un document actif porte un contrat minimal :
 | Déclencheur | Événement qui impose une review |
 | Expiration | Date ou condition après laquelle il n'est plus une référence |
 | Successeur | Document qui remplace cette version |
-
-<figure className="article-figure">
-  <img
-    src={documentDiagram}
-    alt="Cycle de vie d'un document reliant décision, owner, preuves, expiration et révision."
-    loading="lazy"
-  />
-  <figcaption>La maintenance devient fiable lorsqu'elle est déclenchée par le changement qui affecte la vérité du document.</figcaption>
-</figure>
 
 La review documentaire se place dans le workflow de changement : une PR qui modifie un contrat liste les documents dépendants ; une migration invalide l'ancien runbook ; un incident crée ou corrige la procédure qui manquait. L'IA peut repérer les références candidates et préparer le diff. L'owner confirme le sens et publie.
 

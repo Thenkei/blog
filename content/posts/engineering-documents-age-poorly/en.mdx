@@ -15,8 +15,6 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 4
 ---
 
-import documentDiagram from "../../../src/assets/images/posts/document-lifecycle-en.svg";
-
 ## Context
 
 An architecture decision, runbook, or DiveIn is accurate when the team writes it. Then code changes, a provider modifies its contract, ownership moves, and production exposes an exception. The document remains in place with the same appearance of authority.
@@ -73,15 +71,6 @@ An active document carries a minimum contract:
 | Trigger | Event requiring review |
 | Expiry | Date or condition after which it is no longer authoritative |
 | Successor | Document replacing this version |
-
-<figure className="article-figure">
-  <img
-    src={documentDiagram}
-    alt="Document lifecycle showing a decision or observation becoming an active reference, then being reviewed, superseded, or archived."
-    loading="lazy"
-  />
-  <figcaption>Maintenance becomes reliable when the change affecting a document's truth triggers its review.</figcaption>
-</figure>
 
 Documentation review belongs in the change workflow: a PR modifying a contract lists dependent documents; a migration invalidates the old runbook; an incident creates or corrects the missing procedure. AI may locate candidate references and prepare a diff. The owner confirms meaning and publishes.
 

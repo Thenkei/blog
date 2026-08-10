@@ -15,8 +15,6 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 3
 ---
 
-import contextDiagram from "../../../src/assets/images/posts/context-engineering-en.svg";
-
 ## Context
 
 Prompt engineering optimises an instruction. Context engineering designs everything that lets an agent interpret that instruction: repository state, product decisions, team conventions, permissions, relevant history, and runtime signals.
@@ -64,15 +62,6 @@ We treat context as an ordered stack:
 3. **Contracts**: domain invariants, conventions, and completion criteria.
 4. **Relevant history**: decisions and failures that explain current state.
 5. **Evidence**: tests, metrics, logs, and sources used to verify output.
-
-<figure className="article-figure">
-  <img
-    src={contextDiagram}
-    alt="A context stack combining state, permissions, freshness, provenance, and validation."
-    loading="lazy"
-  />
-  <figcaption>Every item must justify its presence, authority, and validity period.</figcaption>
-</figure>
 
 Each source carries ownership or provenance, a validity period, and a scope. Tools are granted with least privilege when needed. If a critical source is missing or contradictory, the agent stops and exposes the ambiguity.
 

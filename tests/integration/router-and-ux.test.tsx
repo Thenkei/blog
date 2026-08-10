@@ -191,7 +191,7 @@ describe("routing and UX", () => {
     expect((await screen.findAllByRole("button", { name: "Copy code" })).length).toBeGreaterThan(0);
   });
 
-  it("renders static SVG diagrams", async () => {
+  it("renders the themed inline document diagram", async () => {
     renderApp("/en/posts/engineering-documents-age-poorly");
 
     await screen.findByRole("heading", {
@@ -201,7 +201,7 @@ describe("routing and UX", () => {
 
     expect(
       await screen.findByRole("img", {
-        name: /document lifecycle showing a decision or observation/i,
+        name: /engineering document lifecycle/i,
       }),
     ).toBeInTheDocument();
   });

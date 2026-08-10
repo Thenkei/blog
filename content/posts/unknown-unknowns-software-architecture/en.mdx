@@ -15,8 +15,6 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 1
 ---
 
-import unknownUnknownsDiagram from "../../../src/assets/images/posts/unknown-unknowns-en.svg";
-
 ## Context
 
 Architecture reviews handle risks a team can name: expected load, provider availability, migration consistency, and retry strategy. The real danger sits outside that list: a shared but unwritten assumption, an interaction missing from the diagram, or a failure mode nobody has encountered yet.
@@ -67,15 +65,6 @@ We no longer try to predict every failure. We make surprises observable and reco
 2. **Isolate** components and permissions to contain the blast radius.
 3. **Detect** divergence through metrics, traces, reconciliation, and domain alerts.
 4. **Recover** through idempotency, controlled replay, kill switches, rollback, or compensation.
-
-<figure className="article-figure">
-  <img
-    src={unknownUnknownsDiagram}
-    alt="A design loop that exposes assumptions, searches for blind spots, bounds impact, and prepares recovery."
-    loading="lazy"
-  />
-  <figcaption>A useful review turns an assumption into evidence, a signal, or an explicitly accepted risk.</figcaption>
-</figure>
 
 The exit question is simple: if this assumption becomes false tomorrow, will we see it, limit the impact, and return to a safe state?
 

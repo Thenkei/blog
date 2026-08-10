@@ -14,11 +14,6 @@ tags:
   - identity-federation
 ---
 
-import federationOverviewDiagram from "../../../src/assets/images/posts/identity-federation-overview.svg";
-import oidcAuthorizationCodeFlowDiagram from "../../../src/assets/images/posts/oidc-authorization-code-flow.svg";
-import samlRfc7522BridgeFlowDiagram from "../../../src/assets/images/posts/saml-rfc7522-bridge-flow.svg";
-import downstreamAgentValidationFlowDiagram from "../../../src/assets/images/posts/downstream-agent-validation-flow.svg";
-
 ## Context (aka "Who Do You Trust?")
 
 <ArticleDiagram visualId="security-authentication-idp-openid-connect" />
@@ -38,18 +33,7 @@ This topology created a wonderfully complex dual-role setup:
 
 This split brain is a very common pattern in SaaS control planes. It is also the exact spot where authentication architectures dramatically collapse if you blur the protocol boundaries. Let's dig in.
 
-<figure className="post-visual">
-  <img
-    src={federationOverviewDiagram}
-    alt="Identity federation overview showing Forest Admin Server as SP toward upstream identity providers and as IDP toward agents."
-    loading="lazy"
-    decoding="async"
-  />
-  <figcaption>
-    End-to-end topology: upstream federation into Forest, downstream delegated
-    access from Forest to agents.
-  </figcaption>
-</figure>
+<SecurityDiagram diagramId="federation-overview" />
 
 ## Why the double-agent model matters
 
@@ -70,18 +54,7 @@ Forest Admin initiates login with an upstream IdP.
 - With **SAML**, Forest acts as SP and consumes a signed SAML assertion.
 - With **OIDC**, Forest acts as RP/OAuth client and consumes ID token + access token (typically Authorization Code flow).
 
-<figure className="post-visual">
-  <img
-    src={oidcAuthorizationCodeFlowDiagram}
-    alt="OIDC authorization code sequence between browser, Forest Admin Server, and upstream OIDC provider."
-    loading="lazy"
-    decoding="async"
-  />
-  <figcaption>
-    OIDC upstream flow details: redirect, authorization code callback, token
-    exchange, and signature validation.
-  </figcaption>
-</figure>
+<SecurityDiagram diagramId="oidc-authorization-code" />
 
 Core checks at this boundary:
 
@@ -112,18 +85,7 @@ Minimal downstream token contract:
 - `jti`: replay tracking handle when needed
 - `scope` or permissions claims constrained to least privilege
 
-<figure className="post-visual">
-  <img
-    src={downstreamAgentValidationFlowDiagram}
-    alt="Downstream bearer token validation flow where Forest issues a token and the agent applies signature and claim checks before allow or deny."
-    loading="lazy"
-    decoding="async"
-  />
-  <figcaption>
-    Downstream enforcement path: every claim check is explicit, and the decision
-    is observable and auditable.
-  </figcaption>
-</figure>
+<SecurityDiagram diagramId="downstream-validation" />
 
 This boundary answers: "Can this frontend request call this specific customer-hosted agent in this tenant context?"
 
@@ -165,18 +127,7 @@ For control-plane systems, keep the separation explicit:
 - as an authorization grant
 - as a client authentication mechanism
 
-<figure className="post-visual">
-  <img
-    src={samlRfc7522BridgeFlowDiagram}
-    alt="SAML to OAuth2 bridge using RFC7522 where Forest validates an assertion and performs constrained token exchange."
-    loading="lazy"
-    decoding="async"
-  />
-  <figcaption>
-    RFC7522 bridge: validate upstream SAML assertion first, then exchange under
-    strict policy before minting downstream access.
-  </figcaption>
-</figure>
+<SecurityDiagram diagramId="saml-rfc7522-bridge" />
 
 This is important when bridging enterprise SAML to OAuth2/OIDC-style APIs. It lets a platform accept a SAML assertion from an upstream IdP and exchange it for OAuth2-compatible tokens under strict policy.
 

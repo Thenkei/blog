@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import "../../src/i18n/config";
 import {
   PostVisual,
+  SecurityDiagram,
+  type SecurityDiagramId,
   type PostVisualVariant,
 } from "../../src/shared/components/PostVisual";
 import {
@@ -14,6 +16,13 @@ const visuals: Array<{ id: PostVisualId; title: RegExp }> = postVisualIds.map((i
   id,
   title: /.+/,
 }));
+
+const securityDiagrams: SecurityDiagramId[] = [
+  "federation-overview",
+  "oidc-authorization-code",
+  "downstream-validation",
+  "saml-rfc7522-bridge",
+];
 
 describe("PostVisual", () => {
   it.each(visuals)("renders $id as an accessible inline diagram", ({ id, title }) => {
@@ -33,6 +42,7 @@ describe("PostVisual", () => {
     rerender(<PostVisual locale="en" slug={id} variant="header" visualId={id} />);
     expect(container.querySelector(`[data-visual-id="${id}"]`)).toBeTruthy();
     expect(container.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelectorAll("svg text")).toHaveLength(0);
   });
 
   it("keeps a distinct SVG geometry for every article visual", () => {
@@ -75,6 +85,51 @@ describe("PostVisual", () => {
       screen.getByText(/Une boucle agentique sûre produit une preuve/i),
     ).toBeInTheDocument();
   });
+
+  it("gives the race report its own visual identity instead of reusing the watch comparison", () => {
+    const coros = render(
+      <PostVisual
+        locale="en"
+        slug="coros-apex-4"
+        variant="header"
+        visualId="trail-endurance-profile"
+      />,
+    );
+    const corosGeometry = Array.from(
+      coros.container.querySelectorAll("svg path, svg rect, svg circle, svg ellipse"),
+    )
+      .map((element) => element.outerHTML)
+      .join("");
+    coros.unmount();
+
+    const race = render(
+      <PostVisual
+        locale="en"
+        slug="trail-saint-jacques-100k-2026"
+        variant="header"
+        visualId="trail-saint-jacques-100k-2026"
+      />,
+    );
+    const raceGeometry = Array.from(
+      race.container.querySelectorAll("svg path, svg rect, svg circle, svg ellipse"),
+    )
+      .map((element) => element.outerHTML)
+      .join("");
+
+    expect(raceGeometry).not.toBe(corosGeometry);
+  });
+
+  it.each(securityDiagrams)(
+    "renders %s as a localized, accessible security explainer",
+    (diagramId) => {
+      const { rerender } = render(<SecurityDiagram diagramId={diagramId} />);
+
+      expect(screen.getByRole("img", { name: /.+/ })).toBeInTheDocument();
+
+      rerender(<SecurityDiagram diagramId={diagramId} />);
+      expect(screen.getByRole("img", { name: /.+/ })).toBeInTheDocument();
+    },
+  );
 
   it("renders a deterministic decorative fallback", () => {
     const { container, rerender } = render(
