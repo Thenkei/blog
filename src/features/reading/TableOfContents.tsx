@@ -56,7 +56,8 @@ export function TableOfContents({
       return;
     }
 
-    const headingNodes = Array.from(article.querySelectorAll("h2"));
+    const contentRoot = article.querySelector(".post-document") ?? article;
+    const headingNodes = Array.from(contentRoot.querySelectorAll("h2"));
     const counter = new Map<string, number>();
 
     const nextHeadings = headingNodes

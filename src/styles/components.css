@@ -944,7 +944,7 @@
 
 .copy-link-heading {
   position: relative;
-  padding-right: 7.25rem;
+  scroll-margin-top: 5rem;
 }
 
 .copy-link-button {
@@ -976,9 +976,50 @@
 }
 
 .copy-section-button {
-  position: absolute;
-  top: 1.05rem;
-  right: 0;
+  position: relative;
+  width: 2.25rem;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  margin-left: 0.28em;
+  padding: 0.48rem;
+  vertical-align: 0.15em;
+  color: var(--text-secondary);
+  background: transparent;
+  border-color: transparent;
+  opacity: 0.62;
+}
+
+.copy-section-button .copy-link-button-label {
+  position: fixed;
+  z-index: 20;
+  bottom: 1.5rem;
+  left: 50%;
+  width: max-content;
+  max-width: min(12rem, calc(100vw - 2.5rem));
+  padding: 0.42rem 0.6rem;
+  color: var(--text-primary);
+  font: 0.68rem/1.2 var(--font-mono);
+  background: var(--surface-raised);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 0.2rem);
+  transition:
+    opacity var(--motion-fast) var(--motion-ease-standard),
+    transform var(--motion-fast) var(--motion-ease-standard);
+}
+
+.copy-link-heading:hover .copy-section-button,
+.copy-section-button:focus-visible,
+.copy-section-button[data-copy-state] {
+  opacity: 1;
+}
+
+.copy-section-button[data-copy-state] .copy-link-button-label {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .copy-code-block {
@@ -1003,18 +1044,32 @@
   transform: translateY(-1px);
 }
 
+.copy-section-button:hover,
+.copy-section-button:focus-visible {
+  transform: none;
+}
+
 .copy-link-button:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
 
 .copy-link-button:disabled {
-  cursor: wait;
+  cursor: default;
 }
 
 .copy-link-button[data-copy-state="copied"] {
   color: var(--accent-primary);
   border-color: var(--accent-primary);
+}
+
+.copy-section-button[data-copy-state="copied"] {
+  background: var(--accent-soft);
+}
+
+.copy-link-button[data-copy-state="failed"] {
+  color: var(--text-primary);
+  border-color: var(--divider);
 }
 
 .about-section {

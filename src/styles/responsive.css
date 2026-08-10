@@ -150,10 +150,6 @@
     right: 10px;
   }
 
-  .copy-link-heading {
-    padding-right: 3.35rem;
-  }
-
   .copy-link-button {
     width: 2.75rem;
     min-width: 2.75rem;
@@ -161,12 +157,18 @@
     padding: 0.65rem;
   }
 
-  .copy-link-button-label {
+  .copy-code-button .copy-link-button-label {
     display: none;
   }
 
   .copy-section-button {
-    top: 0.9rem;
+    margin-left: 0.12em;
+    vertical-align: 0.2em;
+    opacity: 0.78;
+  }
+
+  .copy-link-heading {
+    scroll-margin-top: 8rem;
   }
 
   .copy-code-button {
