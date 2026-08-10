@@ -1,21 +1,24 @@
 import { render } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import "../../src/i18n/config";
 import { ParallaxHero } from "../../src/shared/components/ParallaxHero";
 import type { ThemeMode } from "../../src/app/providers/ThemeProvider";
 
-function renderHero(themeMode: ThemeMode) {
-  return render(
+function heroForTheme(themeMode: ThemeMode) {
+  return (
     <MemoryRouter initialEntries={["/en"]}>
       <ParallaxHero
         themeMode={themeMode}
         title="Morgan's Blog"
         subtitle="Engineering / Running / Evolution"
-        onTitleClick={vi.fn()}
       />
-    </MemoryRouter>,
+    </MemoryRouter>
   );
+}
+
+function renderHero(themeMode: ThemeMode) {
+  return render(heroForTheme(themeMode));
 }
 
 describe("ParallaxHero themed cameras", () => {
@@ -45,6 +48,9 @@ describe("ParallaxHero themed cameras", () => {
     expect(container.querySelector(".mountain-layer-sky")).toBeTruthy();
     expect(container.querySelector(".mountain-layer-far")).toBeTruthy();
     expect(container.querySelector(".mountain-layer-near")).toBeTruthy();
+    expect(container.querySelector(".mountain-trail-journey")).toBeTruthy();
+    expect(container.querySelector(".mountain-route-line")).toBeTruthy();
+    expect(container.querySelector(".mountain-cinematic-runner")).toBeTruthy();
   });
 
   it("renders sticky rocket camera shell with layered scene", () => {
@@ -57,5 +63,21 @@ describe("ParallaxHero themed cameras", () => {
     expect(container.querySelector(".rocket-layer-planet")).toBeTruthy();
     expect(container.querySelector(".rocket-layer-asteroids")).toBeTruthy();
     expect(container.querySelector(".rocket-layer-ship")).toBeTruthy();
+    expect(container.querySelector(".rocket-flight-journey")).toBeTruthy();
+    expect(container.querySelector(".rocket-flight-line")).toBeTruthy();
+    expect(container.querySelector(".rocket-arrival")).toBeTruthy();
+  });
+
+  it("keeps a stable hook order while switching between every hero mode", () => {
+    const { container, rerender } = renderHero("light");
+
+    rerender(heroForTheme("mountain"));
+    expect(container.querySelector(".mountain-camera-stage")).toBeTruthy();
+
+    rerender(heroForTheme("rocket"));
+    expect(container.querySelector(".rocket-camera-stage")).toBeTruthy();
+
+    rerender(heroForTheme("dark"));
+    expect(container.querySelector(".simple-theme-hero")).toBeTruthy();
   });
 });

@@ -91,45 +91,46 @@ Design intent:
 - `rocket`: space/engineering mood with stronger glow/star treatment
 
 ### Mountain Multiplane Camera
-The mountain homepage hero uses a dedicated multiplane camera path inspired by theatrical staged depth.
+The mountain homepage hero follows a complete trail journey from the foreground trailhead to the high pass.
 
 Core architecture:
-- sticky camera shell (`140vh`) with a sticky stage viewport (`100vh`)
+- a `100svh` sticky stage inside a bounded long-scroll shell (`100svh + clamp(760px, 120svh, 1400px)` on desktop)
 - three SVG depth planes:
-  - `mountain_camera_sky.svg` (background, ~`0.1x` speed)
-  - `mountain_camera_far.svg` (midground, ~`0.3x` speed)
-  - `mountain_camera_near.svg` (foreground/trail, `0.8x` baseline with late boost toward `1.0x`)
-- progress timeline and CSS vars are driven by `/Users/sinkneath/github/blog/src/shared/components/parallax/useMultiplaneCamera.ts` using `requestAnimationFrame` and passive scroll listeners
+  - `mountain_camera_sky.svg` (alpine light and atmosphere)
+  - `mountain_camera_far.svg` (snow-capped midground)
+  - `mountain_camera_near.svg` (foreground terrain and trail bed)
+- a vector route and runner overlay whose geometry follows the trail embedded in the foreground artwork
+- one normalized scroll driver in `src/shared/components/parallax/useCinematicScroll.ts`, shared by both cinematic themes
 
 Scene choreography:
-- near-plane horizontal drift and scale for running/flying sensation
-- atmospheric shift tied to camera progress
-- reveal threshold at `progress >= 0.78`, toggling `.mountain-camera-clearance` to lift/fade foreground and expose content
+- continuous, eased camera depth and atmosphere changes with no hard reveal threshold
+- the route draws from the lower foreground to the pass while the runner advances along it
+- summit light, typography, foreground clearance, and content handoff are coordinated over the full scroll range
 
 Fallbacks:
-- mobile (`<=720px`): reduced amplitudes and a `120vh` camera shell
-- `prefers-reduced-motion: reduce`: static composition, no camera choreography
+- compact and portrait layouts keep a meaningful physical scrub distance and reframe the trail/pass
+- `prefers-reduced-motion: reduce`: complete static poster with the route and destination visible
 
 ### Rocket Multiplane Camera
-The rocket homepage hero uses a separate sticky multiplane camera with SVG layers and a trajectory-driven ship pass.
+The rocket homepage hero presents a complete launch-to-arrival sequence with SVG layers and a viewport-relative trajectory.
 
 Core architecture:
-- sticky camera shell (`140vh`) with a sticky stage viewport (`100vh`)
+- the same bounded sticky-stage and normalized-scroll architecture as Mountain
 - layered SVG scene:
-  - `rocket_camera_space.svg` (deep space background, ~`0.1x`)
-  - `rocket_camera_planet.svg` (planet/rings midground, ~`0.3x`)
-  - `rocket_camera_asteroids.svg` (foreground asteroid field, `0.82x` baseline with late boost toward `1.0x`)
-  - `rocket_camera_ship.svg` (ship element on animated trajectory)
-- progress timeline and CSS vars are driven by `/Users/sinkneath/github/blog/src/shared/components/parallax/useRocketCamera.ts` via `requestAnimationFrame` + passive scroll listeners
+  - `rocket_camera_space.svg` (nebula and multi-depth star field)
+  - `rocket_camera_planet.svg` (ringed planet with front/back occlusion)
+  - `rocket_camera_asteroids.svg` (three depth bands)
+  - `rocket_camera_ship.svg` (detailed ship and unclipped exhaust)
+- vector contrail and arrival marker overlays complete the trajectory
 
 Scene choreography:
-- rocket crosses the scene on a curved path while rotating through the pass
-- asteroid drift adds lateral depth against vertical camera motion
-- reveal threshold at `progress >= 0.8` toggles `.rocket-camera-clearance` to fade foreground/ship and hand off to content
+- the ship enters off-canvas, crosses the scene, boosts, and exits fully beyond the upper-right boundary at every supported width
+- continuous title, planet, asteroid, exhaust, arrival, and content-handoff phases avoid the previous late-scene stall
+- transform/opacity-driven motion keeps the full-screen layers compositor-friendly
 
 Fallbacks:
-- mobile (`<=720px`): `120vh` camera shell, reduced travel, reduced drift amplitudes, smaller ship footprint
-- `prefers-reduced-motion: reduce`: static layered scene with no camera choreography
+- compact and portrait layouts use dedicated composition and trajectory values
+- `prefers-reduced-motion: reduce`: complete static poster with a visible route and arrival state
 
 ### Reading Progress Variants
 Implemented in `/Users/sinkneath/github/blog/src/features/reading/ReadingProgressBar.tsx` and `/Users/sinkneath/github/blog/src/styles/reading.css`.

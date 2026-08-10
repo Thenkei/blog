@@ -115,7 +115,6 @@ export function PostListPage({ locale }: PostListPageProps) {
         themeMode={themeMode}
         title={t("header.title")}
         subtitle={t("header.subtitle")}
-        onTitleClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       />
 
       <main className="blog-content">

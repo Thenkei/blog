@@ -1,24 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
   <defs>
-    <linearGradient id="skyGradient" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0f2b44" />
-      <stop offset="55%" stop-color="#1f4d63" />
-      <stop offset="100%" stop-color="#2f6a67" />
+    <linearGradient id="alpine-sky" x1="0" y1="0" x2="0.78" y2="1">
+      <stop offset="0" stop-color="#071a2a" />
+      <stop offset="0.42" stop-color="#123b50" />
+      <stop offset="0.76" stop-color="#3d706f" />
+      <stop offset="1" stop-color="#8e8c72" />
     </linearGradient>
-    <radialGradient id="sunGlow" cx="72%" cy="22%" r="32%">
-      <stop offset="0%" stop-color="#fbe5a6" stop-opacity="0.95" />
-      <stop offset="45%" stop-color="#f8c96d" stop-opacity="0.45" />
-      <stop offset="100%" stop-color="#f8c96d" stop-opacity="0" />
+    <radialGradient id="dawn-bloom" cx="0.81" cy="0.2" r="0.54">
+      <stop offset="0" stop-color="#ffe5a3" stop-opacity="0.82" />
+      <stop offset="0.18" stop-color="#f7c879" stop-opacity="0.42" />
+      <stop offset="0.5" stop-color="#e6a76c" stop-opacity="0.12" />
+      <stop offset="1" stop-color="#e6a76c" stop-opacity="0" />
     </radialGradient>
-    <linearGradient id="haze" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16" />
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    <linearGradient id="horizon-haze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dbe0c7" stop-opacity="0" />
+      <stop offset="0.52" stop-color="#dbe0c7" stop-opacity="0.11" />
+      <stop offset="1" stop-color="#b6c7b9" stop-opacity="0.24" />
     </linearGradient>
   </defs>
 
-  <rect width="1920" height="1080" fill="url(#skyGradient)" />
-  <circle cx="1400" cy="230" r="360" fill="url(#sunGlow)" />
+  <rect width="1920" height="1080" fill="url(#alpine-sky)" />
+  <rect width="1920" height="1080" fill="url(#dawn-bloom)" />
+  <circle cx="1560" cy="216" r="66" fill="#ffe4a0" fill-opacity="0.78" />
+  <circle cx="1560" cy="216" r="104" fill="none" stroke="#ffd78b" stroke-opacity="0.1" stroke-width="2" />
 
-  <path d="M0 380 C220 300 510 290 760 350 C1010 410 1230 360 1530 300 C1700 268 1820 258 1920 280 L1920 580 L0 580 Z" fill="url(#haze)" />
-  <path d="M0 520 C260 450 550 450 790 510 C1000 560 1240 560 1450 510 C1650 464 1780 460 1920 490 L1920 760 L0 760 Z" fill="#6ca39a" fill-opacity="0.14" />
+  <path d="M-80 330 C210 278 440 300 690 348 C930 394 1170 386 1410 328 C1618 278 1800 284 2000 322 L2000 430 C1770 390 1570 396 1364 442 C1112 500 876 490 642 442 C386 390 156 378 -80 420 Z" fill="#edf1df" fill-opacity="0.045" />
+  <path d="M-40 466 C260 414 504 438 758 500 C1000 558 1270 552 1510 494 C1690 450 1840 452 1960 478 L1960 620 C1750 574 1572 586 1390 628 C1154 682 916 674 688 620 C430 558 206 548 -40 596 Z" fill="#d9e4d8" fill-opacity="0.055" />
+  <rect y="430" width="1920" height="650" fill="url(#horizon-haze)" />
 </svg>

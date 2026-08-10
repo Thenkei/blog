@@ -115,6 +115,32 @@
   }
 }
 
+@keyframes arrivalOrbitOuter {
+  from {
+    transform: rotate(-18deg) scaleY(0.42);
+  }
+  to {
+    transform: rotate(-378deg) scaleY(0.42);
+  }
+}
+
+@keyframes arrivalOrbitInner {
+  from {
+    transform: rotate(54deg) scaleY(0.56);
+  }
+  to {
+    transform: rotate(414deg) scaleY(0.56);
+  }
+}
+
+.rocket-arrival-orbit-outer {
+  animation: arrivalOrbitOuter 9s linear infinite;
+}
+
+.rocket-arrival-orbit-inner {
+  animation: arrivalOrbitInner 6s linear infinite;
+}
+
 .post-card {
   opacity: 0;
   animation: fadeInUp var(--motion-slow) var(--motion-ease-enter) forwards;
@@ -202,39 +228,26 @@ article,
   }
 
   .mountain-camera-shell {
-    height: 100vh !important;
+    height: 100svh !important;
   }
 
   .rocket-camera-shell {
-    height: 100vh !important;
+    height: 100svh !important;
   }
 
-  .mountain-camera-sticky {
-    position: relative;
-  }
-
+  .mountain-camera-sticky,
   .rocket-camera-sticky {
     position: relative;
+    height: 100svh;
   }
 
-  .mountain-layer,
-  .mountain-camera-stage::before,
-  .mountain-camera-stage::after {
-    transform: none !important;
-    opacity: 1;
-    filter: none;
+  .mountain-camera-stage,
+  .rocket-camera-stage {
+    height: 100svh;
   }
 
-  .mountain-camera-stage::after {
+  .mountain-camera-stage::after,
+  .rocket-camera-stage::after {
     opacity: 0 !important;
   }
-
-  .rocket-layer,
-  .rocket-camera-stage::before,
-  .rocket-camera-stage::after {
-    transform: none !important;
-    opacity: 1;
-    filter: none;
-  }
-
 }

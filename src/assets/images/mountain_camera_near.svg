@@ -1,16 +1,42 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
   <defs>
-    <linearGradient id="nearLayer" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#254f48" />
-      <stop offset="100%" stop-color="#122d2d" />
+    <linearGradient id="near-ground" x1="0.08" y1="0" x2="0.72" y2="1">
+      <stop offset="0" stop-color="#2f5b50" />
+      <stop offset="0.48" stop-color="#173c37" />
+      <stop offset="1" stop-color="#081e1d" />
     </linearGradient>
-    <linearGradient id="trailGlow" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#e8d095" />
-      <stop offset="100%" stop-color="#ceaa64" />
+    <linearGradient id="shadow-ground" x1="0" y1="0" x2="1" y2="0.15">
+      <stop offset="0" stop-color="#071918" />
+      <stop offset="0.54" stop-color="#102b29" />
+      <stop offset="1" stop-color="#163832" />
+    </linearGradient>
+    <linearGradient id="trail-bed" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#d4b777" stop-opacity="0.62" />
+      <stop offset="0.56" stop-color="#b79462" stop-opacity="0.38" />
+      <stop offset="1" stop-color="#ead09a" stop-opacity="0.2" />
+    </linearGradient>
+    <linearGradient id="ridge-light" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8bb49e" stop-opacity="0.18" />
+      <stop offset="0.74" stop-color="#d9bd7c" stop-opacity="0.08" />
+      <stop offset="1" stop-color="#f0ce8d" stop-opacity="0.22" />
     </linearGradient>
   </defs>
 
-  <path d="M0 1080 L0 730 L140 640 L300 700 L450 570 L640 740 L820 600 L1040 780 L1260 640 L1500 780 L1720 620 L1920 740 L1920 1080 Z" fill="url(#nearLayer)" />
-  <path d="M1130 1080 C1090 990 1080 930 1096 870 C1112 816 1170 760 1260 726 C1365 686 1478 680 1608 704 C1684 718 1748 746 1800 794 C1664 736 1552 730 1452 756 C1330 790 1244 866 1200 962 C1178 1010 1168 1050 1164 1080 Z" fill="#0e2224" fill-opacity="0.8" />
-  <path d="M1128 1080 C1092 1002 1086 938 1102 886 C1118 836 1172 786 1248 756 C1338 720 1450 712 1588 732 C1668 744 1744 770 1828 814 C1698 766 1578 764 1472 788 C1360 812 1264 872 1218 958 C1194 1002 1180 1042 1172 1080 Z" fill="url(#trailGlow)" fill-opacity="0.6" />
+  <path d="M0 1080 L0 812 L144 732 L286 790 L438 682 L580 792 L734 690 L890 812 L1042 704 L1194 824 L1342 692 L1496 800 L1628 674 L1776 760 L1920 648 L1920 1080 Z" fill="url(#near-ground)" />
+  <path d="M0 812 L144 732 L286 790 L438 682 L580 792 L734 690 L890 812 L1042 704 L1194 824 L1342 692 L1496 800 L1628 674 L1776 760 L1920 648" fill="none" stroke="url(#ridge-light)" stroke-width="5" />
+
+  <path d="M0 1080 L0 998 C236 920 410 938 590 848 C754 766 884 790 1048 680 C1210 572 1350 608 1490 478 C1578 396 1628 358 1692 336 C1798 352 1872 404 1920 468 L1920 1080 Z" fill="url(#shadow-ground)" fill-opacity="0.88" />
+
+  <path d="M22 984 C218 900 392 925 548 816 C704 706 850 746 1015 624 C1172 508 1322 550 1458 424 C1548 342 1610 314 1688 312 C1689 327 1685 341 1674 352 C1620 366 1584 404 1518 482 C1376 638 1220 608 1065 708 C900 818 754 806 596 892 C430 996 258 1000 110 1070 C78 1085 45 1078 28 1052 C14 1030 12 1007 22 984 Z" fill="#071817" fill-opacity="0.58" />
+  <path d="M50 1008 C235 924 402 947 558 836 C715 724 857 766 1024 642 C1180 524 1326 568 1470 441 C1550 370 1610 333 1683 325 C1680 337 1674 345 1665 351 C1614 372 1575 412 1510 484 C1375 622 1230 592 1074 694 C910 802 765 789 605 875 C440 976 272 982 116 1052 C84 1066 58 1048 50 1027 C47 1021 47 1015 50 1008 Z" fill="url(#trail-bed)" />
+  <path d="M76 1024 C252 946 414 958 574 848 C730 740 878 780 1044 654 C1202 536 1352 580 1492 452 C1574 378 1628 344 1692 326" fill="none" stroke="#f3dcaa" stroke-opacity="0.1" stroke-linecap="round" stroke-width="7" />
+
+  <path d="M0 1080 L0 936 L116 888 L210 934 L300 898 L392 972 L510 924 L650 1002 L760 964 L882 1030 L940 1080 Z" fill="#061817" fill-opacity="0.72" />
+  <path d="M1920 1080 L1920 846 L1808 790 L1720 844 L1650 808 L1560 882 L1480 850 L1396 934 L1308 916 L1224 1000 L1160 1080 Z" fill="#071a19" fill-opacity="0.72" />
+
+  <g fill="#315f50" fill-opacity="0.48">
+    <path d="M84 842 l34 -92 l34 92 h-20 l28 72 h-84 l28 -72 Z" />
+    <path d="M178 882 l26 -72 l26 72 h-15 l21 54 h-64 l21 -54 Z" />
+    <path d="M1806 756 l30 -82 l30 82 h-18 l25 64 h-74 l25 -64 Z" />
+  </g>
 </svg>

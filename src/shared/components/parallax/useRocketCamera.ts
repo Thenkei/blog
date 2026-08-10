@@ -1,15 +1,24 @@
-import { useEffect, type RefObject } from "react";
-
-const ROCKET_REVEAL_THRESHOLD = 0.8;
-const ROCKET_TRAVEL_DESKTOP = 360;
-const ROCKET_TRAVEL_MOBILE = 220;
+import { useCallback, type RefObject } from "react";
+import {
+  computeCinematicProgress,
+  useCinematicScroll,
+  type CinematicProgressRenderer,
+} from "./useCinematicScroll";
 
 type UseRocketCameraOptions = {
   shellRef: RefObject<HTMLElement | null>;
   stageRef: RefObject<HTMLElement | null>;
   enabled: boolean;
   isReducedMotion: boolean;
-  mobileReduced: boolean;
+  compactLayout: boolean;
+};
+
+type RocketPose = {
+  at: number;
+  x: number;
+  y: number;
+  rotate: number;
+  scale: number;
 };
 
 export type RocketCameraVars = {
@@ -19,55 +28,125 @@ export type RocketCameraVars = {
   asteroidShift: number;
   asteroidDrift: number;
   planetScale: number;
+  planetOpacity: number;
+  asteroidOpacity: number;
+  flightProgress: number;
+  flightReveal: number;
   rocketX: number;
   rocketY: number;
   rocketRotate: number;
-  clearance: boolean;
+  rocketScale: number;
+  rocketOpacity: number;
+  boost: number;
+  titleOpacity: number;
+  titleShift: number;
+  titleScale: number;
+  arrival: number;
+  handoff: number;
 };
+
+const ROCKET_POSES: readonly [RocketPose, ...RocketPose[]] = [
+  { at: 0, x: 3, y: 79, rotate: 38, scale: 0.72 },
+  { at: 0.16, x: 18, y: 75, rotate: 43, scale: 0.8 },
+  { at: 0.38, x: 43, y: 64, rotate: 54, scale: 0.94 },
+  { at: 0.58, x: 69, y: 70, rotate: 78, scale: 1 },
+  { at: 0.72, x: 84, y: 53, rotate: 14, scale: 0.88 },
+  { at: 0.84, x: 87, y: 29, rotate: -4, scale: 0.72 },
+  { at: 0.92, x: 98, y: 12, rotate: 47, scale: 0.56 },
+  { at: 1, x: 116, y: -8, rotate: 49, scale: 0.42 },
+];
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-export function computeRocketProgress(scrollY: number, startY: number, range: number): number {
-  if (range <= 0) {
-    return 0;
-  }
-
-  return clamp((scrollY - startY) / range, 0, 1);
+function smoothstep(start: number, end: number, value: number): number {
+  const progress = clamp((value - start) / (end - start), 0, 1);
+  return progress * progress * (3 - 2 * progress);
 }
 
-export function computeRocketVars(progress: number, mobileReduced: boolean): RocketCameraVars {
-  const normalizedProgress = clamp(progress, 0, 1);
-  const travel = mobileReduced ? ROCKET_TRAVEL_MOBILE : ROCKET_TRAVEL_DESKTOP;
+function interpolateRocketPose(progress: number): Omit<RocketPose, "at"> {
+  const normalized = clamp(progress, 0, 1);
+  const nextIndex = ROCKET_POSES.findIndex((pose) => pose.at >= normalized);
+  const first = ROCKET_POSES[0];
 
-  const boostPhase = clamp(
-    (normalizedProgress - ROCKET_REVEAL_THRESHOLD) / (1 - ROCKET_REVEAL_THRESHOLD),
-    0,
-    1,
+  if (nextIndex <= 0) {
+    const { x, y, rotate, scale } = first;
+    return { x, y, rotate, scale };
+  }
+
+  const next = ROCKET_POSES[nextIndex];
+  const previous = ROCKET_POSES[nextIndex - 1];
+  if (!next || !previous) {
+    const { x, y, rotate, scale } = first;
+    return { x, y, rotate, scale };
+  }
+  const localProgress = smoothstep(
+    previous.at,
+    next.at,
+    normalized,
   );
-  const asteroidSpeed = 0.82 + boostPhase * 0.18;
-
-  const rocketX = (mobileReduced ? -180 : -240) + normalizedProgress * (mobileReduced ? 450 : 600);
-  const rocketY =
-    (mobileReduced ? 98 : 132) -
-    normalizedProgress * (mobileReduced ? 150 : 220) +
-    Math.sin(normalizedProgress * Math.PI * 2) * (mobileReduced ? 12 : 20);
-  const rocketRotate = -14 + normalizedProgress * 36;
+  const mix = (from: number, to: number) =>
+    from + (to - from) * localProgress;
 
   return {
-    progress: normalizedProgress,
-    spaceShift: -travel * normalizedProgress * 0.1,
-    planetShift: -travel * normalizedProgress * 0.3,
-    asteroidShift: -travel * normalizedProgress * asteroidSpeed,
+    x: mix(previous.x, next.x),
+    y: mix(previous.y, next.y),
+    rotate: mix(previous.rotate, next.rotate),
+    scale: mix(previous.scale, next.scale),
+  };
+}
+
+export const computeRocketProgress = computeCinematicProgress;
+
+export function computeRocketVars(
+  progress: number,
+  compactLayout: boolean,
+  reducedMotion = false,
+): RocketCameraVars {
+  const normalizedProgress = clamp(progress, 0, 1);
+  const sceneProgress = reducedMotion ? 0.36 : normalizedProgress;
+  const flightProgress = reducedMotion
+    ? 0.42
+    : smoothstep(0.03, 0.96, sceneProgress);
+  const rocketPose = interpolateRocketPose(flightProgress);
+  const handoff = reducedMotion ? 0 : smoothstep(0.91, 1, sceneProgress);
+  const titleTravel = reducedMotion
+    ? 0
+    : smoothstep(0.18, 0.54, sceneProgress);
+
+  return {
+    progress: sceneProgress,
+    spaceShift: sceneProgress * (compactLayout ? -15 : -26),
+    planetShift: sceneProgress * (compactLayout ? -38 : -64),
+    asteroidShift: sceneProgress * (compactLayout ? -92 : -158),
     asteroidDrift:
-      Math.sin(normalizedProgress * Math.PI * 2.3) * (mobileReduced ? 8 : 12) +
-      normalizedProgress * (mobileReduced ? 7 : 10),
-    planetScale: 1 + normalizedProgress * (mobileReduced ? 0.05 : 0.08),
-    rocketX,
-    rocketY,
-    rocketRotate,
-    clearance: normalizedProgress >= ROCKET_REVEAL_THRESHOLD,
+      Math.sin(sceneProgress * Math.PI * 2.15) * (compactLayout ? 5 : 10) +
+      sceneProgress * (compactLayout ? 4 : 8),
+    planetScale:
+      1 + smoothstep(0.16, 0.7, sceneProgress) * (compactLayout ? 0.07 : 0.11) -
+      handoff * 0.05,
+    planetOpacity: reducedMotion ? 1 : 1 - handoff * 0.28,
+    asteroidOpacity: reducedMotion
+      ? 0.82
+      : 1 - smoothstep(0.72, 0.97, sceneProgress) * 0.82,
+    flightProgress,
+    flightReveal: clamp((rocketPose.x * 10 + 40) / 1120, 0, 1),
+    rocketX: rocketPose.x,
+    rocketY: rocketPose.y,
+    rocketRotate: rocketPose.rotate,
+    rocketScale: rocketPose.scale * (compactLayout ? 0.82 : 1),
+    rocketOpacity: reducedMotion
+      ? 1
+      : clamp(0.76 + smoothstep(0, 0.08, sceneProgress) * 0.24 - handoff, 0, 1),
+    boost: 0.18 + smoothstep(0.1, 0.88, sceneProgress) * 0.82,
+    titleOpacity: reducedMotion
+      ? 1
+      : clamp(1 - titleTravel * 0.64 - handoff * 0.18, 0.18, 1),
+    titleShift: reducedMotion ? 0 : titleTravel * (compactLayout ? -22 : -36),
+    titleScale: reducedMotion ? 1 : 1 - titleTravel * 0.06,
+    arrival: reducedMotion ? 0.24 : smoothstep(0.73, 0.95, sceneProgress),
+    handoff,
   };
 }
 
@@ -78,16 +157,21 @@ function applyStageVars(stage: HTMLElement, vars: RocketCameraVars) {
   stage.style.setProperty("--asteroid-shift", vars.asteroidShift.toFixed(3));
   stage.style.setProperty("--asteroid-drift", vars.asteroidDrift.toFixed(3));
   stage.style.setProperty("--planet-scale", vars.planetScale.toFixed(4));
+  stage.style.setProperty("--planet-opacity", vars.planetOpacity.toFixed(4));
+  stage.style.setProperty("--asteroid-opacity", vars.asteroidOpacity.toFixed(4));
+  stage.style.setProperty("--flight-progress", vars.flightProgress.toFixed(4));
+  stage.style.setProperty("--flight-reveal", vars.flightReveal.toFixed(4));
   stage.style.setProperty("--rocket-x", vars.rocketX.toFixed(3));
   stage.style.setProperty("--rocket-y", vars.rocketY.toFixed(3));
   stage.style.setProperty("--rocket-rotate", vars.rocketRotate.toFixed(3));
-  stage.classList.toggle("rocket-camera-clearance", vars.clearance);
-}
-
-function resetStageVars(stage: HTMLElement) {
-  const vars = computeRocketVars(0, false);
-  applyStageVars(stage, vars);
-  stage.classList.remove("rocket-camera-clearance");
+  stage.style.setProperty("--rocket-scale", vars.rocketScale.toFixed(4));
+  stage.style.setProperty("--rocket-opacity", vars.rocketOpacity.toFixed(4));
+  stage.style.setProperty("--rocket-boost", vars.boost.toFixed(4));
+  stage.style.setProperty("--cinematic-title-opacity", vars.titleOpacity.toFixed(4));
+  stage.style.setProperty("--cinematic-title-shift", vars.titleShift.toFixed(3));
+  stage.style.setProperty("--cinematic-title-scale", vars.titleScale.toFixed(4));
+  stage.style.setProperty("--rocket-arrival", vars.arrival.toFixed(4));
+  stage.style.setProperty("--cinematic-handoff", vars.handoff.toFixed(4));
 }
 
 export function useRocketCamera({
@@ -95,76 +179,23 @@ export function useRocketCamera({
   stageRef,
   enabled,
   isReducedMotion,
-  mobileReduced,
+  compactLayout,
 }: UseRocketCameraOptions) {
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!enabled || !stage) {
-      if (stage) {
-        resetStageVars(stage);
-      }
-      return;
-    }
+  const renderProgress = useCallback<CinematicProgressRenderer>(
+    (stage, progress, reducedMotion) => {
+      applyStageVars(
+        stage,
+        computeRocketVars(progress, compactLayout, reducedMotion),
+      );
+    },
+    [compactLayout],
+  );
 
-    const shell = shellRef.current;
-    if (!shell) {
-      return;
-    }
-
-    let startY = 0;
-    let range = 1;
-    let rafId = 0;
-
-    const measure = () => {
-      const rect = shell.getBoundingClientRect();
-      startY = window.scrollY + rect.top;
-      range = Math.max(1, shell.offsetHeight - window.innerHeight);
-    };
-
-    const renderProgress = (nextProgress: number) => {
-      const vars = computeRocketVars(nextProgress, mobileReduced);
-      applyStageVars(stage, vars);
-    };
-
-    const update = () => {
-      const progress = isReducedMotion
-        ? 0
-        : computeRocketProgress(window.scrollY, startY, range);
-
-      renderProgress(progress);
-    };
-
-    const requestUpdate = () => {
-      if (rafId) {
-        return;
-      }
-
-      rafId = window.requestAnimationFrame(() => {
-        rafId = 0;
-        update();
-      });
-    };
-
-    const handleResize = () => {
-      measure();
-      requestUpdate();
-    };
-
-    measure();
-    update();
-
-    if (!isReducedMotion) {
-      window.addEventListener("scroll", requestUpdate, { passive: true });
-      window.addEventListener("resize", handleResize);
-    }
-
-    return () => {
-      if (rafId) {
-        window.cancelAnimationFrame(rafId);
-      }
-
-      window.removeEventListener("scroll", requestUpdate);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [enabled, isReducedMotion, mobileReduced, shellRef, stageRef]);
+  useCinematicScroll({
+    shellRef,
+    stageRef,
+    enabled,
+    isReducedMotion,
+    renderProgress,
+  });
 }

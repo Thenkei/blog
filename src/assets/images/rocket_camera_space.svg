@@ -1,34 +1,95 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
   <defs>
-    <linearGradient id="deepSpace" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#030612" />
-      <stop offset="55%" stop-color="#070d1d" />
-      <stop offset="100%" stop-color="#111631" />
+    <linearGradient id="deepSpace" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#030611" />
+      <stop offset="48%" stop-color="#080d20" />
+      <stop offset="100%" stop-color="#15152f" />
     </linearGradient>
-    <radialGradient id="nebulaA" cx="24%" cy="22%" r="38%">
-      <stop offset="0%" stop-color="#6f7cff" stop-opacity="0.5" />
-      <stop offset="100%" stop-color="#6f7cff" stop-opacity="0" />
+    <radialGradient id="cyanNebula" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#52d7ff" stop-opacity="0.32" />
+      <stop offset="46%" stop-color="#586eff" stop-opacity="0.16" />
+      <stop offset="100%" stop-color="#586eff" stop-opacity="0" />
     </radialGradient>
-    <radialGradient id="nebulaB" cx="76%" cy="58%" r="42%">
-      <stop offset="0%" stop-color="#ca67ff" stop-opacity="0.42" />
-      <stop offset="100%" stop-color="#ca67ff" stop-opacity="0" />
+    <radialGradient id="violetNebula" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#d06cff" stop-opacity="0.3" />
+      <stop offset="52%" stop-color="#7e4ad8" stop-opacity="0.14" />
+      <stop offset="100%" stop-color="#7e4ad8" stop-opacity="0" />
     </radialGradient>
+    <radialGradient id="coralNebula" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff8e72" stop-opacity="0.17" />
+      <stop offset="100%" stop-color="#ff8e72" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="aurora" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#53d8ff" stop-opacity="0" />
+      <stop offset="38%" stop-color="#7887ff" stop-opacity="0.16" />
+      <stop offset="72%" stop-color="#d16cff" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#ff8b72" stop-opacity="0" />
+    </linearGradient>
   </defs>
 
   <rect width="1920" height="1080" fill="url(#deepSpace)" />
-  <rect width="1920" height="1080" fill="url(#nebulaA)" />
-  <rect width="1920" height="1080" fill="url(#nebulaB)" />
+  <ellipse cx="330" cy="260" rx="680" ry="510" fill="url(#cyanNebula)" />
+  <ellipse cx="1510" cy="690" rx="760" ry="590" fill="url(#violetNebula)" />
+  <ellipse cx="1640" cy="120" rx="500" ry="350" fill="url(#coralNebula)" />
+  <path
+    d="M-140 300 C270 88 720 120 1060 322 C1380 514 1690 522 2060 284 L2060 500 C1670 674 1322 642 1018 474 C690 292 298 268 -140 466 Z"
+    fill="url(#aurora)"
+    opacity="0.72"
+  />
 
   <g fill="#ffffff">
-    <circle cx="140" cy="110" r="2.2" opacity="0.76" />
-    <circle cx="310" cy="230" r="1.7" opacity="0.52" />
-    <circle cx="500" cy="90" r="1.4" opacity="0.62" />
-    <circle cx="670" cy="190" r="2.1" opacity="0.72" />
-    <circle cx="840" cy="120" r="1.6" opacity="0.56" />
-    <circle cx="980" cy="250" r="1.3" opacity="0.6" />
-    <circle cx="1170" cy="140" r="2" opacity="0.65" />
-    <circle cx="1360" cy="90" r="1.6" opacity="0.54" />
-    <circle cx="1530" cy="230" r="1.9" opacity="0.68" />
-    <circle cx="1710" cy="130" r="1.5" opacity="0.58" />
+    <circle cx="74" cy="154" r="2.3" opacity="0.82" />
+    <circle cx="166" cy="368" r="1.2" opacity="0.5" />
+    <circle cx="244" cy="92" r="1.1" opacity="0.62" />
+    <circle cx="326" cy="246" r="1.8" opacity="0.76" />
+    <circle cx="414" cy="530" r="1.1" opacity="0.46" />
+    <circle cx="482" cy="160" r="1.4" opacity="0.68" />
+    <circle cx="548" cy="780" r="1.7" opacity="0.58" />
+    <circle cx="622" cy="346" r="1.2" opacity="0.54" />
+    <circle cx="706" cy="104" r="2" opacity="0.78" />
+    <circle cx="768" cy="602" r="1.1" opacity="0.42" />
+    <circle cx="846" cy="274" r="1.5" opacity="0.66" />
+    <circle cx="918" cy="890" r="1.3" opacity="0.48" />
+    <circle cx="986" cy="140" r="1.1" opacity="0.56" />
+    <circle cx="1068" cy="486" r="1.9" opacity="0.72" />
+    <circle cx="1148" cy="238" r="1.2" opacity="0.5" />
+    <circle cx="1224" cy="742" r="1.6" opacity="0.62" />
+    <circle cx="1306" cy="102" r="1.3" opacity="0.6" />
+    <circle cx="1398" cy="554" r="1.1" opacity="0.46" />
+    <circle cx="1472" cy="294" r="2.1" opacity="0.8" />
+    <circle cx="1564" cy="856" r="1.2" opacity="0.5" />
+    <circle cx="1636" cy="176" r="1.5" opacity="0.7" />
+    <circle cx="1710" cy="624" r="1.1" opacity="0.44" />
+    <circle cx="1798" cy="360" r="1.8" opacity="0.74" />
+    <circle cx="1860" cy="932" r="1.2" opacity="0.52" />
+    <circle cx="112" cy="890" r="1.4" opacity="0.58" />
+    <circle cx="360" cy="946" r="1" opacity="0.44" />
+    <circle cx="662" cy="976" r="1.5" opacity="0.56" />
+    <circle cx="1114" cy="980" r="1.1" opacity="0.46" />
+    <circle cx="1428" cy="1012" r="1.7" opacity="0.58" />
+  </g>
+
+  <g fill="#9beaff">
+    <circle cx="206" cy="692" r="1.4" opacity="0.64" />
+    <circle cx="516" cy="430" r="1.1" opacity="0.58" />
+    <circle cx="804" cy="816" r="1.6" opacity="0.62" />
+    <circle cx="1028" cy="330" r="1.2" opacity="0.56" />
+    <circle cx="1270" cy="914" r="1.4" opacity="0.58" />
+    <circle cx="1742" cy="768" r="1.7" opacity="0.64" />
+  </g>
+
+  <g fill="#efa4ff">
+    <circle cx="450" cy="842" r="1.2" opacity="0.58" />
+    <circle cx="742" cy="492" r="1.5" opacity="0.62" />
+    <circle cx="1186" cy="604" r="1.1" opacity="0.54" />
+    <circle cx="1516" cy="448" r="1.4" opacity="0.6" />
+    <circle cx="1824" cy="128" r="1.2" opacity="0.56" />
+  </g>
+
+  <g fill="none" stroke-linecap="round">
+    <path d="M292 640 H308 M300 632 V648" stroke="#b9f3ff" stroke-width="1.5" opacity="0.52" />
+    <path d="M884 188 H904 M894 178 V198" stroke="#ffffff" stroke-width="1.8" opacity="0.64" />
+    <path d="M1334 658 H1350 M1342 650 V666" stroke="#dfb4ff" stroke-width="1.5" opacity="0.54" />
+    <path d="M1668 964 H1686 M1677 955 V973" stroke="#ffd0c4" stroke-width="1.6" opacity="0.56" />
   </g>
 </svg>

@@ -1,29 +1,92 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 420" preserveAspectRatio="xMidYMid meet">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 520" preserveAspectRatio="xMidYMid meet">
   <defs>
-    <linearGradient id="shipBody" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="hull" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#ffffff" />
-      <stop offset="55%" stop-color="#c5d1ff" />
-      <stop offset="100%" stop-color="#7f8eb8" />
+      <stop offset="34%" stop-color="#eaf7ff" />
+      <stop offset="68%" stop-color="#b9c9ec" />
+      <stop offset="100%" stop-color="#69789f" />
     </linearGradient>
-    <linearGradient id="shipGlow" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ca67ff" stop-opacity="0.9" />
-      <stop offset="100%" stop-color="#ff9a57" stop-opacity="0" />
+    <linearGradient id="hullShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7fe8ff" stop-opacity="0.4" />
+      <stop offset="48%" stop-color="#7e8fd5" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#342d6a" stop-opacity="0.54" />
+    </linearGradient>
+    <linearGradient id="coralTrim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffb06f" />
+      <stop offset="52%" stop-color="#ff7f71" />
+      <stop offset="100%" stop-color="#b64f80" />
+    </linearGradient>
+    <radialGradient id="window" cx="38%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#d7fcff" />
+      <stop offset="42%" stop-color="#66ddff" />
+      <stop offset="100%" stop-color="#244784" />
+    </radialGradient>
+    <linearGradient id="outerPlume" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c978ff" stop-opacity="0.7" />
+      <stop offset="46%" stop-color="#8d5cff" stop-opacity="0.36" />
+      <stop offset="100%" stop-color="#8d5cff" stop-opacity="0" />
     </linearGradient>
     <linearGradient id="flame" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#fff6c2" />
-      <stop offset="45%" stop-color="#ffb765" />
-      <stop offset="100%" stop-color="#ff6a4d" stop-opacity="0" />
+      <stop offset="0%" stop-color="#fff8cf" />
+      <stop offset="28%" stop-color="#ffd66d" />
+      <stop offset="62%" stop-color="#ff875d" />
+      <stop offset="100%" stop-color="#ff5f75" stop-opacity="0" />
     </linearGradient>
+    <linearGradient id="flameCore" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="38%" stop-color="#b8f6ff" />
+      <stop offset="100%" stop-color="#79dfff" stop-opacity="0" />
+    </linearGradient>
+    <clipPath id="hullClip">
+      <path d="M210 18 C159 68 136 137 136 235 L136 320 C136 361 166 397 210 421 C254 397 284 361 284 320 L284 235 C284 137 261 68 210 18 Z" />
+    </clipPath>
   </defs>
 
-  <g transform="translate(30 10)">
-    <path d="M180 18 C126 70 104 136 104 232 L104 290 C104 326 136 360 180 384 C224 360 256 326 256 290 L256 232 C256 136 234 70 180 18 Z" fill="url(#shipBody)" />
-    <path d="M180 18 C126 70 104 136 104 232 L104 268 C146 284 214 284 256 268 L256 232 C256 136 234 70 180 18 Z" fill="url(#shipGlow)" opacity="0.6" />
-    <circle cx="180" cy="194" r="38" fill="#0c1639" opacity="0.72" />
-    <circle cx="180" cy="194" r="22" fill="#7de4ff" />
-    <path d="M104 262 L58 314 L104 314 Z" fill="#ff9452" opacity="0.88" />
-    <path d="M256 262 L302 314 L256 314 Z" fill="#ff9452" opacity="0.88" />
-    <path d="M180 384 L150 416 L180 402 L210 416 Z" fill="#ff7f45" />
-    <path d="M180 404 L160 500 L180 472 L200 500 Z" fill="url(#flame)" opacity="0.92" />
+  <g opacity="0.48">
+    <path d="M147 399 C118 444 126 482 166 516 C158 476 174 447 184 408 Z" fill="url(#outerPlume)" />
+    <path d="M180 408 C159 458 174 494 210 520 C199 478 207 445 210 414 Z" fill="url(#outerPlume)" />
+    <path d="M236 408 C246 447 262 476 254 516 C294 482 302 444 273 399 Z" fill="url(#outerPlume)" />
   </g>
+  <path d="M156 406 C137 450 145 481 169 507 C166 470 178 438 184 410 Z" fill="url(#flame)" opacity="0.86" />
+  <path d="M189 412 C180 456 189 490 210 514 C231 490 240 456 231 412 Z" fill="url(#flame)" />
+  <path d="M236 410 C242 438 254 470 251 507 C275 481 283 450 264 406 Z" fill="url(#flame)" opacity="0.86" />
+  <path d="M202 416 C199 449 202 472 210 489 C218 472 221 449 218 416 Z" fill="url(#flameCore)" opacity="0.94" />
+
+  <path d="M140 235 C91 270 63 329 58 389 L142 350 L166 297 Z" fill="url(#hull)" stroke="#9fb1d2" stroke-width="3" />
+  <path d="M280 235 C329 270 357 329 362 389 L278 350 L254 297 Z" fill="url(#hull)" stroke="#7180a6" stroke-width="3" />
+  <path d="M72 365 L141 333 L137 369 L68 400 Z" fill="url(#coralTrim)" opacity="0.92" />
+  <path d="M348 365 L279 333 L283 369 L352 400 Z" fill="url(#coralTrim)" opacity="0.92" />
+
+  <path
+    d="M210 18 C159 68 136 137 136 235 L136 320 C136 361 166 397 210 421 C254 397 284 361 284 320 L284 235 C284 137 261 68 210 18 Z"
+    fill="url(#hull)"
+    stroke="#dcecff"
+    stroke-width="4"
+  />
+  <g clip-path="url(#hullClip)">
+    <path d="M210 10 H300 V430 H210 Z" fill="url(#hullShade)" />
+    <path d="M148 116 C172 86 190 70 210 54 L210 92 C186 114 168 140 151 176 Z" fill="#ffffff" opacity="0.5" />
+    <path d="M137 285 C178 304 242 304 283 285 L283 326 C240 347 180 347 137 326 Z" fill="#536997" opacity="0.2" />
+    <path d="M146 335 C184 354 236 354 274 335" fill="none" stroke="#334a79" stroke-width="3" opacity="0.34" />
+    <path d="M210 86 V146" stroke="#ffffff" stroke-width="3" opacity="0.46" />
+  </g>
+
+  <path d="M146 247 C151 167 170 100 210 52" fill="none" stroke="#a9f1ff" stroke-width="4" stroke-linecap="round" opacity="0.5" />
+  <path d="M210 18 C261 68 284 137 284 235" fill="none" stroke="#8d79d8" stroke-width="4" stroke-linecap="round" opacity="0.36" />
+
+  <circle cx="210" cy="205" r="49" fill="#27365f" stroke="#dcecff" stroke-width="5" />
+  <circle cx="210" cy="205" r="37" fill="url(#window)" />
+  <path d="M185 192 C198 173 224 168 241 184 C220 181 201 190 188 207 Z" fill="#ffffff" opacity="0.42" />
+  <circle cx="210" cy="205" r="43" fill="none" stroke="#9c85e8" stroke-width="3" opacity="0.56" />
+
+  <path d="M167 280 H253" stroke="#61749d" stroke-width="3" stroke-linecap="round" opacity="0.58" />
+  <circle cx="177" cy="309" r="5" fill="#69e4ff" opacity="0.9" />
+  <circle cx="195" cy="309" r="5" fill="#c58aff" opacity="0.86" />
+  <circle cx="213" cy="309" r="5" fill="#ff9478" opacity="0.9" />
+  <path d="M231 305 H253" stroke="#7184ac" stroke-width="4" stroke-linecap="round" opacity="0.62" />
+
+  <path d="M160 382 H190 L184 424 H151 Z" fill="#334568" stroke="#90a2c3" stroke-width="3" />
+  <path d="M195 392 H225 L232 427 H188 Z" fill="#283a62" stroke="#91a5ca" stroke-width="3" />
+  <path d="M230 382 H260 L269 424 H236 Z" fill="#27395d" stroke="#8294b8" stroke-width="3" />
+  <path d="M153 413 H184 M190 417 H230 M236 413 H267" stroke="#8be9ff" stroke-width="4" stroke-linecap="round" opacity="0.76" />
 </svg>

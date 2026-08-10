@@ -12,6 +12,11 @@
 }
 
 @media (max-width: 900px) {
+  .mountain-camera-shell,
+  .rocket-camera-shell {
+    height: calc(100svh + clamp(620px, 92svh, 900px));
+  }
+
   .post-controls-grid {
     grid-template-columns: 1fr;
   }
@@ -51,51 +56,69 @@
 }
 
 @media (max-width: 720px) {
-  .mountain-camera-shell {
-    height: 120vh;
+  .mountain-camera-shell,
+  .rocket-camera-shell {
+    height: calc(100svh + clamp(560px, 85svh, 780px));
   }
 
-  .mountain-camera-stage.parallax-container {
-    height: 100vh;
+  .mountain-camera-sticky,
+  .rocket-camera-sticky,
+  .mountain-camera-stage.parallax-container,
+  .rocket-camera-stage.parallax-container {
+    height: 100svh;
   }
 
   .mountain-camera-stage::before {
-    opacity: 0.75;
+    background:
+      radial-gradient(circle at 88% 14%, rgba(255, 226, 164, 0.26), transparent 24%),
+      linear-gradient(180deg, transparent 38%, rgba(5, 17, 19, 0.58));
   }
 
-  .mountain-camera-stage::after {
-    opacity: calc(var(--trail-speed) * 0.42);
-  }
-
-  .mountain-layer {
-    inset: -2% -2% -6%;
-  }
-
-  .mountain-camera-stage.mountain-camera-clearance .mountain-layer-near {
-    opacity: 0.35;
-    filter: saturate(0.92) blur(1px);
-  }
-
-  .rocket-camera-shell {
-    height: 120vh;
-  }
-
-  .rocket-camera-stage.parallax-container {
-    height: 100vh;
-  }
-
+  .mountain-layer,
   .rocket-layer {
-    inset: -2% -2% -6%;
+    inset: -4% -12% -8%;
+  }
+
+  .mountain-layer-sky,
+  .mountain-layer-far,
+  .mountain-layer-near {
+    background-position: 74% bottom;
+  }
+
+  .mountain-cinematic-runner {
+    width: clamp(32px, 8vw, 48px);
+  }
+
+  .mountain-trail-journey {
+    transform: translateY(-8svh);
+  }
+
+  .mountain-route-bed {
+    stroke: rgba(241, 211, 142, 0.2);
+    stroke-width: 5px;
+  }
+
+  .mountain-route-line {
+    stroke-width: 3px;
+  }
+
+  .rocket-layer-space,
+  .rocket-layer-planet,
+  .rocket-layer-asteroids {
+    background-position: 62% bottom;
   }
 
   .rocket-layer-ship {
-    width: clamp(110px, 24vw, 150px);
-    top: 42%;
+    inset: auto;
+    left: calc(var(--rocket-x) * 1%);
+    top: calc(var(--rocket-y) * 1%);
+    width: clamp(92px, 20vw, 138px);
   }
 
-  .rocket-camera-stage.rocket-camera-clearance .rocket-layer-asteroids {
-    opacity: 0.4;
-    filter: none;
+  .rocket-arrival {
+    left: 89%;
+    top: 20%;
+    width: clamp(68px, 17vw, 108px);
   }
 
   .parallax-container {
@@ -103,7 +126,17 @@
   }
 
   .hero-content {
-    padding-top: 1rem;
+    padding: 1rem;
+  }
+
+  .mountain-camera-stage .hero-content,
+  .rocket-camera-stage .hero-content {
+    width: min(94%, 720px);
+  }
+
+  .mountain-camera-stage .hero-title,
+  .rocket-camera-stage .hero-title {
+    font-size: clamp(2.3rem, 10vw, 3.8rem);
   }
 
   .post-filter-toggle {
@@ -182,12 +215,9 @@
 }
 
 @media (max-width: 600px) {
-  .mountain-camera-shell {
-    height: 120vh;
-  }
-
+  .mountain-camera-shell,
   .rocket-camera-shell {
-    height: 120vh;
+    height: calc(100svh + clamp(520px, 75svh, 680px));
   }
 
   .post-card {
