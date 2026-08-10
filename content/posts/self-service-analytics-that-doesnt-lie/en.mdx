@@ -1,247 +1,91 @@
 ---
-title: "Building Self-Service Analytics That Doesn't Lie"
-subtitle: "The hard part is not giving everyone a dashboard. It is giving every number a contract."
-summary: "The self-service analytics architecture we want to build at RockFi: governed mart-only queries, explicit metric contracts, and agents that propose the missing data models safely."
+title: "Building Self-Service Analytics That Does Not Lie"
+subtitle: "Give people access to numbers without abandoning their definition, lineage, or control."
+summary: "Self-service analytics works when every metric retains a contract, an owner, and a verifiable path to its source."
 visualId: "self-service-analytics-that-doesnt-lie"
 publishedAt: "2026-08-17"
-readTimeMinutes: 17
+readTimeMinutes: 7
 tags:
-  - data-engineering
+  - data
   - analytics
-  - architecture
   - governance
-  - reliability
-  - reflection
+  - architecture
+  - rockfi
 seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 2
 ---
 
-import selfServiceAnalyticsDiagram from "../../../src/assets/images/posts/self-service-analytics-en.svg";
+import selfServiceDiagram from "../../../src/assets/images/posts/self-service-analytics-en.svg";
 
-At RockFi, self-service analytics is not a success story I can wrap in a neat retrospective. It is a goal we are actively pursuing—and one we have not cracked yet.
+## Context
 
-Today, AI tools already accelerate a large part of the technical loop. They help us investigate unfamiliar data, explore hypotheses during design, understand existing models, generate queries, and perform a stronger first pass of QA after implementation. Inside an engineering or data workflow, the leverage is real.
-
-What we have not yet made accessible is that same capability at company scale. A person outside the technical team cannot always ask a business question and receive an answer that is simultaneously fast, governed, reproducible, and safe to use. The missing piece is not another clever chat interface. It is infrastructure.
-
-Connecting an LLM directly to the warehouse and wishing it good luck would produce an impressive demo. It would also produce three definitions of the same metric before lunch.
-
-The promise fails when “access” is confused with “understanding.” A dashboard can load successfully, use a valid SQL query, and still communicate a false number. The failure is usually silent. No exception is raised when a join multiplies rows, a provider sends late data, a timezone changes the reporting day, or two teams use the word “revenue” for different populations.
-
-The problem is not primarily the visualization tool. It is the absence of a contract around the metric.
-
-Self-service analytics becomes reliable when people are free to explore but the organization is explicit about which definitions, grains, sources, and quality signals are safe to use for decisions.
-
-## Available data is not trustworthy data
+A central data team quickly becomes a queue: every business question requires a ticket, an extract, and another explanation. Self-service analytics promises autonomy. At RockFi, that autonomy must preserve stricter constraints: confidentiality, auditability, and consistent definitions for assets, flows, clients, and performance.
 
 <ArticleDiagram visualId="self-service-analytics-that-doesnt-lie" />
 
-There are at least four different questions hidden inside “Can I get this number?”
+## The problem
 
-1. Does a source contain records related to the question?
-2. Can those records be transformed into the requested grain?
-3. Is the resulting metric defined consistently across consumers?
-4. Is the result current and complete enough for the decision?
+Making the warehouse queryable does not make its numbers trustworthy. Two syntactically correct queries can disagree on grain, effective date, contract status, or cancellation treatment. The disagreement often appears only after a number reached a dashboard or informed a decision.
 
-The first question is about availability. The others are about meaning and fitness for purpose.
+The problem is not access to data. It is access to **verifiable semantics**.
 
-A warehouse table may be technically queryable while still being inappropriate for a client report. A raw provider feed may be useful for investigation while being unsuitable for a KPI. A model may be correct at the account grain and wrong when joined directly to transactions. The schema alone does not communicate these boundaries.
+## Bad ideas
 
-The most dangerous analytics failures are therefore not broken pipelines. They are plausible outputs with missing context.
+- Open every table and call it self-service.
+- Certify a dashboard without certifying the metrics it combines.
+- Duplicate domain logic in each query “to move faster”.
+- Present an AI-generated answer without provenance, freshness, or confidence.
+- Govern every exploration like regulatory reporting and eliminate exploration entirely.
 
-## The system we want to build at RockFi (without handing over the warehouse keys)
+These approaches confuse freedom to explore with authority to publish.
 
-The first boundary is intentionally strict: a self-service user should query only the governed mart layer.
+## What did not work
 
-`staging` and `int` models are construction material. They expose provider shapes, intermediate joins, implementation details, and incomplete semantics. They are essential to the data team and a terrible public API for the rest of the company.
+Data dictionaries alone aged too quickly. They described columns but rarely captured exclusions, expected grain, or the point when a metric becomes final.
 
-The query path we want looks roughly like this:
+“Source of truth” dashboards did not work when they embedded private SQL. They moved the contract into a visualisation tool, made it hard to test, and created multiple truths as soon as another dashboard reimplemented the calculation.
 
-1. A person asks a business question in natural language.
-2. A planner resolves the terms against a catalog of certified marts, dimensions, facts, measures, grains, freshness rules, and access policies.
-3. The system generates a read-only query against an allowlisted mart surface.
-4. A deterministic guard validates the SQL structure, permissions, estimated cost, timeout, and result limits before execution.
-5. The answer includes the generated query, the models and metrics used, their freshness, and any relevant limitation—not just a confident paragraph with a chart attached.
+Letting an agent query raw sources directly also produced fast but fragile answers: it selected a plausible join without knowing which domain invariant the join had to preserve.
 
-The model can help produce the query. It should not be the component enforcing the boundary. Read-only roles, allowlists, row and column policies, SQL parsing, resource limits, and audit logs belong to the infrastructure around it.
+## Alternatives
 
-### When the answer does not exist in the marts
+Three levels should remain separate:
 
-This is the part that makes the goal genuinely interesting.
+1. **Exploration**: bounded access, temporary output, visible assumptions.
+2. **Certified metric**: versioned definition, owner, tests, and freshness policy.
+3. **Decision or publication**: displayed provenance, access controls, and review proportional to impact.
 
-If the requested answer is not available from certified marts, the system should not silently fall through to `int` or `staging` and improvise. That would make the first answer fast and every future discussion about the number painfully slow.
+A semantic layer can carry shared dimensions, grains, and formulae. A catalogue can expose ownership and freshness. Governed marts can isolate sensitive data. None of those tools replaces the domain contract.
 
-Instead, the failed question should become a governed modeling request:
+## The solution
 
-1. A gap classifier identifies the missing semantic object: a measure, dimension, fact, or full mart.
-2. Specialized agents inspect existing marts, `int` and `staging` models, lineage, source contracts, naming conventions, and tests.
-3. A modeling agent proposes the missing `mart`, `fct`, or `dim` as code in an isolated branch or sandbox.
-4. The proposal declares its grain, keys, measures, dimensions, exclusions, freshness expectation, owner, and access policy.
-5. CI builds the affected graph and runs schema, data-quality, reconciliation, and cost checks.
-6. A human reviews the business meaning and the technical implementation before promotion.
-7. Only after deployment does the original question run again through the governed mart query path.
+We define every shared metric as a product with a minimum contract:
 
-The important split is between the **query plane**, which can answer from certified data, and the **modeling plane**, which can propose new certified data products. An agent may accelerate both. It must not collapse the boundary between them.
+| Element | Question to settle |
+| --- | --- |
+| Meaning | Which decision does this number support? |
+| Grain | What does one row represent? |
+| Population | Which entities are included or excluded? |
+| Time | Event date, effective date, or snapshot? |
+| Owner | Who resolves ambiguity? |
+| Evidence | Which tests and reconciliations protect the calculation? |
+| Freshness | When is the result no longer usable? |
 
-<figure className="post-visual">
+<figure className="article-figure">
   <img
-    src={selfServiceAnalyticsDiagram}
-    alt="Governed self-service analytics flow from a business question through certified marts or a reviewed modeling path."
+    src={selfServiceDiagram}
+    alt="A trust chain connecting sources, governed models, metric contracts, and decisions."
+    loading="lazy"
   />
-  <figcaption>
-    Self-service analytics needs a governed read path and a reviewed route for missing models.
-  </figcaption>
+  <figcaption>Self-service starts after modelling and controls, not at the raw-table layer.</figcaption>
 </figure>
 
-This is slower than allowing an agent to query anything it can find. Good. The faster version gives the company self-service SQL and a distributed truth problem in the same afternoon.
+AI assistants receive certified contracts and models first. They may propose an exploration, but must expose sources and flag when a question exceeds the certified boundary. Output remains reviewable before publication.
 
-## The silent lies
+## Limits
 
-Certain failure modes recur across self-service systems.
+This approach has a cost: contracts must be maintained, definition changes handled, and freshness monitored. Not every metric deserves that governance. A one-off analysis can remain explicitly exploratory.
 
-### Grain mismatch
+A semantic layer cannot repair a wrong source or a missing event. It can even standardise a bad definition. Trust comes from a chain of evidence and accountability, not a “certified” badge.
 
-Every model has a grain, whether it declares one or not. A table may represent one row per account, one row per holding, or one row per valuation event. If a user joins an account-level attribute to a transaction-level table and then aggregates the result, the query may execute perfectly while counting the attribute multiple times.
-
-The safe response is not to warn users vaguely about joins. It is to publish the grain as part of the model contract and provide measures that respect it.
-
-### Definition drift
-
-“Active client,” “assets under management,” and “completed transaction” are business definitions, not column names. If the definition changes in one dashboard but not another, the organization can have two internally consistent but incompatible truths.
-
-Versioning is sometimes necessary. At minimum, a metric needs a named owner, a definition, an effective date, and a record of meaningful exclusions.
-
-### Freshness and late data
-
-A dashboard that says “today” may contain yesterday's provider data, partial ingestion, or a mixture of snapshots from different times. Freshness is not just a technical pipeline metric. It changes whether the number is appropriate for the decision being made.
-
-A daily planning metric and a client-facing valuation report should not have the same freshness contract.
-
-### Filters that disappear into the interface
-
-Many analytics tools hide filters in saved views, default scopes, or inherited permissions. A user sees a number without seeing which records were excluded. The dashboard becomes a conclusion without an inspectable path back to the source.
-
-The more consequential the decision, the more important it is to expose scope, exclusions, and time boundaries directly.
-
-### Reconciliation gaps
-
-A metric can be internally consistent and still disagree with the operational system because of mappings, timing, deleted records, or provider corrections. Reconciliation is not a one-time migration task. It is an ongoing signal that two representations of the business are drifting apart.
-
-## The metric contract
-
-A trustworthy metric should answer more than “what is the SQL?” Its contract should include:
-
-| Field | Question it answers |
-| --- | --- |
-| Definition | What does this metric mean in business terms? |
-| Grain | What does one row represent before aggregation? |
-| Population | Which entities, statuses, and periods are included? |
-| Exclusions | Which records are deliberately left out, and why? |
-| Source | Which system is authoritative for each input? |
-| Freshness | How old can the data be before the metric is unfit? |
-| Owner | Who decides whether the definition remains correct? |
-| Reconciliation | Which independent total or system should it agree with? |
-| Change history | When did the definition or source change? |
-
-This contract does not need to be a large document. It does need to be discoverable where the metric is used and precise enough to stop two reasonable people from producing different answers.
-
-## Exploration, certification, and decisions
-
-Self-service does not mean every dataset has the same trust level. A useful system separates three modes:
-
-- **Exploration:** users can investigate raw or lightly modeled data, form hypotheses, and discover gaps. Results are provisional.
-- **Certification:** models and metrics have declared contracts, tests, owners, freshness signals, and known limitations.
-- **Decision use:** a report, alert, or operational workflow consumes certified metrics under an explicit service expectation.
-
-The boundary is not meant to restrict curiosity. It prevents an exploratory query from silently becoming an organizational fact.
-
-The data team should not be the only group allowed to query data. It should own the contracts and the paved paths that make safe querying possible. At RockFi, that is the infrastructure gap we are trying to close.
-
-## What a semantic layer is actually for
-
-A semantic layer is often described as a way to avoid repeating SQL. That is useful but incomplete. Its more important job is to give shared business meaning to fields and measures.
-
-It can define:
-
-- the canonical grain of an entity;
-- the dimensions that can be combined safely;
-- the filters that belong to a metric;
-- the relationship between a business term and its source columns;
-- the permitted aggregations;
-- the freshness and quality metadata shown to consumers.
-
-This does not make the semantic layer authoritative by declaration. It becomes authoritative when its definitions are tested against operational reality and when changes have an owner and an effective date.
-
-The layer also needs an escape hatch. A governed metric that cannot explain its exceptions will push serious users back into raw SQL. The right design allows exploration while preserving a clear distinction between custom analysis and certified output.
-
-## Trust is a signal, not a badge
-
-Labels such as “certified” are useful only if they communicate what was checked. A more operational trust display might include:
-
-- last successful load and expected freshness;
-- source coverage and known missing providers;
-- test status and latest reconciliation result;
-- definition owner and last reviewed date;
-- effective date of the current definition;
-- warnings for partial periods or late data.
-
-This makes uncertainty visible without making every user read an implementation document.
-
-The system should fail closed for high-consequence use. If a certified metric is stale beyond its contract or a reconciliation check is materially outside tolerance, the dashboard should show that it is not currently fit for the intended decision. A green chart with a small hidden caveat is not a quality control.
-
-## A pre-publication confidence review
-
-Before publishing a dashboard or metric to a broad audience, ask:
-
-- What exact question does this answer?
-- What is the row grain at every stage of the transformation?
-- Which population and time window are included?
-- What happens to late, missing, corrected, or duplicated records?
-- Which system is authoritative for each input?
-- What independent total can reconcile the result?
-- How will a consumer know that the metric is stale or partial?
-- Who owns the definition when the business process changes?
-- Which conclusions are safe to make, and which require human review?
-
-If these questions cannot be answered, the output may still be valuable for exploration. It is not ready to be presented as a settled fact.
-
-## The cost of governance is lower than the cost of disagreement
-
-Teams sometimes resist metric contracts because they appear slower than letting every analyst move independently. That comparison ignores the downstream cost: duplicated dashboards, debates over whose number is correct, manual reconciliation before meetings, and decisions made from definitions nobody can reconstruct.
-
-Governance is not valuable because it creates more metadata. It is valuable because it reduces repeated interpretation work and makes disagreement diagnosable.
-
-The right level of governance is proportional to consequence. A disposable exploratory query needs little ceremony. A metric used for portfolio reporting, client communication, financial operations, or an automated decision needs a stronger contract and a visible quality state.
-
-## Limits of self-service
-
-Not every question should be answered through a reusable metric. Some questions are genuinely investigative. Some require a new business definition. Some expose a gap in the source systems that no semantic layer can repair.
-
-Self-service also cannot fix poor ownership. If nobody can decide what “active” means, encoding one team's guess in a model only turns ambiguity into infrastructure.
-
-Finally, data quality checks cannot prove that a metric represents the right business concept. They can detect freshness gaps, schema changes, nulls, duplicates, and reconciliation differences. Human judgment is still required when the meaning of the business changes.
-
-Agent-generated models add another limit: speed increases the rate at which a bad assumption can become production infrastructure. The modeling workflow therefore needs the same branch protection, review, lineage checks, and deployment discipline as any other data change. “The agent wrote it” is context, not evidence.
-
-## The number is the end of a chain
-
-A dashboard number is not a fact by itself. It is the end of a chain of source systems, transformations, definitions, filters, time boundaries, and assumptions.
-
-Self-service analytics works when that chain is visible enough for people to use it correctly. Give teams freedom to explore, but make certified meaning explicit. Publish the grain. Show the freshness. Name the owner. Reconcile the result. Surface the uncertainty before it becomes a decision.
-
-The objective is not to make analytics incapable of being wrong. It is to make wrongness detectable before a plausible number acquires authority.
-
-## The next article hiding inside this one
-
-The complete modeling loop deserves its own article: how a business question becomes a missing semantic requirement, how specialized agents explore `int` and `staging`, how they propose a dbt model, and how tests plus human review promote it into the mart layer.
-
-That follow-up would go deeper into agent roles, dbt lineage, isolated builds, cost controls, reconciliation, review evidence, and rollback. This article establishes the boundary first, because an autonomous model builder without that boundary would mostly automate the production of technical debt.
-
-## Series navigation
-
-- Part 1 — [Unknown Unknowns in Software Architecture](../posts/unknown-unknowns-software-architecture).
-- Part 2 (current) — Building Self-Service Analytics That Doesn't Lie.
-- Part 3 — [Context Engineering Beyond Prompt Engineering](../posts/context-engineering-beyond-prompt-engineering).
-- Part 4 — [Why Most Engineering Documents Age Poorly](../posts/engineering-documents-age-poorly).
-
-Related reading: [Changing Hats: From Backend to Data Engineer at RockFi](../posts/backend-to-data-engineer-rockfi) and [Unknown Unknowns in Software Architecture](../posts/unknown-unknowns-software-architecture).
+Next in the series: [Context Engineering: Beyond Prompt Engineering](../posts/context-engineering-beyond-prompt-engineering).

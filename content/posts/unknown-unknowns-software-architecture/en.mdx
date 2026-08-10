@@ -1,10 +1,10 @@
 ---
 title: "Unknown Unknowns in Software Architecture"
-subtitle: "The hardest production failures begin with assumptions nobody knew they were making."
-summary: "Why architecture work should focus less on predicting every failure and more on making hidden assumptions observable, bounded, and recoverable."
+subtitle: "We cannot predict what we cannot name. We can limit the cost of discovering it."
+summary: "A design and review method for exposing assumptions, finding blind spots, and making surprises recoverable."
 visualId: "unknown-unknowns-software-architecture"
 publishedAt: "2026-08-10"
-readTimeMinutes: 17
+readTimeMinutes: 7
 tags:
   - architecture
   - reliability
@@ -17,206 +17,72 @@ seriesOrder: 1
 
 import unknownUnknownsDiagram from "../../../src/assets/images/posts/unknown-unknowns-en.svg";
 
-Software architecture is usually presented as a problem of making the right decisions with incomplete information. That is true, but incomplete information is not the hardest part. The harder problem is that some of the information does not exist yet.
+## Context
 
-You can list the decisions you have not made. You can create a spike for a technology you do not understand. You can mark a dependency as risky. The dangerous category is different: the assumptions, interactions, and failure modes that are absent from the team's mental model entirely.
+Architecture reviews handle risks a team can name: expected load, provider availability, migration consistency, and retry strategy. The real danger sits outside that list: a shared but unwritten assumption, an interaction missing from the diagram, or a failure mode nobody has encountered yet.
 
-Those are the unknown unknowns.
-
-The conceptual foundation came from Paul Austin Murphy's essay [Rumsfeld’s Logic of Known Knowns, Known Unknowns and Unknown Unknowns](https://medium.com/paul-austin-murphys-essays-on-philosophy/rumsfelds-logic-of-known-knowns-known-unknowns-and-unknown-unknowns-f506db31ac74). It takes the famous formulation seriously as a problem of logic and knowledge: some gaps are visible enough to investigate, while others sit outside the boundary of what we can currently describe.
-
-But the article that genuinely stayed with me was Thariq Shihipar's [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386). Thariq, who works at Anthropic, describes the gap between the **map** we give an AI system—our prompt, skills, context, and specification—and the **territory** where the work actually happens: the repository, product, users, operational constraints, and all the decisions nobody wrote down.
-
-When the map does not contain something the territory requires, the agent has to guess. Stronger models make those guesses look increasingly complete, which is useful right up until the missing assumption is the one that matters.
-
-That idea resonated far beyond AI-assisted coding. I kept thinking about architecture reviews, production incidents, and all the times a system behaved correctly according to every test we had written—then failed through an interaction that was absent from our model. The test suite was not lying. We had simply asked it yesterday's questions.
-
-Unknown unknowns are not a mystical category of failure. They are ordinary system properties that become visible only when a boundary is crossed: more tenants, a different provider, a deploy during a traffic spike, a new data grain, a partial outage, or a new operator using a workflow in a way nobody expected.
-
-The practical consequence is important: architecture cannot eliminate unknown unknowns. It can only make them cheaper to discover.
-
-## The four levels of architectural knowledge
+These are **unknown unknowns**. Thariq Shihipar's [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386) describes the gap between the *map* supplied to an agent and the real *territory*. The same gap exists in software design: production includes operators, time, historical data, providers, and usage patterns that the document does not represent.
 
 <ArticleDiagram visualId="unknown-unknowns-software-architecture" />
 
-The familiar matrix is useful because it separates four very different engineering situations:
+## The problem
 
-| Category | What the team has | The correct response |
-| --- | --- | --- |
-| Known knowns | A tested understanding of the behaviour | Encode it in contracts and tests |
-| Known unknowns | A named question or risk | Investigate it before committing |
-| Unknown knowns | Experience or evidence that exists elsewhere | Find it and make it explicit |
-| Unknown unknowns | A behaviour outside the current model | Create signals and safe recovery paths |
+A design can satisfy every written scenario and fail on an interaction outside the model: a request retried while the first attempt is still running, an event received after its target was deleted, or a provider returning a technically valid but operationally incomplete response.
 
-The third category is easy to miss. A team may already possess the answer in an incident report, a provider limitation, an old migration, or the memory of a person who left. The answer is not operational knowledge until the system and the team can access it at the moment it matters.
+The test suite did not lie. We asked it yesterday's questions. The more convincing the document or AI answer looks, the more dangerous that appearance of completeness becomes.
 
-The fourth category is why architecture documents should not be judged only by how complete they look. A diagram can accurately represent the intended request flow while hiding the queue that fills during a provider slowdown, the retry policy that duplicates side effects, or the permission boundary that disappears when an agent receives a broader token.
+## Bad ideas
 
-The diagram is not false. It is incomplete in a way that matters.
+The first bad idea is pursuing an exhaustive diagram. More boxes do not model time, concurrency, or degraded modes.
 
-## Why architecture diagrams create false confidence (production never signed them)
+The second is treating a checklist as proof. A checklist covers known risks; it does not automatically reveal an assumption missing from everyone's model.
 
-A system diagram normally shows stable nouns: services, databases, queues, APIs, and users. Production failures often arise from verbs and conditions instead:
+The third is asking an agent to “find every risk”. It can widen the inspected surface and challenge reasoning, but it can only discover what leaves evidence in sources it may access.
 
-- a client retries while the original request is still executing;
-- an event arrives after the record it references has been deleted;
-- a load balancer closes an idle connection without either application noticing immediately;
-- a provider returns a valid response with an incomplete business meaning;
-- a deployment changes one side of a contract before the other side has drained;
-- an operator replays an event because the first attempt produced no visible result.
+## What did not work
 
-These behaviours are not separate from the architecture. They are the architecture under time, failure, and concurrency.
+We tried reviews centred on the nominal path: who calls whom, which component owns the data, and which API exposes the contract. They produced clean documents but postponed the important questions: what happens when the call is duplicated, reordered, partially applied, or replayed by an operator?
 
-Boxes and arrows are remarkably well behaved. Retries, clocks, operators, and third-party APIs have apparently not received the memo.
+Generic questions also produced generic answers. “Will it scale?” opens few useful paths. “Which cardinality assumption breaks this component first?” demands evidence.
 
-The useful question is therefore not only “What calls what?” It is also:
+## Alternatives
 
-> What can happen when this call is delayed, duplicated, reordered, partially applied, or interpreted differently by the other side?
+We now use an internal review tool before consequential decisions. It orchestrates three separate moves: **gates** check known invariants, a **find blind spots** pass searches code, documents, and history for unproven assumptions, and **adversarial reviews** attack the proposal across operations, security, data, product, and deployment boundaries.
 
-That question changes the design review. It moves attention from boxes and arrows to contracts, state transitions, ownership, and recovery.
+The tool does not decide. It produces traceable questions, connects each one to evidence or missing evidence, and asks explicitly:
 
-## The production system is larger than the designed system
+- which financial or domain invariant could fail silently;
+- which dependency shares our blast radius;
+- which manual operation bypasses the nominal path;
+- which signal would expose the issue before a customer does;
+- which recovery remains possible when the assumption is false.
 
-In a real system, the architecture includes more than the code path that successfully handles the happy case. It includes:
+A human reviewer remains accountable and may accept a bounded risk.
 
-- the queues and retry policies that absorb pressure;
-- the timeouts and connection pools that turn latency into failure;
-- the operational permissions that determine who can recover a bad state;
-- the dashboards that decide whether an incident is visible;
-- the runbooks and documents that shape the next human action;
-- the provider behaviour that is outside the team's control;
-- the historical data and migrations that the current model inherited.
+## The solution
 
-This is why a small architectural decision can acquire a much larger blast radius. A single shared in-memory system may start as a convenient cache and later become a queue, session store, and rate limiter. A single semantic definition may be reused in a dashboard, an operational alert, and a client-facing report. A single context loader may grant an agent access to data that was never intended to cross a boundary.
+We no longer try to predict every failure. We make surprises observable and recoverable:
 
-The original decision did not necessarily look unreasonable. The unknown was the set of future roles the component would accumulate.
+1. **Reduce** assumptions through explicit contracts and executable invariants.
+2. **Isolate** components and permissions to contain the blast radius.
+3. **Detect** divergence through metrics, traces, reconciliation, and domain alerts.
+4. **Recover** through idempotency, controlled replay, kill switches, rollback, or compensation.
 
-The goal is not to predict every future role. The goal is to make role expansion visible before the failure becomes systemic.
-
-## From an article to an operating habit at RockFi
-
-I shared these articles with several teams at RockFi because they gave us better language for a problem we were already experiencing. Not as two more links destined for a polite thumbs-up before disappearing into Slack, but as a way to improve how we prepare, execute, and review work.
-
-The useful change is to make unknown discovery part of the delivery loop:
-
-- **Before implementation:** ask what the brief assumes, which parts of the territory have not been inspected, which owners or systems could change the design, and what would invalidate the current plan.
-- **During implementation:** compare the real repository, data, APIs, and runtime behaviour with the original map. Newly discovered dependencies should update the plan instead of being quietly absorbed into the code.
-- **After implementation:** use QA, logs, metrics, reconciliation, adversarial review, and production feedback to search for behaviours outside the expected path—not only to confirm that the expected path works.
-
-AI is useful throughout this loop because it can inspect a wider surface, challenge assumptions, and generate targeted questions. It is not an oracle for unknown unknowns. It can only discover what leaves evidence in the territory it is allowed to inspect.
-
-This has pushed us toward more explicit definitions of done, stronger QA passes, better feedback loops, and processes that preserve newly discovered constraints instead of letting them return as somebody else's production incident six months later.
-
-## A design response: reduce, isolate, detect, recover
-
-There is no universal checklist for unknown unknowns, but four design moves are consistently useful.
-
-### Reduce
-
-Reduce the number of assumptions required for a change to be safe.
-
-Prefer explicit contracts over convention. Prefer a typed boundary over a shared object whose meaning changes by caller. Prefer an idempotent operation over an operation that depends on exactly-once delivery. Prefer a small, reversible migration over a single step that changes storage, code, and consumers at once.
-
-Reduction is not about making the system simple in the abstract. It is about reducing the number of hidden conditions that must remain true at the same time.
-
-### Isolate
-
-Separate failure domains when the consequences are different.
-
-Caching, authentication, and job execution may all use the same infrastructure technology, but they do not have the same data lifecycle or availability requirement. Exploration and certified analytics may read the same warehouse, but they should not share the same trust label. An agent that drafts a recommendation should not automatically have the authority to publish it.
-
-Isolation limits the blast radius when a previously invisible interaction becomes visible.
-
-### Detect
-
-Add signals for the assumptions you cannot prove statically.
-
-Useful signals include queue age, retry counts, deduplication ratios, freshness lag, rejected contract versions, permission denials, saturation, and reconciliation differences. A metric is valuable when it tells the team which assumption is no longer holding.
-
-“The service is up” is rarely enough. The important question is whether the business invariant is still true.
-
-### Recover
-
-Design the failure path before the failure exists.
-
-Recovery may mean replaying an event, rebuilding a projection, rolling back a feature flag, revoking a credential, quarantining a record, or asking a human to decide. The right mechanism depends on the domain, but the invariant is the same: discovery must not require an irreversible guess.
-
-<figure className="post-visual">
+<figure className="article-figure">
   <img
     src={unknownUnknownsDiagram}
-    alt="Architecture learning loop from a decision and implicit assumptions through real interaction, failure, evidence, and a revised contract."
+    alt="A design loop that exposes assumptions, searches for blind spots, bounds impact, and prepares recovery."
+    loading="lazy"
   />
-  <figcaption>
-    Unexpected behaviour becomes useful when it produces observable evidence and a revised boundary.
-  </figcaption>
+  <figcaption>A useful review turns an assumption into evidence, a signal, or an explicitly accepted risk.</figcaption>
 </figure>
 
-## Reversibility is an architectural control
+The exit question is simple: if this assumption becomes false tomorrow, will we see it, limit the impact, and return to a safe state?
 
-Teams often discuss reversibility as a delivery concern: can we roll back the deploy? It is also a way to manage unknowns.
+## Limits
 
-A reversible decision keeps the cost of being wrong bounded. Feature flags, additive schema changes, shadow reads, dual writes with reconciliation, versioned events, and staged rollouts all create opportunities to learn before the final commitment.
+This method does not turn the unknown into the known. It can create noise, reward excessive caution, and delay reversible decisions. Effort must remain proportional to blast radius: more evidence for a financial calculation or irreversible migration, less for an isolated experiment that is easy to undo.
 
-Not every decision should be made reversible. Financial records, audit evidence, and security actions may require immutability rather than rollback. In those cases, the surrounding workflow needs stronger validation and a compensating process rather than an attempt to erase history.
+An adversarial review can also inherit the blind spots of its sources. Incidents, operator feedback, and production evidence remain irreplaceable. The goal is not certainty; it is bounded, observable, owned uncertainty.
 
-The distinction matters. “We can roll it back” is not a valid safety argument if the system has already emitted irreversible side effects.
-
-## What failure teaches that design cannot
-
-Some unknowns can only be discovered through operation. The response should be to turn the discovery into an asset instead of treating the incident as an isolated surprise.
-
-After an incident or unexpected behaviour, capture at least four things:
-
-1. Which assumption failed?
-2. Where should that assumption have been visible?
-3. Which boundary allowed the impact to spread?
-4. What evidence would have shortened detection or recovery?
-
-This is more useful than simply recording the final fix. A fix that changes one timeout may close one path while leaving the class of failure untouched. A better outcome is a new invariant, signal, contract, or ownership rule that prevents the same blind spot from returning in a different form.
-
-The Redis memory incident described in the existing post-mortem is a good example of this distinction. The immediate issue was memory exhaustion. The architectural lesson was that unrelated lifecycles had been allowed to share one failure domain. The durable response was isolation, lifecycle discipline, and monitoring—not merely a larger instance.
-
-## A review checklist for unknown unknowns
-
-Before committing to an architecture, ask:
-
-- Which assumptions are required for the happy path to remain safe?
-- Which behaviour is controlled by a provider, proxy, queue, clock, or operator?
-- What happens when requests are duplicated, delayed, reordered, or partially applied?
-- Which component can silently accumulate another responsibility?
-- Which business invariant should we monitor instead of only monitoring availability?
-- What is reversible, and what creates irreversible side effects?
-- Can we isolate the failure domain before we understand every failure mode?
-- What is the smallest experiment that could expose a dangerous assumption?
-- Who owns detection, decision, and recovery?
-
-The checklist does not make the unknown known in advance. It makes the system better at learning.
-
-It should also remain a design review, not become a three-hour philosophical investigation into whether the database itself truly exists. Proportionality still applies.
-
-## Limits of the model
-
-Unknown unknowns are not an excuse for endless analysis. A team that treats every possibility as equally important will never ship. The correct response is proportionality: identify the assumptions with the largest blast radius, make those observable, and accept bounded uncertainty elsewhere.
-
-Nor is observability a substitute for good design. A perfectly monitored shared failure domain is still a shared failure domain. Signals reduce detection time; they do not remove coupling.
-
-Finally, not every production surprise is an architectural failure. Requirements change, vendors fail, and humans make mistakes. The test is whether the system made the surprise unnecessarily expensive and whether the organization learned something reusable from it.
-
-## The point is not prediction
-
-Architecture is often described as the art of deciding before implementation. In production systems, it is also the art of creating the conditions for correction after implementation.
-
-You will not enumerate every interaction. You will not know every future consumer. You will not predict every provider behaviour or operator action. You can still design boundaries, contracts, signals, and recovery paths that keep new information from becoming a catastrophe.
-
-The strongest architecture is not the one that claims to know everything. It is the one that makes not knowing survivable.
-
-## Series navigation
-
-- Part 1 (current) — Unknown Unknowns in Software Architecture.
-- Part 2 — [Building Self-Service Analytics That Doesn't Lie](../posts/self-service-analytics-that-doesnt-lie).
-- Part 3 — [Context Engineering Beyond Prompt Engineering](../posts/context-engineering-beyond-prompt-engineering).
-- Part 4 — [Why Most Engineering Documents Age Poorly](../posts/engineering-documents-age-poorly).
-
-Related reading: [The Day Redis Reached its Limits](../posts/redis-memory-exhaustion-post-mortem), [Why We Chose Server-Sent Events](../posts/architecture-sse-agent-communication), and [Idempotency and Debounce in BullMQ](../posts/idempotency-debounce-jobify-bullmq).
-
-Original inspiration: [Rumsfeld’s Logic of Known Knowns, Known Unknowns and Unknown Unknowns](https://medium.com/paul-austin-murphys-essays-on-philosophy/rumsfelds-logic-of-known-knowns-known-unknowns-and-unknown-unknowns-f506db31ac74) and [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386).
+Next in the series: [Building Self-Service Analytics That Does Not Lie](../posts/self-service-analytics-that-doesnt-lie).

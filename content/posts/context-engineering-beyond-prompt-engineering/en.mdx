@@ -1,197 +1,87 @@
 ---
-title: "Context Engineering Beyond Prompt Engineering"
-subtitle: "A reliable AI system does not just receive instructions. It receives an authorized, current, and testable operating state."
-summary: "Why prompt quality is only one part of AI reliability, and how context selection, permissions, freshness, provenance, and validation shape agent behaviour."
+title: "Context Engineering: Beyond Prompt Engineering"
+subtitle: "A reliable agent depends less on magic wording than on selected, fresh, authorised state."
+summary: "Design context as an interface: provenance, freshness, permissions, priorities, and validation."
 visualId: "context-engineering-beyond-prompt-engineering"
 publishedAt: "2026-08-24"
-readTimeMinutes: 15
+readTimeMinutes: 7
 tags:
   - ai
-  - context-engineering
+  - engineering
+  - architecture
+  - security
   - developer-tools
-  - agents
-  - reliability
-  - reflection
 seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 3
 ---
 
-import contextEngineeringDiagram from "../../../src/assets/images/posts/context-engineering-en.svg";
+import contextDiagram from "../../../src/assets/images/posts/context-engineering-en.svg";
 
-Prompt engineering became popular because it made a new interface feel controllable. Change the instruction, change the output. Add a role, an example, or a constraint. Ask the model to think step by step. The techniques are useful, but they describe only one layer of the problem.
+## Context
 
-A prompt is an instruction. Context is the operating state from which the system produces an answer.
+Prompt engineering optimises an instruction. Context engineering designs everything that lets an agent interpret that instruction: repository state, product decisions, team conventions, permissions, relevant history, and runtime signals.
 
-That state may include the task, the relevant code, previous decisions, tool results, permissions, user identity, time-sensitive data, memory, output constraints, and evidence from earlier attempts. It may also include irrelevant or contradictory material. The system's reliability depends on what enters the context, what is excluded, how the information is ordered, and whether the result can be checked.
-
-The engineering problem is therefore not “How do I write the perfect prompt?” It is “How do I construct the smallest sufficient context for this decision, under the right authority, with evidence that it is still valid?”
-
-This is the shift I keep seeing in real engineering work. Once code generation becomes cheap, the difficult part is no longer persuading the model to produce syntax. It is stopping the model from using the wrong repository convention, the superseded decision, or the configuration file that looks important only because it has an aggressively confident name.
-
-## A prompt cannot compensate for missing state (it will still try)
+As agents gain access to code, Notion, GitHub, and internal data, context becomes an interface between systems. It deserves API-level discipline: a contract, provenance, access control, freshness, and defined behaviour when data is absent.
 
 <ArticleDiagram visualId="context-engineering-beyond-prompt-engineering" />
 
-Imagine asking an agent to fix a repository issue with a precise instruction but no access to the failing test, the relevant module, the runtime configuration, or the project's conventions. The prompt can be excellent. The agent is still operating without the state required to act safely.
+## The problem
 
-The opposite failure is equally common: provide the entire repository, every historical document, all previous conversations, and broad tool access. The agent now has more material but not necessarily more understanding. Important constraints are buried. Old decisions look current. Sensitive data crosses a boundary. Contradictions are resolved by guesswork.
+An agent does not naturally distinguish a current decision from an old proposal, a fact from an assumption, or read access from authority to act. It produces the most coherent answer from what it receives.
 
-It may now have 80,000 tokens of context and the confidence of someone who read the wrong README very carefully.
+Missing context forces a guess. Stale context produces an answer for the previous system. Excess context buries important constraints. Broad context also increases the blast radius of an error or hostile instruction.
 
-More context is not automatically better context.
+## Bad ideas
 
-## The context stack
+- Add “be rigorous” to a prompt backed by incomplete sources.
+- Load the entire repository and history “just in case”.
+- Hide critical instructions in a long document without explicit priority.
+- Confuse technical capability with domain authorisation.
+- Evaluate only the final answer without checking which sources produced it.
 
-A useful context model has several layers:
+More context is not necessarily better context. It is a larger interpretation surface.
 
-| Layer | Function | Typical failure |
-| --- | --- | --- |
-| Task | States the desired outcome and stopping condition | Vague goal or missing scope |
-| Domain | Explains terms, invariants, and business constraints | Technically correct but wrong result |
-| System | Provides code, schemas, configuration, and dependencies | Wrong version or incomplete path |
-| History | Supplies decisions, incidents, and prior attempts | Stale context treated as current |
-| Tools | Allows reads, tests, changes, or external actions | Authority exceeds the task |
-| Evidence | Shows whether the result works | Assertion mistaken for proof |
+## What did not work
 
-These layers interact. A task may require a production-safe change, but the available tool permission may allow only a local test. A code file may look correct, but a historical migration may reveal an invariant that the file does not state. A tool result may be accurate but stale by the time the agent acts.
+Monolithic instruction files quickly accumulated contradictory and stale rules. Agents applied them inconsistently depending on ordering and task.
 
-Context engineering is the discipline of making these relationships explicit.
+Similarity-only retrieval sometimes selected a lexically close but obsolete document while missing a recent decision written in different language.
 
-## Selection is a security and reliability decision
+Giving an agent every tool from the start made demos easier but audits harder: we could no longer tell which access the workflow actually required.
 
-Context selection is often described as a relevance problem: retrieve the documents most related to the question. In production, it is also an authorization problem.
+## Alternatives
 
-The relevant document is not necessarily a permitted document. A user may be allowed to ask for a summary without being allowed to expose the source records. An agent may need a schema but not the values stored in the table. A reviewer may need the diff and tests but not a production credential.
+Context can be **pushed** at startup, **retrieved** on demand, or **produced** by a previous step. Each has a cost: push guarantees a baseline but consumes budget; retrieval reduces volume but depends on search quality; production preserves continuity but can propagate an error.
 
-The selection pipeline should therefore answer two independent questions:
+The right combination depends on the task. A PR review needs the current diff and review conventions. An incident investigation needs a timeline, logs, and deployment state. One generic bundle serves both badly.
 
-1. Is this information useful for the task?
-2. Is this information allowed to enter this execution context?
+## The solution
 
-If the second question is implicit, the system is relying on the model to infer a security boundary. That is not a safe architecture.
+We treat context as an ordered stack:
 
-## Freshness is part of meaning
+1. **Authority**: user intent and action boundaries.
+2. **Current state**: the branch, diff, schema, or document actually in force.
+3. **Contracts**: domain invariants, conventions, and completion criteria.
+4. **Relevant history**: decisions and failures that explain current state.
+5. **Evidence**: tests, metrics, logs, and sources used to verify output.
 
-Context can be accurate and still be wrong for the current decision because it is old.
-
-A document describing a service's ownership may have been correct six months ago. A cached API response may no longer represent the provider's current state. A previous agent attempt may have modified the repository. A memory entry may be useful history but not a current instruction.
-
-Every context source needs an appropriate freshness policy:
-
-- immutable history can be retained as evidence;
-- architectural decisions should carry a status and review date;
-- operational state should be fetched close to execution;
-- generated summaries should point to their source and generation time;
-- credentials and permissions should be evaluated at action time.
-
-“Retrieved” is not the same as “current.”
-
-## Ordering shapes interpretation
-
-When context contains conflicting material, the order in which it is presented affects what the model treats as authoritative. This is not an argument for hiding ambiguity. It is an argument for representing authority explicitly.
-
-Put current task constraints where the runtime can distinguish them from historical examples. Label decisions, hypotheses, observations, and instructions differently. Preserve the source and timestamp of retrieved information. When two sources conflict, surface the conflict instead of concatenating both and hoping the model chooses correctly.
-
-The system should make it easy for a human reviewer to answer: which input caused this action?
-
-## Context budgets require prioritisation (everything is not a strategy)
-
-Context windows are finite, even when the interface makes them feel large. When the available state exceeds the budget, something will be truncated, summarised, or omitted.
-
-That policy must be designed rather than left to an arbitrary limit. A safe prioritisation order may be:
-
-1. hard constraints and authorization;
-2. the current task and success criteria;
-3. relevant interfaces and invariants;
-4. current observations and tool results;
-5. recent decisions and known failure modes;
-6. background explanation and historical detail.
-
-The exact order varies by domain. The important invariant is that a summary must not silently remove the condition that makes an action safe.
-
-Compression also needs provenance. A short summary is not equivalent to the source unless the system can recover the source or prove that the omitted detail is irrelevant to the decision.
-
-<figure className="post-visual">
+<figure className="article-figure">
   <img
-    src={contextEngineeringDiagram}
-    alt="Context engineering flow from task constraints through relevance, authorization, freshness, and provenance checks to agent action and evidence."
+    src={contextDiagram}
+    alt="A context stack combining state, permissions, freshness, provenance, and validation."
+    loading="lazy"
   />
-  <figcaption>
-    Reliable agent execution depends on context that is relevant, authorized, fresh, and testable.
-  </figcaption>
+  <figcaption>Every item must justify its presence, authority, and validity period.</figcaption>
 </figure>
 
-## Useful, ambiguous, and dangerous context
+Each source carries ownership or provenance, a validity period, and a scope. Tools are granted with least privilege when needed. If a critical source is missing or contradictory, the agent stops and exposes the ambiguity.
 
-Not all context failures look the same.
+Evaluation also tests perturbations: what happens with a stale rule, two conflicting sources, or an unauthorised document? A good answer obtained from the wrong context remains a fragile system.
 
-**Useful context** is relevant, current enough for the task, within scope, and linked to an observable fact. It reduces uncertainty.
+## Limits
 
-**Ambiguous context** contains multiple interpretations, stale decisions, or missing ownership. It should trigger a question, an explicit assumption, or a human gate.
+Context engineering cannot repair a bad objective, a false source, or a model that cannot reason about the domain. It also adds a platform to maintain: indexing, permissions, invalidation, and observability.
 
-**Dangerous context** grants authority beyond the task, includes sensitive data unnecessarily, or encourages an irreversible action without evidence. It should be blocked or quarantined by the runtime.
+Formalising everything would be a mistake. A short task may need only a prompt and one file. The discipline pays off when a workflow repeats, crosses systems, or can trigger a material action.
 
-The model should not be the only component deciding which category applies. Policy belongs in the surrounding system: tool permissions, retrieval filters, redaction, task scopes, and approval states.
-
-“The model will probably understand” is not a policy. It is a sentence that tends to age badly once production data and write permissions enter the conversation.
-
-## Agents turn context into a control loop
-
-An agent is not reliable because it can produce a good answer once. It is reliable when its loop is bounded:
-
-- it observes a defined state;
-- it receives only the context and authority required;
-- it takes an action with a measurable effect;
-- it checks evidence against a completion condition;
-- it stops, retries within policy, or escalates.
-
-This is where context engineering meets software architecture. The agent needs idempotency, timeouts, bounded retries, audit logs, and clear ownership just like any other distributed workflow. A prompt can explain the desired behavior, but it cannot enforce the runtime contract by itself.
-
-The same applies to human gates. “Ask for approval” is not a reliable control if the approval request omits the diff, the affected resources, the tests, and the action's reversibility. The gate must receive enough context to make a decision without reconstructing the entire task.
-
-## Evaluation must test context, not only answers
-
-Most AI evaluations focus on the final text. That misses failures in retrieval and authority.
-
-Useful evaluations should ask:
-
-- Did the system retrieve the required source?
-- Did it exclude data outside the task's permission scope?
-- Did it use the current version rather than a stale document?
-- Did it identify contradictory evidence?
-- Did it stop when the context was insufficient?
-- Did it cite or preserve the source of a consequential claim?
-- Did it execute only the tools allowed by the task?
-
-An agent that answers correctly for the wrong reason is not reliable. A system that declines safely when the context is incomplete may be more valuable than one that always produces a plausible response.
-
-## Context is an interface between systems and people
-
-The context supplied to an agent is also the context supplied to the next human reviewer. If the system cannot explain which facts, constraints, and permissions shaped the output, the review becomes a second attempt to reconstruct the task.
-
-That is why context should be treated as an observable artifact. Record the selected sources, versions, tool calls, policy decisions, and evidence. The level of detail should reflect risk, but a consequential action should never be a black box simply because the model produced it fluently.
-
-## Limits of context engineering
-
-Good context cannot repair a missing business decision. It cannot make an unreliable source authoritative. It cannot remove the need for a domain expert when the consequence of error is high.
-
-There is also a real cost to assembling and storing context: latency, token usage, retrieval complexity, privacy exposure, and operational debugging. The answer is not to include everything. It is to define the minimum sufficient state for each class of task and measure whether that state produces reliable outcomes.
-
-Finally, context does not eliminate model uncertainty. It changes the conditions under which uncertainty is detected and managed.
-
-## Beyond the prompt
-
-Prompt engineering remains useful. Clear instructions, examples, and output formats improve a system. They are just not the system.
-
-The production question is broader: what should the agent know, what is it allowed to know, how current is that knowledge, what can it do, how will we know it worked, and what happens when the answer is not supported by the available evidence?
-
-Those are context engineering questions. They are also architecture questions.
-
-## Series navigation
-
-- Part 1 — [Unknown Unknowns in Software Architecture](../posts/unknown-unknowns-software-architecture).
-- Part 2 — [Building Self-Service Analytics That Doesn't Lie](../posts/self-service-analytics-that-doesnt-lie).
-- Part 3 (current) — Context Engineering Beyond Prompt Engineering.
-- Part 4 — [Why Most Engineering Documents Age Poorly](../posts/engineering-documents-age-poorly).
-
-Related reading: [AI at RockFi](../posts/ai-human-judgment-rockfi), [Engineering in 2026](../posts/engineering-2026-ai-redefined-our-job), and [Claude Code and the Product OS](../posts/claude-code-product-os).
+Next in the series: [Why Most Engineering Documents Age Poorly](../posts/engineering-documents-age-poorly).
