@@ -60,7 +60,7 @@ The app uses four explicit themes:
 - `mountain`
 - `rocket`
 
-Theme state is managed in `/Users/sinkneath/github/blog/src/app/providers/ThemeProvider.tsx`.
+Theme state is managed in `src/app/providers/ThemeProvider.tsx`.
 
 Behavior:
 - First visit derives initial theme from OS preference (`dark` or `light`)
@@ -68,14 +68,14 @@ Behavior:
 - Legacy values are migrated (`themeMode=system`, legacy `theme` key)
 
 ### Theme Tokens
-All visual tokens live in `/Users/sinkneath/github/blog/src/styles/tokens.css`:
+All visual tokens live in `src/styles/tokens.css`:
 - colors, surfaces, borders, shadows
 - typography tokens
 - motion tokens (durations/easing)
 - theme-specific hero/progress/switcher variables
 
 ### Motion Architecture
-Animation primitives are centralized in `/Users/sinkneath/github/blog/src/styles/animations.css`.
+Animation primitives are centralized in `src/styles/animations.css`.
 
 Key points:
 - shared keyframes and timing via tokens
@@ -83,7 +83,7 @@ Key points:
 - no duplicated motion primitives across component styles
 
 ### Hero + Background System
-Hero layering is implemented in `/Users/sinkneath/github/blog/src/shared/components/ParallaxHero.tsx` and `/Users/sinkneath/github/blog/src/styles/base.css`.
+Hero layering is implemented in `src/shared/components/ParallaxHero.tsx` and `src/styles/base.css`.
 
 Design intent:
 - `light` / `dark`: clean atmospheric depth, restrained decoration
@@ -133,7 +133,7 @@ Fallbacks:
 - `prefers-reduced-motion: reduce`: complete static poster with a visible route and arrival state
 
 ### Reading Progress Variants
-Implemented in `/Users/sinkneath/github/blog/src/features/reading/ReadingProgressBar.tsx` and `/Users/sinkneath/github/blog/src/styles/reading.css`.
+Implemented in `src/features/reading/ReadingProgressBar.tsx` and `src/styles/reading.css`.
 
 Variants:
 - `light` / `dark`: minimal clean rail + marker
@@ -143,31 +143,31 @@ Variants:
 The Rocket variant uses a single `requestAnimationFrame`-coalesced scroll driver, preserves the article's direct progress-to-position mapping, and exposes semantic `progressbar` values. Engine power rises from a restrained lift-off to a late-flight peak before settling for approach. Launch particles replay only after the reader returns to the launch point; the completed orbit moves slowly across its upper arc and accelerates around the lower arc. Reduced-motion mode suppresses the burst and keeps the completed orbital composition without time-based motion.
 
 ## UI Components Updated for Themes
-- `/Users/sinkneath/github/blog/src/shared/components/ThemeSwitcher.tsx`
+- `src/shared/components/ThemeSwitcher.tsx`
   - accessible appearance button opening a 4-option radio menu
-- `/Users/sinkneath/github/blog/src/shared/components/PostVisual.tsx`
+- `src/shared/components/PostVisual.tsx`
   - localized SVG system for card, header, and inline article diagrams
-- `/Users/sinkneath/github/blog/src/shared/components/PostHeader.tsx`
-- `/Users/sinkneath/github/blog/src/shared/components/ParallaxHero.tsx`
-- `/Users/sinkneath/github/blog/src/features/posts/PostListPage.tsx`
-- `/Users/sinkneath/github/blog/src/features/posts/PostPage.tsx`
+- `src/shared/components/PostHeader.tsx`
+- `src/shared/components/ParallaxHero.tsx`
+- `src/features/posts/PostListPage.tsx`
+- `src/features/posts/PostPage.tsx`
 
 ## Internationalization
 Locale files:
-- `/Users/sinkneath/github/blog/src/i18n/locales/en.json`
-- `/Users/sinkneath/github/blog/src/i18n/locales/fr.json`
+- `src/i18n/locales/en.json`
+- `src/i18n/locales/fr.json`
 
 Theme labels include `lightTheme`, `darkTheme`, `mountainTheme`, `rocketTheme`, and `themeSwitcher`.
 
 ## Testing Coverage
 Relevant tests for the redesign:
-- `/Users/sinkneath/github/blog/tests/integration/router-and-ux.test.tsx`
+- `tests/integration/router-and-ux.test.tsx`
   - verifies 4-theme selector and persistence across navigation
-- `/Users/sinkneath/github/blog/tests/unit/theme-provider.test.tsx`
+- `tests/unit/theme-provider.test.tsx`
   - theme initialization + migration behavior
-- `/Users/sinkneath/github/blog/tests/unit/reading-progress-bar.test.tsx`
+- `tests/unit/reading-progress-bar.test.tsx`
   - variant rendering, theme isolation, semantic progress, launch, and orbit behavior
-- `/Users/sinkneath/github/blog/tests/unit/reading-progress-state.test.ts`
+- `tests/unit/reading-progress-state.test.ts`
   - article mapping, linear Rocket travel, independent boost envelope, and completion threshold
 
 Run all tests:
