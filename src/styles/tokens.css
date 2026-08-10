@@ -55,8 +55,6 @@
   --switcher-border: rgba(172, 191, 220, 0.25);
   --switcher-indicator: linear-gradient(135deg, rgba(97, 218, 251, 0.22), rgba(139, 244, 204, 0.3));
 
-  --circuit-opacity: 0.1;
-  --circuit-filter: none;
 }
 
 [data-theme="light"] {
@@ -105,8 +103,6 @@
   --switcher-border: rgba(18, 36, 63, 0.14);
   --switcher-indicator: linear-gradient(135deg, rgba(29, 143, 225, 0.18), rgba(23, 170, 123, 0.2));
 
-  --circuit-opacity: 0.04;
-  --circuit-filter: invert(1) saturate(0.2) brightness(0.9);
 }
 
 [data-theme="dark"] {
@@ -155,8 +151,6 @@
   --switcher-border: rgba(172, 191, 220, 0.25);
   --switcher-indicator: linear-gradient(135deg, rgba(97, 218, 251, 0.22), rgba(139, 244, 204, 0.3));
 
-  --circuit-opacity: 0.08;
-  --circuit-filter: hue-rotate(3deg) saturate(1.1);
 }
 
 [data-theme="mountain"] {
@@ -205,8 +199,6 @@
   --switcher-border: rgba(184, 209, 200, 0.2);
   --switcher-indicator: linear-gradient(135deg, rgba(125, 224, 191, 0.24), rgba(240, 194, 119, 0.3));
 
-  --circuit-opacity: 0.05;
-  --circuit-filter: hue-rotate(110deg) saturate(0.65) brightness(0.9);
 }
 
 [data-theme="rocket"] {
@@ -255,8 +247,6 @@
   --switcher-border: rgba(178, 190, 223, 0.24);
   --switcher-indicator: linear-gradient(135deg, rgba(202, 120, 255, 0.28), rgba(255, 143, 94, 0.32));
 
-  --circuit-opacity: 0.08;
-  --circuit-filter: hue-rotate(280deg) saturate(1.2) brightness(1.25);
 }
 
 :root {

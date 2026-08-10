@@ -73,7 +73,6 @@ function LocaleLayout() {
   return (
     <div className="app">
       <GlobalHeader />
-      <div className="circuit-overlay" />
       <div className="view-transition">
         <Suspense fallback={<div />}>
           <Outlet />
