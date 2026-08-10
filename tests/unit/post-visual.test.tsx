@@ -43,7 +43,7 @@ const editorialSystemTextBudgets = [
   { id: "bounded-ai-loop", inlineLabels: 4 },
   { id: "ai-force-multiplier", inlineLabels: 4 },
   { id: "sse-outbound-channel", inlineLabels: 3 },
-  { id: "backend-to-data-engineer-rockfi", inlineLabels: 4 },
+  { id: "backend-to-data-engineer-rockfi", inlineLabels: 3 },
   { id: "claude-code-product-os", inlineLabels: 3 },
   { id: "trail-endurance-profile", inlineLabels: 3 },
   { id: "engineering-2026-ai-redefined-our-job", inlineLabels: 3 },
@@ -60,13 +60,13 @@ const editorialSystemTextBudgets = [
 ] as const satisfies ReadonlyArray<{ id: PostVisualId; inlineLabels: number }>;
 
 const localizedPrototypeLabels = [
-  { id: "engineering-documents-age-poorly", en: "Decision", fr: "Décision" },
+  { id: "engineering-documents-age-poorly", en: "Active reference", fr: "Référence active" },
   {
     id: "context-engineering-beyond-prompt-engineering",
     en: "State + Provenance",
     fr: "État + Provenance",
   },
-  { id: "self-service-analytics-that-doesnt-lie", en: "Contract", fr: "Contrat" },
+  { id: "self-service-analytics-that-doesnt-lie", en: "Self-service", fr: "Libre-service" },
   { id: "unknown-unknowns-software-architecture", en: "Recover", fr: "Récupérer" },
   {
     id: "the-onboarding-matrix-forest-admin",
@@ -77,7 +77,7 @@ const localizedPrototypeLabels = [
   { id: "scaling-ci-github-actions-forest-admin", en: "Artifacts", fr: "Artefacts" },
   { id: "agent-battle-2026", en: "Value", fr: "Valeur" },
   { id: "bounded-ai-loop", en: "Human gate", fr: "Gate humain" },
-  { id: "ai-force-multiplier", en: "Impact", fr: "Impact" },
+  { id: "ai-force-multiplier", en: "Verified change", fr: "Changement validé" },
   {
     id: "sse-outbound-channel",
     en: "Outbound SSE",
@@ -91,15 +91,15 @@ const localizedPrototypeLabels = [
     fr: "Sport · 15 h",
   },
   { id: "engineering-2026-ai-redefined-our-job", en: "Review", fr: "Revoir" },
-  { id: "forest-admin-activity-logs-elasticsearch", en: "Search", fr: "Recherche" },
+  { id: "forest-admin-activity-logs-elasticsearch", en: "Hybrid search", fr: "Recherche hybride" },
   {
     id: "idempotency-debounce-jobify-bullmq",
     en: "Job ID / Debounce",
     fr: "Job ID / Debounce",
   },
   { id: "jobify-workers-queues-nestjs", en: "Runner / Worker", fr: "Runner / Worker" },
-  { id: "joining-rockfi", en: "Foundations", fr: "Fondations" },
-  { id: "nodejs-stream-backpressure-history-export", en: "Backpressure", fr: "Backpressure" },
+  { id: "joining-rockfi", en: "RockFi", fr: "RockFi" },
+  { id: "nodejs-stream-backpressure-history-export", en: "Pressure upstream", fr: "Pression en amont" },
   { id: "polymagine-industry-4-eyewear-2017", en: "3D mesh", fr: "Maillage 3D" },
   { id: "postgresql-unique-nulls", en: "Collision", fr: "Collision" },
   { id: "redis-memory-exhaustion-post-mortem", en: "Memory", fr: "Mémoire" },
@@ -110,6 +110,53 @@ const localizedPrototypeLabels = [
   },
   { id: "security-authentication-idp-openid-connect", en: "SAML / OIDC", fr: "SAML / OIDC" },
 ] as const satisfies ReadonlyArray<{ id: PostVisualId; en: string; fr: string }>;
+
+const reworkedArticleMotifs = [
+  {
+    id: "engineering-documents-age-poorly",
+    slug: "engineering-documents-age-poorly",
+    motif: "document-drift-review",
+  },
+  {
+    id: "self-service-analytics-that-doesnt-lie",
+    slug: "self-service-analytics-that-doesnt-lie",
+    motif: "governed-self-service",
+  },
+  {
+    id: "trail-endurance-profile",
+    slug: "trail-saint-jacques-100k-2026",
+    motif: "saint-jacques-course-profile",
+  },
+  {
+    id: "nodejs-stream-backpressure-history-export",
+    slug: "nodejs-stream-backpressure-history-export",
+    motif: "backpressure-return",
+  },
+  {
+    id: "backend-to-data-engineer-rockfi",
+    slug: "backend-to-data-engineer-rockfi",
+    motif: "partner-medallion-foundation",
+  },
+  {
+    id: "joining-rockfi",
+    slug: "joining-rockfi",
+    motif: "new-chapter-foundation",
+  },
+  {
+    id: "ai-force-multiplier",
+    slug: "ai-force-multiplier",
+    motif: "ai-search-space",
+  },
+  {
+    id: "forest-admin-activity-logs-elasticsearch",
+    slug: "forest-admin-activity-logs-elasticsearch",
+    motif: "hybrid-log-search",
+  },
+] as const satisfies ReadonlyArray<{
+  id: PostVisualId;
+  slug: string;
+  motif: string;
+}>;
 
 function geometrySignature(container: HTMLElement) {
   return Array.from(
@@ -196,6 +243,66 @@ describe("PostVisual", () => {
       expect(container.querySelectorAll("svg text")).toHaveLength(inlineLabels);
     },
   );
+
+  it.each(reworkedArticleMotifs)(
+    "keeps the article-specific $motif motif in every $id placement",
+    ({ id, slug, motif }) => {
+      for (const variant of ["card", "header", "inline"] satisfies PostVisualVariant[]) {
+        const { container, unmount } = render(
+          <PostVisual locale="en" slug={slug} variant={variant} visualId={id} />,
+        );
+
+        expect(container.querySelector(`[data-visual-motif="${motif}"]`)).toBeTruthy();
+        unmount();
+      }
+    },
+  );
+
+  it("shows autonomous analytics behind one governed metric contract", () => {
+    const { container } = render(
+      <PostVisual
+        locale="en"
+        slug="self-service-analytics-that-doesnt-lie"
+        variant="card"
+        visualId="self-service-analytics-that-doesnt-lie"
+      />,
+    );
+
+    expect(container.querySelectorAll(".visual-editorial-analytics-chart")).toHaveLength(3);
+    expect(container.querySelector(".visual-editorial-ring .visual-editorial-check")).toBeFalsy();
+    expect(container.querySelector("[data-visual-motif='governed-self-service'] .visual-editorial-check")).toBeTruthy();
+  });
+
+  it("makes backpressure travel against the data flow", () => {
+    const { container } = render(
+      <PostVisual
+        locale="en"
+        slug="nodejs-stream-backpressure-history-export"
+        variant="card"
+        visualId="nodejs-stream-backpressure-history-export"
+      />,
+    );
+
+    expect(container.querySelectorAll(".visual-editorial-data-packet")).toHaveLength(5);
+    expect(container.querySelectorAll(".visual-editorial-pressure-return")).toHaveLength(2);
+    expect(container.querySelectorAll(".visual-editorial-buffer-slot-full")).toHaveLength(4);
+  });
+
+  it("uses the supplied Saint-Jacques course silhouette", () => {
+    const { container } = render(
+      <PostVisual
+        locale="en"
+        slug="trail-saint-jacques-100k-2026"
+        variant="card"
+        visualId="trail-endurance-profile"
+      />,
+    );
+
+    expect(container.querySelector(".visual-editorial-course-profile")).toHaveAttribute(
+      "d",
+      expect.stringMatching(/^M40 350L62 302L76 247/),
+    );
+  });
 
   it("exposes a complete animated radar motif without relying on text", () => {
     const { container } = render(

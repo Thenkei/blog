@@ -677,6 +677,10 @@
   letter-spacing: -0.018em;
 }
 
+.visual-editorial-label-hot {
+  fill: var(--visual-hot);
+}
+
 .visual-editorial-cross {
   fill: none;
   stroke: var(--visual-danger);
@@ -774,6 +778,29 @@
   stroke-dasharray: 12 10;
 }
 
+.visual-editorial-document-drift {
+  fill: none;
+  stroke: color-mix(in srgb, var(--visual-line) 34%, transparent);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 11 13;
+}
+
+.visual-editorial-document-fragment {
+  fill: color-mix(in srgb, var(--visual-line) 28%, var(--visual-surface-strong));
+  stroke: color-mix(in srgb, var(--visual-line) 38%, transparent);
+  stroke-width: 2;
+  animation: visual-node-breathe 4.8s ease-in-out infinite;
+}
+
+.visual-editorial-analytics-chart {
+  fill: none;
+  stroke: var(--visual-line-secondary);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .visual-editorial-client-boundary {
   fill: color-mix(in srgb, var(--visual-line-secondary) 5%, var(--visual-surface));
   stroke: color-mix(in srgb, var(--visual-line-secondary) 48%, var(--divider));
@@ -821,6 +848,10 @@
   animation-delay: -1.2s;
 }
 
+.visual-editorial-medallion-layer {
+  animation: visual-node-breathe 5.4s ease-in-out infinite;
+}
+
 .visual-editorial-pool {
   fill: color-mix(in srgb, var(--visual-danger) 7%, var(--visual-surface-strong));
   stroke: color-mix(in srgb, var(--visual-danger) 72%, var(--divider));
@@ -863,6 +894,81 @@
   fill: color-mix(in srgb, var(--visual-line) 8%, var(--visual-surface-strong));
   stroke: color-mix(in srgb, var(--visual-line) 62%, var(--divider));
   stroke-width: 3;
+}
+
+.visual-editorial-book-page {
+  fill: color-mix(in srgb, var(--visual-line) 5%, var(--visual-surface-strong));
+  stroke: color-mix(in srgb, var(--visual-line) 48%, var(--divider));
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.visual-editorial-book-page-current {
+  fill: color-mix(in srgb, var(--visual-hot) 9%, var(--visual-surface-strong));
+  stroke: color-mix(in srgb, var(--visual-hot) 72%, var(--divider));
+}
+
+.visual-editorial-book-spine {
+  fill: none;
+  stroke: var(--visual-hot);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.visual-editorial-data-packet {
+  fill: var(--visual-line-secondary);
+  stroke: color-mix(in srgb, var(--visual-surface-strong) 76%, var(--visual-ink));
+  stroke-width: 2;
+  animation: visual-node-breathe 3.6s ease-in-out infinite;
+}
+
+.visual-editorial-buffer-slot,
+.visual-editorial-buffer-slot-full {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 2;
+}
+
+.visual-editorial-buffer-slot {
+  fill: color-mix(in srgb, var(--visual-surface-strong) 88%, transparent);
+  stroke: color-mix(in srgb, var(--visual-line) 34%, var(--divider));
+}
+
+.visual-editorial-buffer-slot-full {
+  fill: color-mix(in srgb, var(--visual-hot) 56%, transparent);
+  stroke: var(--visual-hot);
+}
+
+.visual-editorial-pressure-return {
+  fill: none;
+  stroke: var(--visual-hot);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.visual-editorial-course-area {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 10%, var(--visual-surface-strong));
+  stroke: none;
+}
+
+.visual-editorial-course-profile {
+  fill: none;
+  stroke: var(--visual-line-secondary);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.visual-editorial-course-marker {
+  fill: none;
+  stroke: var(--visual-hot);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 7 8;
+}
+
+.visual-editorial-course-marker-danger {
+  stroke: var(--visual-danger);
 }
 
 .visual-editorial-selector {

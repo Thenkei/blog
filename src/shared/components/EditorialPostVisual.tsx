@@ -90,11 +90,19 @@ function EditorialFrame({
 
 function InlineLabels({
   labels,
+  compact = false,
 }: {
   labels: ReadonlyArray<{ x: number; text: string }>;
+  compact?: boolean;
 }) {
   return labels.map(({ x, text }) => (
-    <text key={`${x}-${text}`} x={x} y="390" textAnchor="middle" className="visual-editorial-label">
+    <text
+      key={`${x}-${text}`}
+      x={x}
+      y="390"
+      textAnchor="middle"
+      className={`visual-editorial-label${compact ? " visual-editorial-label-compact" : ""}`}
+    >
       {text}
     </text>
   ));
@@ -253,17 +261,29 @@ function BoundedAiVisual({ copy, markerId, variant }: StoryProps) {
 }
 
 function ForceMultiplierVisual({ copy, markerId, variant }: StoryProps) {
-  const pivotX = variant === "header" ? 462 : 450;
+  const arrow = `url(#${markerId}-arrow)`;
 
   if (variant === "card") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <path d="M154 292L716 184" className="visual-editorial-lever" />
-        <path d="M416 292L484 292L450 222Z" className="visual-editorial-panel-hot" />
-        <circle cx="170" cy="288" r="42" className="visual-editorial-source" />
-        {[650, 708, 766].map((x, index) => (
-          <circle key={x} cx={x} cy={196 - index * 11} r={24 + index * 5} className={index === 2 ? "visual-editorial-checkpoint" : "visual-editorial-success"} />
-        ))}
+        <g data-visual-motif="ai-search-space">
+          <circle cx="78" cy="240" r="34" className="visual-editorial-source" />
+          <rect x="154" y="78" width="458" height="324" rx="78" className="visual-editorial-cloud-boundary" />
+          <path d="M112 240H194" className="visual-editorial-flow-trace" />
+          {[{ x: 240, y: 116 }, { x: 380, y: 104 }, { x: 502, y: 154 }, { x: 258, y: 286 }, { x: 430, y: 300 }].map((candidate, index) => (
+            <g key={`${candidate.x}-${candidate.y}`} className={`visual-editorial-compute visual-editorial-compute-${(index % 4) + 1}`}>
+              <path d={`M194 240C210 240 212 ${candidate.y + 34} ${candidate.x} ${candidate.y + 34}`} className="visual-editorial-line-muted" />
+              <rect x={candidate.x} y={candidate.y} width="94" height="68" rx="20" className={index === 2 ? "visual-editorial-panel-hot" : "visual-editorial-layer-middle"} />
+              <path d={`M${candidate.x + 20} ${candidate.y + 24}H${candidate.x + 68}M${candidate.x + 20} ${candidate.y + 44}H${candidate.x + 54}`} className="visual-editorial-detail" />
+            </g>
+          ))}
+          <path d="M596 188C640 188 632 240 662 240M524 334C618 334 622 260 662 260" className="visual-editorial-flow-trace" />
+          <circle cx="692" cy="240" r="78" className="visual-editorial-ring" />
+          <circle cx="692" cy="240" r="34" className="visual-editorial-panel-hot" />
+          <path d="M670 240L686 256L716 220" className="visual-editorial-check visual-editorial-check-small" />
+          <path d="M770 240H818" className="visual-editorial-line-hot" markerEnd={arrow} />
+          <circle cx="842" cy="240" r="30" className="visual-editorial-success" />
+        </g>
       </EditorialFrame>
     );
   }
@@ -271,38 +291,58 @@ function ForceMultiplierVisual({ copy, markerId, variant }: StoryProps) {
   if (variant === "header") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        {[122, 184, 246, 308].map((y) => (
-          <circle key={y} cx="110" cy={y} r="18" className="visual-editorial-source" />
-        ))}
-        <path d="M128 122C244 122 264 240 382 240M128 184C248 184 266 240 382 240M128 246H382M128 308C248 308 266 240 382 240" className="visual-editorial-line-muted" />
-        <path d="M222 314L762 162" className="visual-editorial-lever" />
-        <path d={`M${pivotX - 42} 306H${pivotX + 42}L${pivotX} 222Z`} className="visual-editorial-panel-hot" />
-        <circle cx="764" cy="160" r="56" className="visual-editorial-success visual-editorial-node-breathe" />
-        <CheckMark x={764} y={160} scale={0.6} />
+        <g data-visual-motif="ai-search-space">
+          <circle cx="58" cy="240" r="36" className="visual-editorial-source" />
+          <rect x="132" y="54" width="488" height="372" rx="84" className="visual-editorial-cloud-boundary" />
+          <path d="M94 240H176" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          {[{ x: 214, y: 88 }, { x: 356, y: 76 }, { x: 492, y: 116 }, { x: 198, y: 296 }, { x: 352, y: 322 }, { x: 494, y: 286 }].map((candidate, index) => (
+            <g key={`${candidate.x}-${candidate.y}`} className={`visual-editorial-compute visual-editorial-compute-${(index % 4) + 1}`}>
+              <path d={`M176 240C198 240 190 ${candidate.y + 36} ${candidate.x} ${candidate.y + 36}`} className="visual-editorial-line-muted" />
+              <rect x={candidate.x} y={candidate.y} width="102" height="72" rx="22" className={index === 2 ? "visual-editorial-panel-hot" : "visual-editorial-layer-middle"} />
+              <path d={`M${candidate.x + 22} ${candidate.y + 26}H${candidate.x + 76}M${candidate.x + 22} ${candidate.y + 48}H${candidate.x + 60}`} className="visual-editorial-detail" />
+            </g>
+          ))}
+          <path d="M594 152C650 152 642 224 670 230M596 322C648 322 642 264 670 254" className="visual-editorial-flow-trace" />
+          <circle cx="710" cy="240" r="88" className="visual-editorial-ring" />
+          <circle cx="710" cy="240" r="38" className="visual-editorial-panel-hot" />
+          <path d="M686 240L704 258L738 218" className="visual-editorial-check visual-editorial-check-small" />
+          <path d="M798 240H834" className="visual-editorial-line-hot" markerEnd={arrow} />
+          <circle cx="858" cy="240" r="28" className="visual-editorial-success" />
+        </g>
       </EditorialFrame>
     );
   }
 
   return (
     <EditorialFrame markerId={markerId} variant={variant}>
-      {[132, 190, 248, 306].map((y) => (
-        <g key={y}>
-          <circle cx="82" cy={y} r="15" className="visual-editorial-source" />
-          <path d={`M97 ${y}C198 ${y} 218 224 320 224`} className="visual-editorial-line-muted" />
-        </g>
-      ))}
-      <path d="M190 310L720 150" className="visual-editorial-lever" />
-      <path d="M402 306H488L445 220Z" className="visual-editorial-panel-hot" />
-      <circle cx="738" cy="144" r="58" className="visual-editorial-success visual-editorial-node-breathe" />
-      <CheckMark x={738} y={144} scale={0.62} />
-      <path d="M445 220V112H620" className="visual-editorial-line-hot" />
-      <circle cx="620" cy="112" r="13" className="visual-editorial-checkpoint" />
-      <InlineLabels labels={[
-        { x: 82, text: copy.labels.a ?? "" },
-        { x: 445, text: copy.labels.c ?? "" },
-        { x: 620, text: copy.labels.d ?? "" },
-        { x: 738, text: copy.labels.e ?? "" },
-      ]} />
+      <g data-visual-motif="ai-search-space">
+        <circle cx="54" cy="214" r="30" className="visual-editorial-source" />
+        <rect x="118" y="74" width="458" height="280" rx="72" className="visual-editorial-cloud-boundary" />
+        <path d="M84 214H154" className="visual-editorial-flow-trace" markerEnd={arrow} />
+        {[{ x: 190, y: 104 }, { x: 322, y: 92 }, { x: 446, y: 122 }, { x: 206, y: 244 }, { x: 358, y: 260 }].map((candidate, index) => (
+          <g key={`${candidate.x}-${candidate.y}`} className={`visual-editorial-compute visual-editorial-compute-${(index % 4) + 1}`}>
+            <path d={`M154 214C176 214 170 ${candidate.y + 30} ${candidate.x} ${candidate.y + 30}`} className="visual-editorial-line-muted" />
+            <rect x={candidate.x} y={candidate.y} width="92" height="60" rx="18" className={index === 2 ? "visual-editorial-panel-hot" : "visual-editorial-layer-middle"} />
+            <path d={`M${candidate.x + 18} ${candidate.y + 22}H${candidate.x + 68}M${candidate.x + 18} ${candidate.y + 40}H${candidate.x + 52}`} className="visual-editorial-detail" />
+          </g>
+        ))}
+        <path d="M538 152C590 152 584 208 616 212M498 290C574 290 578 238 616 232" className="visual-editorial-flow-trace" />
+        <circle cx="654" cy="220" r="74" className="visual-editorial-ring" />
+        <circle cx="654" cy="220" r="32" className="visual-editorial-panel-hot" />
+        <path d="M634 220L648 234L678 200" className="visual-editorial-check visual-editorial-check-small" />
+        <path d="M728 220H790" className="visual-editorial-line-hot" markerEnd={arrow} />
+        <circle cx="824" cy="220" r="34" className="visual-editorial-success" />
+        {[
+          { x: 54, text: copy.labels.a ?? "" },
+          { x: 350, text: copy.labels.b ?? "" },
+          { x: 620, text: copy.labels.c ?? "" },
+          { x: 785, text: copy.labels.e ?? "" },
+        ].map((label) => (
+          <text key={`${label.x}-${label.text}`} x={label.x} y="388" textAnchor="middle" className="visual-editorial-label visual-editorial-label-compact">
+            {label.text}
+          </text>
+        ))}
+      </g>
     </EditorialFrame>
   );
 }
@@ -364,20 +404,34 @@ function SseChannelVisual({ copy, markerId, variant }: StoryProps) {
 
 function DataFoundationVisual({ copy, markerId, variant }: StoryProps) {
   const arrow = `url(#${markerId}-arrow)`;
-  const layerX = variant === "header" ? [560, 658, 756] : [548, 650, 752];
 
   if (variant === "card") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        {[132, 240, 348].map((y) => (
-          <circle key={y} cx="108" cy={y} r="18" className="visual-editorial-source" />
-        ))}
-        <path d="M126 132C238 132 230 240 322 240M126 240H322M126 348C238 348 230 240 322 240" className="visual-editorial-line-muted" />
-        <rect x="322" y="132" width="184" height="216" rx="54" className="visual-editorial-panel-hot" />
-        <path d="M362 286L410 190L458 286" className="visual-editorial-detail visual-editorial-orchestrator" />
-        {layerX.map((x, index) => (
-          <rect key={x} x={x} y={288 - index * 66} width="84" height={60 + index * 66} rx="22" className={index === 2 ? "visual-editorial-success" : "visual-editorial-layer-middle"} />
-        ))}
+        <g data-visual-motif="partner-medallion-foundation">
+          <circle cx="92" cy="126" r="22" className="visual-editorial-source" />
+          <rect x="70" y="208" width="48" height="48" rx="10" className="visual-editorial-layer-middle" />
+          <path d="M68 342L94 296L120 342Z" className="visual-editorial-panel-hot" />
+          <path d="M114 126C220 126 214 168 286 168M118 232C212 232 220 240 286 240M120 328C220 328 214 312 286 312" className="visual-editorial-flow-trace" />
+
+          {[{ x: 286, y: 126, width: 236 }, { x: 314, y: 204, width: 236 }, { x: 342, y: 282, width: 236 }].map((layer, index) => (
+            <g key={layer.y} className={`visual-editorial-medallion-layer visual-editorial-compute-${index + 1}`}>
+              <rect x={layer.x} y={layer.y} width={layer.width} height="62" rx="26" className={index === 0 ? "visual-editorial-layer-outer" : index === 1 ? "visual-editorial-layer-middle" : "visual-editorial-panel-hot"} />
+              {[0, 1, 2, 3].map((slot) => (
+                <circle key={slot} cx={layer.x + 42 + slot * 50} cy={layer.y + 31} r={7 + index} className="visual-editorial-checkpoint" />
+              ))}
+            </g>
+          ))}
+          <path d="M404 188V204M432 266V282" className="visual-editorial-line-hot" markerEnd={arrow} />
+          <path d="M578 313C636 313 634 240 682 240" className="visual-editorial-flow-trace" markerEnd={arrow} />
+
+          <path d="M682 174H824V338H682Z" className="visual-editorial-success" />
+          <path d="M664 174H842L812 126H694Z" className="visual-editorial-foundation" />
+          {[716, 754, 792].map((x) => (
+            <path key={x} d={`M${x} 202V304`} className="visual-editorial-detail" />
+          ))}
+          <path d="M664 338H842" className="visual-editorial-foundation" />
+        </g>
       </EditorialFrame>
     );
   }
@@ -385,50 +439,64 @@ function DataFoundationVisual({ copy, markerId, variant }: StoryProps) {
   if (variant === "header") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        {[112, 196, 280, 364].map((y, index) => (
-          <g key={y}>
-            <circle cx="86" cy={y} r={14 + index * 2} className="visual-editorial-source" />
-            <path d={`M104 ${y}C220 ${y} 230 240 320 240`} className="visual-editorial-line-muted" />
-          </g>
-        ))}
-        <rect x="320" y="104" width="190" height="272" rx="58" className="visual-editorial-panel-hot" />
-        {[{ x: 368, y: 286 }, { x: 414, y: 176 }, { x: 462, y: 274 }].map((node, index) => (
-          <g key={`${node.x}-${node.y}`}>
-            <circle cx={node.x} cy={node.y} r={index === 1 ? 18 : 12} className="visual-editorial-checkpoint" />
-          </g>
-        ))}
-        <path d="M368 286L414 176L462 274L368 286" className="visual-editorial-detail" />
-        <path d="M510 240H548" className="visual-editorial-flow-trace" />
-        {layerX.map((x, index) => (
-          <rect key={x} x={x} y={300 - index * 72} width="84" height={64 + index * 72} rx="22" className={index === 2 ? "visual-editorial-success" : "visual-editorial-layer-middle"} />
-        ))}
+        <g data-visual-motif="partner-medallion-foundation">
+          <circle cx="72" cy="104" r="22" className="visual-editorial-source" />
+          <rect x="48" y="186" width="50" height="50" rx="10" className="visual-editorial-layer-middle" />
+          <path d="M46 318L72 270L100 318Z" className="visual-editorial-panel-hot" />
+          <path d="M52 390H96L74 346Z" className="visual-editorial-success" />
+          <path d="M94 104C206 104 210 138 278 138M98 212C204 212 212 214 278 214M100 304C204 304 212 290 278 290M96 370C208 370 216 366 278 366" className="visual-editorial-flow-trace" />
+
+          {[{ x: 278, y: 94, width: 276 }, { x: 306, y: 194, width: 276 }, { x: 334, y: 294, width: 276 }].map((layer, index) => (
+            <g key={layer.y} className={`visual-editorial-medallion-layer visual-editorial-compute-${index + 1}`}>
+              <rect x={layer.x} y={layer.y} width={layer.width} height="72" rx="28" className={index === 0 ? "visual-editorial-layer-outer" : index === 1 ? "visual-editorial-layer-middle" : "visual-editorial-panel-hot"} />
+              {[0, 1, 2, 3, 4].map((slot) => (
+                <circle key={slot} cx={layer.x + 40 + slot * 48} cy={layer.y + 36} r={7 + index} className="visual-editorial-checkpoint" />
+              ))}
+            </g>
+          ))}
+          <path d="M430 166V194M458 266V294" className="visual-editorial-line-hot" markerEnd={arrow} />
+          <path d="M610 330C650 330 650 240 686 240" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          <path d="M686 156H832V354H686Z" className="visual-editorial-success" />
+          <path d="M666 156H852L820 102H698Z" className="visual-editorial-foundation" />
+          {[720, 760, 800].map((x) => (
+            <path key={x} d={`M${x} 188V320`} className="visual-editorial-detail" />
+          ))}
+          <path d="M666 354H852" className="visual-editorial-foundation" />
+        </g>
       </EditorialFrame>
     );
   }
 
   return (
     <EditorialFrame markerId={markerId} variant={variant}>
-      {[138, 208, 278].map((y, index) => (
-        <g key={y}>
-          <circle cx="74" cy={y} r={16 + index * 2} className="visual-editorial-source" />
-          <path d={`M94 ${y}C190 ${y} 198 218 282 218`} className="visual-editorial-line-muted" />
-        </g>
-      ))}
-      <rect x="282" y="116" width="190" height="204" rx="54" className="visual-editorial-panel-hot" />
-      {[{ x: 330, y: 266 }, { x: 376, y: 168 }, { x: 424, y: 254 }].map((node, index) => (
-        <circle key={`${node.x}-${node.y}`} cx={node.x} cy={node.y} r={index === 1 ? 17 : 11} className="visual-editorial-checkpoint" />
-      ))}
-      <path d="M330 266L376 168L424 254L330 266" className="visual-editorial-detail" />
-      <path d="M472 218H530" className="visual-editorial-flow-trace" markerEnd={arrow} />
-      {[530, 632, 734].map((x, index) => (
-        <rect key={x} x={x} y={290 - index * 66} width="84" height={62 + index * 66} rx="22" className={index === 2 ? "visual-editorial-success" : "visual-editorial-layer-middle"} />
-      ))}
-      <InlineLabels labels={[
-        { x: 74, text: copy.labels.a ?? "" },
-        { x: 377, text: copy.labels.b ?? "" },
-        { x: 572, text: copy.labels.c ?? "" },
-        { x: 776, text: copy.labels.d ?? "" },
-      ]} />
+      <g data-visual-motif="partner-medallion-foundation">
+        <circle cx="74" cy="126" r="20" className="visual-editorial-source" />
+        <rect x="52" y="198" width="46" height="46" rx="9" className="visual-editorial-layer-middle" />
+        <path d="M50 318L74 274L98 318Z" className="visual-editorial-panel-hot" />
+        <path d="M94 126C188 126 188 150 250 150M98 221C190 221 188 220 250 220M98 306C190 306 188 290 250 290" className="visual-editorial-flow-trace" />
+
+        {[{ x: 250, y: 112, width: 250 }, { x: 276, y: 194, width: 250 }, { x: 302, y: 276, width: 250 }].map((layer, index) => (
+          <g key={layer.y} className={`visual-editorial-medallion-layer visual-editorial-compute-${index + 1}`}>
+            <rect x={layer.x} y={layer.y} width={layer.width} height="64" rx="26" className={index === 0 ? "visual-editorial-layer-outer" : index === 1 ? "visual-editorial-layer-middle" : "visual-editorial-panel-hot"} />
+            {[0, 1, 2, 3].map((slot) => (
+              <circle key={slot} cx={layer.x + 42 + slot * 52} cy={layer.y + 32} r={7 + index} className="visual-editorial-checkpoint" />
+            ))}
+          </g>
+        ))}
+        <path d="M374 176V194M400 258V276" className="visual-editorial-line-hot" markerEnd={arrow} />
+        <path d="M552 308C608 308 606 218 652 218" className="visual-editorial-flow-trace" markerEnd={arrow} />
+        <path d="M652 154H810V326H652Z" className="visual-editorial-success" />
+        <path d="M632 154H830L798 108H664Z" className="visual-editorial-foundation" />
+        {[688, 730, 772].map((x) => (
+          <path key={x} d={`M${x} 184V294`} className="visual-editorial-detail" />
+        ))}
+        <path d="M632 326H830" className="visual-editorial-foundation" />
+        <InlineLabels labels={[
+          { x: 96, text: copy.labels.a ?? "" },
+          { x: 402, text: copy.labels.c ?? "" },
+          { x: 732, text: copy.labels.d ?? "" },
+        ]} />
+      </g>
     </EditorialFrame>
   );
 }
@@ -545,13 +613,24 @@ function ActivityLogVisual({ copy, markerId, variant }: StoryProps) {
   if (variant === "card") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <DatabaseGlyph x={216} y={154} width={150} height={168} />
-        <path d="M292 238H418" className="visual-editorial-flow-trace" />
-        <rect x="418" y="142" width="130" height="196" rx="46" className="visual-editorial-panel-hot" />
-        <path d="M548 238H642" className="visual-editorial-flow-trace" />
-        {[{ x: 674, y: 148 }, { x: 752, y: 148 }, { x: 674, y: 242 }, { x: 752, y: 242 }].map((cell, index) => (
-          <rect key={`${cell.x}-${cell.y}`} x={cell.x} y={cell.y} width="62" height="76" rx="18" className={index === 3 ? "visual-editorial-success" : "visual-editorial-layer-middle"} />
-        ))}
+        <g data-visual-motif="hybrid-log-search">
+          <DatabaseGlyph x={228} y={154} width={144} height={166} />
+          <g className="visual-editorial-search-index">
+            <rect x="620" y="128" width="174" height="214" rx="46" className="visual-editorial-layer-outer" />
+            <rect x="640" y="148" width="174" height="214" rx="46" className="visual-editorial-layer-middle" />
+            <rect x="660" y="168" width="174" height="214" rx="46" className="visual-editorial-panel-hot" />
+            {[212, 254, 296, 338].map((y, index) => (
+              <path key={y} d={`M704 ${y}H${770 + index * 6}`} className="visual-editorial-detail" />
+            ))}
+          </g>
+          <path d="M300 196C410 116 548 116 660 196" className="visual-editorial-line-hot" markerEnd={arrow} />
+          <path d="M660 316C548 396 410 396 300 316" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          {[408, 470, 532].map((x, index) => (
+            <circle key={x} cx={x} cy={154 - index * 5} r={7 + index} className="visual-editorial-checkpoint" />
+          ))}
+          <circle cx="744" cy="244" r="46" className="visual-editorial-ring" />
+          <path d="M776 276L814 314" className="visual-editorial-line-hot" />
+        </g>
       </EditorialFrame>
     );
   }
@@ -559,39 +638,63 @@ function ActivityLogVisual({ copy, markerId, variant }: StoryProps) {
   if (variant === "header") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <DatabaseGlyph x={180} y={132} width={156} height={204} />
-        <path d="M258 240H390" className="visual-editorial-flow-trace" />
-        <rect x="390" y="118" width="148" height="244" rx="50" className="visual-editorial-panel-hot" />
-        {[150, 198, 246, 294].map((y) => (
-          <path key={y} d={`M420 ${y}H508`} className="visual-editorial-detail" />
-        ))}
-        <path d="M538 240H626" className="visual-editorial-flow-trace" />
-        {[{ x: 650, y: 120 }, { x: 748, y: 120 }, { x: 650, y: 246 }, { x: 748, y: 246 }].map((cell, index) => (
-          <rect key={`${cell.x}-${cell.y}`} x={cell.x} y={cell.y} width="80" height="104" rx="22" className={index === 3 ? "visual-editorial-success" : "visual-editorial-layer-middle"} />
-        ))}
+        <g data-visual-motif="hybrid-log-search">
+          <circle cx="50" cy="240" r="26" className="visual-editorial-source" />
+          <path d="M76 240H126" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          <DatabaseGlyph x={206} y={132} width={158} height={204} />
+          <g className="visual-editorial-search-index">
+            <rect x="594" y="88" width="186" height="236" rx="50" className="visual-editorial-layer-outer" />
+            <rect x="616" y="110" width="186" height="236" rx="50" className="visual-editorial-layer-middle" />
+            <rect x="638" y="132" width="186" height="236" rx="50" className="visual-editorial-panel-hot" />
+            {[180, 228, 276, 324].map((y, index) => (
+              <path key={y} d={`M684 ${y}H${766 + index * 5}`} className="visual-editorial-detail" />
+            ))}
+          </g>
+          <path d="M286 180C396 76 538 76 638 172" className="visual-editorial-line-hot" markerEnd={arrow} />
+          <path d="M638 330C534 430 394 430 286 318" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          {[390, 456, 522].map((x, index) => (
+            <circle key={x} cx={x} cy={132 - index * 4} r={7 + index} className="visual-editorial-checkpoint" />
+          ))}
+          <circle cx="730" cy="232" r="50" className="visual-editorial-ring" />
+          <path d="M764 266L810 312" className="visual-editorial-line-hot" />
+          <path d="M286 240H844" className="visual-editorial-line-muted" />
+          <circle cx="856" cy="240" r="24" className="visual-editorial-success" />
+          <CheckMark x={856} y={240} scale={0.3} />
+        </g>
       </EditorialFrame>
     );
   }
 
   return (
     <EditorialFrame markerId={markerId} variant={variant}>
-      <DatabaseGlyph x={136} y={134} width={132} height={174} />
-      <path d="M202 220H340" className="visual-editorial-flow-trace" markerEnd={arrow} />
-      <rect x="340" y="116" width="152" height="208" rx="48" className="visual-editorial-panel-hot" />
-      {[150, 198, 246, 294].map((y) => (
-        <path key={y} d={`M374 ${y}H458`} className="visual-editorial-detail" />
-      ))}
-      <path d="M492 220H586" className="visual-editorial-flow-trace" markerEnd={arrow} />
-      {[{ x: 610, y: 110 }, { x: 714, y: 110 }, { x: 610, y: 240 }, { x: 714, y: 240 }].map((cell, index) => (
-        <rect key={`${cell.x}-${cell.y}`} x={cell.x} y={cell.y} width="84" height="102" rx="22" className={index === 3 ? "visual-editorial-success" : "visual-editorial-layer-middle"} />
-      ))}
-      <circle cx="826" cy="220" r="34" className="visual-editorial-checkpoint" />
-      <path d="M798 206L812 220L842 188" className="visual-editorial-check" />
-      <InlineLabels labels={[
-        { x: 136, text: copy.labels.a ?? "" },
-        { x: 416, text: copy.labels.c ?? "" },
-        { x: 736, text: copy.labels.e ?? "" },
-      ]} />
+      <g data-visual-motif="hybrid-log-search">
+        <circle cx="42" cy="216" r="22" className="visual-editorial-source" />
+        <path d="M64 216H100" className="visual-editorial-flow-trace" markerEnd={arrow} />
+        <DatabaseGlyph x={176} y={126} width={140} height={178} />
+        <g className="visual-editorial-search-index">
+          <rect x="516" y="104" width="174" height="198" rx="46" className="visual-editorial-layer-outer" />
+          <rect x="538" y="126" width="174" height="198" rx="46" className="visual-editorial-layer-middle" />
+          <rect x="560" y="148" width="174" height="198" rx="46" className="visual-editorial-panel-hot" />
+          {[190, 230, 270, 310].map((y, index) => (
+            <path key={y} d={`M604 ${y}H${678 + index * 4}`} className="visual-editorial-detail" />
+          ))}
+        </g>
+        <path d="M246 172C340 84 470 84 560 180" className="visual-editorial-line-hot" markerEnd={arrow} />
+        <path d="M560 314C468 398 338 398 246 306" className="visual-editorial-flow-trace" markerEnd={arrow} />
+        {[342, 404, 466].map((x, index) => (
+          <circle key={x} cx={x} cy={130 - index * 4} r={7 + index} className="visual-editorial-checkpoint" />
+        ))}
+        <circle cx="646" cy="230" r="44" className="visual-editorial-ring" />
+        <path d="M676 260L710 294" className="visual-editorial-line-hot" />
+        <path d="M246 216H794" className="visual-editorial-line-muted" markerEnd={arrow} />
+        <circle cx="824" cy="216" r="30" className="visual-editorial-success" />
+        <CheckMark x={824} y={216} scale={0.38} />
+        <InlineLabels compact labels={[
+          { x: 176, text: copy.labels.a ?? "" },
+          { x: 612, text: copy.labels.c ?? "" },
+          { x: 812, text: copy.labels.e ?? "" },
+        ]} />
+      </g>
     </EditorialFrame>
   );
 }
@@ -724,11 +827,22 @@ function JoiningRockfiVisual({ copy, markerId, variant }: StoryProps) {
   if (variant === "card") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <path d="M78 356C202 328 260 302 334 248S472 136 570 194S682 276 820 112" className="visual-editorial-journey" />
-        {[{ x: 78, y: 356 }, { x: 334, y: 248 }, { x: 570, y: 194 }, { x: 820, y: 112 }].map((point, index) => (
-          <circle key={`${point.x}-${point.y}`} cx={point.x} cy={point.y} r={index === 3 ? 20 : 11} className={index === 3 ? "visual-editorial-checkpoint" : "visual-editorial-source"} />
-        ))}
-        <path d="M690 356V214H734V172H778V130H822" className="visual-editorial-foundation" />
+        <g data-visual-motif="new-chapter-foundation">
+          <path d="M92 128C214 96 324 108 450 170V366C324 312 210 308 92 344Z" className="visual-editorial-book-page" />
+          <path d="M450 170C574 108 690 96 812 128V344C690 308 576 312 450 366Z" className="visual-editorial-book-page visual-editorial-book-page-current" />
+          <path d="M450 170V366" className="visual-editorial-book-spine" />
+          {[{ x: 166, y: 178 }, { x: 266, y: 216 }, { x: 364, y: 264 }].map((point, index) => (
+            <g key={`${point.x}-${point.y}`}>
+              {index > 0 ? <path d={`M${point.x - 100} ${point.y - 38}L${point.x} ${point.y}`} className="visual-editorial-line-muted" /> : null}
+              <circle cx={point.x} cy={point.y} r={12 + index * 2} className="visual-editorial-source" />
+            </g>
+          ))}
+          <path d="M500 300V246H558V214H616V178H674V142H742" className="visual-editorial-foundation" />
+          {[532, 590, 648, 706].map((x, index) => (
+            <rect key={x} x={x} y={276 - index * 34} width="54" height={48 + index * 34} rx="12" className={index === 3 ? "visual-editorial-panel-hot" : "visual-editorial-layer-middle"} />
+          ))}
+          <circle cx="742" cy="142" r="18" className="visual-editorial-checkpoint" />
+        </g>
       </EditorialFrame>
     );
   }
@@ -736,46 +850,90 @@ function JoiningRockfiVisual({ copy, markerId, variant }: StoryProps) {
   if (variant === "header") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <path d="M48 374C168 354 252 312 322 244S470 104 574 190S690 274 850 82" className="visual-editorial-journey" />
-        {[{ x: 48, y: 374 }, { x: 322, y: 244 }, { x: 574, y: 190 }, { x: 850, y: 82 }].map((point, index) => (
-          <circle key={`${point.x}-${point.y}`} cx={point.x} cy={point.y} r={index === 3 ? 22 : 12} className={index === 3 ? "visual-editorial-checkpoint" : "visual-editorial-source"} />
-        ))}
-        <path d="M618 388V284H674V236H730V188H786V140H842" className="visual-editorial-foundation" />
+        <g data-visual-motif="new-chapter-foundation">
+          <path d="M52 102C190 66 318 82 450 154V396C318 330 188 326 52 370Z" className="visual-editorial-book-page" />
+          <path d="M450 154C582 82 710 66 848 102V370C712 326 582 330 450 396Z" className="visual-editorial-book-page visual-editorial-book-page-current" />
+          <path d="M450 154V396" className="visual-editorial-book-spine" />
+          {[{ x: 128, y: 158 }, { x: 244, y: 206 }, { x: 364, y: 270 }].map((point, index) => (
+            <g key={`${point.x}-${point.y}`}>
+              {index > 0 ? <path d={`M${point.x - 116} ${point.y - 48}L${point.x} ${point.y}`} className="visual-editorial-line-muted" /> : null}
+              <circle cx={point.x} cy={point.y} r={13 + index * 2} className="visual-editorial-source" />
+            </g>
+          ))}
+          <path d="M494 326V276H556V234H618V190H680V146H760" className="visual-editorial-foundation" />
+          {[526, 588, 650, 712].map((x, index) => (
+            <rect key={x} x={x} y={300 - index * 42} width="58" height={54 + index * 42} rx="13" className={index === 3 ? "visual-editorial-panel-hot" : "visual-editorial-layer-middle"} />
+          ))}
+          <circle cx="760" cy="146" r="20" className="visual-editorial-checkpoint visual-editorial-node-breathe" />
+          {[{ x: 788, y: 212 }, { x: 814, y: 270 }, { x: 770, y: 318 }].map((partner) => (
+            <g key={`${partner.x}-${partner.y}`}>
+              <path d={`M760 166L${partner.x} ${partner.y}`} className="visual-editorial-line-muted" />
+              <circle cx={partner.x} cy={partner.y} r="9" className="visual-editorial-success" />
+            </g>
+          ))}
+        </g>
       </EditorialFrame>
     );
   }
 
   return (
     <EditorialFrame markerId={markerId} variant={variant}>
-      <path d="M46 340C158 326 230 290 302 228S432 112 534 184S654 270 824 92" className="visual-editorial-journey" />
-      {[{ x: 46, y: 340 }, { x: 302, y: 228 }, { x: 534, y: 184 }, { x: 824, y: 92 }].map((point, index) => (
-        <circle key={`${point.x}-${point.y}`} cx={point.x} cy={point.y} r={index === 3 ? 21 : 11} className={index === 3 ? "visual-editorial-checkpoint" : "visual-editorial-source"} />
-      ))}
-      <path d="M604 338V268H654V224H704V180H754V136H818" className="visual-editorial-foundation" />
-      <InlineLabels labels={[
-        { x: 92, text: copy.labels.a ?? "" },
-        { x: 302, text: copy.labels.b ?? "" },
-        { x: 654, text: copy.labels.c ?? "" },
-        { x: 810, text: copy.labels.e ?? "" },
-      ]} />
+      <g data-visual-motif="new-chapter-foundation">
+        <path d="M54 106C184 76 304 88 430 154V342C304 292 184 290 54 322Z" className="visual-editorial-book-page" />
+        <path d="M430 154C556 88 676 76 846 106V322C676 290 556 292 430 342Z" className="visual-editorial-book-page visual-editorial-book-page-current" />
+        <path d="M430 154V342" className="visual-editorial-book-spine" />
+        {[{ x: 124, y: 158 }, { x: 240, y: 204 }, { x: 356, y: 256 }].map((point, index) => (
+          <g key={`${point.x}-${point.y}`}>
+            {index > 0 ? <path d={`M${point.x - 116} ${point.y - 46}L${point.x} ${point.y}`} className="visual-editorial-line-muted" /> : null}
+            <circle cx={point.x} cy={point.y} r={12 + index * 2} className="visual-editorial-source" />
+          </g>
+        ))}
+        <path d="M478 296V254H536V216H594V178H652V140H730" className="visual-editorial-foundation" />
+        {[508, 566, 624, 682].map((x, index) => (
+          <rect key={x} x={x} y={276 - index * 38} width="54" height={48 + index * 38} rx="12" className={index === 3 ? "visual-editorial-panel-hot" : "visual-editorial-layer-middle"} />
+        ))}
+        <circle cx="730" cy="140" r="18" className="visual-editorial-checkpoint" />
+        {[
+          { x: 124, text: copy.labels.a ?? "" },
+          { x: 240, text: copy.labels.b ?? "" },
+          { x: 356, text: copy.labels.c ?? "" },
+          { x: 714, text: copy.labels.e ?? "" },
+        ].map((label) => (
+          <text key={`${label.x}-${label.text}`} x={label.x} y="388" textAnchor="middle" className="visual-editorial-label visual-editorial-label-compact">
+            {label.text}
+          </text>
+        ))}
+      </g>
     </EditorialFrame>
   );
 }
 
 function BackpressureVisual({ copy, markerId, variant }: StoryProps) {
   const arrow = `url(#${markerId}-arrow)`;
-  const baseY = variant === "inline" ? 218 : 240;
 
   if (variant === "card") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <rect x="72" y="146" width="152" height="188" rx="46" className="visual-editorial-layer-middle" />
-        <path d="M104 180V300M146 180V300M188 180V300" className="visual-editorial-detail" />
-        <path d="M224 206H348V178H468V206H590V180H714V206H822" className="visual-editorial-flow-trace" />
-        <path d="M224 274H348V302H468V274H590V300H714V274H822" className="visual-editorial-flow-trace" />
-        {[348, 468, 590, 714].map((x, index) => (
-          <rect key={x} x={x - 24} y={182 + index * 6} width="48" height={116 - index * 12} rx="15" className={index === 2 ? "visual-editorial-panel-hot" : "visual-editorial-layer-middle"} />
-        ))}
+        <g data-visual-motif="backpressure-return">
+          <circle cx="86" cy="196" r="34" className="visual-editorial-source" />
+          <path d="M120 196H238" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          {[148, 176, 204, 232, 260].map((x, index) => (
+            <circle key={x} cx={x} cy="196" r="8" className={`visual-editorial-data-packet visual-editorial-compute-${(index % 4) + 1}`} />
+          ))}
+          <rect x="270" y="112" width="190" height="168" rx="44" className="visual-editorial-layer-middle" />
+          {[0, 1, 2, 3, 4].map((slot) => (
+            <rect key={slot} x={298 + slot * 30} y="146" width="20" height="98" rx="10" className={slot < 4 ? "visual-editorial-buffer-slot-full" : "visual-editorial-buffer-slot"} />
+          ))}
+          <path d="M460 196H566" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          <rect x="566" y="128" width="112" height="136" rx="38" className="visual-editorial-panel-hot" />
+          <path d="M594 164H650M594 198H638M594 232H622" className="visual-editorial-detail" />
+          <path d="M678 196H744" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          <path d="M744 126H832V282H744Z" className="visual-editorial-success" />
+          <path d="M766 164H810M766 202H810M766 240H810" className="visual-editorial-detail" />
+
+          <path d="M806 326C650 382 320 382 126 326" className="visual-editorial-pressure-return" />
+          <path d="M126 326L160 304M126 326L162 344" className="visual-editorial-pressure-return" />
+        </g>
       </EditorialFrame>
     );
   }
@@ -783,34 +941,62 @@ function BackpressureVisual({ copy, markerId, variant }: StoryProps) {
   if (variant === "header") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <rect x="48" y="130" width="164" height="220" rx="48" className="visual-editorial-layer-middle" />
-        <path d="M84 170V310M130 170V310M176 170V310" className="visual-editorial-detail" />
-        <path d="M212 194H336V152H474V194H612V152H750V194H850" className="visual-editorial-flow-trace" />
-        <path d="M212 286H336V328H474V286H612V328H750V286H850" className="visual-editorial-flow-trace" />
-        {[336, 474, 612, 750].map((x, index) => (
-          <rect key={x} x={x - 28} y={164 + index * 6} width="56" height={152 - index * 12} rx="17" className={index === 2 ? "visual-editorial-panel-hot" : "visual-editorial-layer-middle"} />
-        ))}
-        <path d="M820 356C650 424 332 424 212 354" className="visual-editorial-rejected" />
+        <g data-visual-motif="backpressure-return">
+          <circle cx="58" cy="188" r="36" className="visual-editorial-source" />
+          <path d="M94 188H226" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          {[126, 158, 190, 222, 254].map((x, index) => (
+            <circle key={x} cx={x} cy="188" r="8" className={`visual-editorial-data-packet visual-editorial-compute-${(index % 4) + 1}`} />
+          ))}
+          <rect x="258" y="86" width="216" height="204" rx="50" className="visual-editorial-layer-middle" />
+          {[0, 1, 2, 3, 4, 5].map((slot) => (
+            <rect key={slot} x={288 + slot * 30} y="126" width="20" height="124" rx="10" className={slot < 5 ? "visual-editorial-buffer-slot-full" : "visual-editorial-buffer-slot"} />
+          ))}
+          <path d="M474 188H580" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          <rect x="580" y="104" width="122" height="168" rx="42" className="visual-editorial-panel-hot" />
+          <path d="M610 146H672M610 188H660M610 230H644" className="visual-editorial-detail" />
+          <path d="M702 188H766" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          <path d="M766 94H856V282H766Z" className="visual-editorial-success" />
+          <path d="M788 140H834M788 188H834M788 236H834" className="visual-editorial-detail" />
+          <path d="M824 340C654 420 286 420 102 340" className="visual-editorial-pressure-return" />
+          <path d="M102 340L138 316M102 340L140 360" className="visual-editorial-pressure-return" />
+        </g>
       </EditorialFrame>
     );
   }
 
   return (
     <EditorialFrame markerId={markerId} variant={variant}>
-      <rect x="42" y="132" width="134" height="172" rx="42" className="visual-editorial-layer-middle" />
-      <path d="M72 166V270M109 166V270M146 166V270" className="visual-editorial-detail" />
-      <path d={`M176 ${baseY - 26}H300V${baseY - 54}H430V${baseY - 26}H560V${baseY - 52}H690V${baseY - 26}H826`} className="visual-editorial-flow-trace" markerEnd={arrow} />
-      <path d={`M176 ${baseY + 26}H300V${baseY + 54}H430V${baseY + 26}H560V${baseY + 52}H690V${baseY + 26}H826`} className="visual-editorial-flow-trace" />
-      {[300, 430, 560, 690].map((x, index) => (
-        <rect key={x} x={x - 26} y={156 + index * 7} width="52" height={124 - index * 14} rx="16" className={index === 2 ? "visual-editorial-panel-hot" : "visual-editorial-layer-middle"} />
-      ))}
-      <path d="M808 330C660 382 336 382 184 324" className="visual-editorial-rejected" />
-      <InlineLabels labels={[
-        { x: 109, text: copy.labels.a ?? "" },
-        { x: 365, text: copy.labels.b ?? "" },
-        { x: 560, text: copy.labels.c ?? "" },
-        { x: 758, text: `${copy.labels.d ?? ""} / ${copy.labels.e ?? ""}` },
-      ]} />
+      <g data-visual-motif="backpressure-return">
+        <circle cx="60" cy="188" r="30" className="visual-editorial-source" />
+        <path d="M90 188H216" className="visual-editorial-flow-trace" markerEnd={arrow} />
+        {[118, 148, 178, 208].map((x, index) => (
+          <circle key={x} cx={x} cy="188" r="7" className={`visual-editorial-data-packet visual-editorial-compute-${index + 1}`} />
+        ))}
+        <rect x="226" y="104" width="212" height="168" rx="46" className="visual-editorial-layer-middle" />
+        {[0, 1, 2, 3, 4, 5].map((slot) => (
+          <rect key={slot} x={254 + slot * 28} y="138" width="18" height="100" rx="9" className={slot < 5 ? "visual-editorial-buffer-slot-full" : "visual-editorial-buffer-slot"} />
+        ))}
+        <path d="M438 188H538" className="visual-editorial-flow-trace" markerEnd={arrow} />
+        <rect x="538" y="120" width="112" height="136" rx="38" className="visual-editorial-panel-hot" />
+        <path d="M566 154H622M566 188H612M566 222H600" className="visual-editorial-detail" />
+        <path d="M650 188H726" className="visual-editorial-flow-trace" markerEnd={arrow} />
+        <path d="M726 104H818V272H726Z" className="visual-editorial-success" />
+        <path d="M748 146H796M748 188H796M748 230H796" className="visual-editorial-detail" />
+        <path d="M786 304C632 366 278 366 106 304" className="visual-editorial-pressure-return" />
+        <path d="M106 304L138 282M106 304L140 324" className="visual-editorial-pressure-return" />
+        <text x="452" y="340" textAnchor="middle" className="visual-editorial-label visual-editorial-label-hot visual-editorial-label-compact">
+          {copy.labels.c ?? ""}
+        </text>
+        {[
+          { x: 90, text: copy.labels.a ?? "" },
+          { x: 332, text: copy.labels.b ?? "" },
+          { x: 772, text: copy.labels.e ?? "" },
+        ].map((label) => (
+          <text key={`${label.x}-${label.text}`} x={label.x} y="390" textAnchor="middle" className="visual-editorial-label visual-editorial-label-compact">
+            {label.text}
+          </text>
+        ))}
+      </g>
     </EditorialFrame>
   );
 }
@@ -1114,16 +1300,21 @@ function FederatedTrustVisual({ copy, markerId, variant }: StoryProps) {
   );
 }
 
+const TRAIL_SAINT_JACQUES_PROFILE = "M40 350L62 302L76 247L92 236L105 206L122 213L138 264L150 273L170 337L182 310L199 285L214 255L223 206L234 188L244 236L251 193L262 201L285 225L295 256L312 283L334 321L353 295L363 262L374 244L388 248L403 244L415 199L441 160L470 144L486 160L504 153L525 159L547 134L573 181L603 123L627 126L640 161L654 199L676 234L696 250L714 259L741 285L755 260L768 255L783 275L796 289L807 300L815 296L834 301L849 340L860 343";
+
 function RaceJourneyVisual({ copy, markerId, variant }: StoryProps) {
   if (variant === "card") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <path d="M54 342C154 118 258 104 338 250S486 390 566 266S700 100 850 188" className="visual-editorial-elevation-profile" />
-        <path d="M54 342C154 118 258 104 338 250" className="visual-editorial-line-hot" />
-        <circle cx="54" cy="342" r="10" className="visual-editorial-source" />
-        <circle cx="566" cy="266" r="18" className="visual-editorial-checkpoint" />
-        <circle cx="830" cy="176" r="13" className="visual-editorial-success" />
-        <circle cx="850" cy="188" r="13" className="visual-editorial-success" />
+        <g data-visual-motif="saint-jacques-course-profile">
+          <path d={`${TRAIL_SAINT_JACQUES_PROFILE}L860 372H40Z`} className="visual-editorial-course-area" />
+          <path d={TRAIL_SAINT_JACQUES_PROFILE} className="visual-editorial-course-profile" />
+          <circle cx="40" cy="350" r="10" className="visual-editorial-source" />
+          <circle cx="676" cy="234" r="20" className="visual-editorial-checkpoint visual-editorial-node-breathe" />
+          <path d="M676 214V150" className="visual-editorial-course-marker" />
+          <circle cx="842" cy="328" r="13" className="visual-editorial-success" />
+          <circle cx="860" cy="343" r="13" className="visual-editorial-success" />
+        </g>
       </EditorialFrame>
     );
   }
@@ -1131,31 +1322,44 @@ function RaceJourneyVisual({ copy, markerId, variant }: StoryProps) {
   if (variant === "header") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <path d="M40 374C140 90 266 76 348 248S492 430 588 260S724 68 864 158" className="visual-editorial-elevation-profile" />
-        <path d="M40 374C140 90 266 76 348 248" className="visual-editorial-line-hot" />
-        <circle cx="40" cy="374" r="11" className="visual-editorial-source" />
-        <circle cx="588" cy="260" r="22" className="visual-editorial-checkpoint visual-editorial-node-breathe" />
-        <circle cx="842" cy="148" r="14" className="visual-editorial-success" />
-        <circle cx="864" cy="158" r="14" className="visual-editorial-success" />
+        <g data-visual-motif="saint-jacques-course-profile">
+          <path d={`${TRAIL_SAINT_JACQUES_PROFILE}L860 394H40Z`} className="visual-editorial-course-area" />
+          <path d={TRAIL_SAINT_JACQUES_PROFILE} className="visual-editorial-course-profile" />
+          <circle cx="40" cy="350" r="11" className="visual-editorial-source" />
+          <path d="M170 337V382" className="visual-editorial-course-marker visual-editorial-course-marker-danger" />
+          <circle cx="170" cy="337" r="12" className="visual-editorial-panel-hot" />
+          <circle cx="676" cy="234" r="22" className="visual-editorial-checkpoint visual-editorial-node-breathe" />
+          <path d="M676 212V112" className="visual-editorial-course-marker" />
+          <circle cx="842" cy="328" r="14" className="visual-editorial-success" />
+          <circle cx="860" cy="343" r="14" className="visual-editorial-success" />
+        </g>
       </EditorialFrame>
     );
   }
 
   return (
     <EditorialFrame markerId={markerId} variant={variant}>
-      <path d="M42 328C140 104 240 88 320 232S460 372 548 246S684 88 846 164" className="visual-editorial-elevation-profile" />
-      <path d="M42 328C140 104 240 88 320 232" className="visual-editorial-line-hot" />
-      <circle cx="42" cy="328" r="10" className="visual-editorial-source" />
-      <path d="M330 244L354 268M354 244L330 268" className="visual-editorial-cross" />
-      <circle cx="548" cy="246" r="20" className="visual-editorial-checkpoint visual-editorial-node-breathe" />
-      <circle cx="824" cy="154" r="14" className="visual-editorial-success" />
-      <circle cx="846" cy="164" r="14" className="visual-editorial-success" />
-      <InlineLabels labels={[
-        { x: 72, text: copy.labels.start ?? "" },
-        { x: 342, text: copy.labels.four ?? "" },
-        { x: 548, text: copy.labels.checkpoint ?? "" },
-        { x: 824, text: copy.labels.sport ?? "" },
-      ]} />
+      <g data-visual-motif="saint-jacques-course-profile">
+        <path d={`${TRAIL_SAINT_JACQUES_PROFILE}L860 366H40Z`} className="visual-editorial-course-area" />
+        <path d={TRAIL_SAINT_JACQUES_PROFILE} className="visual-editorial-course-profile" />
+        <circle cx="40" cy="350" r="10" className="visual-editorial-source" />
+        <path d="M170 337V366" className="visual-editorial-course-marker visual-editorial-course-marker-danger" />
+        <circle cx="170" cy="337" r="11" className="visual-editorial-panel-hot" />
+        <circle cx="676" cy="234" r="20" className="visual-editorial-checkpoint visual-editorial-node-breathe" />
+        <path d="M676 214V158" className="visual-editorial-course-marker" />
+        <circle cx="842" cy="328" r="13" className="visual-editorial-success" />
+        <circle cx="860" cy="343" r="13" className="visual-editorial-success" />
+        {[
+          { x: 82, text: copy.labels.start ?? "" },
+          { x: 262, text: copy.labels.four ?? "" },
+          { x: 650, text: copy.labels.checkpoint ?? "" },
+          { x: 814, text: copy.labels.sport ?? "" },
+        ].map((label) => (
+          <text key={`${label.x}-${label.text}`} x={label.x} y="404" textAnchor="middle" className="visual-editorial-label visual-editorial-label-compact">
+            {label.text}
+          </text>
+        ))}
+      </g>
     </EditorialFrame>
   );
 }

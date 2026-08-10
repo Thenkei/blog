@@ -100,16 +100,16 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       labels: { a: "Intention", b: "Agent", c: "Workflow", d: "Infrastructure", e: "Valeur" },
     },
     "ai-force-multiplier": {
-      title: "De l'exécution à l'orchestration",
-      description: "Le rôle de l'ingénieur évolue de l'écriture de code vers l'orchestration de systèmes et de décisions.",
-      caption: "L'accélération déplace le travail utile vers la composition, la validation et le jugement.",
-      labels: { a: "Exécuter", b: "Composer", c: "Orchestrer", d: "Valider", e: "Impact" },
+      title: "De l'intention au changement vérifié",
+      description: "Une intention produit plusieurs explorations accélérées par l'IA ; le jugement humain réduit cet espace à un changement compris et vérifié.",
+      caption: "L'IA multiplie les options. La valeur reste dans la sélection, la compréhension et la vérification humaines.",
+      labels: { a: "Intention", b: "Explorations IA", c: "Jugement", d: "Vérifier", e: "Changement validé" },
     },
     "backend-to-data-engineer-rockfi": {
-      title: "Orchestration des fondations data",
-      description: "Les sources sont transformées en modèles gouvernés puis exposées dans l'entrepôt par une orchestration explicite.",
-      caption: "Le changement de rôle relie code applicatif, orchestration et qualité des données.",
-      labels: { a: "Sources", b: "Dagster", c: "Modèles", d: "Entrepôt", e: "Décisions" },
+      title: "Transformer des flux partenaires en fondation gouvernée",
+      description: "Des formats externes hétérogènes traversent une orchestration et des couches Bronze, Silver et Gold avant d'alimenter un entrepôt gouverné.",
+      caption: "Le passage vers la data engineering commence quand des données que l'on ne contrôle pas doivent devenir un actif fiable.",
+      labels: { a: "Partenaires", b: "Orchestration", c: "Bronze · Silver · Gold", d: "Entrepôt", e: "Données fiables" },
     },
     "claude-code-product-os": {
       title: "De l'expérimentation au Product OS",
@@ -133,13 +133,13 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       title: "Cycle de vie d'un document d'ingénierie",
       description: "Une documentation utile expose sa décision, son owner, ses preuves et ses conditions d'expiration.",
       caption: "La durée de vie d'un document dépend de ses preuves et de sa maintenance explicite.",
-      labels: { a: "Décision", b: "Owner", c: "Preuves", d: "Expiration", e: "Révision" },
+      labels: { a: "Référence active", b: "Owner", c: "Preuves", d: "Trigger de revue", e: "Réviser / Archiver" },
     },
     "forest-admin-activity-logs-elasticsearch": {
-      title: "Migration hybride des logs d'activité",
-      description: "Les événements passent de PostgreSQL vers Elasticsearch pour conserver l'audit tout en améliorant la recherche à grande échelle.",
-      caption: "La migration sépare l'écriture fiable de la recherche performante.",
-      labels: { a: "PostgreSQL", b: "Ingestion", c: "Migration", d: "Elasticsearch", e: "Recherche" },
+      title: "Recherche hybride des logs d'activité",
+      description: "PostgreSQL résout le contexte relationnel, Elasticsearch recherche des milliards de logs, puis PostgreSQL enrichit le résultat.",
+      caption: "La requête reste une boucle entre deux moteurs spécialisés : relations et enrichissement d'un côté, recherche massive de l'autre.",
+      labels: { a: "Filtrer + enrichir", b: "IDs", c: "Recherche hybride", d: "Elasticsearch", e: "Résultat d'audit" },
     },
     "idempotency-debounce-jobify-bullmq": {
       title: "Contrat idempotent pour les jobs",
@@ -154,16 +154,16 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       labels: { a: "Commande", b: "Queue", c: "Runner", d: "Worker", e: "Export" },
     },
     "joining-rockfi": {
-      title: "Trajectoire vers une plateforme de wealth management",
-      description: "Une trajectoire backend converge vers une mission de structuration technique pour la gestion de fortune.",
-      caption: "La trajectoire professionnelle relie expérience, responsabilité et mission produit.",
-      labels: { a: "Backend", b: "Staff", c: "Fondations", d: "Plateforme", e: "Mission" },
+      title: "Un nouveau chapitre technique chez RockFi",
+      description: "Les chapitres R&D, production à l'échelle et leadership ouvrent sur une mission : structurer les fondations techniques de la nouvelle gestion privée.",
+      caption: "RockFi n'est pas seulement l'étape suivante d'une carrière ; c'est le chapitre où l'expérience devient une fondation produit.",
+      labels: { a: "R&D", b: "Échelle", c: "Leadership", d: "Fondations", e: "RockFi" },
     },
     "nodejs-stream-backpressure-history-export": {
       title: "Export résilient sous contrainte de mémoire",
-      description: "Les données traversent des stages de stream avec backpressure, concurrence bornée et multipart S3.",
-      caption: "La pression est propagée jusqu'à la destination pour éviter l'explosion mémoire.",
-      labels: { a: "Historique", b: "Transform", c: "Backpressure", d: "Multipart", e: "S3" },
+      description: "Quand le sink S3 ralentit, les buffers bornés cessent d'accepter des données et propagent la pression jusqu'au producteur Elasticsearch.",
+      caption: "Le flux avance vers S3 ; la capacité disponible se propage dans le sens inverse pour maintenir une mémoire bornée.",
+      labels: { a: "Producteur ES", b: "Buffers bornés", c: "Pression en amont", d: "Sink lent", e: "S3 multipart" },
     },
     "polymagine-industry-4-eyewear-2017": {
       title: "Chaîne de fitting augmenté",
@@ -226,10 +226,10 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       labels: { a: "Agent", b: "SP", c: "IdP", d: "SAML / OIDC", e: "Accès" },
     },
     "self-service-analytics-that-doesnt-lie": {
-      title: "Chaîne de confiance analytique",
-      description: "Les données sources passent par des marts gouvernés et des contrats de métriques avant d'atteindre les consommateurs.",
-      caption: "Un dashboard fiable dépend d'un contrat explicite pour chaque chiffre.",
-      labels: { a: "Sources", b: "Marts", c: "Contrat", d: "Dashboard", e: "Décision" },
+      title: "Analytics en libre-service sous contrat",
+      description: "Plusieurs utilisateurs explorent et publient de façon autonome tout en partageant les mêmes modèles gouvernés, définitions de métriques et preuves.",
+      caption: "Le libre-service commence après la modélisation : chacun peut explorer, mais aucun chiffre ne perd sa définition ni sa provenance.",
+      labels: { a: "Données gouvernées", b: "Modèles", c: "Contrat métrique", d: "Explorer", e: "Libre-service" },
     },
     "the-onboarding-matrix-forest-admin": {
       title: "De la matrice aux factories composables",
@@ -316,16 +316,16 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       labels: { a: "Intent", b: "Agent", c: "Workflow", d: "Infrastructure", e: "Value" },
     },
     "ai-force-multiplier": {
-      title: "From execution to orchestration",
-      description: "Engineering work moves from writing code toward orchestrating systems and decisions.",
-      caption: "Acceleration shifts useful work toward composition, validation, and judgment.",
-      labels: { a: "Execute", b: "Compose", c: "Orchestrate", d: "Validate", e: "Impact" },
+      title: "From intent to a verified change",
+      description: "One intent produces several AI-accelerated explorations; human judgment reduces that search space to a change that is understood and verified.",
+      caption: "AI multiplies options. Value remains in human selection, understanding, and verification.",
+      labels: { a: "Intent", b: "AI explorations", c: "Judgment", d: "Verify", e: "Verified change" },
     },
     "backend-to-data-engineer-rockfi": {
-      title: "Orchestrating data foundations",
-      description: "Sources become governed models and are exposed through the warehouse by explicit orchestration.",
-      caption: "The role change connects application code, orchestration, and data quality.",
-      labels: { a: "Sources", b: "Dagster", c: "Models", d: "Warehouse", e: "Decisions" },
+      title: "Turning partner feeds into a governed foundation",
+      description: "Heterogeneous external formats cross orchestration and Bronze, Silver, and Gold layers before reaching a governed warehouse.",
+      caption: "The shift into data engineering starts when data you do not control must become a reliable company asset.",
+      labels: { a: "Partners", b: "Orchestration", c: "Bronze · Silver · Gold", d: "Warehouse", e: "Trusted data" },
     },
     "claude-code-product-os": {
       title: "From experimentation to a Product OS",
@@ -349,13 +349,13 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       title: "Engineering document lifecycle",
       description: "Useful documentation exposes its decision, owner, evidence, and expiration conditions.",
       caption: "A document's lifetime depends on explicit evidence and maintenance.",
-      labels: { a: "Decision", b: "Owner", c: "Evidence", d: "Expiry", e: "Revise" },
+      labels: { a: "Active reference", b: "Owner", c: "Evidence", d: "Review trigger", e: "Revise / Archive" },
     },
     "forest-admin-activity-logs-elasticsearch": {
-      title: "Hybrid activity-log migration",
-      description: "Events move from PostgreSQL to Elasticsearch to preserve auditability while improving large-scale search.",
-      caption: "The migration separates reliable writes from performant search.",
-      labels: { a: "PostgreSQL", b: "Ingest", c: "Migrate", d: "Elasticsearch", e: "Search" },
+      title: "Hybrid activity-log search",
+      description: "PostgreSQL resolves relational context, Elasticsearch searches billions of logs, then PostgreSQL enriches the result.",
+      caption: "Each query remains a loop between two specialized engines: relations and enrichment on one side, massive search on the other.",
+      labels: { a: "Filter + enrich", b: "IDs", c: "Hybrid search", d: "Elasticsearch", e: "Audit result" },
     },
     "idempotency-debounce-jobify-bullmq": {
       title: "Idempotent job contract",
@@ -370,16 +370,16 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       labels: { a: "Command", b: "Queue", c: "Runner", d: "Worker", e: "Export" },
     },
     "joining-rockfi": {
-      title: "Trajectory toward wealth-management infrastructure",
-      description: "A backend career path converges on a mission to structure technology for private wealth management.",
-      caption: "The professional trajectory connects experience, responsibility, and product mission.",
-      labels: { a: "Backend", b: "Staff", c: "Foundations", d: "Platform", e: "Mission" },
+      title: "A new technical chapter at RockFi",
+      description: "Chapters in R&D, production at scale, and leadership open onto a mission: structure the technical foundation for modern private wealth management.",
+      caption: "RockFi is not only the next career step; it is the chapter where accumulated experience becomes a product foundation.",
+      labels: { a: "R&D", b: "Scale", c: "Leadership", d: "Foundations", e: "RockFi" },
     },
     "nodejs-stream-backpressure-history-export": {
       title: "Resilient export under memory constraints",
-      description: "Data crosses stream stages with backpressure, bounded concurrency, and S3 multipart output.",
-      caption: "Pressure propagates to the destination to prevent memory exhaustion.",
-      labels: { a: "History", b: "Transform", c: "Backpressure", d: "Multipart", e: "S3" },
+      description: "When the S3 sink slows down, bounded buffers stop accepting data and propagate pressure back to the Elasticsearch producer.",
+      caption: "Data flows toward S3; available capacity propagates in the opposite direction to keep memory bounded.",
+      labels: { a: "ES producer", b: "Bounded buffers", c: "Pressure upstream", d: "Slow sink", e: "S3 multipart" },
     },
     "polymagine-industry-4-eyewear-2017": {
       title: "Augmented fitting pipeline",
@@ -442,10 +442,10 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       labels: { a: "Agent", b: "SP", c: "IdP", d: "SAML / OIDC", e: "Access" },
     },
     "self-service-analytics-that-doesnt-lie": {
-      title: "Analytical trust chain",
-      description: "Source data passes through governed marts and metric contracts before reaching consumers.",
-      caption: "A trustworthy dashboard depends on an explicit contract for every number.",
-      labels: { a: "Sources", b: "Marts", c: "Contract", d: "Dashboard", e: "Decision" },
+      title: "Self-service analytics under contract",
+      description: "Several users explore and publish autonomously while sharing the same governed models, metric definitions, and evidence.",
+      caption: "Self-service starts after modeling: everyone can explore, but no number loses its definition or provenance.",
+      labels: { a: "Governed data", b: "Models", c: "Metric contract", d: "Explore", e: "Self-service" },
     },
     "the-onboarding-matrix-forest-admin": {
       title: "From matrix to composable factories",
@@ -620,14 +620,19 @@ function EngineeringDocumentsVisual({
   if (variant === "card") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <path d="M238 84H486L610 208V390H238Z" className="visual-editorial-panel" />
-        <path d="M486 84V208H610" className="visual-editorial-fold" />
-        <path d="M300 250H474M300 302H430" className="visual-editorial-detail" />
-        <path
-          d="M628 126C732 150 770 252 716 332C688 374 644 396 596 396"
-          className="visual-editorial-line-hot"
-        />
-        <circle cx="700" cy="172" r="18" className="visual-editorial-checkpoint" />
+        <g data-visual-motif="document-drift-review">
+          <path d="M126 92H396L484 180V366H126Z" className="visual-editorial-panel" />
+          <path d="M396 92V180H484" className="visual-editorial-fold" />
+          <path d="M178 224H376M178 274H334M178 324H294" className="visual-editorial-detail" />
+          <path d="M452 214H506M444 252H530M430 290H498M410 328H476" className="visual-editorial-document-drift" />
+          {[{ x: 520, y: 186 }, { x: 548, y: 230 }, { x: 518, y: 316 }, { x: 558, y: 352 }].map((fragment, index) => (
+            <rect key={`${fragment.x}-${fragment.y}`} x={fragment.x} y={fragment.y} width={18 - index * 2} height={18 - index * 2} rx="4" className={`visual-editorial-document-fragment visual-editorial-compute-${index + 1}`} />
+          ))}
+          <circle cx="694" cy="240" r="112" className="visual-editorial-ring" />
+          <path d="M694 174V240L746 266" className="visual-editorial-clock" />
+          <path d="M620 156A112 112 0 0 1 780 178" className="visual-editorial-line-hot" markerEnd={arrow} />
+          <circle cx="694" cy="240" r="12" className="visual-editorial-checkpoint" />
+        </g>
       </EditorialFrame>
     );
   }
@@ -635,47 +640,61 @@ function EngineeringDocumentsVisual({
   if (variant === "header") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <path d="M146 86H438L568 216V386H146Z" className="visual-editorial-panel" />
-        <path d="M438 86V216H568" className="visual-editorial-fold" />
-        <path d="M220 260H418M220 316H368" className="visual-editorial-detail" />
-        <path
-          d="M582 124C718 136 792 238 742 334C718 380 668 404 606 398"
-          className="visual-editorial-line-hot"
-        />
-        <circle cx="704" cy="170" r="22" className="visual-editorial-checkpoint" />
-        <rect x="638" y="292" width="150" height="92" rx="30" className="visual-editorial-success" />
-        <path d="M678 338L704 360L750 314" className="visual-editorial-check" />
+        <g data-visual-motif="document-drift-review">
+          <path d="M70 104H278L344 170V340H70Z" className="visual-editorial-panel" />
+          <path d="M278 104V170H344" className="visual-editorial-fold" />
+          <path d="M112 214H260M112 258H234M112 302H206" className="visual-editorial-detail" />
+          <path d="M326 204H378M318 246H394M306 288H368" className="visual-editorial-document-drift" />
+          {[{ x: 382, y: 172 }, { x: 402, y: 222 }, { x: 386, y: 314 }].map((fragment, index) => (
+            <rect key={`${fragment.x}-${fragment.y}`} x={fragment.x} y={fragment.y} width={16 - index * 2} height={16 - index * 2} rx="4" className={`visual-editorial-document-fragment visual-editorial-compute-${index + 1}`} />
+          ))}
+
+          <circle cx="490" cy="240" r="88" className="visual-editorial-ring" />
+          <path d="M490 188V240L530 262" className="visual-editorial-clock" />
+          <path d="M430 178A88 88 0 0 1 558 194" className="visual-editorial-line-hot" markerEnd={arrow} />
+          <circle cx="490" cy="240" r="11" className="visual-editorial-checkpoint" />
+
+          <path d="M578 206C624 164 642 138 676 138" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          <path d="M578 274C624 316 642 342 676 342" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          <path d="M684 76H790L830 116V218H684Z" className="visual-editorial-success" />
+          <path d="M790 76V116H830" className="visual-editorial-fold" />
+          <path d="M720 158L746 180L792 126" className="visual-editorial-check" />
+          <path d="M682 300H826V378H682Z" className="visual-editorial-layer-middle" />
+          <path d="M708 300V276H800V300M716 340H792" className="visual-editorial-detail" />
+        </g>
       </EditorialFrame>
     );
   }
 
   return (
     <EditorialFrame markerId={markerId} variant={variant}>
-      <path
-        d="M222 224H350C382 224 396 240 420 240H642"
-        className="visual-editorial-line"
-        markerEnd={arrow}
-      />
-      <g>
-        <path d="M76 112H202L248 158V294H76Z" className="visual-editorial-panel" />
-        <path d="M202 112V158H248" className="visual-editorial-fold" />
-        <path d="M112 210H206M112 244H184" className="visual-editorial-detail" />
+      <g data-visual-motif="document-drift-review">
+        <path d="M58 110H212L264 162V302H58Z" className="visual-editorial-panel" />
+        <path d="M212 110V162H264" className="visual-editorial-fold" />
+        <path d="M94 202H206M94 240H184M94 276H158" className="visual-editorial-detail" />
+        <path d="M244 196H294M236 236H306M226 274H282" className="visual-editorial-document-drift" />
+        {[{ x: 294, y: 172 }, { x: 316, y: 222 }, { x: 298, y: 292 }].map((fragment, index) => (
+          <rect key={`${fragment.x}-${fragment.y}`} x={fragment.x} y={fragment.y} width={15 - index * 2} height={15 - index * 2} rx="4" className={`visual-editorial-document-fragment visual-editorial-compute-${index + 1}`} />
+        ))}
         <text x="162" y="354" textAnchor="middle" className="visual-editorial-label">
           {labels.a}
         </text>
-      </g>
-      <g>
-        <circle cx="450" cy="224" r="82" className="visual-editorial-ring" />
-        <path d="M450 178V228L486 250" className="visual-editorial-clock" />
-        <circle cx="450" cy="224" r="12" className="visual-editorial-checkpoint" />
+
+        <path d="M326 224H366" className="visual-editorial-flow-trace" markerEnd={arrow} />
+        <circle cx="450" cy="224" r="78" className="visual-editorial-ring" />
+        <path d="M450 178V224L486 246" className="visual-editorial-clock" />
+        <path d="M396 168A78 78 0 0 1 510 182" className="visual-editorial-line-hot" markerEnd={arrow} />
+        <circle cx="450" cy="224" r="11" className="visual-editorial-checkpoint" />
         <text x="450" y="354" textAnchor="middle" className="visual-editorial-label">
           {labels.d}
         </text>
-      </g>
-      <g>
-        <rect x="652" y="136" width="172" height="176" rx="38" className="visual-editorial-success" />
-        <path d="M696 224L728 252L784 190" className="visual-editorial-check" />
-        <path d="M684 288H790" className="visual-editorial-detail" />
+
+        <path d="M528 206C584 168 610 154 650 154M528 250C584 286 610 298 650 298" className="visual-editorial-flow-trace" />
+        <path d="M650 108H760L802 150V236H650Z" className="visual-editorial-success" />
+        <path d="M760 108V150H802" className="visual-editorial-fold" />
+        <path d="M684 180L710 202L758 148" className="visual-editorial-check" />
+        <path d="M650 274H802V326H650Z" className="visual-editorial-layer-middle" />
+        <path d="M682 274V252H770V274M684 300H768" className="visual-editorial-detail" />
         <text x="738" y="354" textAnchor="middle" className="visual-editorial-label">
           {labels.e}
         </text>
@@ -747,14 +766,26 @@ function SelfServiceAnalyticsVisual({
   if (variant === "card") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        {[160, 240, 320].map((y) => (
-          <circle key={y} cx="176" cy={y} r="18" className="visual-editorial-source" />
-        ))}
-        <path d="M194 160C286 160 282 240 356 240M194 240H356M194 320C286 320 282 240 356 240" className="visual-editorial-line-muted" />
-        <rect x="356" y="128" width="188" height="224" rx="54" className="visual-editorial-panel-hot" />
-        <path d="M404 240L438 274L500 200" className="visual-editorial-check" />
-        <path d="M544 240H682" className="visual-editorial-line" />
-        <circle cx="724" cy="240" r="58" className="visual-editorial-success" />
+        <g data-visual-motif="governed-self-service">
+          <g className="visual-editorial-database">
+            <ellipse cx="138" cy="170" rx="66" ry="22" />
+            <path d="M72 170V302C72 316 100 328 138 328S204 316 204 302V170" />
+            <ellipse cx="138" cy="302" rx="66" ry="22" />
+          </g>
+          <path d="M204 240H322" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          <path d="M322 240L414 148L506 240L414 332Z" className="visual-editorial-panel-hot" />
+          <circle cx="414" cy="240" r="34" className="visual-editorial-ring" />
+          <path d="M394 240L408 254L436 222" className="visual-editorial-check visual-editorial-check-small" />
+          {[128, 226, 324].map((y, index) => (
+            <g key={y}>
+              <path d={`M506 240C566 240 560 ${y + 36} 616 ${y + 36}`} className="visual-editorial-flow-trace" />
+              <rect x="616" y={y} width="190" height="72" rx="22" className={index === 1 ? "visual-editorial-success" : "visual-editorial-layer-middle"} />
+              {index === 0 ? <path d="M646 174V150M680 174V140M714 174V158M748 174V134" className="visual-editorial-analytics-chart" /> : null}
+              {index === 1 ? <path d="M646 272L678 246L710 258L744 224L776 238" className="visual-editorial-analytics-chart" /> : null}
+              {index === 2 ? <path d="M646 360H778M658 348V324H688V348M704 348V310H734V348M750 348V334H778" className="visual-editorial-analytics-chart" /> : null}
+            </g>
+          ))}
+        </g>
       </EditorialFrame>
     );
   }
@@ -762,51 +793,65 @@ function SelfServiceAnalyticsVisual({
   if (variant === "header") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        {[144, 240, 336].map((y) => (
-          <circle key={y} cx="126" cy={y} r="20" className="visual-editorial-source" />
-        ))}
-        <path d="M146 144C278 144 270 240 342 240M146 240H342M146 336C278 336 270 240 342 240" className="visual-editorial-line-muted" />
-        <rect x="342" y="108" width="218" height="264" rx="58" className="visual-editorial-panel-hot" />
-        <path d="M398 240L434 278L506 194" className="visual-editorial-check" />
-        <path d="M560 240H696" className="visual-editorial-line" />
-        <circle cx="760" cy="240" r="66" className="visual-editorial-success" />
-        <path d="M730 240H790M760 210V270" className="visual-editorial-detail" />
+        <g data-visual-motif="governed-self-service">
+          <g className="visual-editorial-database">
+            <ellipse cx="124" cy="144" rx="70" ry="24" />
+            <path d="M54 144V326C54 342 86 354 124 354S194 342 194 326V144" />
+            <ellipse cx="124" cy="326" rx="70" ry="24" />
+          </g>
+          <path d="M194 240H318" className="visual-editorial-flow-trace" markerEnd={arrow} />
+          <path d="M318 240L420 138L522 240L420 342Z" className="visual-editorial-panel-hot" />
+          <circle cx="420" cy="240" r="38" className="visual-editorial-ring" />
+          <path d="M398 240L414 256L446 218" className="visual-editorial-check visual-editorial-check-small" />
+          {[92, 210, 328].map((y, index) => (
+            <g key={y}>
+              <path d={`M522 240C588 240 580 ${y + 40} 632 ${y + 40}`} className="visual-editorial-flow-trace" />
+              <rect x="632" y={y} width="214" height="80" rx="24" className={index === 1 ? "visual-editorial-success" : "visual-editorial-layer-middle"} />
+              {index === 0 ? <path d="M666 154V124M704 154V110M742 154V136M780 154V104" className="visual-editorial-analytics-chart" /> : null}
+              {index === 1 ? <path d="M666 276L704 242L740 258L778 224L814 238" className="visual-editorial-analytics-chart" /> : null}
+              {index === 2 ? <path d="M666 388H814M680 374V346H712V374M730 374V330H762V374M780 374V354H812" className="visual-editorial-analytics-chart" /> : null}
+            </g>
+          ))}
+          <path d="M194 360C352 430 562 430 706 404" className="visual-editorial-rejected" />
+          <path d="M692 390L720 418M720 390L692 418" className="visual-editorial-cross" />
+        </g>
       </EditorialFrame>
     );
   }
 
   return (
     <EditorialFrame markerId={markerId} variant={variant}>
-      <path
-        d="M238 224H338C376 224 386 240 424 240H660"
-        className="visual-editorial-line"
-        markerEnd={arrow}
-      />
-      <g>
-        {[170, 224, 278].map((y) => (
-          <circle key={y} cx="142" cy={y} r="17" className="visual-editorial-source" />
-        ))}
-        <path d="M159 170C218 170 208 224 252 224M159 224H252M159 278C218 278 208 224 252 224" className="visual-editorial-line-muted" />
-        <text x="142" y="354" textAnchor="middle" className="visual-editorial-label">
+      <g data-visual-motif="governed-self-service">
+        <g className="visual-editorial-database">
+          <ellipse cx="122" cy="150" rx="62" ry="20" />
+          <path d="M60 150V280C60 294 88 304 122 304S184 294 184 280V150" />
+          <ellipse cx="122" cy="280" rx="62" ry="20" />
+        </g>
+        <path d="M184 216H318" className="visual-editorial-flow-trace" markerEnd={arrow} />
+        <text x="160" y="404" textAnchor="middle" className="visual-editorial-label visual-editorial-label-compact">
           {labels.a}
         </text>
-      </g>
-      <g>
-        <rect x="356" y="132" width="188" height="184" rx="48" className="visual-editorial-panel-hot" />
-        <path d="M404 224L436 256L496 190" className="visual-editorial-check" />
-        <text x="450" y="354" textAnchor="middle" className="visual-editorial-label">
+
+        <path d="M318 216L410 124L502 216L410 308Z" className="visual-editorial-panel-hot" />
+        <circle cx="410" cy="216" r="34" className="visual-editorial-ring" />
+        <path d="M390 216L404 230L432 198" className="visual-editorial-check visual-editorial-check-small" />
+        <text x="410" y="404" textAnchor="middle" className="visual-editorial-label visual-editorial-label-compact">
           {labels.c}
         </text>
-      </g>
-      <g>
-        <circle cx="738" cy="224" r="78" className="visual-editorial-success" />
-        <path d="M702 224H774M738 188V260" className="visual-editorial-detail" />
-        <text x="738" y="354" textAnchor="middle" className="visual-editorial-label">
+
+        {[104, 198, 292].map((y, index) => (
+          <g key={y}>
+            <path d={`M502 216C560 216 554 ${y + 34} 600 ${y + 34}`} className="visual-editorial-flow-trace" />
+            <rect x="600" y={y} width="220" height="68" rx="22" className={index === 1 ? "visual-editorial-success" : "visual-editorial-layer-middle"} />
+            {index === 0 ? <path d="M634 156V128M670 156V118M706 156V140M742 156V112M778 156V132" className="visual-editorial-analytics-chart" /> : null}
+            {index === 1 ? <path d="M634 250L670 224L706 236L744 208L782 220" className="visual-editorial-analytics-chart" /> : null}
+            {index === 2 ? <path d="M634 346H786M648 334V314H680V334M698 334V300H730V334M748 334V320H780" className="visual-editorial-analytics-chart" /> : null}
+          </g>
+        ))}
+        <text x="710" y="404" textAnchor="middle" className="visual-editorial-label visual-editorial-label-compact">
           {labels.e}
         </text>
       </g>
-      <path d="M159 292C312 420 520 420 640 310" className="visual-editorial-rejected" />
-      <path d="M626 294L654 322M654 294L626 322" className="visual-editorial-cross" />
     </EditorialFrame>
   );
 }
