@@ -809,6 +809,155 @@
   stroke-width: 3;
 }
 
+.visual-editorial-selector {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: visual-selector-focus 5.6s ease-in-out infinite;
+}
+
+.visual-editorial-node-breathe,
+.visual-editorial-human-gate {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: visual-node-breathe 4.8s ease-in-out infinite;
+}
+
+.visual-editorial-lever {
+  fill: none;
+  stroke: color-mix(in srgb, var(--visual-line) 72%, var(--visual-muted));
+  stroke-width: 12;
+  stroke-linecap: round;
+}
+
+.visual-editorial-firewall {
+  fill: color-mix(in srgb, var(--visual-hot) 10%, var(--visual-surface-strong));
+  stroke: var(--visual-hot);
+  stroke-width: 3;
+  stroke-dasharray: 8 7;
+}
+
+.visual-editorial-pulse-dot {
+  fill: var(--visual-hot);
+  stroke: color-mix(in srgb, var(--visual-hot) 46%, var(--visual-surface-strong));
+  stroke-width: 3;
+  animation: visual-pulse-dot 3.8s ease-in-out infinite;
+}
+
+.visual-editorial-loop {
+  fill: none;
+  stroke: color-mix(in srgb, var(--visual-line) 64%, var(--divider));
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 16 10;
+  animation: visual-flow-trace 5.2s linear infinite;
+}
+
+.visual-editorial-journey,
+.visual-editorial-elevation-profile {
+  fill: none;
+  stroke: color-mix(in srgb, var(--visual-line) 78%, var(--visual-muted));
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.visual-editorial-foundation {
+  fill: none;
+  stroke: color-mix(in srgb, var(--visual-line-secondary) 68%, var(--divider));
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.visual-editorial-face {
+  fill: color-mix(in srgb, var(--visual-line) 5%, var(--visual-surface-strong));
+  stroke: color-mix(in srgb, var(--visual-line) 66%, var(--divider));
+  stroke-width: 4;
+}
+
+.visual-editorial-scan-line {
+  fill: none;
+  stroke: var(--visual-hot);
+  stroke-width: 4;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--visual-hot) 52%, transparent));
+  animation: visual-scan-line 3.6s ease-in-out infinite;
+}
+
+.visual-editorial-mesh {
+  fill: color-mix(in srgb, var(--visual-line) 7%, var(--visual-surface));
+  stroke: color-mix(in srgb, var(--visual-line) 74%, var(--divider));
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-dasharray: 10 7;
+}
+
+.visual-editorial-null {
+  fill: var(--visual-surface-strong);
+  stroke: color-mix(in srgb, var(--visual-line) 62%, var(--divider));
+  stroke-width: 4;
+  stroke-dasharray: 5 5;
+}
+
+.visual-editorial-null-bridge {
+  fill: none;
+  stroke: var(--visual-hot);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 14 10;
+  animation: visual-flow-trace 3.8s linear infinite;
+}
+
+.visual-editorial-memory-tank {
+  fill: color-mix(in srgb, var(--visual-danger) 4%, var(--visual-surface-strong));
+  stroke: color-mix(in srgb, var(--visual-line) 52%, var(--divider));
+  stroke-width: 4;
+}
+
+.visual-editorial-memory-fill {
+  fill: color-mix(in srgb, var(--visual-danger) 64%, transparent);
+  stroke: color-mix(in srgb, var(--visual-danger) 84%, var(--divider));
+  stroke-width: 3;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: visual-memory-pressure 5.2s ease-in-out infinite;
+}
+
+.visual-editorial-memory-limit {
+  fill: none;
+  stroke: var(--visual-danger);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 12 8;
+}
+
+.visual-editorial-audit-line {
+  fill: none;
+  stroke: color-mix(in srgb, var(--visual-line-secondary) 72%, var(--divider));
+  stroke-width: 3;
+  stroke-dasharray: 5 8;
+}
+
+.visual-editorial-watch-ring {
+  fill: color-mix(in srgb, var(--visual-line) 4%, var(--visual-surface));
+  stroke: color-mix(in srgb, var(--visual-line) 70%, var(--divider));
+  stroke-width: 12;
+  stroke-dasharray: 620 180;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: visual-watch-charge 7s ease-in-out infinite;
+}
+
+.visual-editorial-battery-bars {
+  fill: none;
+  stroke: var(--visual-line-secondary);
+  stroke-width: 18;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 @keyframes visual-radar-sweep {
   to {
     transform: rotate(360deg);
@@ -876,13 +1025,85 @@
   }
 }
 
+@keyframes visual-selector-focus {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(3deg) scale(1.025);
+  }
+}
+
+@keyframes visual-pulse-dot {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: scale(0.72);
+  }
+
+  45%,
+  62% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes visual-scan-line {
+  0%,
+  100% {
+    transform: translateY(-48px);
+    opacity: 0.34;
+  }
+
+  50% {
+    transform: translateY(54px);
+    opacity: 1;
+  }
+}
+
+@keyframes visual-memory-pressure {
+  0%,
+  100% {
+    transform: scaleY(0.72);
+    opacity: 0.62;
+  }
+
+  68%,
+  82% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes visual-watch-charge {
+  0%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+
+  50% {
+    stroke-dashoffset: -34;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .visual-editorial-radar-sweep,
   .visual-editorial-radar-target,
   .visual-editorial-radar-ping,
   .visual-editorial-flow-trace,
   .visual-editorial-compute,
-  .visual-editorial-pool-fill {
+  .visual-editorial-pool-fill,
+  .visual-editorial-selector,
+  .visual-editorial-node-breathe,
+  .visual-editorial-human-gate,
+  .visual-editorial-pulse-dot,
+  .visual-editorial-loop,
+  .visual-editorial-scan-line,
+  .visual-editorial-null-bridge,
+  .visual-editorial-memory-fill,
+  .visual-editorial-watch-ring {
     animation: none;
   }
 

@@ -5,6 +5,7 @@ import {
   PostVisual,
   type PostVisualVariant,
 } from "../../src/shared/components/PostVisual";
+import { editorialPostVisualIds } from "../../src/shared/components/EditorialPostVisual";
 import {
   postVisualIds,
   type PostVisualId,
@@ -25,7 +26,12 @@ const editorialPrototypeIds = [
   "scaling-ci-github-actions-forest-admin",
 ] as const satisfies readonly PostVisualId[];
 
-const editorialPrototypeTextBudgets = [
+const editorialSystemIds = [
+  ...editorialPrototypeIds,
+  ...editorialPostVisualIds,
+] as const satisfies readonly PostVisualId[];
+
+const editorialSystemTextBudgets = [
   { id: "engineering-documents-age-poorly", inlineLabels: 3 },
   { id: "context-engineering-beyond-prompt-engineering", inlineLabels: 3 },
   { id: "self-service-analytics-that-doesnt-lie", inlineLabels: 3 },
@@ -33,6 +39,24 @@ const editorialPrototypeTextBudgets = [
   { id: "the-onboarding-matrix-forest-admin", inlineLabels: 3 },
   { id: "rebuilding-cloud-experience-forest-admin", inlineLabels: 5 },
   { id: "scaling-ci-github-actions-forest-admin", inlineLabels: 4 },
+  { id: "agent-battle-2026", inlineLabels: 3 },
+  { id: "bounded-ai-loop", inlineLabels: 4 },
+  { id: "ai-force-multiplier", inlineLabels: 4 },
+  { id: "sse-outbound-channel", inlineLabels: 3 },
+  { id: "backend-to-data-engineer-rockfi", inlineLabels: 4 },
+  { id: "claude-code-product-os", inlineLabels: 3 },
+  { id: "trail-endurance-profile", inlineLabels: 3 },
+  { id: "engineering-2026-ai-redefined-our-job", inlineLabels: 3 },
+  { id: "forest-admin-activity-logs-elasticsearch", inlineLabels: 3 },
+  { id: "idempotency-debounce-jobify-bullmq", inlineLabels: 3 },
+  { id: "jobify-workers-queues-nestjs", inlineLabels: 4 },
+  { id: "joining-rockfi", inlineLabels: 4 },
+  { id: "nodejs-stream-backpressure-history-export", inlineLabels: 4 },
+  { id: "polymagine-industry-4-eyewear-2017", inlineLabels: 3 },
+  { id: "postgresql-unique-nulls", inlineLabels: 3 },
+  { id: "redis-memory-exhaustion-post-mortem", inlineLabels: 3 },
+  { id: "scim-user-provisioning-forest-admin", inlineLabels: 3 },
+  { id: "security-authentication-idp-openid-connect", inlineLabels: 3 },
 ] as const satisfies ReadonlyArray<{ id: PostVisualId; inlineLabels: number }>;
 
 const localizedPrototypeLabels = [
@@ -51,6 +75,40 @@ const localizedPrototypeLabels = [
   },
   { id: "rebuilding-cloud-experience-forest-admin", en: "Database", fr: "Base" },
   { id: "scaling-ci-github-actions-forest-admin", en: "Artifacts", fr: "Artefacts" },
+  { id: "agent-battle-2026", en: "Value", fr: "Valeur" },
+  { id: "bounded-ai-loop", en: "Human gate", fr: "Gate humain" },
+  { id: "ai-force-multiplier", en: "Impact", fr: "Impact" },
+  {
+    id: "sse-outbound-channel",
+    en: "Outbound SSE",
+    fr: "SSE sortant",
+  },
+  { id: "backend-to-data-engineer-rockfi", en: "Warehouse", fr: "Entrepôt" },
+  { id: "claude-code-product-os", en: "Release", fr: "Release" },
+  {
+    id: "trail-endurance-profile",
+    en: "Sport · 15 h",
+    fr: "Sport · 15 h",
+  },
+  { id: "engineering-2026-ai-redefined-our-job", en: "Review", fr: "Revoir" },
+  { id: "forest-admin-activity-logs-elasticsearch", en: "Search", fr: "Recherche" },
+  {
+    id: "idempotency-debounce-jobify-bullmq",
+    en: "Job ID / Debounce",
+    fr: "Job ID / Debounce",
+  },
+  { id: "jobify-workers-queues-nestjs", en: "Runner / Worker", fr: "Runner / Worker" },
+  { id: "joining-rockfi", en: "Foundations", fr: "Fondations" },
+  { id: "nodejs-stream-backpressure-history-export", en: "Backpressure", fr: "Backpressure" },
+  { id: "polymagine-industry-4-eyewear-2017", en: "3D mesh", fr: "Maillage 3D" },
+  { id: "postgresql-unique-nulls", en: "Collision", fr: "Collision" },
+  { id: "redis-memory-exhaustion-post-mortem", en: "Memory", fr: "Mémoire" },
+  {
+    id: "scim-user-provisioning-forest-admin",
+    en: "SCIM / Normalize",
+    fr: "SCIM / Normaliser",
+  },
+  { id: "security-authentication-idp-openid-connect", en: "SAML / OIDC", fr: "SAML / OIDC" },
 ] as const satisfies ReadonlyArray<{ id: PostVisualId; en: string; fr: string }>;
 
 function geometrySignature(container: HTMLElement) {
@@ -98,7 +156,7 @@ describe("PostVisual", () => {
     expect(new Set(signatures).size).toBe(postVisualIds.length);
   });
 
-  it.each(editorialPrototypeIds)(
+  it.each(editorialSystemIds)(
     "uses purpose-built geometry for every %s placement",
     (id) => {
       const signatures = (["card", "header", "inline"] satisfies PostVisualVariant[]).map(
@@ -120,7 +178,7 @@ describe("PostVisual", () => {
     },
   );
 
-  it.each(editorialPrototypeTextBudgets)(
+  it.each(editorialSystemTextBudgets)(
     "keeps $id within its placement text budgets",
     ({ id, inlineLabels }) => {
       for (const variant of ["card", "header"] satisfies PostVisualVariant[]) {
@@ -153,6 +211,32 @@ describe("PostVisual", () => {
     expect(container.querySelectorAll(".visual-editorial-radar-target")).toHaveLength(3);
     expect(container.querySelector(".visual-editorial-radar-ping")).toBeTruthy();
     expect(container.querySelectorAll("svg text")).toHaveLength(0);
+  });
+
+  it("gives the watch review and race report article-specific endurance stories", () => {
+    const watch = render(
+      <PostVisual
+        locale="en"
+        slug="coros-apex-4"
+        variant="inline"
+        visualId="trail-endurance-profile"
+      />,
+    );
+    expect(screen.getByText("Sport · 15 h")).toBeInTheDocument();
+    const watchGeometry = geometrySignature(watch.container);
+    watch.unmount();
+
+    const race = render(
+      <PostVisual
+        locale="en"
+        slug="trail-saint-jacques-100k-2026"
+        variant="inline"
+        visualId="trail-endurance-profile"
+      />,
+    );
+    expect(screen.getByText("Shared finish")).toBeInTheDocument();
+    expect(screen.getByText(/The race changed when restraint failed/i)).toBeInTheDocument();
+    expect(geometrySignature(race.container)).not.toBe(watchGeometry);
   });
 
   it.each(localizedPrototypeLabels)(

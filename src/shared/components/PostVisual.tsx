@@ -5,6 +5,10 @@ import type {
   PostVisualId,
 } from "../../features/posts/content";
 import { normalizeLocale } from "../routing";
+import {
+  EditorialPostVisual,
+  hasEditorialPostVisual,
+} from "./EditorialPostVisual";
 
 export type PostVisualVariant = "card" | "header" | "inline";
 
@@ -62,6 +66,7 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
         control: "Control plane",
         outbound: "1 · HTTPS GET sortant",
         stream: "2 · Flux SSE + événements",
+        channel: "SSE sortant",
         heartbeat: "heartbeat",
         disconnected: "Déconnecté",
         backoff: "Backoff + jitter",
@@ -79,6 +84,8 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
         horizon: "Fenêtre cible · 13–15 h",
         smart: "Montre généraliste · ~4 h GPS",
         sport: "Montre sport · fenêtre couverte",
+        smartShort: "Montre · 4 h",
+        sportShort: "Sport · 15 h",
         start: "0 h",
         four: "4 h",
         thirteen: "13 h",
@@ -180,7 +187,7 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       title: "Convergence des charges dans Redis",
       description: "Cache, queues et sessions partagent la même mémoire jusqu'à provoquer éviction, saturation et panne.",
       caption: "Des cycles de vie différents ne doivent pas être forcés dans une même enveloppe mémoire.",
-      labels: { a: "Cache", b: "Queues", c: "Sessions", d: "Mémoire", e: "Isolation" },
+      labels: { a: "Cache", b: "Queues", c: "Sessions", d: "Mémoire", e: "Isolation", workloads: "Charges partagées" },
     },
     "rocket-curiosity": {
       title: "Une curiosité tournée vers les étoiles et les volcans",
@@ -275,6 +282,7 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
         control: "Control plane",
         outbound: "1 · Outbound HTTPS GET",
         stream: "2 · SSE stream + events",
+        channel: "Outbound SSE",
         heartbeat: "heartbeat",
         disconnected: "Disconnected",
         backoff: "Backoff + jitter",
@@ -292,6 +300,8 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
         horizon: "Target window · 13–15 h",
         smart: "General watch · ~4 h GPS",
         sport: "Sport watch · window covered",
+        smartShort: "Watch · 4 h",
+        sportShort: "Sport · 15 h",
         start: "0 h",
         four: "4 h",
         thirteen: "13 h",
@@ -393,7 +403,7 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       title: "Workload convergence in Redis",
       description: "Cache, queues, and sessions share memory until eviction, saturation, and outage occur.",
       caption: "Different lifecycles should not be forced into one memory envelope.",
-      labels: { a: "Cache", b: "Queues", c: "Sessions", d: "Memory", e: "Isolation" },
+      labels: { a: "Cache", b: "Queues", c: "Sessions", d: "Memory", e: "Isolation", workloads: "Shared loads" },
     },
     "rocket-curiosity": {
       title: "A curiosity aimed at stars and volcanoes",
@@ -459,6 +469,35 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
   },
 };
 
+const TRAIL_RACE_COPY: Record<PostLocale, DiagramCopy> = {
+  en: {
+    title: "Trail race recovery profile",
+    description:
+      "An over-fast opening leads into depletion, a decisive aid-station recovery, and a shared finish after one hundred kilometres.",
+    caption:
+      "The race changed when restraint failed, support arrived, and finishing became a shared effort rather than an individual pace target.",
+    labels: {
+      start: "Fast start",
+      four: "Depletion",
+      checkpoint: "Aid station",
+      sport: "Shared finish",
+    },
+  },
+  fr: {
+    title: "Profil de récupération sur un trail",
+    description:
+      "Un départ trop rapide mène à l'épuisement, puis un ravitaillement décisif permet une arrivée partagée après cent kilomètres.",
+    caption:
+      "La course a changé quand la retenue a manqué, que le soutien est arrivé et que finir est devenu un effort partagé.",
+    labels: {
+      start: "Départ rapide",
+      four: "Épuisement",
+      checkpoint: "Ravitaillement",
+      sport: "Arrivée partagée",
+    },
+  },
+};
+
 function hashString(value: string): number {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -477,29 +516,6 @@ function buildContourPath(seed: number, lineIndex: number): string {
     return `${pointIndex === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
   });
   return points.join(" ");
-}
-
-function DiagramNode({
-  x,
-  y,
-  label,
-  tone = "default",
-  width = 128,
-}: {
-  x: number;
-  y: number;
-  label: string;
-  tone?: "default" | "hot" | "success";
-  width?: number;
-}) {
-  return (
-    <g className={`visual-node visual-node-${tone}`}>
-      <rect x={x} y={y} width={width} height="72" rx="18" />
-      <text x={x + width / 2} y={y + 42} textAnchor="middle">
-        {label}
-      </text>
-    </g>
-  );
 }
 
 function DiagramFrame({
@@ -534,208 +550,6 @@ function DiagramFrame({
       <rect width="900" height="480" rx="28" fill={`url(#${markerId}-grid)`} />
       {children}
     </>
-  );
-}
-
-function BoundedAiLoop({
-  copy,
-  markerId,
-  compact,
-}: {
-  copy: DiagramCopy;
-  markerId: string;
-  compact: boolean;
-}) {
-  const labels = copy.labels;
-  const nodes = [
-    { x: 32, label: labels.intent ?? "" },
-    { x: 210, label: labels.agent ?? "" },
-    { x: 388, label: labels.evidence ?? "" },
-    { x: 566, label: labels.human ?? "", tone: "hot" as const },
-    { x: 744, label: labels.action ?? "", tone: "success" as const },
-  ];
-
-  return (
-    <DiagramFrame markerId={markerId}>
-      <rect x="184" y="76" width="520" height="208" rx="28" className="visual-boundary" />
-      {!compact ? (
-        <text x="210" y="112" className="visual-kicker">
-          {labels.boundary}
-        </text>
-      ) : null}
-      {nodes.map((node, index) => (
-        <g key={node.label}>
-          {index < nodes.length - 1 ? (
-            <path
-              d={`M${node.x + 128} 201H${nodes[index + 1]!.x - 14}`}
-              className="visual-flow-line"
-              markerEnd={`url(#${markerId}-arrow)`}
-            />
-          ) : null}
-          <DiagramNode
-            x={node.x}
-            y={165}
-            label={node.label}
-            {...(node.tone ? { tone: node.tone } : {})}
-          />
-        </g>
-      ))}
-      {!compact ? (
-        <>
-          <path
-            d="M452 237V330H594"
-            className="visual-flow-line visual-flow-danger"
-            markerEnd={`url(#${markerId}-arrow)`}
-          />
-          <text x="476" y="316" className="visual-note">
-            {labels.failure}
-          </text>
-          <g className="visual-stop-node">
-            <rect x="608" y="300" width="218" height="72" rx="18" />
-            <text x="717" y="343" textAnchor="middle">
-              {labels.stop}
-            </text>
-          </g>
-        </>
-      ) : null}
-    </DiagramFrame>
-  );
-}
-
-function SseOutboundChannel({
-  copy,
-  markerId,
-  compact,
-}: {
-  copy: DiagramCopy;
-  markerId: string;
-  compact: boolean;
-}) {
-  const labels = copy.labels;
-  return (
-    <DiagramFrame markerId={markerId}>
-      <rect x="42" y="84" width="294" height="230" rx="28" className="visual-boundary" />
-      {!compact ? (
-        <text x="68" y="120" className="visual-kicker">
-          {labels.network}
-        </text>
-      ) : null}
-      <DiagramNode x={84} y={164} width={196} label={labels.agent ?? ""} />
-      <rect x="392" y="72" width="38" height="260" rx="19" className="visual-firewall" />
-      <text
-        x="411"
-        y="202"
-        textAnchor="middle"
-        transform="rotate(-90 411 202)"
-        className="visual-firewall-label"
-      >
-        {labels.firewall}
-      </text>
-      <DiagramNode x={612} y={164} width={220} label={labels.control ?? ""} tone="success" />
-      <path
-        d="M280 182C340 134 520 134 612 182"
-        className="visual-flow-line"
-        markerEnd={`url(#${markerId}-arrow)`}
-      />
-      <path
-        d="M612 224C520 274 344 274 280 224"
-        className="visual-flow-line visual-flow-hot"
-        markerEnd={`url(#${markerId}-arrow)`}
-      />
-      {!compact ? (
-        <>
-          <text x="360" y="122" className="visual-note">
-            {labels.outbound}
-          </text>
-          <text x="406" y="296" className="visual-note visual-note-hot">
-            {labels.stream}
-          </text>
-          <circle cx="516" cy="244" r="8" className="visual-checkpoint" />
-          <text x="530" y="250" className="visual-micro-label">
-            {labels.heartbeat}
-          </text>
-          <path
-            d="M182 314V376H326"
-            className="visual-flow-line visual-flow-muted"
-            markerEnd={`url(#${markerId}-arrow)`}
-          />
-          <text x="72" y="402" className="visual-micro-label">
-            {labels.disconnected}
-          </text>
-          <text x="350" y="402" className="visual-micro-label visual-micro-label-hot">
-            {labels.backoff}
-          </text>
-          <path
-            d="M494 376H676V252"
-            className="visual-flow-line visual-flow-muted"
-            markerEnd={`url(#${markerId}-arrow)`}
-          />
-          <text x="560" y="402" className="visual-micro-label">
-            {labels.reconnect}
-          </text>
-        </>
-      ) : null}
-    </DiagramFrame>
-  );
-}
-
-function TrailEnduranceProfile({
-  copy,
-  markerId,
-  compact,
-}: {
-  copy: DiagramCopy;
-  markerId: string;
-  compact: boolean;
-}) {
-  const labels = copy.labels;
-  return (
-    <DiagramFrame markerId={markerId}>
-      <text x="48" y="62" className="visual-kicker">
-        {labels.objective}
-      </text>
-      <path
-        d="M42 246L112 220L176 238L246 166L306 202L382 112L456 190L526 146L602 214L674 172L742 232L812 198L864 236L864 260L42 260Z"
-        className="visual-elevation-fill"
-      />
-      <path
-        d="M42 246L112 220L176 238L246 166L306 202L382 112L456 190L526 146L602 214L674 172L742 232L812 198L864 236"
-        className="visual-elevation-line"
-      />
-      {[42, 262, 756, 864].map((x) => (
-        <line key={x} x1={x} y1="258" x2={x} y2="430" className="visual-axis-tick" />
-      ))}
-      <line x1="42" y1="274" x2="864" y2="274" className="visual-axis" />
-      {!compact ? (
-        <>
-          <text x="42" y="298" className="visual-micro-label">
-            {labels.start}
-          </text>
-          <text x="250" y="298" className="visual-micro-label">
-            {labels.four}
-          </text>
-          <text x="742" y="298" className="visual-micro-label">
-            {labels.thirteen}
-          </text>
-          <text x="836" y="298" className="visual-micro-label">
-            {labels.fifteen}
-          </text>
-          <text x="48" y="342" className="visual-note">
-            {labels.smart}
-          </text>
-          <rect x="262" y="324" width="196" height="22" rx="11" className="visual-duration-short" />
-          <text x="48" y="396" className="visual-note visual-note-hot">
-            {labels.sport}
-          </text>
-          <rect x="262" y="378" width="602" height="22" rx="11" className="visual-duration-long" />
-          <path d="M756 308V414" className="visual-target-line" />
-          <text x="756" y="442" textAnchor="middle" className="visual-micro-label visual-micro-label-hot">
-            {labels.horizon}
-          </text>
-        </>
-      ) : null}
-      <circle cx="382" cy="112" r="10" className="visual-checkpoint" />
-    </DiagramFrame>
   );
 }
 
@@ -1444,239 +1258,16 @@ function ArticleEssenceDiagram({
   const label = (key: string) => copy.labels[key] ?? "";
   const arrow = `url(#${markerId}-arrow)`;
 
-  if (visualId === "agent-battle-2026") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">AGENT ARENA · 2026</text>
-        {[{ x: 58, name: "ANTIGRAVITY", y: 138 }, { x: 338, name: "CURSOR", y: 174 }, { x: 618, name: "CLAUDE CODE", y: 116 }].map((agent) => (
-          <g key={agent.name}>
-            <path d={`M${agent.x + 104} 362V${agent.y + 72}`} className="visual-flow-line visual-flow-muted" />
-            <g className="visual-node"><rect x={agent.x} y={agent.y} width="208" height="72" rx="18" /><text x={agent.x + 104} y={agent.y + 42} textAnchor="middle">{agent.name}</text></g>
-            <circle cx={agent.x + 104} cy={agent.y - 24} r="8" className="visual-checkpoint" />
-          </g>
-        ))}
-        <rect x="42" y="362" width="816" height="62" rx="18" className="visual-boundary" />
-        <text x="450" y="399" textAnchor="middle" className="visual-note">{label("d")} · TPU / GPU / COST</text>
-        {!compact ? <text x="450" y="92" textAnchor="middle" className="visual-note visual-note-hot">{label("e")} = {label("c")} × CONTEXT × ECONOMICS</text> : null}
-      </DiagramFrame>
-    );
-  }
-
-  if (visualId === "ai-force-multiplier") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">ENGINEERING LEVERAGE</text>
-        {[86, 154, 222, 290].map((y, index) => (
-          <g key={y}>
-            <rect x="54" y={y} width="118" height="42" rx="12" className="visual-boundary" />
-            {!compact ? <text x="113" y={y + 26} textAnchor="middle" className="visual-micro-label">TASK {index + 1}</text> : null}
-            <path d={`M172 ${y + 21}C270 ${y + 21} 270 240 360 240`} className="visual-flow-line visual-flow-muted" />
-          </g>
-        ))}
-        <DiagramNode x={360} y={196} width={190} label={label("c")} tone="hot" />
-        <path d="M550 232H690" className="visual-flow-line" markerEnd={arrow} />
-        <DiagramNode x={690} y={196} width={160} label={label("e")} tone="success" />
-        <path d="M455 196V108H770V196" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
-        {!compact ? <text x="610" y="94" textAnchor="middle" className="visual-note visual-note-hot">{label("d")} · HUMAN JUDGMENT</text> : null}
-        <path d="M74 390H826" className="visual-axis" />
-        <text x="74" y="420" className="visual-micro-label">{label("a")}</text>
-        <text x="826" y="420" textAnchor="end" className="visual-micro-label">{label("c")}</text>
-      </DiagramFrame>
-    );
-  }
-
-  if (visualId === "backend-to-data-engineer-rockfi") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">MODERN DATA FOUNDATION</text>
-        {[108, 194, 280].map((y, index) => <circle key={y} cx="78" cy={y} r={18 - index * 3} className="visual-checkpoint" />)}
-        <text x="52" y="342" className="visual-micro-label">{label("a")}</text>
-        <rect x="160" y="76" width="260" height="316" rx="28" className="visual-boundary" />
-        {!compact ? <text x="186" y="112" className="visual-kicker">{label("b")} · ASSET GRAPH</text> : null}
-        {[{ x: 210, y: 158 }, { x: 328, y: 140 }, { x: 270, y: 246 }, { x: 354, y: 318 }].map((node, index) => <circle key={`${node.x}-${node.y}`} cx={node.x} cy={node.y} r={index === 3 ? 15 : 10} className="visual-checkpoint" />)}
-        <path d="M90 108L210 158L328 140M210 158L270 246M328 140L270 246L354 318" className="visual-flow-line" markerEnd={arrow} />
-        {[{ x: 500, y: 278, w: 106, h: 90 }, { x: 624, y: 212, w: 106, h: 156 }, { x: 748, y: 128, w: 106, h: 240 }].map((layer, index) => (
-          <g key={layer.x} className={`visual-node ${index === 2 ? "visual-node-success" : index === 1 ? "visual-node-hot" : ""}`}>
-            <rect x={layer.x} y={layer.y} width={layer.w} height={layer.h} rx="18" />
-            <text x={layer.x + layer.w / 2} y={layer.y + 38} textAnchor="middle">{["BRONZE", "SILVER", "GOLD"][index]}</text>
-          </g>
-        ))}
-        {!compact ? <text x="676" y="410" textAnchor="middle" className="visual-note">{label("c")} → {label("d")} → {label("e")}</text> : null}
-      </DiagramFrame>
-    );
-  }
-
-  if (visualId === "claude-code-product-os") {
-    const points = [{ x: 450, y: 86 }, { x: 696, y: 196 }, { x: 606, y: 366 }, { x: 294, y: 366 }, { x: 204, y: 196 }];
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">HUMAN-LED DELIVERY FLYWHEEL</text>
-        <circle cx="450" cy="238" r="82" className="visual-boundary" />
-        <text x="450" y="230" textAnchor="middle" className="visual-fallback-title">PRODUCT</text>
-        <text x="450" y="258" textAnchor="middle" className="visual-fallback-title">OS</text>
-        {points.map((point, index) => {
-          const next = points[(index + 1) % points.length]!;
-          return <g key={`${point.x}-${point.y}`}><path d={`M${point.x} ${point.y}Q450 238 ${next.x} ${next.y}`} className="visual-flow-line" markerEnd={arrow} /><circle cx={point.x} cy={point.y} r="28" className="visual-checkpoint" /><text x={point.x} y={point.y + (point.y < 150 ? -42 : 52)} textAnchor="middle" className="visual-micro-label">{label(["a", "b", "c", "d", "e"][index]!)}</text></g>;
-        })}
-      </DiagramFrame>
-    );
-  }
-
   if (visualId === "context-engineering-beyond-prompt-engineering") {
     return <ContextEngineeringVisual copy={copy} markerId={markerId} variant={variant} />;
-  }
-
-  if (visualId === "engineering-2026-ai-redefined-our-job") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">MULTI-AGENT ENGINEERING RHYTHM</text>
-        <DiagramNode x={54} y={204} width={142} label={label("a")} />
-        <path d="M196 230C260 230 260 142 326 142" className="visual-flow-line" markerEnd={arrow} />
-        <path d="M196 250C260 250 260 338 326 338" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
-        <DiagramNode x={326} y={106} width={180} label="CLAUDE CODE" />
-        <DiagramNode x={326} y={302} width={180} label="CODEX" tone="hot" />
-        <path d="M506 142C610 142 610 230 674 230" className="visual-flow-line" markerEnd={arrow} />
-        <path d="M506 338C610 338 610 250 674 250" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
-        <DiagramNode x={674} y={204} width={172} label={label("e")} tone="success" />
-        {!compact ? <><text x="416" y="88" textAnchor="middle" className="visual-micro-label">{label("b")} · {label("c")}</text><text x="416" y="402" textAnchor="middle" className="visual-micro-label">{label("d")} · EVIDENCE</text></> : null}
-      </DiagramFrame>
-    );
   }
 
   if (visualId === "engineering-documents-age-poorly") {
     return <EngineeringDocumentsVisual copy={copy} markerId={markerId} variant={variant} />;
   }
 
-  if (visualId === "forest-admin-activity-logs-elasticsearch") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">100M+ AUDIT EVENTS</text>
-        <g className="visual-node"><ellipse cx="154" cy="142" rx="92" ry="30" className="visual-symbol" /><rect x="62" y="142" width="184" height="190" /><ellipse cx="154" cy="332" rx="92" ry="30" className="visual-symbol" /><text x="154" y="244" textAnchor="middle">{label("a")}</text></g>
-        {[180, 230, 280].map((y) => <path key={y} d={`M86 ${y}H222`} className="visual-axis" />)}
-        <path d="M246 236H394" className="visual-flow-line" markerEnd={arrow} />
-        <rect x="394" y="154" width="122" height="164" rx="20" className="visual-firewall" />
-        <text x="455" y="230" textAnchor="middle" className="visual-firewall-label">{label("c")}</text>
-        <text x="455" y="254" textAnchor="middle" className="visual-firewall-label">REINDEX</text>
-        {[{ x: 602, y: 116 }, { x: 716, y: 116 }, { x: 602, y: 234 }, { x: 716, y: 234 }].map((shard, index) => <g key={`${shard.x}-${shard.y}`} className="visual-node visual-node-success"><rect x={shard.x} y={shard.y} width="92" height="86" rx="18" /><text x={shard.x + 46} y={shard.y + 50} textAnchor="middle">S{index + 1}</text></g>)}
-        <path d="M516 236H580" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
-        {!compact ? <text x="708" y="364" textAnchor="middle" className="visual-note">{label("d")} · {label("e")}</text> : null}
-      </DiagramFrame>
-    );
-  }
-
-  if (visualId === "idempotency-debounce-jobify-bullmq") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">DETERMINISTIC DEBOUNCE WINDOW</text>
-        <rect x="170" y="98" width="360" height="286" rx="30" className="visual-boundary" />
-        {!compact ? <text x="194" y="132" className="visual-micro-label">{label("c")} · Δt</text> : null}
-        {[{ x: 74, y: 146 }, { x: 74, y: 236 }, { x: 74, y: 326 }].map((event, index) => <g key={event.y}><circle cx={event.x} cy={event.y} r="18" className="visual-checkpoint" /><text x={event.x} y={event.y + 48} textAnchor="middle" className="visual-micro-label">E{index + 1}</text><path d={`M92 ${event.y}C150 ${event.y} 188 240 246 240`} className="visual-flow-line visual-flow-muted" /></g>)}
-        <DiagramNode x={246} y={204} width={190} label={label("b")} tone="hot" />
-        <path d="M436 240H620" className="visual-flow-line" markerEnd={arrow} />
-        <DiagramNode x={620} y={204} width={156} label={label("d")} tone="success" />
-        <text x="698" y="168" textAnchor="middle" className="visual-note visual-note-hot">1 × EXECUTION</text>
-        <path d="M698 276V360H824" className="visual-flow-line" markerEnd={arrow} />
-        <text x="824" y="390" textAnchor="middle" className="visual-micro-label">{label("e")}</text>
-      </DiagramFrame>
-    );
-  }
-
-  if (visualId === "jobify-workers-queues-nestjs") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">TYPED QUEUE CONTRACT</text>
-        <DiagramNode x={46} y={204} width={138} label={label("a")} />
-        <path d="M184 240H266" className="visual-flow-line" markerEnd={arrow} />
-        {[166, 206, 246, 286].map((y, index) => <g key={y} className="visual-node"><rect x="266" y={y} width="126" height="32" rx="10" /><text x="329" y={y + 21} textAnchor="middle">JOB {index + 1}</text></g>)}
-        <rect x="448" y="102" width="228" height="276" rx="28" className="visual-boundary" />
-        <text x="472" y="138" className="visual-kicker">{label("c")} · TYPE BOUNDARY</text>
-        <DiagramNode x={486} y={204} width={152} label={label("d")} tone="hot" />
-        <path d="M392 240H486" className="visual-flow-line" markerEnd={arrow} />
-        <path d="M638 240H730" className="visual-flow-line" markerEnd={arrow} />
-        <DiagramNode x={730} y={204} width={130} label={label("e")} tone="success" />
-        {!compact ? <text x="562" y="344" textAnchor="middle" className="visual-micro-label">SEQUENTIAL · OBSERVABLE · RETRYABLE</text> : null}
-      </DiagramFrame>
-    );
-  }
-
-  if (visualId === "joining-rockfi") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">CAREER RIDGELINE</text>
-        <path d="M46 372L160 316L270 338L388 244L504 280L632 166L758 202L858 98L858 408L46 408Z" className="visual-elevation-fill" />
-        <path d="M46 372L160 316L270 338L388 244L504 280L632 166L758 202L858 98" className="visual-elevation-line" />
-        {[{ x: 160, y: 316, key: "a" }, { x: 388, y: 244, key: "b" }, { x: 632, y: 166, key: "d" }, { x: 858, y: 98, key: "e" }].map((point, index) => <g key={point.key}><circle cx={point.x} cy={point.y} r={index === 3 ? 13 : 9} className="visual-checkpoint" /><text x={point.x} y={point.y - 26} textAnchor="middle" className="visual-micro-label">{label(point.key)}</text></g>)}
-        {!compact ? <text x="630" y="414" textAnchor="middle" className="visual-note">{label("c")} · WEALTH MANAGEMENT</text> : null}
-      </DiagramFrame>
-    );
-  }
-
-  if (visualId === "nodejs-stream-backpressure-history-export") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">PRESSURE PROPAGATION</text>
-        <g className="visual-node"><rect x="46" y="188" width="146" height="104" rx="20" /><text x="119" y="246" textAnchor="middle">{label("a")}</text></g>
-        <path d="M192 218H340V196H474V214H622V190H780" className="visual-flow-line" markerEnd={arrow} />
-        <path d="M192 262H340V284H474V266H622V290H780" className="visual-flow-line" />
-        {[{ x: 340, key: "b" }, { x: 474, key: "c" }, { x: 622, key: "d" }].map((buffer, index) => <g key={buffer.x}><rect x={buffer.x - 34} y={196 + index * 8} width="68" height={88 - index * 16} rx="12" className={index === 1 ? "visual-firewall" : "visual-boundary"} /><text x={buffer.x} y="334" textAnchor="middle" className="visual-micro-label">{label(buffer.key)}</text></g>)}
-        <g className="visual-node visual-node-success"><path d="M780 178H850V302H780Z" className="visual-symbol-success" /><text x="815" y="246" textAnchor="middle">{label("e")}</text></g>
-        <path d="M780 360C620 420 314 420 192 326" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
-        {!compact ? <text x="486" y="414" textAnchor="middle" className="visual-note visual-note-hot">BACKPRESSURE ← DESTINATION CAPACITY</text> : null}
-      </DiagramFrame>
-    );
-  }
-
-  if (visualId === "polymagine-industry-4-eyewear-2017") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">SCAN → FIT · &lt; 1 SECOND</text>
-        <path d="M128 106C72 134 62 222 94 292S180 378 238 328C280 292 278 236 244 206C210 176 206 112 128 106Z" className="visual-elevation-line" />
-        {[126, 154, 182, 210].map((x) => <path key={x} d={`M${x} 126L${x - 52} 326M${x} 126L${x + 88} 326`} className="visual-flow-line visual-flow-muted" />)}
-        <path d="M270 236H394" className="visual-flow-line" markerEnd={arrow} />
-        <g transform="translate(424 108)">{[0, 1, 2, 3].map((row) => <path key={row} d={`M0 ${row * 64}L90 ${row * 32}L180 ${row * 64}M${row * 54} 0L${row * 42} 224`} className="visual-elevation-line" />)}</g>
-        <path d="M620 236H710" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
-        <g className="visual-node visual-node-success"><circle cx="754" cy="226" r="44" className="visual-symbol-success" /><circle cx="836" cy="226" r="44" className="visual-symbol-success" /><path d="M798 218H792M710 214L684 198M880 214L894 198" className="visual-flow-line" /><text x="795" y="310" textAnchor="middle">{label("e")}</text></g>
-        {!compact ? <><text x="154" y="406" textAnchor="middle" className="visual-micro-label">{label("a")}</text><text x="514" y="406" textAnchor="middle" className="visual-micro-label">{label("c")}</text></> : null}
-      </DiagramFrame>
-    );
-  }
-
-  if (visualId === "postgresql-unique-nulls") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">UNIQUE INDEX SEMANTICS</text>
-        {[{ y: 124, id: "42", value: "NULL" }, { y: 204, id: "42", value: "NULL" }].map((row, index) => <g key={row.y} className="visual-node"><rect x="54" y={row.y} width="250" height="58" rx="14" /><text x="100" y={row.y + 36}>{row.id}</text><text x="202" y={row.y + 36}>{row.value}</text><text x="270" y={row.y + 36}>R{index + 1}</text></g>)}
-        <path d="M304 188H420" className="visual-flow-line" markerEnd={arrow} />
-        <rect x="420" y="98" width="218" height="224" rx="26" className="visual-firewall" />
-        <text x="529" y="162" textAnchor="middle" className="visual-firewall-label">NULLS</text>
-        <text x="529" y="194" textAnchor="middle" className="visual-firewall-label">NOT DISTINCT</text>
-        <text x="529" y="250" textAnchor="middle" className="visual-note">NULL = NULL</text>
-        <path d="M638 210H734" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
-        <DiagramNode x={734} y={174} width={132} label={label("d")} tone="success" />
-        {!compact ? <text x="800" y="292" textAnchor="middle" className="visual-micro-label">{label("e")}</text> : null}
-      </DiagramFrame>
-    );
-  }
-
   if (visualId === "rebuilding-cloud-experience-forest-admin") {
     return <CloudExecutionVisual copy={copy} markerId={markerId} variant={variant} />;
-  }
-
-  if (visualId === "redis-memory-exhaustion-post-mortem") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">SHARED MEMORY · SINGLE FAILURE DOMAIN</text>
-        {[{ y: 126, key: "a" }, { y: 216, key: "b" }, { y: 306, key: "c" }].map((workload, index) => <g key={workload.key}><DiagramNode x={48} y={workload.y} width={150} label={label(workload.key)} /><path d={`M198 ${workload.y + 36}C280 ${workload.y + 36} 298 240 358 240`} className={`visual-flow-line ${index === 2 ? "visual-flow-hot" : ""}`} markerEnd={arrow} /></g>)}
-        <rect x="358" y="90" width="210" height="300" rx="30" className="visual-boundary" />
-        <rect x="382" y="122" width="162" height="232" rx="18" className="visual-duration-short" />
-        <path d="M382 164H544" className="visual-target-line" />
-        <text x="463" y="244" textAnchor="middle" className="visual-fallback-title">REDIS</text>
-        <text x="463" y="278" textAnchor="middle" className="visual-note visual-note-hot">OOM</text>
-        <path d="M568 240H666" className="visual-flow-line visual-flow-danger" markerEnd={arrow} />
-        {[{ x: 682, y: 104 }, { x: 682, y: 206 }, { x: 682, y: 308 }].map((cell, index) => <g key={cell.y} className="visual-node visual-node-success"><rect x={cell.x} y={cell.y} width="168" height="74" rx="18" /><text x={cell.x + 84} y={cell.y + 44} textAnchor="middle">{label(["a", "b", "c"][index]!)}</text></g>)}
-        {!compact ? <text x="766" y="410" textAnchor="middle" className="visual-note">{label("e")}</text> : null}
-      </DiagramFrame>
-    );
   }
 
   if (visualId === "rocket-curiosity") {
@@ -1836,40 +1427,6 @@ function ArticleEssenceDiagram({
     return <ScalingCiVisual copy={copy} markerId={markerId} variant={variant} />;
   }
 
-  if (visualId === "scim-user-provisioning-forest-admin") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">RFC 7644 · PROVIDER REALITY</text>
-        {[{ y: 106, name: "OKTA" }, { y: 204, name: "AZURE AD" }, { y: 302, name: "GOOGLE" }].map((provider) => <g key={provider.name}><circle cx="116" cy={provider.y + 36} r="34" className="visual-checkpoint" /><text x="116" y={provider.y + 41} textAnchor="middle" className="visual-micro-label">{provider.name}</text><path d={`M150 ${provider.y + 36}C240 ${provider.y + 36} 250 240 326 240`} className="visual-flow-line visual-flow-muted" /></g>)}
-        <rect x="326" y="98" width="210" height="284" rx="28" className="visual-boundary" />
-        <text x="431" y="154" textAnchor="middle" className="visual-kicker">{label("b")}</text>
-        <DiagramNode x={356} y={204} width={150} label={label("c")} tone="hot" />
-        <path d="M536 240H622" className="visual-flow-line" markerEnd={arrow} />
-        {[{ y: 102, name: "CREATE" }, { y: 204, name: "UPDATE" }, { y: 306, name: "DEACTIVATE" }].map((action, index) => <g key={action.name} className={`visual-node ${index === 2 ? "visual-stop-node" : "visual-node-success"}`}><rect x="650" y={action.y} width="188" height="72" rx="18" /><text x="744" y={action.y + 42} textAnchor="middle">{action.name}</text><path d={`M622 240C640 240 640 ${action.y + 36} 650 ${action.y + 36}`} className="visual-flow-line" markerEnd={arrow} /></g>)}
-      </DiagramFrame>
-    );
-  }
-
-  if (visualId === "security-authentication-idp-openid-connect") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">FEDERATED TRUST BOUNDARIES</text>
-        <rect x="54" y="98" width="230" height="276" rx="28" className="visual-boundary" />
-        <rect x="616" y="98" width="230" height="276" rx="28" className="visual-boundary" />
-        <DiagramNode x={84} y={204} width={170} label={label("b")} />
-        <DiagramNode x={646} y={204} width={170} label={label("c")} tone="success" />
-        <circle cx="450" cy="240" r="72" className="visual-checkpoint" />
-        <text x="450" y="232" textAnchor="middle" className="visual-fallback-title">IDENTITY</text>
-        <text x="450" y="260" textAnchor="middle" className="visual-micro-label">BROKER</text>
-        <path d="M254 218C330 154 368 154 402 196" className="visual-flow-line" markerEnd={arrow} />
-        <path d="M498 196C532 154 570 154 646 218" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
-        <path d="M646 264C570 326 532 326 498 284" className="visual-flow-line" markerEnd={arrow} />
-        <path d="M402 284C368 326 330 326 254 264" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
-        {!compact ? <><text x="328" y="136" textAnchor="middle" className="visual-micro-label">OIDC</text><text x="572" y="136" textAnchor="middle" className="visual-micro-label">SAML</text><text x="450" y="382" textAnchor="middle" className="visual-note">OAUTH 2.0 · BEARER TOKEN</text></> : null}
-      </DiagramFrame>
-    );
-  }
-
   if (visualId === "self-service-analytics-that-doesnt-lie") {
     return <SelfServiceAnalyticsVisual copy={copy} markerId={markerId} variant={variant} />;
   }
@@ -1950,7 +1507,10 @@ export function PostVisual({
 }: PostVisualProps) {
   const { i18n } = useTranslation();
   const resolvedLocale = locale ?? normalizeLocale(i18n.resolvedLanguage ?? i18n.language);
-  const copy = VISUAL_COPY[resolvedLocale][visualId ?? "fallback"];
+  const copy =
+    visualId === "trail-endurance-profile" && slug === "trail-saint-jacques-100k-2026"
+      ? TRAIL_RACE_COPY[resolvedLocale]
+      : VISUAL_COPY[resolvedLocale][visualId ?? "fallback"];
   const instanceId = useId().replaceAll(":", "");
   const markerId = `post-visual-${instanceId}`;
   const compact = variant === "card";
@@ -1958,12 +1518,16 @@ export function PostVisual({
   const descriptionId = `${markerId}-description`;
 
   let diagram: ReactNode;
-  if (visualId === "bounded-ai-loop") {
-    diagram = <BoundedAiLoop copy={copy} markerId={markerId} compact={compact} />;
-  } else if (visualId === "sse-outbound-channel") {
-    diagram = <SseOutboundChannel copy={copy} markerId={markerId} compact={compact} />;
-  } else if (visualId === "trail-endurance-profile") {
-    diagram = <TrailEnduranceProfile copy={copy} markerId={markerId} compact={compact} />;
+  if (visualId && hasEditorialPostVisual(visualId)) {
+    diagram = (
+      <EditorialPostVisual
+        copy={copy}
+        markerId={markerId}
+        slug={slug}
+        variant={variant}
+        visualId={visualId}
+      />
+    );
   } else if (visualId) {
     diagram = (
       <ArticleEssenceDiagram
