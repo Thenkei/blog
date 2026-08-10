@@ -179,9 +179,9 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
     },
     "rebuilding-cloud-experience-forest-admin": {
       title: "Chemin d'exécution cloud sous contraintes",
-      description: "Le trafic traverse Lambda, les couches VPC et le réseau avant d'atteindre une base dont les pools limitent l'échelle.",
-      caption: "Le serverless déplace les contraintes vers le réseau, le démarrage et la capacité base de données.",
-      labels: { a: "Client", b: "Lambda", c: "VPC / NAT", d: "Pool", e: "Base" },
+      description: "Une requête traverse la passerelle applicative et les Lambdas, converge vers un pool de connexions borné, puis sort via une passerelle NAT vers la base hébergée par le client.",
+      caption: "Le compute peut scaler rapidement ; le pool, la sortie NAT et la base du client restent des contraintes explicites.",
+      labels: { a: "Client", b: "Passerelle", c: "Lambda", d: "Pool", e: "Passerelle NAT", f: "BDD client" },
     },
     "redis-memory-exhaustion-post-mortem": {
       title: "Convergence des charges dans Redis",
@@ -395,9 +395,9 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
     },
     "rebuilding-cloud-experience-forest-admin": {
       title: "Cloud execution path under constraints",
-      description: "Traffic crosses Lambda, VPC layers, and the network before reaching a database whose pools limit scale.",
-      caption: "Serverless moves constraints into networking, startup, and database capacity.",
-      labels: { a: "Client", b: "Lambda", c: "VPC / NAT", d: "Pool", e: "Database" },
+      description: "A request crosses the application gateway and Lambdas, converges on a bounded connection pool, then exits through a NAT gateway toward the client-hosted database.",
+      caption: "Compute can scale quickly; the pool, NAT egress, and client database remain explicit constraints.",
+      labels: { a: "Client", b: "Gateway", c: "Lambda", d: "Pool", e: "NAT gateway", f: "Client DB" },
     },
     "redis-memory-exhaustion-post-mortem": {
       title: "Workload convergence in Redis",
@@ -1086,24 +1086,46 @@ function CloudExecutionVisual({
   if (variant === "card") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <circle cx="112" cy="240" r="34" className="visual-editorial-source" />
-        <path d="M146 240H232" className="visual-editorial-flow-trace" />
-        <rect x="232" y="112" width="340" height="256" rx="54" className="visual-editorial-cloud-boundary" />
-        {[154, 240, 326].map((y, index) => (
-          <g key={y} className={`visual-editorial-compute visual-editorial-compute-${index + 1}`}>
-            <path d={`M278 ${y}L310 ${y - 20}L342 ${y}L342 ${y + 40}L310 ${y + 60}L278 ${y + 40}Z`} className="visual-editorial-panel" />
-            <path d={`M342 ${y + 20}H424`} className="visual-editorial-line-muted" />
-          </g>
-        ))}
-        <rect x="424" y="148" width="74" height="184" rx="34" className="visual-editorial-panel-hot" />
-        <path d="M498 240H604" className="visual-editorial-flow-trace" />
-        <rect x="604" y="132" width="46" height="216" rx="22" className="visual-editorial-pool" />
-        <rect x="612" y="244" width="30" height="96" rx="15" className="visual-editorial-pool-fill" />
-        <path d="M650 240H708" className="visual-editorial-flow-trace" />
-        <g className="visual-editorial-database">
-          <ellipse cx="780" cy="166" rx="68" ry="24" />
-          <path d="M712 166V310C712 324 742 336 780 336S848 324 848 310V166" />
-          <ellipse cx="780" cy="310" rx="68" ry="24" />
+        <g data-cloud-stage="client">
+          <circle cx="58" cy="240" r="28" className="visual-editorial-source" />
+        </g>
+        <path d="M86 240H116" className="visual-editorial-flow-trace" />
+        <g data-cloud-stage="gateway" className="visual-editorial-app-gateway">
+          <rect x="116" y="174" width="46" height="132" rx="22" />
+          <path d="M127 214L150 240L127 266" className="visual-editorial-gateway-route" />
+        </g>
+        <path d="M162 240H206" className="visual-editorial-flow-trace" />
+
+        <rect x="206" y="104" width="430" height="272" rx="50" className="visual-editorial-cloud-boundary" />
+        <g data-cloud-stage="lambda" className="visual-editorial-compute">
+          {[168, 240, 312].map((y, index) => (
+            <path
+              key={y}
+              d={`M244 ${y}L270 ${y - 16}L296 ${y}V${y + 32}L270 ${y + 48}L244 ${y + 32}Z`}
+              className={`visual-editorial-panel visual-editorial-compute-${index + 1}`}
+            />
+          ))}
+        </g>
+        <path d="M296 184C356 184 350 240 402 240M296 256H402M296 328C356 328 350 256 402 256" className="visual-editorial-line-muted" />
+
+        <g data-cloud-stage="pool" className="visual-editorial-connection-pool">
+          <rect x="402" y="168" width="100" height="144" rx="28" className="visual-editorial-pool" />
+          {[194, 224, 254, 284].map((y, index) => (
+            <circle key={y} cx="452" cy={y} r="10" className={index < 3 ? "visual-editorial-pool-slot-active" : "visual-editorial-pool-slot"} />
+          ))}
+        </g>
+        <path d="M502 240H556" className="visual-editorial-flow-trace" />
+        <g data-cloud-stage="nat-gateway" className="visual-editorial-nat-gateway">
+          <rect x="556" y="166" width="52" height="148" rx="24" />
+          <path d="M568 268V220M568 220L596 204M568 220L596 236" className="visual-editorial-gateway-route" />
+        </g>
+        <path d="M608 240H682" className="visual-editorial-flow-trace" />
+
+        <rect x="682" y="120" width="184" height="240" rx="46" className="visual-editorial-client-boundary" />
+        <g data-cloud-stage="client-database" className="visual-editorial-database">
+          <ellipse cx="774" cy="174" rx="58" ry="21" />
+          <path d="M716 174V302C716 316 742 326 774 326S832 316 832 302V174" />
+          <ellipse cx="774" cy="302" rx="58" ry="21" />
         </g>
       </EditorialFrame>
     );
@@ -1112,24 +1134,45 @@ function CloudExecutionVisual({
   if (variant === "header") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <circle cx="82" cy="240" r="36" className="visual-editorial-source" />
-        <path d="M118 240H196" className="visual-editorial-flow-trace" />
-        <rect x="196" y="88" width="420" height="304" rx="58" className="visual-editorial-cloud-boundary" />
-        {[126, 222, 318].map((y, index) => (
-          <g key={y} className={`visual-editorial-compute visual-editorial-compute-${index + 1}`}>
-            <path d={`M246 ${y}L282 ${y - 22}L318 ${y}L318 ${y + 44}L282 ${y + 66}L246 ${y + 44}Z`} className="visual-editorial-panel" />
-            <path d={`M318 ${y + 22}H456`} className="visual-editorial-line-muted" />
-          </g>
-        ))}
-        <rect x="456" y="122" width="82" height="236" rx="38" className="visual-editorial-panel-hot" />
-        <path d="M538 240H632" className="visual-editorial-flow-trace" />
-        <rect x="632" y="114" width="50" height="252" rx="24" className="visual-editorial-pool" />
-        <rect x="640" y="246" width="34" height="112" rx="17" className="visual-editorial-pool-fill" />
-        <path d="M682 240H724" className="visual-editorial-flow-trace" />
-        <g className="visual-editorial-database">
-          <ellipse cx="794" cy="156" rx="66" ry="24" />
-          <path d="M728 156V316C728 330 758 342 794 342S860 330 860 316V156" />
-          <ellipse cx="794" cy="316" rx="66" ry="24" />
+        <g data-cloud-stage="client">
+          <circle cx="54" cy="238" r="30" className="visual-editorial-source" />
+        </g>
+        <path d="M84 238H108" className="visual-editorial-flow-trace" />
+        <g data-cloud-stage="gateway" className="visual-editorial-app-gateway">
+          <rect x="108" y="154" width="52" height="168" rx="25" />
+          <path d="M120 204L148 238L120 272" className="visual-editorial-gateway-route" />
+        </g>
+        <path d="M160 238H198" className="visual-editorial-flow-trace" />
+
+        <rect x="198" y="76" width="454" height="326" rx="56" className="visual-editorial-cloud-boundary" />
+        <g data-cloud-stage="lambda">
+          {[130, 220, 310].map((y, index) => (
+            <g key={y} className={`visual-editorial-compute visual-editorial-compute-${index + 1}`}>
+              <path d={`M234 ${y}L266 ${y - 20}L298 ${y}V${y + 40}L266 ${y + 60}L234 ${y + 40}Z`} className="visual-editorial-panel" />
+              <circle cx="266" cy={y + 20} r="7" className="visual-editorial-pool-slot-active" />
+            </g>
+          ))}
+        </g>
+        <path d="M298 150C366 150 356 220 406 226M298 240H406M298 330C366 330 356 260 406 254" className="visual-editorial-line-muted" />
+
+        <g data-cloud-stage="pool" className="visual-editorial-connection-pool">
+          <rect x="406" y="148" width="108" height="180" rx="32" className="visual-editorial-pool" />
+          {[180, 220, 260, 300].map((y, index) => (
+            <circle key={y} cx="460" cy={y} r="12" className={index < 3 ? "visual-editorial-pool-slot-active" : "visual-editorial-pool-slot"} />
+          ))}
+        </g>
+        <path d="M514 238H566" className="visual-editorial-flow-trace" />
+        <g data-cloud-stage="nat-gateway" className="visual-editorial-nat-gateway">
+          <rect x="566" y="146" width="56" height="184" rx="27" />
+          <path d="M578 278V224M578 224L610 204M578 224L610 246" className="visual-editorial-gateway-route" />
+        </g>
+        <path d="M622 238H686" className="visual-editorial-flow-trace" />
+
+        <rect x="686" y="104" width="188" height="268" rx="48" className="visual-editorial-client-boundary" />
+        <g data-cloud-stage="client-database" className="visual-editorial-database">
+          <ellipse cx="780" cy="160" rx="60" ry="22" />
+          <path d="M720 160V314C720 328 746 340 780 340S840 328 840 314V160" />
+          <ellipse cx="780" cy="314" rx="60" ry="22" />
         </g>
       </EditorialFrame>
     );
@@ -1137,27 +1180,55 @@ function CloudExecutionVisual({
 
   return (
     <EditorialFrame markerId={markerId} variant={variant}>
-      <circle cx="70" cy="224" r="30" className="visual-editorial-source" />
-      <path d="M100 224H170" className="visual-editorial-flow-trace" markerEnd={arrow} />
-      <rect x="170" y="92" width="398" height="264" rx="54" className="visual-editorial-cloud-boundary" />
-      {[130, 210, 290].map((y, index) => (
-        <g key={y} className={`visual-editorial-compute visual-editorial-compute-${index + 1}`}>
-          <path d={`M214 ${y}L244 ${y - 18}L274 ${y}L274 ${y + 36}L244 ${y + 54}L214 ${y + 36}Z`} className="visual-editorial-panel" />
-          <path d={`M274 ${y + 18}H402`} className="visual-editorial-line-muted" />
-        </g>
-      ))}
-      <rect x="402" y="130" width="76" height="188" rx="36" className="visual-editorial-panel-hot" />
-      <path d="M478 224H584" className="visual-editorial-flow-trace" />
-      <rect x="584" y="124" width="50" height="200" rx="24" className="visual-editorial-pool" />
-      <rect x="592" y="222" width="34" height="94" rx="17" className="visual-editorial-pool-fill" />
-      <path d="M634 224H694" className="visual-editorial-flow-trace" markerEnd={arrow} />
-      <g className="visual-editorial-database">
-        <ellipse cx="770" cy="152" rx="70" ry="24" />
-        <path d="M700 152V294C700 310 732 322 770 322S840 310 840 294V152" />
-        <ellipse cx="770" cy="294" rx="70" ry="24" />
+      <g data-cloud-stage="client">
+        <circle cx="46" cy="216" r="26" className="visual-editorial-source" />
       </g>
-      {[{ x: 70, key: "a" }, { x: 244, key: "b" }, { x: 440, key: "c" }, { x: 609, key: "d" }, { x: 770, key: "e" }].map((item) => (
-        <text key={item.key} x={item.x} y="390" textAnchor="middle" className="visual-editorial-label">
+      <path d="M72 216H100" className="visual-editorial-flow-trace" markerEnd={arrow} />
+      <g data-cloud-stage="gateway" className="visual-editorial-app-gateway">
+        <rect x="106" y="156" width="44" height="120" rx="21" />
+        <path d="M116 190L140 216L116 242" className="visual-editorial-gateway-route" />
+      </g>
+      <path d="M150 216H190" className="visual-editorial-flow-trace" markerEnd={arrow} />
+
+      <rect x="190" y="86" width="448" height="260" rx="48" className="visual-editorial-cloud-boundary" />
+      <g data-cloud-stage="lambda">
+        {[136, 208, 280].map((y, index) => (
+          <g key={y} className={`visual-editorial-compute visual-editorial-compute-${index + 1}`}>
+            <path d={`M220 ${y}L246 ${y - 16}L272 ${y}V${y + 32}L246 ${y + 48}L220 ${y + 32}Z`} className="visual-editorial-panel" />
+            <circle cx="246" cy={y + 16} r="6" className="visual-editorial-pool-slot-active" />
+          </g>
+        ))}
+      </g>
+      <path d="M272 152C328 152 326 204 368 210M272 224H368M272 296C328 296 326 244 368 238" className="visual-editorial-line-muted" />
+
+      <g data-cloud-stage="pool" className="visual-editorial-connection-pool">
+        <rect x="368" y="148" width="94" height="136" rx="27" className="visual-editorial-pool" />
+        {[174, 202, 230, 258].map((y, index) => (
+          <circle key={y} cx="415" cy={y} r="9" className={index < 3 ? "visual-editorial-pool-slot-active" : "visual-editorial-pool-slot"} />
+        ))}
+      </g>
+      <path d="M462 216H520" className="visual-editorial-flow-trace" markerEnd={arrow} />
+      <g data-cloud-stage="nat-gateway" className="visual-editorial-nat-gateway">
+        <rect x="526" y="148" width="48" height="136" rx="23" />
+        <path d="M537 254V204M537 204L563 190M537 204L563 224" className="visual-editorial-gateway-route" />
+      </g>
+      <path d="M574 216H660" className="visual-editorial-flow-trace" markerEnd={arrow} />
+
+      <rect x="660" y="108" width="210" height="216" rx="44" className="visual-editorial-client-boundary" />
+      <g data-cloud-stage="client-database" className="visual-editorial-database">
+        <ellipse cx="765" cy="154" rx="58" ry="20" />
+        <path d="M707 154V278C707 292 733 302 765 302S823 292 823 278V154" />
+        <ellipse cx="765" cy="278" rx="58" ry="20" />
+      </g>
+      {[
+        { x: 34, key: "a" },
+        { x: 140, key: "b" },
+        { x: 248, key: "c" },
+        { x: 415, key: "d" },
+        { x: 550, key: "e" },
+        { x: 765, key: "f" },
+      ].map((item) => (
+        <text key={item.key} x={item.x} y="386" textAnchor="middle" className="visual-editorial-label visual-editorial-label-compact">
           {labels[item.key]}
         </text>
       ))}

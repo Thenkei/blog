@@ -37,7 +37,7 @@ const editorialSystemTextBudgets = [
   { id: "self-service-analytics-that-doesnt-lie", inlineLabels: 3 },
   { id: "unknown-unknowns-software-architecture", inlineLabels: 3 },
   { id: "the-onboarding-matrix-forest-admin", inlineLabels: 3 },
-  { id: "rebuilding-cloud-experience-forest-admin", inlineLabels: 5 },
+  { id: "rebuilding-cloud-experience-forest-admin", inlineLabels: 6 },
   { id: "scaling-ci-github-actions-forest-admin", inlineLabels: 4 },
   { id: "agent-battle-2026", inlineLabels: 3 },
   { id: "bounded-ai-loop", inlineLabels: 4 },
@@ -73,7 +73,7 @@ const localizedPrototypeLabels = [
     en: "Adapter / Flow",
     fr: "Adaptateur / Flow",
   },
-  { id: "rebuilding-cloud-experience-forest-admin", en: "Database", fr: "Base" },
+  { id: "rebuilding-cloud-experience-forest-admin", en: "Client DB", fr: "BDD client" },
   { id: "scaling-ci-github-actions-forest-admin", en: "Artifacts", fr: "Artefacts" },
   { id: "agent-battle-2026", en: "Value", fr: "Valeur" },
   { id: "bounded-ai-loop", en: "Human gate", fr: "Gate humain" },
@@ -212,6 +212,36 @@ describe("PostVisual", () => {
     expect(container.querySelector(".visual-editorial-radar-ping")).toBeTruthy();
     expect(container.querySelectorAll("svg text")).toHaveLength(0);
   });
+
+  it.each(["card", "header", "inline"] satisfies PostVisualVariant[])(
+    "keeps the cloud topology accurate in the %s placement",
+    (variant) => {
+      const { container } = render(
+        <PostVisual
+          locale="en"
+          slug="rebuilding-cloud-experience-forest-admin"
+          variant={variant}
+          visualId="rebuilding-cloud-experience-forest-admin"
+        />,
+      );
+
+      expect(
+        Array.from(container.querySelectorAll("[data-cloud-stage]"), (stage) =>
+          stage.getAttribute("data-cloud-stage"),
+        ),
+      ).toEqual([
+        "client",
+        "gateway",
+        "lambda",
+        "pool",
+        "nat-gateway",
+        "client-database",
+      ]);
+      expect(container.querySelectorAll(".visual-editorial-app-gateway")).toHaveLength(1);
+      expect(container.querySelectorAll(".visual-editorial-nat-gateway")).toHaveLength(1);
+      expect(container.querySelectorAll(".visual-editorial-client-boundary")).toHaveLength(1);
+    },
+  );
 
   it("gives the watch review and race report article-specific endurance stories", () => {
     const watch = render(

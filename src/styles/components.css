@@ -672,6 +672,11 @@
   letter-spacing: -0.012em;
 }
 
+.visual-editorial-label-compact {
+  font-size: 23px;
+  letter-spacing: -0.018em;
+}
+
 .visual-editorial-cross {
   fill: none;
   stroke: var(--visual-danger);
@@ -769,6 +774,37 @@
   stroke-dasharray: 12 10;
 }
 
+.visual-editorial-client-boundary {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 5%, var(--visual-surface));
+  stroke: color-mix(in srgb, var(--visual-line-secondary) 48%, var(--divider));
+  stroke-width: 3;
+  stroke-dasharray: 5 11;
+}
+
+.visual-editorial-app-gateway rect,
+.visual-editorial-nat-gateway rect {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 3;
+}
+
+.visual-editorial-app-gateway rect {
+  fill: color-mix(in srgb, var(--visual-hot) 12%, var(--visual-surface-strong));
+  stroke: var(--visual-hot);
+}
+
+.visual-editorial-nat-gateway rect {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 12%, var(--visual-surface-strong));
+  stroke: var(--visual-line-secondary);
+}
+
+.visual-editorial-gateway-route {
+  fill: none;
+  stroke: var(--visual-ink);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .visual-editorial-compute {
   animation: visual-node-breathe 4.8s ease-in-out infinite;
 }
@@ -793,6 +829,26 @@
 
 .visual-editorial-pool-fill {
   fill: color-mix(in srgb, var(--visual-danger) 74%, transparent);
+  animation: visual-pool-pressure 4.8s ease-in-out infinite;
+}
+
+.visual-editorial-pool-slot,
+.visual-editorial-pool-slot-active {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 3;
+}
+
+.visual-editorial-pool-slot {
+  fill: color-mix(in srgb, var(--visual-surface-strong) 88%, transparent);
+  stroke: color-mix(in srgb, var(--visual-danger) 58%, var(--divider));
+}
+
+.visual-editorial-pool-slot-active {
+  fill: color-mix(in srgb, var(--visual-danger) 72%, transparent);
+  stroke: color-mix(in srgb, var(--visual-danger) 82%, var(--visual-ink));
+}
+
+.visual-editorial-connection-pool .visual-editorial-pool-slot-active {
   animation: visual-pool-pressure 4.8s ease-in-out infinite;
 }
 
