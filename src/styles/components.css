@@ -552,6 +552,151 @@
   stroke: color-mix(in srgb, var(--visual-hot) 18%, transparent);
 }
 
+.visual-editorial-panel,
+.visual-editorial-layer-outer,
+.visual-editorial-layer-middle,
+.visual-editorial-panel-hot,
+.visual-editorial-success,
+.visual-editorial-radar,
+.visual-editorial-radar-inner {
+  vector-effect: non-scaling-stroke;
+}
+
+.visual-editorial-panel {
+  fill: color-mix(in srgb, var(--visual-surface-strong) 94%, transparent);
+  stroke: color-mix(in srgb, var(--visual-line) 68%, var(--divider));
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.visual-editorial-fold,
+.visual-editorial-detail,
+.visual-editorial-clock {
+  fill: none;
+  stroke: color-mix(in srgb, var(--visual-line) 58%, var(--visual-muted));
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.visual-editorial-fold {
+  stroke: var(--visual-hot);
+}
+
+.visual-editorial-line,
+.visual-editorial-line-hot,
+.visual-editorial-line-muted,
+.visual-editorial-rejected {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.visual-editorial-line {
+  stroke: var(--visual-line);
+  stroke-width: 5;
+}
+
+.visual-editorial-line-hot {
+  stroke: var(--visual-hot);
+  stroke-width: 5;
+}
+
+.visual-editorial-line-muted {
+  stroke: color-mix(in srgb, var(--visual-line) 42%, var(--visual-muted));
+  stroke-width: 3;
+}
+
+.visual-editorial-rejected {
+  stroke: color-mix(in srgb, var(--visual-danger) 62%, transparent);
+  stroke-width: 3;
+  stroke-dasharray: 9 10;
+}
+
+.visual-editorial-checkpoint,
+.visual-editorial-source {
+  fill: var(--visual-hot);
+  stroke: color-mix(in srgb, var(--visual-surface-strong) 82%, var(--visual-ink));
+  stroke-width: 4;
+}
+
+.visual-editorial-source {
+  fill: color-mix(in srgb, var(--visual-line) 72%, var(--visual-surface-strong));
+}
+
+.visual-editorial-ring {
+  fill: color-mix(in srgb, var(--visual-hot) 9%, var(--visual-surface-strong));
+  stroke: var(--visual-hot);
+  stroke-width: 4;
+}
+
+.visual-editorial-layer-outer {
+  fill: color-mix(in srgb, var(--visual-line) 5%, var(--visual-surface));
+  stroke: color-mix(in srgb, var(--visual-line) 38%, var(--divider));
+  stroke-width: 3;
+}
+
+.visual-editorial-layer-middle {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 7%, var(--visual-surface-strong));
+  stroke: color-mix(in srgb, var(--visual-line-secondary) 52%, var(--divider));
+  stroke-width: 3;
+}
+
+.visual-editorial-panel-hot {
+  fill: color-mix(in srgb, var(--visual-hot) 13%, var(--visual-surface-strong));
+  stroke: var(--visual-hot);
+  stroke-width: 3;
+}
+
+.visual-editorial-success {
+  fill: color-mix(in srgb, var(--visual-line-secondary) 14%, var(--visual-surface-strong));
+  stroke: var(--visual-line-secondary);
+  stroke-width: 3;
+}
+
+.visual-editorial-check {
+  fill: none;
+  stroke: var(--visual-line-secondary);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.visual-editorial-check-small {
+  stroke-width: 4;
+}
+
+.visual-editorial-label {
+  fill: var(--visual-ink);
+  font: 700 30px var(--font-display);
+  letter-spacing: -0.012em;
+}
+
+.visual-editorial-cross {
+  fill: none;
+  stroke: var(--visual-danger);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.visual-editorial-radar {
+  fill: color-mix(in srgb, var(--visual-line) 4%, var(--visual-surface));
+  stroke: color-mix(in srgb, var(--visual-line) 54%, var(--divider));
+  stroke-width: 3;
+}
+
+.visual-editorial-radar-inner {
+  fill: none;
+  stroke: color-mix(in srgb, var(--visual-line) 24%, transparent);
+  stroke-width: 2;
+  stroke-dasharray: 8 10;
+}
+
+.visual-editorial-sweep {
+  fill: color-mix(in srgb, var(--visual-line) 18%, transparent);
+  stroke: none;
+}
+
 .section-eyebrow {
   margin-bottom: 0.65rem;
   color: var(--accent-primary);

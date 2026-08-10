@@ -15,6 +15,36 @@ const visuals: Array<{ id: PostVisualId; title: RegExp }> = postVisualIds.map((i
   title: /.+/,
 }));
 
+const editorialPrototypeIds = [
+  "engineering-documents-age-poorly",
+  "context-engineering-beyond-prompt-engineering",
+  "self-service-analytics-that-doesnt-lie",
+  "unknown-unknowns-software-architecture",
+] as const satisfies readonly PostVisualId[];
+
+const localizedPrototypeLabels = [
+  { id: "engineering-documents-age-poorly", en: "Decision", fr: "Décision" },
+  {
+    id: "context-engineering-beyond-prompt-engineering",
+    en: "State + Provenance",
+    fr: "État + Provenance",
+  },
+  { id: "self-service-analytics-that-doesnt-lie", en: "Contract", fr: "Contrat" },
+  { id: "unknown-unknowns-software-architecture", en: "Recover", fr: "Récupérer" },
+] as const satisfies ReadonlyArray<{ id: PostVisualId; en: string; fr: string }>;
+
+function geometrySignature(container: HTMLElement) {
+  return Array.from(
+    container.querySelectorAll("svg path, svg rect, svg circle, svg ellipse, svg line"),
+  )
+    .map((element) =>
+      ["d", "x", "y", "width", "height", "cx", "cy", "r", "rx", "ry"]
+        .map((attribute) => element.getAttribute(attribute) ?? "")
+        .join(":"),
+    )
+    .join("|");
+}
+
 describe("PostVisual", () => {
   it.each(visuals)("renders $id as an accessible inline diagram", ({ id, title }) => {
     render(<PostVisual locale="en" slug={id} variant="inline" visualId={id} />);
@@ -40,21 +70,68 @@ describe("PostVisual", () => {
       const { container, unmount } = render(
         <PostVisual locale="en" slug={id} variant="header" visualId={id} />,
       );
-      const geometry = Array.from(
-        container.querySelectorAll("svg path, svg rect, svg circle, svg ellipse, svg line"),
-      )
-        .map((element) =>
-          ["d", "x", "y", "width", "height", "cx", "cy", "r", "rx", "ry"]
-            .map((attribute) => element.getAttribute(attribute) ?? "")
-            .join(":"),
-        )
-        .join("|");
+      const geometry = geometrySignature(container);
       unmount();
       return geometry;
     });
 
     expect(new Set(signatures).size).toBe(postVisualIds.length);
   });
+
+  it.each(editorialPrototypeIds)(
+    "uses purpose-built geometry for every %s placement",
+    (id) => {
+      const signatures = (["card", "header", "inline"] satisfies PostVisualVariant[]).map(
+        (variant) => {
+          const { container, unmount } = render(
+            <PostVisual locale="en" slug={id} variant={variant} visualId={id} />,
+          );
+
+          expect(
+            container.querySelector(`[data-composition="${variant}"]`),
+          ).toBeTruthy();
+          const signature = geometrySignature(container);
+          unmount();
+          return signature;
+        },
+      );
+
+      expect(new Set(signatures).size).toBe(3);
+    },
+  );
+
+  it.each(editorialPrototypeIds)(
+    "keeps %s within its placement text budgets",
+    (id) => {
+      for (const variant of ["card", "header"] satisfies PostVisualVariant[]) {
+        const { container, unmount } = render(
+          <PostVisual locale="en" slug={id} variant={variant} visualId={id} />,
+        );
+
+        expect(container.querySelectorAll("svg text")).toHaveLength(0);
+        unmount();
+      }
+
+      const { container } = render(
+        <PostVisual locale="en" slug={id} variant="inline" visualId={id} />,
+      );
+      expect(container.querySelectorAll("svg text")).toHaveLength(3);
+    },
+  );
+
+  it.each(localizedPrototypeLabels)(
+    "localizes the editorial labels for $id",
+    ({ id, en, fr }) => {
+      const { unmount } = render(
+        <PostVisual locale="en" slug={id} variant="inline" visualId={id} />,
+      );
+      expect(screen.getByText(en)).toBeInTheDocument();
+      unmount();
+
+      render(<PostVisual locale="fr" slug={id} variant="inline" visualId={id} />);
+      expect(screen.getByText(fr)).toBeInTheDocument();
+    },
+  );
 
   it.each(postVisualIds)("maps %s to a concrete diagram", (id) => {
     render(<PostVisual locale="en" slug={id} variant="inline" visualId={id} />);

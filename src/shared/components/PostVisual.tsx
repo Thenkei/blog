@@ -739,16 +739,345 @@ function TrailEnduranceProfile({
   );
 }
 
+type EditorialVisualProps = {
+  copy: DiagramCopy;
+  markerId: string;
+  variant: PostVisualVariant;
+};
+
+function EditorialFrame({
+  markerId,
+  variant,
+  children,
+}: {
+  markerId: string;
+  variant: PostVisualVariant;
+  children: ReactNode;
+}) {
+  return (
+    <>
+      <defs>
+        <linearGradient id={`${markerId}-editorial-wash`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="var(--visual-surface-strong)" />
+          <stop offset="0.62" stopColor="var(--visual-surface)" />
+          <stop offset="1" stopColor="var(--visual-surface-strong)" />
+        </linearGradient>
+        <radialGradient id={`${markerId}-editorial-glow`} cx="50%" cy="46%" r="58%">
+          <stop offset="0" stopColor="var(--visual-line)" stopOpacity="0.16" />
+          <stop offset="1" stopColor="var(--visual-line)" stopOpacity="0" />
+        </radialGradient>
+        <marker
+          id={`${markerId}-arrow`}
+          markerWidth="12"
+          markerHeight="10"
+          refX="10"
+          refY="5"
+          orient="auto"
+        >
+          <path d="M0 0L12 5L0 10Z" className="visual-arrow-head" />
+        </marker>
+      </defs>
+      <rect width="900" height="480" rx="28" fill={`url(#${markerId}-editorial-wash)`} />
+      <ellipse
+        cx="450"
+        cy="224"
+        rx="430"
+        ry="264"
+        fill={`url(#${markerId}-editorial-glow)`}
+      />
+      <g
+        className={`visual-editorial-composition visual-editorial-composition-${variant}`}
+        data-composition={variant}
+      >
+        {children}
+      </g>
+    </>
+  );
+}
+
+function EngineeringDocumentsVisual({
+  copy,
+  markerId,
+  variant,
+}: EditorialVisualProps) {
+  const labels = copy.labels;
+  const arrow = `url(#${markerId}-arrow)`;
+
+  if (variant === "card") {
+    return (
+      <EditorialFrame markerId={markerId} variant={variant}>
+        <path d="M238 84H486L610 208V390H238Z" className="visual-editorial-panel" />
+        <path d="M486 84V208H610" className="visual-editorial-fold" />
+        <path d="M300 250H474M300 302H430" className="visual-editorial-detail" />
+        <path
+          d="M628 126C732 150 770 252 716 332C688 374 644 396 596 396"
+          className="visual-editorial-line-hot"
+        />
+        <circle cx="700" cy="172" r="18" className="visual-editorial-checkpoint" />
+      </EditorialFrame>
+    );
+  }
+
+  if (variant === "header") {
+    return (
+      <EditorialFrame markerId={markerId} variant={variant}>
+        <path d="M146 86H438L568 216V386H146Z" className="visual-editorial-panel" />
+        <path d="M438 86V216H568" className="visual-editorial-fold" />
+        <path d="M220 260H418M220 316H368" className="visual-editorial-detail" />
+        <path
+          d="M582 124C718 136 792 238 742 334C718 380 668 404 606 398"
+          className="visual-editorial-line-hot"
+        />
+        <circle cx="704" cy="170" r="22" className="visual-editorial-checkpoint" />
+        <rect x="638" y="292" width="150" height="92" rx="30" className="visual-editorial-success" />
+        <path d="M678 338L704 360L750 314" className="visual-editorial-check" />
+      </EditorialFrame>
+    );
+  }
+
+  return (
+    <EditorialFrame markerId={markerId} variant={variant}>
+      <path
+        d="M222 224H350C382 224 396 240 420 240H642"
+        className="visual-editorial-line"
+        markerEnd={arrow}
+      />
+      <g>
+        <path d="M76 112H202L248 158V294H76Z" className="visual-editorial-panel" />
+        <path d="M202 112V158H248" className="visual-editorial-fold" />
+        <path d="M112 210H206M112 244H184" className="visual-editorial-detail" />
+        <text x="162" y="354" textAnchor="middle" className="visual-editorial-label">
+          {labels.a}
+        </text>
+      </g>
+      <g>
+        <circle cx="450" cy="224" r="82" className="visual-editorial-ring" />
+        <path d="M450 178V228L486 250" className="visual-editorial-clock" />
+        <circle cx="450" cy="224" r="12" className="visual-editorial-checkpoint" />
+        <text x="450" y="354" textAnchor="middle" className="visual-editorial-label">
+          {labels.d}
+        </text>
+      </g>
+      <g>
+        <rect x="652" y="136" width="172" height="176" rx="38" className="visual-editorial-success" />
+        <path d="M696 224L728 252L784 190" className="visual-editorial-check" />
+        <path d="M684 288H790" className="visual-editorial-detail" />
+        <text x="738" y="354" textAnchor="middle" className="visual-editorial-label">
+          {labels.e}
+        </text>
+      </g>
+    </EditorialFrame>
+  );
+}
+
+function ContextEngineeringVisual({
+  copy,
+  markerId,
+  variant,
+}: EditorialVisualProps) {
+  const labels = copy.labels;
+
+  if (variant === "card") {
+    return (
+      <EditorialFrame markerId={markerId} variant={variant}>
+        <rect x="190" y="82" width="520" height="316" rx="70" className="visual-editorial-layer-outer" />
+        <rect x="260" y="132" width="380" height="216" rx="58" className="visual-editorial-layer-middle" />
+        <rect x="340" y="180" width="220" height="120" rx="44" className="visual-editorial-panel-hot" />
+        <path d="M414 240L442 268L494 212" className="visual-editorial-check" />
+      </EditorialFrame>
+    );
+  }
+
+  if (variant === "header") {
+    return (
+      <EditorialFrame markerId={markerId} variant={variant}>
+        <rect x="116" y="74" width="566" height="332" rx="72" className="visual-editorial-layer-outer" />
+        <rect x="184" y="126" width="430" height="228" rx="58" className="visual-editorial-layer-middle" />
+        <rect x="270" y="178" width="258" height="124" rx="44" className="visual-editorial-panel-hot" />
+        <circle cx="399" cy="240" r="22" className="visual-editorial-checkpoint" />
+        <path d="M420 240H688" className="visual-editorial-line" />
+        <rect x="688" y="150" width="78" height="180" rx="36" className="visual-editorial-success" />
+        <path d="M708 240L728 260L752 218" className="visual-editorial-check" />
+      </EditorialFrame>
+    );
+  }
+
+  return (
+    <EditorialFrame markerId={markerId} variant={variant}>
+      <rect x="82" y="70" width="736" height="338" rx="72" className="visual-editorial-layer-outer" />
+      <text x="122" y="118" className="visual-editorial-label">
+        {labels.a} + {labels.d}
+      </text>
+      <rect x="164" y="136" width="572" height="232" rx="58" className="visual-editorial-layer-middle" />
+      <text x="206" y="184" className="visual-editorial-label">
+        {labels.b} + {labels.c}
+      </text>
+      <rect x="282" y="202" width="336" height="116" rx="44" className="visual-editorial-panel-hot" />
+      <circle cx="346" cy="260" r="18" className="visual-editorial-checkpoint" />
+      <path d="M338 260L346 268L360 250" className="visual-editorial-check visual-editorial-check-small" />
+      <text x="390" y="270" className="visual-editorial-label">
+        {labels.e}
+      </text>
+    </EditorialFrame>
+  );
+}
+
+function SelfServiceAnalyticsVisual({
+  copy,
+  markerId,
+  variant,
+}: EditorialVisualProps) {
+  const labels = copy.labels;
+  const arrow = `url(#${markerId}-arrow)`;
+
+  if (variant === "card") {
+    return (
+      <EditorialFrame markerId={markerId} variant={variant}>
+        {[160, 240, 320].map((y) => (
+          <circle key={y} cx="176" cy={y} r="18" className="visual-editorial-source" />
+        ))}
+        <path d="M194 160C286 160 282 240 356 240M194 240H356M194 320C286 320 282 240 356 240" className="visual-editorial-line-muted" />
+        <rect x="356" y="128" width="188" height="224" rx="54" className="visual-editorial-panel-hot" />
+        <path d="M404 240L438 274L500 200" className="visual-editorial-check" />
+        <path d="M544 240H682" className="visual-editorial-line" />
+        <circle cx="724" cy="240" r="58" className="visual-editorial-success" />
+      </EditorialFrame>
+    );
+  }
+
+  if (variant === "header") {
+    return (
+      <EditorialFrame markerId={markerId} variant={variant}>
+        {[144, 240, 336].map((y) => (
+          <circle key={y} cx="126" cy={y} r="20" className="visual-editorial-source" />
+        ))}
+        <path d="M146 144C278 144 270 240 342 240M146 240H342M146 336C278 336 270 240 342 240" className="visual-editorial-line-muted" />
+        <rect x="342" y="108" width="218" height="264" rx="58" className="visual-editorial-panel-hot" />
+        <path d="M398 240L434 278L506 194" className="visual-editorial-check" />
+        <path d="M560 240H696" className="visual-editorial-line" />
+        <circle cx="760" cy="240" r="66" className="visual-editorial-success" />
+        <path d="M730 240H790M760 210V270" className="visual-editorial-detail" />
+      </EditorialFrame>
+    );
+  }
+
+  return (
+    <EditorialFrame markerId={markerId} variant={variant}>
+      <path
+        d="M238 224H338C376 224 386 240 424 240H660"
+        className="visual-editorial-line"
+        markerEnd={arrow}
+      />
+      <g>
+        {[170, 224, 278].map((y) => (
+          <circle key={y} cx="142" cy={y} r="17" className="visual-editorial-source" />
+        ))}
+        <path d="M159 170C218 170 208 224 252 224M159 224H252M159 278C218 278 208 224 252 224" className="visual-editorial-line-muted" />
+        <text x="142" y="354" textAnchor="middle" className="visual-editorial-label">
+          {labels.a}
+        </text>
+      </g>
+      <g>
+        <rect x="356" y="132" width="188" height="184" rx="48" className="visual-editorial-panel-hot" />
+        <path d="M404 224L436 256L496 190" className="visual-editorial-check" />
+        <text x="450" y="354" textAnchor="middle" className="visual-editorial-label">
+          {labels.c}
+        </text>
+      </g>
+      <g>
+        <circle cx="738" cy="224" r="78" className="visual-editorial-success" />
+        <path d="M702 224H774M738 188V260" className="visual-editorial-detail" />
+        <text x="738" y="354" textAnchor="middle" className="visual-editorial-label">
+          {labels.e}
+        </text>
+      </g>
+      <path d="M159 292C312 420 520 420 640 310" className="visual-editorial-rejected" />
+      <path d="M626 294L654 322M654 294L626 322" className="visual-editorial-cross" />
+    </EditorialFrame>
+  );
+}
+
+function UnknownUnknownsVisual({
+  copy,
+  markerId,
+  variant,
+}: EditorialVisualProps) {
+  const labels = copy.labels;
+  const arrow = `url(#${markerId}-arrow)`;
+
+  if (variant === "card") {
+    return (
+      <EditorialFrame markerId={markerId} variant={variant}>
+        <circle cx="316" cy="240" r="154" className="visual-editorial-radar" />
+        <path d="M316 240L196 138A154 154 0 0 1 462 176Z" className="visual-editorial-sweep" />
+        <circle cx="408" cy="184" r="18" className="visual-editorial-checkpoint" />
+        <path d="M422 198C500 276 568 278 642 238" className="visual-editorial-line-hot" />
+        <rect x="642" y="174" width="130" height="130" rx="48" className="visual-editorial-success" />
+        <path d="M680 240L704 264L742 216" className="visual-editorial-check" />
+      </EditorialFrame>
+    );
+  }
+
+  if (variant === "header") {
+    return (
+      <EditorialFrame markerId={markerId} variant={variant}>
+        <circle cx="274" cy="240" r="168" className="visual-editorial-radar" />
+        <circle cx="274" cy="240" r="108" className="visual-editorial-radar-inner" />
+        <path d="M274 240L142 132A170 170 0 0 1 430 172Z" className="visual-editorial-sweep" />
+        <circle cx="382" cy="174" r="20" className="visual-editorial-checkpoint" />
+        <path d="M398 190C486 286 550 286 632 240" className="visual-editorial-line-hot" />
+        <rect x="632" y="156" width="168" height="168" rx="54" className="visual-editorial-success" />
+        <path d="M678 240L714 274L766 202" className="visual-editorial-check" />
+      </EditorialFrame>
+    );
+  }
+
+  return (
+    <EditorialFrame markerId={markerId} variant={variant}>
+      <path
+        d="M242 224H348C382 224 392 240 426 240H654"
+        className="visual-editorial-line"
+        markerEnd={arrow}
+      />
+      <g>
+        <circle cx="148" cy="224" r="88" className="visual-editorial-radar" />
+        <path d="M148 224L88 166A88 88 0 0 1 218 182Z" className="visual-editorial-sweep" />
+        <circle cx="194" cy="186" r="13" className="visual-editorial-checkpoint" />
+        <text x="148" y="354" textAnchor="middle" className="visual-editorial-label">
+          {labels.b}
+        </text>
+      </g>
+      <g>
+        <rect x="356" y="134" width="188" height="180" rx="46" className="visual-editorial-layer-middle" />
+        <rect x="394" y="172" width="112" height="104" rx="34" className="visual-editorial-panel-hot" />
+        <circle cx="450" cy="224" r="14" className="visual-editorial-checkpoint" />
+        <text x="450" y="354" textAnchor="middle" className="visual-editorial-label">
+          {labels.c}
+        </text>
+      </g>
+      <g>
+        <rect x="654" y="140" width="170" height="168" rx="54" className="visual-editorial-success" />
+        <path d="M698 224L730 256L782 192" className="visual-editorial-check" />
+        <text x="739" y="354" textAnchor="middle" className="visual-editorial-label">
+          {labels.e}
+        </text>
+      </g>
+    </EditorialFrame>
+  );
+}
+
 function ArticleEssenceDiagram({
   copy,
   markerId,
   visualId,
   compact,
+  variant,
 }: {
   copy: DiagramCopy;
   markerId: string;
   visualId: PostVisualId;
   compact: boolean;
+  variant: PostVisualVariant;
 }) {
   const label = (key: string) => copy.labels[key] ?? "";
   const arrow = `url(#${markerId}-arrow)`;
@@ -832,18 +1161,7 @@ function ArticleEssenceDiagram({
   }
 
   if (visualId === "context-engineering-beyond-prompt-engineering") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">AUTHORIZED OPERATING STATE</text>
-        {[{ x: 70, y: 78, w: 650, h: 330, key: "d" }, { x: 126, y: 124, w: 538, h: 238, key: "c" }, { x: 186, y: 168, w: 418, h: 150, key: "b" }].map((layer, index) => <g key={layer.key}><rect x={layer.x} y={layer.y} width={layer.w} height={layer.h} rx={28 - index * 4} className="visual-boundary" /><text x={layer.x + 18} y={layer.y + 28} className="visual-micro-label">{label(layer.key)}</text></g>)}
-        <DiagramNode x={310} y={204} width={170} label="AGENT" tone="hot" />
-        <rect x="760" y="104" width="48" height="274" rx="20" className="visual-firewall" />
-        <text x="784" y="242" textAnchor="middle" transform="rotate(-90 784 242)" className="visual-firewall-label">{label("e")}</text>
-        <path d="M480 240H744" className="visual-flow-line" markerEnd={arrow} />
-        <circle cx="846" cy="240" r="22" className="visual-checkpoint" />
-        {!compact ? <text x="846" y="286" textAnchor="middle" className="visual-micro-label">ACTION</text> : null}
-      </DiagramFrame>
-    );
+    return <ContextEngineeringVisual copy={copy} markerId={markerId} variant={variant} />;
   }
 
   if (visualId === "engineering-2026-ai-redefined-our-job") {
@@ -864,18 +1182,7 @@ function ArticleEssenceDiagram({
   }
 
   if (visualId === "engineering-documents-age-poorly") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">DOCUMENT DECAY CURVE</text>
-        <path d="M72 118C226 126 312 176 414 246S664 354 830 374" className="visual-elevation-line" />
-        <path d="M72 396V92M72 396H842" className="visual-axis" />
-        {[{ x: 130, y: 136, key: "a" }, { x: 272, y: 188, key: "b" }, { x: 414, y: 246, key: "c" }].map((point) => <g key={point.key}><circle cx={point.x} cy={point.y} r="11" className="visual-checkpoint" /><text x={point.x} y={point.y - 24} textAnchor="middle" className="visual-micro-label">{label(point.key)}</text></g>)}
-        <path d="M632 102V396" className="visual-target-line" />
-        <text x="632" y="86" textAnchor="middle" className="visual-note visual-note-hot">{label("d")}</text>
-        <path d="M632 330C632 196 738 154 820 154" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
-        <DiagramNode x={702} y={118} width={138} label={label("e")} tone="success" />
-      </DiagramFrame>
-    );
+    return <EngineeringDocumentsVisual copy={copy} markerId={markerId} variant={variant} />;
   }
 
   if (visualId === "forest-admin-activity-logs-elasticsearch") {
@@ -1228,22 +1535,7 @@ function ArticleEssenceDiagram({
   }
 
   if (visualId === "self-service-analytics-that-doesnt-lie") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">GOVERNED QUERY PATH</text>
-        {[112, 202, 292].map((y, index) => <g key={y}><circle cx="82" cy={y + 28} r="20" className="visual-checkpoint" /><path d={`M102 ${y + 28}C178 ${y + 28} 178 240 238 240`} className="visual-flow-line visual-flow-muted" /><text x="82" y={y + 66} textAnchor="middle" className="visual-micro-label">S{index + 1}</text></g>)}
-        <rect x="238" y="92" width="256" height="296" rx="28" className="visual-boundary" />
-        <text x="264" y="130" className="visual-kicker">GOVERNED ZONE</text>
-        {[154, 224, 294].map((y, index) => <g key={y} className="visual-node"><rect x="286" y={y} width="160" height="52" rx="14" /><text x="366" y={y + 32} textAnchor="middle">MART {index + 1}</text></g>)}
-        <path d="M494 240H584" className="visual-flow-line" markerEnd={arrow} />
-        <rect x="584" y="116" width="58" height="248" rx="22" className="visual-firewall" />
-        <text x="613" y="240" textAnchor="middle" transform="rotate(-90 613 240)" className="visual-firewall-label">{label("c")}</text>
-        <path d="M642 240H716" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
-        <DiagramNode x={716} y={204} width={148} label={label("d")} tone="success" />
-        <path d="M102 362C292 446 540 446 584 342" className="visual-flow-line visual-flow-danger" markerEnd={arrow} />
-        {!compact ? <text x="334" y="430" textAnchor="middle" className="visual-note visual-note-hot">RAW BYPASS · REJECTED</text> : null}
-      </DiagramFrame>
-    );
+    return <SelfServiceAnalyticsVisual copy={copy} markerId={markerId} variant={variant} />;
   }
 
   if (visualId === "the-onboarding-matrix-forest-admin") {
@@ -1260,17 +1552,7 @@ function ArticleEssenceDiagram({
   }
 
   if (visualId === "unknown-unknowns-software-architecture") {
-    return (
-      <DiagramFrame markerId={markerId}>
-        <text x="44" y="58" className="visual-kicker">ARCHITECTURAL KNOWLEDGE MATRIX</text>
-        <path d="M114 102V398M114 398H724" className="visual-axis" />
-        {[{ x: 114, y: 102, hot: false }, { x: 420, y: 102, hot: false }, { x: 114, y: 250, hot: false }, { x: 420, y: 250, hot: true }].map((cell, index) => <g key={`${cell.x}-${cell.y}`}><rect x={cell.x} y={cell.y} width="306" height="148" className={cell.hot ? "visual-firewall" : "visual-boundary"} /><text x={cell.x + 153} y={cell.y + 80} textAnchor="middle" className={cell.hot ? "visual-firewall-label" : "visual-note"}>{["KNOWN / KNOWN", "KNOWN / UNKNOWN", "UNKNOWN / KNOWN", "UNKNOWN / UNKNOWN"][index]}</text></g>)}
-        {[{ x: 470, y: 304 }, { x: 566, y: 350 }, { x: 670, y: 288 }].map((sensor) => <circle key={`${sensor.x}-${sensor.y}`} cx={sensor.x} cy={sensor.y} r="10" className="visual-checkpoint" />)}
-        <path d="M724 324H812V170" className="visual-flow-line visual-flow-hot" markerEnd={arrow} />
-        <DiagramNode x={744} y={98} width={126} label={label("e")} tone="success" />
-        {!compact ? <text x="810" y="360" textAnchor="middle" className="visual-micro-label">{label("b")} · {label("c")}</text> : null}
-      </DiagramFrame>
-    );
+    return <UnknownUnknownsVisual copy={copy} markerId={markerId} variant={variant} />;
   }
 
   return (
@@ -1362,6 +1644,7 @@ export function PostVisual({
         markerId={markerId}
         visualId={visualId}
         compact={compact}
+        variant={variant}
       />
     );
   } else {
