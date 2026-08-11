@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { PostEditorialArt, hasPostEditorialArt } from "../../shared/components/PostEditorialArt";
 import { PostVisual } from "../../shared/components/PostVisual";
 import type { PostLocale, PostSummary } from "./content";
 
@@ -42,12 +43,16 @@ export function RocketLogbook({ locale, posts }: RocketLogbookProps) {
               to={`/${locale}/posts/${post.slug}`}
               aria-label={`${post.title} - ${transmissionLabel} - ${t("ui.rocketOnly")} - ${t("ui.readPost")}`}
             >
-              <PostVisual
-                locale={locale}
-                slug={post.slug}
-                variant="card"
-                visualId={post.visualId}
-              />
+              {hasPostEditorialArt(post.slug) ? (
+                <PostEditorialArt locale={locale} slug={post.slug} variant="card" />
+              ) : (
+                <PostVisual
+                  locale={locale}
+                  slug={post.slug}
+                  variant="card"
+                  visualId={post.visualId}
+                />
+              )}
               <div className="post-card-body">
                 <div className="rocket-logbook-meta">
                   <span>{transmissionLabel}</span>

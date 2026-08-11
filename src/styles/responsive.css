@@ -53,6 +53,10 @@
     max-width: 680px;
   }
 
+  .post-editorial-art-header {
+    max-width: 680px;
+  }
+
   .article-title {
     font-size: clamp(2rem, 7vw, 2.6rem);
   }
@@ -250,6 +254,10 @@
   }
 
   .post-system-visual-card {
+    height: 154px;
+  }
+
+  .post-editorial-art-card {
     height: 154px;
   }
 
