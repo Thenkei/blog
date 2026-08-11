@@ -100,10 +100,10 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       labels: { a: "Intention", b: "Agent", c: "Workflow", d: "Infrastructure", e: "Valeur" },
     },
     "ai-force-multiplier": {
-      title: "De l'intention au changement vérifié",
-      description: "Une intention produit plusieurs explorations accélérées par l'IA ; le jugement humain réduit cet espace à un changement compris et vérifié.",
-      caption: "L'IA multiplie les options. La valeur reste dans la sélection, la compréhension et la vérification humaines.",
-      labels: { a: "Intention", b: "Explorations IA", c: "Jugement", d: "Vérifier", e: "Changement validé" },
+      title: "L'IA comme substrat d'ingénierie sous direction humaine",
+      description: "Une couche IA lumineuse alimente l'infrastructure logicielle, les modules et les espaces de conception au-dessus ; les ingénieurs conservent l'intention, l'architecture et la vérification.",
+      caption: "L'IA devient le substrat de l'exécution. Les ingénieurs restent au-dessus du système pour orienter, comprendre et vérifier ce qui est construit.",
+      labels: { a: "Substrat IA", b: "Systèmes logiciels", c: "Direction humaine" },
     },
     "backend-to-data-engineer-rockfi": {
       title: "Transformer des flux partenaires en fondation gouvernée",
@@ -316,10 +316,10 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       labels: { a: "Intent", b: "Agent", c: "Workflow", d: "Infrastructure", e: "Value" },
     },
     "ai-force-multiplier": {
-      title: "From intent to a verified change",
-      description: "One intent produces several AI-accelerated explorations; human judgment reduces that search space to a change that is understood and verified.",
-      caption: "AI multiplies options. Value remains in human selection, understanding, and verification.",
-      labels: { a: "Intent", b: "AI explorations", c: "Judgment", d: "Verify", e: "Verified change" },
+      title: "AI as an engineering substrate under human direction",
+      description: "A luminous AI layer powers the software infrastructure, modules, and design surfaces above it; engineers retain intent, architecture, and verification.",
+      caption: "AI becomes the substrate of execution. Engineers stay above the system to direct, understand, and verify what gets built.",
+      labels: { a: "AI substrate", b: "Software systems", c: "Human direction" },
     },
     "backend-to-data-engineer-rockfi": {
       title: "Turning partner feeds into a governed foundation",

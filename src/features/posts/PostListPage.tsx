@@ -13,6 +13,10 @@ import { usePostKeyboardNavigation } from "./hooks/usePostKeyboardNavigation";
 import { ParallaxHero } from "../../shared/components/ParallaxHero";
 import { PageMeta } from "../../shared/seo/PageMeta";
 import { PostVisual } from "../../shared/components/PostVisual";
+import {
+  PostEditorialArt,
+  hasPostEditorialArt,
+} from "../../shared/components/PostEditorialArt";
 import { RocketLogbook } from "./RocketLogbook";
 
 type PostListPageProps = {
@@ -240,12 +244,16 @@ export function PostListPage({ locale }: PostListPageProps) {
                     onMouseEnter={() => setFocusedIndex(index)}
                     onFocus={() => setFocusedIndex(index)}
                   >
-                    <PostVisual
-                      locale={locale}
-                      slug={post.slug}
-                      variant="card"
-                      visualId={post.visualId}
-                    />
+                    {hasPostEditorialArt(post.slug) ? (
+                      <PostEditorialArt locale={locale} slug={post.slug} variant="card" />
+                    ) : (
+                      <PostVisual
+                        locale={locale}
+                        slug={post.slug}
+                        variant="card"
+                        visualId={post.visualId}
+                      />
+                    )}
                     <div className="post-card-body">
                       <div className="meta">
                         <span>{formatDate(post.publishedAt, locale)}</span>

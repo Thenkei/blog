@@ -147,21 +147,66 @@ Les couleurs des diagrammes proviennent uniquement des tokens suivants :
 
 Un diagramme ne doit pas introduire sa propre palette en dur, sauf nécessité sémantique validée et déclinée dans les quatre thèmes.
 
-## Le composant visuel éditorial
+## Le système visuel éditorial
 
-Le système est centralisé dans `src/shared/components/PostVisual.tsx`.
+Le système est organisé en deux couches complémentaires :
 
-Tous les visuels utilisent un `viewBox` commun de `900 × 480`. Cela permet de réutiliser la même géométrie dans trois contextes sans maintenir trois illustrations différentes.
+- `src/shared/components/PostEditorialArt.tsx` fournit les couvertures
+  éditoriales raster liées à chaque article ;
+- `src/shared/components/PostVisual.tsx` fournit les SVG techniques et leurs
+  figures accessibles dans le raisonnement de l'article.
+
+Une couverture peut suggérer une situation, une tension ou une trajectoire. Un
+diagramme doit expliquer une relation de système. La couverture ne remplace
+jamais le diagramme.
+
+### Artwork de couverture
+
+Les couvertures sont utilisées dans les cartes de la liste principale, le
+Carnet de bord Rocket et le header de l'article. Elles doivent respecter les
+invariants suivants :
+
+- une idée focale immédiatement identifiable et reliée au sujet de l'article ;
+- une composition lisible à la taille d'une carte, avec un cadrage robuste sur
+  desktop et mobile ;
+- une finition éditoriale cohérente, sans accumulation d'objets ou de symboles
+  génériques ;
+- une influence manga, cartoon, pixel art, sport ou pop culture seulement si
+  l'image reste originale ; aucun personnage, logo, slogan ou élément de
+  franchise reconnaissable ne doit être copié ;
+- aucun texte lisible généré dans l'image : le titre et le sous-titre restent
+  dans l'interface ;
+- un texte alternatif anglais et français décrivant le sujet visuel, sans
+  prétendre décrire un diagramme technique qui n'est pas présent.
+
+Les sources sont optimisées en AVIF, WebP et JPEG sous
+`src/assets/images/posts/editorial/`. Le composant utilise `<picture>` pour
+servir la variante adaptée, le chargement est différé dans les cartes et
+prioritaire dans le header. Une couverture préparée pour un article en brouillon
+reste invisible tant que le frontmatter ne le rend pas public.
+
+### Choix du langage visuel
+
+| Contexte | Composant | Langage attendu |
+| --- | --- | --- |
+| Carte de liste ou header d'article | `PostEditorialArt` | Image éditoriale, une idée forte, cadrage mémorable |
+| Architecture, protocole, workflow, sécurité ou fiabilité dans l'article | `ArticleDiagram` / `PostVisual` | SVG technique, relations explicites, checkpoints et frontières |
+| Article sans couverture mappée | `PostVisual` | Fallback topographique ou visuel système existant |
+
+Tous les visuels techniques utilisent un `viewBox` commun de `900 × 480`. Cela
+permet de réutiliser la même géométrie dans trois contextes sans maintenir trois
+illustrations différentes.
 
 ### Variante `card`
 
 Objectif : identifier rapidement l’article dans une liste.
 
 - hauteur desktop actuelle : `176px` ;
-- cadrage `xMidYMid slice` ;
-- détails secondaires supprimés lorsque nécessaire ;
-- SVG décoratif avec `aria-hidden="true"` ;
-- aucun texte indispensable uniquement présent dans cette version.
+- la couverture éditoriale utilise un cadrage `cover` et un point focal stable ;
+- lorsqu'aucune couverture n'est mappée, `PostVisual` fournit le fallback
+  système ;
+- les SVG de fallback sont décoratifs avec `aria-hidden="true"` ;
+- aucun texte indispensable ne doit être présent uniquement dans cette version.
 
 ### Variante `header`
 
@@ -169,8 +214,10 @@ Objectif : équilibrer le titre de l’article et donner immédiatement sa struc
 
 - composition à droite du titre sur desktop ;
 - empilement sous le titre sur mobile ;
-- géométrie complète mais légende masquée ;
-- SVG décoratif avec `aria-hidden="true"` car le titre et l’article portent déjà le sens.
+- couverture éditoriale ou géométrie technique complète selon le mapping ;
+- le visuel reste secondaire au titre, aux métadonnées et au résumé ;
+- pour un SVG décoratif, `aria-hidden="true"` est correct car le titre et
+  l'article portent déjà le sens.
 
 ### Variante `inline`
 
@@ -182,7 +229,8 @@ Objectif : être une figure éditoriale autonome dans le raisonnement de l’art
 - `title`, `desc` et légende localisés ;
 - insertion au moment exact où l’article introduit le système représenté.
 
-La hiérarchie est donc : **reconnaître sur la carte, comprendre dans le header, lire dans l’article**.
+La hiérarchie est donc : **reconnaître sur la couverture, situer dans le
+header, comprendre dans la figure technique et le texte de l'article**.
 
 ## Diagrammes pilotes
 
@@ -229,7 +277,8 @@ Le schéma ne compare pas des listes de fonctionnalités. Il montre l’écart e
 
 ## Fallback topographique
 
-Un article sans `visualId` reçoit automatiquement un motif topographique calculé à partir de son slug.
+Un article sans couverture éditoriale mappée, ou sans `visualId` exploitable,
+reçoit automatiquement un motif topographique calculé à partir de son slug.
 
 Propriétés :
 
@@ -239,7 +288,10 @@ Propriétés :
 - cohérent avec les tokens du thème actif ;
 - décoratif dans les cartes et les headers.
 
-Le fallback garantit la cohérence de la liste complète sans imposer la création immédiate de vingt et un diagrammes dédiés.
+Le fallback garantit la cohérence de la liste complète sans imposer la création
+immédiate d'une couverture raster ou d'un diagramme dédié pour chaque article.
+Il ne remplace pas une figure `inline` lorsque le raisonnement de l'article
+nécessite une représentation technique précise.
 
 ## Composition des pages
 
@@ -287,7 +339,12 @@ Mobile : titre, métadonnées puis cartographie. Le visuel ne doit jamais passer
 
 ### Figures éditoriales
 
-Toutes les figures utilisent un cadre, une surface et une légende cohérents. Les anciens SVG ne sont pas redessinés automatiquement, mais ils doivent être intégrés dans le même système de cadre lorsqu’ils sont modifiés.
+Les couvertures de liste et de header ne sont pas des figures de preuve : elles
+introduisent l'article et donnent une entrée visuelle mémorable. Les figures
+inline utilisent un cadre, une surface et une légende cohérents pour soutenir
+le raisonnement. Les anciens SVG ne sont pas redessinés automatiquement, mais
+ils doivent être intégrés dans le même système de cadre lorsqu'ils sont
+modifiés.
 
 ## Mouvement
 
@@ -306,7 +363,10 @@ Règles :
 
 ### Accessibilité
 
-- les versions `card` et `header` sont décoratives ;
+- les couvertures raster `card` et `header` possèdent un texte alternatif
+  localisé ;
+- les SVG techniques `card` et `header` de fallback sont décoratifs et utilisent
+  `aria-hidden="true"` ;
 - la version `inline` possède un `title`, un `desc` et une légende ;
 - une branche ou un état ne doit pas être identifiable uniquement par sa couleur ;
 - les labels essentiels doivent rester lisibles à `390px` de large ;

@@ -4,6 +4,7 @@ import type {
   PostVisualId,
 } from "../../features/posts/content";
 import { PostVisual } from "./PostVisual";
+import { PostEditorialArt, hasPostEditorialArt } from "./PostEditorialArt";
 
 type PostHeaderProps = {
   backToHomeLabel: string;
@@ -47,12 +48,16 @@ export function PostHeader({
             <h1 className="post-hero-title">{title}</h1>
             <div className="post-hero-subtitle">{metaInfo}</div>
           </div>
-          <PostVisual
-            locale={locale}
-            slug={slug}
-            variant="header"
-            visualId={visualId}
-          />
+          {hasPostEditorialArt(slug) ? (
+            <PostEditorialArt locale={locale} slug={slug} variant="header" />
+          ) : (
+            <PostVisual
+              locale={locale}
+              slug={slug}
+              variant="header"
+              visualId={visualId}
+            />
+          )}
         </div>
       </div>
     </header>

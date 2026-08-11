@@ -260,29 +260,181 @@ function BoundedAiVisual({ copy, markerId, variant }: StoryProps) {
   );
 }
 
-function ForceMultiplierVisual({ copy, markerId, variant }: StoryProps) {
-  const arrow = `url(#${markerId}-arrow)`;
+function AiSubstrate({ variant }: { variant: PostVisualVariant }) {
+  const geometry = variant === "card"
+    ? {
+        top: "M62 282L422 178L840 282L470 386Z",
+        front: "M62 282L470 386V410L62 306Z",
+        side: "M470 386L840 282V306L470 410Z",
+        core: { x: 466, y: 334 },
+        circuits: [
+          "M466 334L302 286L168 320",
+          "M466 334L616 286L770 318",
+          "M466 334L438 218",
+          "M466 334L310 364",
+          "M466 334L630 364",
+        ],
+        junctions: [{ x: 302, y: 286 }, { x: 616, y: 286 }, { x: 438, y: 218 }, { x: 310, y: 364 }, { x: 630, y: 364 }],
+      }
+    : variant === "header"
+      ? {
+          top: "M34 302L426 168L866 300L472 438Z",
+          front: "M34 302L472 438V464L34 328Z",
+          side: "M472 438L866 300V326L472 464Z",
+          core: { x: 470, y: 372 },
+          circuits: [
+            "M470 372L284 310L106 344",
+            "M470 372L642 306L810 342",
+            "M470 372L430 214",
+            "M470 372L274 408",
+            "M470 372L668 410",
+          ],
+          junctions: [{ x: 284, y: 310 }, { x: 642, y: 306 }, { x: 430, y: 214 }, { x: 274, y: 408 }, { x: 668, y: 410 }],
+        }
+      : {
+          top: "M50 288L422 176L846 288L468 414Z",
+          front: "M50 288L468 414V438L50 312Z",
+          side: "M468 414L846 288V312L468 438Z",
+          core: { x: 466, y: 352 },
+          circuits: [
+            "M466 352L292 298L120 332",
+            "M466 352L630 296L790 330",
+            "M466 352L430 208",
+            "M466 352L286 386",
+            "M466 352L648 388",
+          ],
+          junctions: [{ x: 292, y: 298 }, { x: 630, y: 296 }, { x: 430, y: 208 }, { x: 286, y: 386 }, { x: 648, y: 388 }],
+        };
 
+  return (
+    <g data-ai-layer="substrate">
+      <path d={geometry.front} className="visual-editorial-ai-substrate-edge" />
+      <path d={geometry.side} className="visual-editorial-ai-substrate-edge visual-editorial-ai-substrate-edge-side" />
+      <path d={geometry.top} className="visual-editorial-ai-substrate" />
+      {geometry.circuits.map((path) => (
+        <path key={path} d={path} className="visual-editorial-ai-circuit" />
+      ))}
+      {geometry.junctions.map((junction, index) => (
+        <circle
+          key={`${junction.x}-${junction.y}`}
+          cx={junction.x}
+          cy={junction.y}
+          r={index === 2 ? 7 : 5}
+          className="visual-editorial-ai-junction"
+        />
+      ))}
+      <ellipse cx={geometry.core.x} cy={geometry.core.y} rx="82" ry="25" className="visual-editorial-ai-substrate-core-glow" />
+      <ellipse cx={geometry.core.x} cy={geometry.core.y} rx="58" ry="18" className="visual-editorial-ai-substrate-core" />
+      <ellipse cx={geometry.core.x} cy={geometry.core.y} rx="31" ry="10" className="visual-editorial-ai-substrate-core-ring" />
+    </g>
+  );
+}
+
+function AiModule({
+  x,
+  y,
+  scale = 1,
+  hot = false,
+}: {
+  x: number;
+  y: number;
+  scale?: number;
+  hot?: boolean;
+}) {
+  return (
+    <g className="visual-editorial-ai-module visual-editorial-compute" transform={`translate(${x} ${y}) scale(${scale})`}>
+      <path d="M0 0L16 -12H90L74 0Z" className="visual-editorial-ai-module-top" />
+      <path d="M74 0L90 -12V42L74 54Z" className="visual-editorial-ai-module-side" />
+      <rect width="74" height="54" rx="13" className={`visual-editorial-ai-module-front${hot ? " visual-editorial-ai-module-front-hot" : ""}`} />
+      <path d="M18 20H56M18 34H44" className="visual-editorial-ai-module-detail" />
+    </g>
+  );
+}
+
+function AiHologram({
+  x,
+  y,
+  width,
+  height,
+  kind,
+}: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  kind: "code" | "network";
+}) {
+  return (
+    <g className="visual-editorial-ai-hologram" transform={`translate(${x} ${y})`}>
+      <rect width={width} height={height} rx="16" />
+      {kind === "code" ? (
+        <path
+          d={`M20 24H${width - 24}M20 42H${width - 46}M34 60H${width - 18}M20 78H${width - 58}`}
+          className="visual-editorial-ai-hologram-detail"
+        />
+      ) : (
+        <g>
+          <path
+            d={`M24 ${height - 28}L${width * 0.36} 28L${width * 0.58} ${height - 38}L${width - 24} 26M24 ${height - 28}L${width * 0.58} ${height - 38}M${width * 0.36} 28L${width - 24} 26`}
+            className="visual-editorial-ai-hologram-detail"
+          />
+          {[
+            { cx: 24, cy: height - 28 },
+            { cx: width * 0.36, cy: 28 },
+            { cx: width * 0.58, cy: height - 38 },
+            { cx: width - 24, cy: 26 },
+          ].map((node) => (
+            <circle key={`${node.cx}-${node.cy}`} cx={node.cx} cy={node.cy} r="6" className="visual-editorial-ai-hologram-node" />
+          ))}
+        </g>
+      )}
+    </g>
+  );
+}
+
+function AiEngineer({
+  x,
+  y,
+  scale = 1,
+  facing = 1,
+}: {
+  x: number;
+  y: number;
+  scale?: number;
+  facing?: 1 | -1;
+}) {
+  return (
+    <g className="visual-editorial-ai-engineer" transform={`translate(${x} ${y}) scale(${facing * scale} ${scale})`}>
+      <circle cx="0" cy="-78" r="11" className="visual-editorial-ai-engineer-body" />
+      <path d="M-13 -62Q0 -70 13 -62L18 -22L10 8H-10L-18 -22Z" className="visual-editorial-ai-engineer-body" />
+      <path d="M-8 6L-13 54M8 6L15 54M-14 -48L-28 -18L-43 -28M14 -48L25 -20" className="visual-editorial-ai-engineer-limb" />
+      <circle cx="-44" cy="-29" r="5" className="visual-editorial-ai-engineer-hand" />
+    </g>
+  );
+}
+
+function ForceMultiplierVisual({ copy, markerId, variant }: StoryProps) {
   if (variant === "card") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <g data-visual-motif="ai-search-space">
-          <circle cx="78" cy="240" r="34" className="visual-editorial-source" />
-          <rect x="154" y="78" width="458" height="324" rx="78" className="visual-editorial-cloud-boundary" />
-          <path d="M112 240H194" className="visual-editorial-flow-trace" />
-          {[{ x: 240, y: 116 }, { x: 380, y: 104 }, { x: 502, y: 154 }, { x: 258, y: 286 }, { x: 430, y: 300 }].map((candidate, index) => (
-            <g key={`${candidate.x}-${candidate.y}`} className={`visual-editorial-compute visual-editorial-compute-${(index % 4) + 1}`}>
-              <path d={`M194 240C210 240 212 ${candidate.y + 34} ${candidate.x} ${candidate.y + 34}`} className="visual-editorial-line-muted" />
-              <rect x={candidate.x} y={candidate.y} width="94" height="68" rx="20" className={index === 2 ? "visual-editorial-panel-hot" : "visual-editorial-layer-middle"} />
-              <path d={`M${candidate.x + 20} ${candidate.y + 24}H${candidate.x + 68}M${candidate.x + 20} ${candidate.y + 44}H${candidate.x + 54}`} className="visual-editorial-detail" />
-            </g>
-          ))}
-          <path d="M596 188C640 188 632 240 662 240M524 334C618 334 622 260 662 260" className="visual-editorial-flow-trace" />
-          <circle cx="692" cy="240" r="78" className="visual-editorial-ring" />
-          <circle cx="692" cy="240" r="34" className="visual-editorial-panel-hot" />
-          <path d="M670 240L686 256L716 220" className="visual-editorial-check visual-editorial-check-small" />
-          <path d="M770 240H818" className="visual-editorial-line-hot" markerEnd={arrow} />
-          <circle cx="842" cy="240" r="30" className="visual-editorial-success" />
+        <g data-visual-motif="ai-engineering-substrate">
+          <AiSubstrate variant={variant} />
+          <path d="M466 334V244M326 308V246M614 306V246" className="visual-editorial-ai-lift" />
+          <g data-ai-layer="systems">
+            <path d="M154 258L420 176L748 260L456 354Z" className="visual-editorial-ai-platform" />
+            <AiHologram x={488} y={92} width={150} height={104} kind="network" />
+            <path d="M258 252L380 218L506 248L624 216L704 258" className="visual-editorial-ai-system-link" />
+            <AiModule x={238} y={236} scale={0.82} />
+            <AiModule x={346} y={202} scale={0.9} hot />
+            <AiModule x={466} y={232} scale={0.86} />
+            <AiModule x={574} y={200} scale={0.84} />
+            <AiModule x={662} y={246} scale={0.76} />
+          </g>
+          <g data-ai-layer="human-control">
+            <AiEngineer x={300} y={304} scale={0.82} facing={-1} />
+            <AiEngineer x={476} y={326} scale={0.94} />
+            <AiEngineer x={676} y={304} scale={0.8} />
+          </g>
         </g>
       </EditorialFrame>
     );
@@ -291,23 +443,27 @@ function ForceMultiplierVisual({ copy, markerId, variant }: StoryProps) {
   if (variant === "header") {
     return (
       <EditorialFrame markerId={markerId} variant={variant}>
-        <g data-visual-motif="ai-search-space">
-          <circle cx="58" cy="240" r="36" className="visual-editorial-source" />
-          <rect x="132" y="54" width="488" height="372" rx="84" className="visual-editorial-cloud-boundary" />
-          <path d="M94 240H176" className="visual-editorial-flow-trace" markerEnd={arrow} />
-          {[{ x: 214, y: 88 }, { x: 356, y: 76 }, { x: 492, y: 116 }, { x: 198, y: 296 }, { x: 352, y: 322 }, { x: 494, y: 286 }].map((candidate, index) => (
-            <g key={`${candidate.x}-${candidate.y}`} className={`visual-editorial-compute visual-editorial-compute-${(index % 4) + 1}`}>
-              <path d={`M176 240C198 240 190 ${candidate.y + 36} ${candidate.x} ${candidate.y + 36}`} className="visual-editorial-line-muted" />
-              <rect x={candidate.x} y={candidate.y} width="102" height="72" rx="22" className={index === 2 ? "visual-editorial-panel-hot" : "visual-editorial-layer-middle"} />
-              <path d={`M${candidate.x + 22} ${candidate.y + 26}H${candidate.x + 76}M${candidate.x + 22} ${candidate.y + 48}H${candidate.x + 60}`} className="visual-editorial-detail" />
-            </g>
-          ))}
-          <path d="M594 152C650 152 642 224 670 230M596 322C648 322 642 264 670 254" className="visual-editorial-flow-trace" />
-          <circle cx="710" cy="240" r="88" className="visual-editorial-ring" />
-          <circle cx="710" cy="240" r="38" className="visual-editorial-panel-hot" />
-          <path d="M686 240L704 258L738 218" className="visual-editorial-check visual-editorial-check-small" />
-          <path d="M798 240H834" className="visual-editorial-line-hot" markerEnd={arrow} />
-          <circle cx="858" cy="240" r="28" className="visual-editorial-success" />
+        <g data-visual-motif="ai-engineering-substrate">
+          <AiSubstrate variant={variant} />
+          <path d="M470 372V252M284 310V240M642 306V236" className="visual-editorial-ai-lift" />
+          <g data-ai-layer="systems">
+            <path d="M126 260L418 160L782 258L456 374Z" className="visual-editorial-ai-platform" />
+            <AiHologram x={164} y={72} width={144} height={112} kind="code" />
+            <AiHologram x={502} y={54} width={176} height={124} kind="network" />
+            <AiHologram x={696} y={112} width={122} height={96} kind="code" />
+            <path d="M214 260L326 218L440 250L554 210L680 242L754 264" className="visual-editorial-ai-system-link" />
+            <AiModule x={196} y={242} scale={0.86} />
+            <AiModule x={304} y={202} scale={0.94} hot />
+            <AiModule x={420} y={236} scale={0.9} />
+            <AiModule x={524} y={190} scale={0.98} />
+            <AiModule x={640} y={224} scale={0.9} hot />
+            <AiModule x={724} y={266} scale={0.74} />
+          </g>
+          <g data-ai-layer="human-control">
+            <AiEngineer x={250} y={320} scale={0.9} facing={-1} />
+            <AiEngineer x={472} y={344} scale={1.04} />
+            <AiEngineer x={690} y={318} scale={0.9} />
+          </g>
         </g>
       </EditorialFrame>
     );
@@ -315,30 +471,33 @@ function ForceMultiplierVisual({ copy, markerId, variant }: StoryProps) {
 
   return (
     <EditorialFrame markerId={markerId} variant={variant}>
-      <g data-visual-motif="ai-search-space">
-        <circle cx="54" cy="214" r="30" className="visual-editorial-source" />
-        <rect x="118" y="74" width="458" height="280" rx="72" className="visual-editorial-cloud-boundary" />
-        <path d="M84 214H154" className="visual-editorial-flow-trace" markerEnd={arrow} />
-        {[{ x: 190, y: 104 }, { x: 322, y: 92 }, { x: 446, y: 122 }, { x: 206, y: 244 }, { x: 358, y: 260 }].map((candidate, index) => (
-          <g key={`${candidate.x}-${candidate.y}`} className={`visual-editorial-compute visual-editorial-compute-${(index % 4) + 1}`}>
-            <path d={`M154 214C176 214 170 ${candidate.y + 30} ${candidate.x} ${candidate.y + 30}`} className="visual-editorial-line-muted" />
-            <rect x={candidate.x} y={candidate.y} width="92" height="60" rx="18" className={index === 2 ? "visual-editorial-panel-hot" : "visual-editorial-layer-middle"} />
-            <path d={`M${candidate.x + 18} ${candidate.y + 22}H${candidate.x + 68}M${candidate.x + 18} ${candidate.y + 40}H${candidate.x + 52}`} className="visual-editorial-detail" />
-          </g>
-        ))}
-        <path d="M538 152C590 152 584 208 616 212M498 290C574 290 578 238 616 232" className="visual-editorial-flow-trace" />
-        <circle cx="654" cy="220" r="74" className="visual-editorial-ring" />
-        <circle cx="654" cy="220" r="32" className="visual-editorial-panel-hot" />
-        <path d="M634 220L648 234L678 200" className="visual-editorial-check visual-editorial-check-small" />
-        <path d="M728 220H790" className="visual-editorial-line-hot" markerEnd={arrow} />
-        <circle cx="824" cy="220" r="34" className="visual-editorial-success" />
+      <g data-visual-motif="ai-engineering-substrate">
+        <AiSubstrate variant={variant} />
+        <path d="M466 352V240M292 298V236M630 296V234" className="visual-editorial-ai-lift" />
+        <g data-ai-layer="systems">
+          <path d="M138 252L416 164L770 252L456 360Z" className="visual-editorial-ai-platform" />
+          <AiHologram x={180} y={66} width={138} height={106} kind="code" />
+          <AiHologram x={512} y={58} width={170} height={118} kind="network" />
+          <AiHologram x={702} y={118} width={112} height={88} kind="code" />
+          <path d="M224 250L336 212L448 244L560 204L674 236L742 256" className="visual-editorial-ai-system-link" />
+          <AiModule x={208} y={232} scale={0.84} />
+          <AiModule x={316} y={196} scale={0.92} hot />
+          <AiModule x={430} y={228} scale={0.88} />
+          <AiModule x={536} y={186} scale={0.94} />
+          <AiModule x={648} y={218} scale={0.86} hot />
+          <AiModule x={726} y={254} scale={0.72} />
+        </g>
+        <g data-ai-layer="human-control">
+          <AiEngineer x={258} y={308} scale={0.86} facing={-1} />
+          <AiEngineer x={470} y={330} scale={1} />
+          <AiEngineer x={680} y={306} scale={0.86} />
+        </g>
         {[
-          { x: 54, text: copy.labels.a ?? "" },
-          { x: 350, text: copy.labels.b ?? "" },
-          { x: 620, text: copy.labels.c ?? "" },
-          { x: 785, text: copy.labels.e ?? "" },
+          { x: 150, text: copy.labels.a ?? "" },
+          { x: 450, text: copy.labels.b ?? "" },
+          { x: 750, text: copy.labels.c ?? "" },
         ].map((label) => (
-          <text key={`${label.x}-${label.text}`} x={label.x} y="388" textAnchor="middle" className="visual-editorial-label visual-editorial-label-compact">
+          <text key={`${label.x}-${label.text}`} x={label.x} y="466" textAnchor="middle" className="visual-editorial-label visual-editorial-label-compact">
             {label.text}
           </text>
         ))}

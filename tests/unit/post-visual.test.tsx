@@ -41,7 +41,7 @@ const editorialSystemTextBudgets = [
   { id: "scaling-ci-github-actions-forest-admin", inlineLabels: 4 },
   { id: "agent-battle-2026", inlineLabels: 3 },
   { id: "bounded-ai-loop", inlineLabels: 4 },
-  { id: "ai-force-multiplier", inlineLabels: 4 },
+  { id: "ai-force-multiplier", inlineLabels: 3 },
   { id: "sse-outbound-channel", inlineLabels: 3 },
   { id: "backend-to-data-engineer-rockfi", inlineLabels: 3 },
   { id: "claude-code-product-os", inlineLabels: 3 },
@@ -77,7 +77,7 @@ const localizedPrototypeLabels = [
   { id: "scaling-ci-github-actions-forest-admin", en: "Artifacts", fr: "Artefacts" },
   { id: "agent-battle-2026", en: "Value", fr: "Valeur" },
   { id: "bounded-ai-loop", en: "Human gate", fr: "Gate humain" },
-  { id: "ai-force-multiplier", en: "Verified change", fr: "Changement validé" },
+  { id: "ai-force-multiplier", en: "Human direction", fr: "Direction humaine" },
   {
     id: "sse-outbound-channel",
     en: "Outbound SSE",
@@ -145,7 +145,7 @@ const reworkedArticleMotifs = [
   {
     id: "ai-force-multiplier",
     slug: "ai-force-multiplier",
-    motif: "ai-search-space",
+    motif: "ai-engineering-substrate",
   },
   {
     id: "forest-admin-activity-logs-elasticsearch",
@@ -286,6 +286,24 @@ describe("PostVisual", () => {
     expect(container.querySelectorAll(".visual-editorial-data-packet")).toHaveLength(5);
     expect(container.querySelectorAll(".visual-editorial-pressure-return")).toHaveLength(2);
     expect(container.querySelectorAll(".visual-editorial-buffer-slot-full")).toHaveLength(4);
+  });
+
+  it("places AI beneath software systems while engineers remain in control", () => {
+    const { container } = render(
+      <PostVisual
+        locale="en"
+        slug="ai-force-multiplier"
+        variant="card"
+        visualId="ai-force-multiplier"
+      />,
+    );
+
+    expect(container.querySelector("[data-ai-layer='substrate']")).toBeTruthy();
+    expect(container.querySelector("[data-ai-layer='systems']")).toBeTruthy();
+    expect(container.querySelector("[data-ai-layer='human-control']")).toBeTruthy();
+    expect(container.querySelector(".visual-editorial-ai-substrate-core")).toBeTruthy();
+    expect(container.querySelectorAll(".visual-editorial-ai-module")).toHaveLength(5);
+    expect(container.querySelectorAll(".visual-editorial-ai-engineer")).toHaveLength(3);
   });
 
   it("uses the supplied Saint-Jacques course silhouette", () => {

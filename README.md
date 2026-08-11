@@ -142,6 +142,45 @@ Fallbacks:
 - compact and portrait layouts use dedicated composition and trajectory values
 - `prefers-reduced-motion: reduce`: complete static poster with a visible route and arrival state
 
+### Editorial Cover Artwork
+
+The blog uses two complementary visual languages:
+
+- `PostEditorialArt` provides article-specific raster artwork for post-list cards,
+  article headers, and Rocket Logbook cards. The current set uses polished,
+  original editorial illustration, including manga-inspired, cartoon, pixel-art,
+  sports, and pop-culture-adjacent visual language.
+- `PostVisual` and `ArticleDiagram` remain the technical SVG system for figures
+  inside the article body: architecture, protocols, workflows, security,
+  reliability, and other concepts that require precise system relationships.
+
+The cover image establishes one memorable focal idea related to the article. It
+is not generic decoration and does not replace a technical explanation.
+Editorial influences must remain original: do not copy recognizable characters,
+logos, franchise assets, or legible text from an existing work.
+
+`src/shared/components/PostEditorialArt.tsx` owns the slug-to-artwork mapping,
+localized alt text, responsive `<picture>` sources, and card/header behavior.
+Mapped artwork is used by the standard post list, the Rocket Logbook, and the
+article header. The mapping is deliberately separate from frontmatter so that
+the editorial cover can evolve without changing the article content contract.
+The current mapping covers all 29 post slugs; draft visibility rules still
+control whether a prepared cover appears publicly.
+
+For each mapped slug, the component expects these generated files in
+`src/assets/images/posts/editorial/`:
+
+- `<slug>-source-960.avif`
+- `<slug>-source-1600.avif`
+- `<slug>-source-960.webp`
+- `<slug>-source-1600.webp`
+- `<slug>-source-1600.jpg`
+
+Cards use lazy loading and a compact crop; article headers use eager loading and
+a wider crop. Every cover needs English and French alt text, and the same slug
+must resolve in both locales. A draft article may have artwork prepared while
+remaining absent from public discovery until its frontmatter is published.
+
 ### Reading Progress Variants
 Implemented in `src/features/reading/ReadingProgressBar.tsx` and `src/styles/reading.css`.
 
@@ -156,7 +195,9 @@ The Rocket variant uses a single `requestAnimationFrame`-coalesced scroll driver
 - `src/shared/components/ThemeSwitcher.tsx`
   - accessible appearance button opening a 4-option radio menu
 - `src/shared/components/PostVisual.tsx`
-  - localized SVG system for card, header, and inline article diagrams
+  - localized technical SVG system for card, header, and inline article diagrams
+- `src/shared/components/PostEditorialArt.tsx`
+  - localized responsive editorial covers for cards and article headers
 - `src/shared/components/PostHeader.tsx`
 - `src/shared/components/ParallaxHero.tsx`
 - `src/features/posts/PostListPage.tsx`
@@ -179,6 +220,8 @@ Relevant tests for the redesign:
   - variant rendering, theme isolation, semantic progress, launch, and orbit behavior
 - `tests/unit/reading-progress-state.test.ts`
   - article mapping, linear Rocket travel, independent boost envelope, and completion threshold
+- `tests/unit/post-editorial-art.test.tsx`
+  - complete slug registration, localized alt text, responsive sources, loading behavior, and unknown-slug fallback
 
 Run all tests:
 ```bash
@@ -186,10 +229,16 @@ npm run test
 ```
 
 ## Post Image Workflow
-When adding a new blog visual, place the source image under `src/assets/images/posts/` and generate responsive variants:
+
+When adding editorial cover artwork, place the source image under
+`src/assets/images/posts/editorial/`, using a `-source.png` suffix. Generate
+responsive variants and remove the large source from the repository:
 
 ```bash
-npm run optimize:image -- --input src/assets/images/posts/my-post-hero.png --widths 960,1600 --remove-source
+npm run optimize:image -- \
+  --input src/assets/images/posts/editorial/my-post-slug-source.png \
+  --widths 960,1600 \
+  --remove-source
 ```
 
 The optimizer generates:
@@ -199,4 +248,11 @@ The optimizer generates:
 - `-1600.webp`
 - `-1600.jpg` (fallback)
 
-Use these in MDX with `<picture>` and `srcSet` so browsers download the smallest viable asset.
+`PostEditorialArt` consumes these files through Vite's eager asset glob. Add a
+localized alt-text entry for the slug in
+`src/shared/components/PostEditorialArt.tsx`; do not wire the generated image
+directly into individual MDX files.
+
+Use `PostVisual`/`ArticleDiagram` for precise technical SVGs that belong inside
+the reasoning of an article. Keep the technical figure and the editorial cover
+conceptually related, but do not force the cover to reproduce the diagram.
