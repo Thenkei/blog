@@ -217,6 +217,8 @@ await Promise.all([pipeline(Readable.from(csvLines), body), upload.done()]);
 
 Managed upload reduces custom code, but tune `partSize` and `queueSize` carefully. Their product is a direct memory driver.
 
+<ArticleMedia mediaId="backpressure-propagation" />
+
 ## Queue isolation with BullMQ (protecting worker capacity)
 
 Exports should not contend with latency-sensitive jobs. Isolate queue, cap concurrency to 2-3 workers, and deduplicate by deterministic `jobId`.

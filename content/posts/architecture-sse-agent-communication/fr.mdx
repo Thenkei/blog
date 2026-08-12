@@ -39,6 +39,8 @@ L'agent se réveille toutes les 5 secondes et demande à notre serveur central :
 
 Non seulement cela impose une latence de cinq secondes à votre interface, mais, multiplié par des milliers d'agents, ce mécanisme transforme votre serveur en générateur de DDoS auto-infligé, uniquement pour répondre « non » 99,9 % du temps.
 
+<ArticleMedia mediaId="sse-polling-vs-stream" />
+
 ## Le choix du streaming sortant : Server-Sent Events (SSE)
 
 Nous avions besoin que le serveur central puisse envoyer des données instantanément au travers d'une connexion sortante initiée par le client. C'est le rôle des **Server-Sent Events (SSE)**.
@@ -70,6 +72,8 @@ Nous pensons que la connexion est ouverte. L'agent pense qu'elle l'est aussi. Le
 
 Que se passe-t-il lors du déploiement d'une nouvelle version de notre serveur central ? On draine élégamment les connexions. Mais soudainement, des milliers d'agents réalisent qu'ils ont été déconnectés. Dans un mouvement de panique générale, ils tentent tous de se reconnecter à la même milliseconde exacte. Le CPU de votre serveur s'évapore instantanément.
 **La solution :** Un backoff exponentiel avec "jitter". Les agents doivent choisir un moment aléatoire entre 1 et 10 secondes pour se reconnecter, et ralentir si le serveur indique qu'il n'en peut plus.
+
+<ArticleMedia mediaId="sse-reconnect-storm" />
 
 ### 3. L'épuisement des descripteurs de fichiers
 

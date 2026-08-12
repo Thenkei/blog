@@ -159,6 +159,24 @@ is not generic decoration and does not replace a technical explanation.
 Editorial influences must remain original: do not copy recognizable characters,
 logos, franchise assets, or legible text from an existing work.
 
+### Article Motion and Meme Figures
+
+`src/shared/components/ArticleMedia.tsx` provides localized, article-only SVG
+figures for moments where time, pressure, repetition, or a handoff is the idea:
+
+- SSE polling versus an open stream, plus reconnect storms;
+- Redis memory pressure and backpressure propagation;
+- debounce trigger storms;
+- CI artifact reconciliation and AI code-review meme panels;
+- the Product OS loop and document lifecycle.
+
+These figures do not appear in post cards or headers. They use the same visual
+tokens as the technical diagrams, include accessible `title`, `desc`, and
+captions, and stop time-based animation under `prefers-reduced-motion`. The
+meme-style figures are original compositions, not copied internet memes or
+franchise imagery. Use `<ArticleMedia mediaId="..." />` only when motion adds
+information or gives a dense section a deliberate pause.
+
 `src/shared/components/PostEditorialArt.tsx` owns the slug-to-artwork mapping,
 localized alt text, responsive `<picture>` sources, and card/header behavior.
 Mapped artwork is used by the standard post list, the Rocket Logbook, and the
@@ -198,6 +216,8 @@ The Rocket variant uses a single `requestAnimationFrame`-coalesced scroll driver
   - localized technical SVG system for card, header, and inline article diagrams
 - `src/shared/components/PostEditorialArt.tsx`
   - localized responsive editorial covers for cards and article headers
+- `src/shared/components/ArticleMedia.tsx`
+  - localized motion figures for article-only mechanisms and deliberate meme-style pauses
 - `src/shared/components/PostHeader.tsx`
 - `src/shared/components/ParallaxHero.tsx`
 - `src/features/posts/PostListPage.tsx`

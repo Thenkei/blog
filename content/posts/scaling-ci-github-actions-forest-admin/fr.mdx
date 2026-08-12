@@ -49,6 +49,8 @@ Dans la vraie vie, le partitionnement de tests sur GitHub Actions est un tout au
 - **La traversée du désert des tests déterministes :** Vous pensez que vos tests sont déterministes ? Essayez donc de les faire tourner sur 10 machines virtuelles différentes en même temps. Vous découvrirez vite que votre script de teardown DB oublie un enregistrement, transformant le `test_chunk_5` en festival de tests instables.
 - **Le Bordel de l'Orchestration :** Gérer tous les problèmes liés à une CI distribuée est épuisant. Une nanoseconde de perte réseau perdue pendant le téléchargement des `node_modules` sur le worker 7 et tout le pipeline est foutu.
 
+<ArticleMedia mediaId="ci-reconciliation-meme" />
+
 ## Les stratégies de survie
 
 Pour faire marcher notre partitionnement de CI de manière pérenne, il a fallu appliquer des règles strictes (et bâties dans la douleur) :

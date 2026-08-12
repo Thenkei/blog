@@ -90,6 +90,8 @@ const debouncedSynchronize = jobify(queueSynchronizeAgentData, {
 
 In `queue-service.ts`, this maps to: find job by `jobId`, if state is delayed then `changeDelay`, return existing id.
 
+<ArticleMedia mediaId="debounce-trigger-storm" />
+
 ## Critical nuance: payload freshness
 
 Both debounce modes can keep the original queued payload if a job already exists for the same key. If later triggers contain semantically different arguments, you may execute stale data.

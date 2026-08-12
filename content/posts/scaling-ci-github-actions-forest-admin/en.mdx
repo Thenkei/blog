@@ -49,6 +49,8 @@ In reality, partitioning tests in GitHub Actions is a whole different beast. Itâ
 - **The Nightmare of Deterministic Tests:** Oh, you think your tests are deterministic? Try running them on 10 different virtual machines simultaneously. You'll quickly discover that your database teardown script occasionally leaves a rogue record, turning `test_chunk_5` into a flaky disaster.
 - **Orchestration Hell:** Handling all the troubles of a CI is exhausting. A single network blip downloading `node_modules` on worker 7 ruins the entire run.
 
+<ArticleMedia mediaId="ci-reconciliation-meme" />
+
 ## Strategies for Survival
 
 To actually make CI partitioning work, we had to adopt some battle-tested rules:
