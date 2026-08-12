@@ -10,6 +10,7 @@ export const postVisualIds = [
   "agent-battle-2026",
   "bounded-ai-loop",
   "ai-force-multiplier",
+  "ai-is-not-immaterial",
   "sse-outbound-channel",
   "backend-to-data-engineer-rockfi",
   "claude-code-product-os",
