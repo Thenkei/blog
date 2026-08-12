@@ -120,6 +120,8 @@ const upload = new Upload({
 await Promise.all([pipeline(Readable.from(csvLines), body), upload.done()]);
 ```
 
+<ArticleMedia mediaId="backpressure-propagation" />
+
 ## Isolation BullMQ pour protéger la capacité worker
 
 Les exports ne doivent pas concurrencer les jobs sensibles à la latence. Queue dédiée, concurrence de 2 à 3 et `jobId` déterministe.

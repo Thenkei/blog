@@ -8,6 +8,7 @@ import "../../src/i18n/config";
 import { ThemeProvider } from "../../src/app/providers/ThemeProvider";
 import { AppRouter } from "../../src/app/router";
 import { ArticleDiagram } from "../../src/shared/components/PostVisual";
+import { ArticleMedia } from "../../src/shared/components/ArticleMedia";
 import { enhanceCodeBlocks } from "../../src/features/reading/enhanceCodeBlocks";
 
 const lazyContentTimeout = 3_000;
@@ -16,7 +17,7 @@ function renderApp(initialPath: string) {
   return render(
     <HelmetProvider>
       <ThemeProvider>
-        <MDXProvider components={{ ArticleDiagram }}>
+        <MDXProvider components={{ ArticleDiagram, ArticleMedia }}>
           <MemoryRouter initialEntries={[initialPath]}>
             <AppRouter />
           </MemoryRouter>
@@ -191,7 +192,7 @@ describe("routing and UX", () => {
     expect((await screen.findAllByRole("button", { name: "Copy code" })).length).toBeGreaterThan(0);
   });
 
-  it("renders static SVG diagrams", async () => {
+  it("renders accessible article media figures", async () => {
     renderApp("/en/posts/engineering-documents-age-poorly");
 
     await screen.findByRole("heading", {
@@ -201,7 +202,7 @@ describe("routing and UX", () => {
 
     expect(
       await screen.findByRole("img", {
-        name: /document lifecycle showing a decision or observation/i,
+        name: /a document lifecycle makes drift visible/i,
       }),
     ).toBeInTheDocument();
   });

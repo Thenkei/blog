@@ -39,6 +39,8 @@ The agent wakes up every 5 seconds and asks our central server:
 
 Not only does this introduce a guaranteed 5-second latency to UI updates, but multiplied by thousands of agents, your server is now fighting off a massive, self-inflicted DDoS attack just to say "No" 99.9% of the time.
 
+<ArticleMedia mediaId="sse-polling-vs-stream" />
+
 ## Enter the Hero: Server-Sent Events (SSE)
 
 We needed a way for the central server to push data instantly, but initiated entirely by an outbound connection from the customer's server. Enter **Server-Sent Events (SSE)**.
@@ -70,6 +72,8 @@ We think the connection is open. The agent thinks the connection is open. Both s
 
 What happens when we deploy a new version of our central server? We gracefully drain connections. Suddenly, thousands of agents realize they are disconnected. In panic, they all immediately try to reconnect at the exact same millisecond. Your CPU melts.
 **The Fix:** Jittered exponential backoff. Agents must reconnect randomly within a window of 1 to 10 seconds, scaling up if the server reports capacity issues.
+
+<ArticleMedia mediaId="sse-reconnect-storm" />
 
 ### 3. File Descriptor Exhaustion
 

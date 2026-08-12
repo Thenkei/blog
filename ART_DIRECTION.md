@@ -160,6 +160,36 @@ Une couverture peut suggérer une situation, une tension ou une trajectoire. Un
 diagramme doit expliquer une relation de système. La couverture ne remplace
 jamais le diagramme.
 
+### Médias dans l'article
+
+`src/shared/components/ArticleMedia.tsx` ajoute une troisième couche, réservée
+au corps des articles : des figures SVG animées qui montrent un changement dans
+le temps, une pression, une répétition ou un passage de relais. Elles servent
+notamment à illustrer le polling contre le SSE, les tempêtes de reconnexion, la
+pression mémoire Redis, la backpressure, le debounce, la réconciliation CI, la
+revue de code assistée par IA, la boucle Product OS et le cycle de vie d'un
+document.
+
+Ces figures ne sont pas utilisées dans les cartes ou les headers. Elles restent
+dans le même langage de tokens que les diagrammes techniques, mais leur rôle est
+narratif : donner à une section dense un mouvement ou une pause contrôlée. Les
+deux compositions de type meme sont originales, sans image, personnage, logo ou
+texte repris d'une franchise ou d'un meme existant.
+
+Contrat d'un média d'article :
+
+- une idée temporelle ou une rupture de rythme doit être visible en quelques secondes ;
+- la figure possède un `title`, un `desc` et une légende localisés ;
+- l'état statique conserve l'information lorsque le mouvement est réduit ;
+- aucune information indispensable ne dépend uniquement de l'animation ou de la couleur ;
+- la version française et la version anglaise utilisent le même `mediaId` au même emplacement sémantique.
+
+Exemple :
+
+```mdx
+<ArticleMedia mediaId="backpressure-propagation" />
+```
+
 ### Artwork de couverture
 
 Les couvertures sont utilisées dans les cartes de la liste principale, le
@@ -191,6 +221,7 @@ reste invisible tant que le frontmatter ne le rend pas public.
 | --- | --- | --- |
 | Carte de liste ou header d'article | `PostEditorialArt` | Image éditoriale, une idée forte, cadrage mémorable |
 | Architecture, protocole, workflow, sécurité ou fiabilité dans l'article | `ArticleDiagram` / `PostVisual` | SVG technique, relations explicites, checkpoints et frontières |
+| Évolution dans le temps, pression, répétition ou pause narrative | `ArticleMedia` | SVG animé, mouvement court, légende et fallback statique |
 | Article sans couverture mappée | `PostVisual` | Fallback topographique ou visuel système existant |
 
 Tous les visuels techniques utilisent un `viewBox` commun de `900 × 480`. Cela

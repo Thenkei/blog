@@ -4,6 +4,7 @@ import { MDXProvider } from "@mdx-js/react";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import { AppRouter } from "./router";
 import { ArticleDiagram } from "../shared/components/PostVisual";
+import { ArticleMedia } from "../shared/components/ArticleMedia";
 
 import type { ComponentProps } from "react";
 
@@ -13,6 +14,7 @@ const components = {
   ),
   picture: (props: ComponentProps<"picture">) => <picture {...props} />,
   ArticleDiagram,
+  ArticleMedia,
 };
 
 export default function App() {

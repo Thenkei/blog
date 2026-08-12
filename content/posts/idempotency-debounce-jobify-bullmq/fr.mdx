@@ -62,6 +62,8 @@ Utilisé notamment dans `action-approvers-notifier-service.ts` et `self-hosted-a
 
 Utilisé dans `cloud-synchronize-data-service.ts`. Si un job delayed existe déjà, on prolonge son délai via `changeDelay` au lieu d'ajouter un nouveau job.
 
+<ArticleMedia mediaId="debounce-trigger-storm" />
+
 ## Nuance critique : fraîcheur du payload
 
 Les deux modes peuvent conserver le payload initial lorsqu'un job existe déjà pour la même clé. Si les nouveaux déclencheurs portent des arguments différents, vous pouvez exécuter des données obsolètes.

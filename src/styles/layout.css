@@ -264,6 +264,18 @@ article th {
   background: color-mix(in srgb, var(--surface-raised) 92%, var(--visual-surface));
 }
 
+.article-media {
+  border-color: color-mix(in srgb, var(--visual-line) 34%, var(--divider));
+}
+
+.article-media-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 220px;
+  background: var(--visual-surface);
+}
+
 .meta {
   font-family: var(--font-mono);
   color: var(--text-secondary);
