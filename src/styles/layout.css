@@ -264,6 +264,41 @@ article th {
   background: color-mix(in srgb, var(--surface-raised) 92%, var(--visual-surface));
 }
 
+.article-figure {
+  margin: 2rem 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--visual-line) 28%, var(--divider));
+  border-radius: 18px;
+  background: var(--surface-raised);
+}
+
+.article-figure-svg {
+  overflow-x: auto;
+  background: var(--visual-surface);
+}
+
+.article-figure-svg > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.article-figure figcaption {
+  margin: 0;
+  padding: 0.92rem 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--visual-line) 18%, var(--divider));
+  background: color-mix(in srgb, var(--surface-raised) 92%, var(--visual-surface));
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 640px) {
+  .article-figure-svg > svg {
+    min-width: 640px;
+  }
+}
+
 .article-media {
   border-color: color-mix(in srgb, var(--visual-line) 34%, var(--divider));
 }
@@ -274,6 +309,22 @@ article th {
   height: auto;
   min-height: 220px;
   background: var(--visual-surface);
+}
+
+@media (max-width: 640px) {
+  .post-visual.article-media-sse-polling-vs-stream {
+    overflow-x: auto;
+  }
+
+  .post-visual.article-media-sse-reconnect-storm {
+    overflow-x: auto;
+  }
+
+  .article-media-sse-polling-vs-stream .article-media-svg,
+  .article-media-sse-reconnect-storm .article-media-svg {
+    width: 640px;
+    min-width: 640px;
+  }
 }
 
 .meta {

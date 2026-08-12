@@ -1,8 +1,75 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 240" role="img" aria-labelledby="title desc">
-  <title id="title">Unknowns become architectural evidence</title>
-  <desc id="desc">A decision moves through assumptions and real interaction to failure, observable evidence, and a revised contract that informs the next decision.</desc>
-  <defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 9 4.5 0 9Z" fill="#52657a"/></marker><style>.node{fill:#f7f9fc;stroke:#8ea0b3;stroke-width:2}.text{fill:#172033;font:600 15px system-ui,sans-serif;text-anchor:middle}.edge{fill:none;stroke:#52657a;stroke-width:2;marker-end:url(#arrow)}</style></defs>
-  <path class="edge" d="M190 110H238"/><path class="edge" d="M420 110H468"/><path class="edge" d="M650 110H698"/><path class="edge" d="M880 110H928"/><path class="edge" d="M1110 110H1158"/><path class="edge" d="M1240 70V30H105V70"/>
-  <rect class="node" x="20" y="70" width="170" height="80" rx="14"/><rect class="node" x="250" y="70" width="170" height="80" rx="14"/><rect class="node" x="480" y="70" width="170" height="80" rx="14"/><rect class="node" x="710" y="70" width="170" height="80" rx="14"/><rect class="node" x="940" y="70" width="170" height="80" rx="14"/><rect class="node" x="1170" y="70" width="170" height="80" rx="14"/>
-  <g class="text"><text x="105" y="113">Decision</text><text x="335" y="102"><tspan x="335">Implicit</tspan><tspan x="335" dy="21">assumptions</tspan></text><text x="565" y="102"><tspan x="565">Real</tspan><tspan x="565" dy="21">interaction</tspan></text><text x="795" y="102"><tspan x="795">Failure or</tspan><tspan x="795" dy="21">unexpected signal</tspan></text><text x="1025" y="102"><tspan x="1025">Observable</tspan><tspan x="1025" dy="21">evidence</tspan></text><text x="1255" y="102"><tspan x="1255">Revised contract</tspan><tspan x="1255" dy="21">or boundary</tspan></text></g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" role="img" aria-labelledby="unknown-unknowns-en-title unknown-unknowns-en-desc">
+  <title id="unknown-unknowns-en-title">Unknowns become architectural evidence</title>
+  <desc id="unknown-unknowns-en-desc">A decision moves through implicit assumptions, real interaction, failure signals, evidence, and a revised contract that feeds the next decision.</desc>
+  <defs>
+    <pattern id="unknown-unknowns-en-grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M36 0H0V36" class="inline-grid-line" />
+    </pattern>
+    <marker id="unknown-unknowns-en-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0 0L8 3L0 6Z" class="inline-arrow" />
+    </marker>
+    <marker id="unknown-unknowns-en-arrow-hot" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0 0L8 3L0 6Z" class="inline-arrow-hot" />
+    </marker>
+    <marker id="unknown-unknowns-en-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0 0L8 3L0 6Z" class="inline-arrow-link" />
+    </marker>
+    <style><![CDATA[
+      .inline-paper { fill: var(--visual-surface, #edf3ff); }
+      .inline-grid-line { fill: none; stroke: var(--visual-grid, rgba(18,36,63,.08)); stroke-width: 1; }
+      .inline-node { fill: var(--visual-surface-strong, #fff); stroke: color-mix(in srgb, var(--visual-ink, #12243f) 32%, transparent); stroke-width: 1.5; }
+      .inline-node-hot { fill: color-mix(in srgb, var(--visual-hot, #c86c18) 14%, var(--visual-surface-strong, #fff)); stroke: var(--visual-hot, #c86c18); stroke-width: 2; }
+      .inline-node-success { fill: color-mix(in srgb, var(--visual-line-secondary, #17aa7b) 12%, var(--visual-surface-strong, #fff)); stroke: var(--visual-line-secondary, #17aa7b); stroke-width: 1.5; }
+      .inline-route { fill: none; stroke: var(--visual-line, #1d8fe1); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#unknown-unknowns-en-arrow); }
+      .inline-route-muted { stroke: var(--visual-muted, #486189); }
+      .inline-route-hot { stroke: var(--visual-hot, #c86c18); marker-end: url(#unknown-unknowns-en-arrow-hot); }
+      .inline-route-dashed { stroke: var(--visual-hot, #c86c18); stroke-dasharray: 6 4; marker-end: url(#unknown-unknowns-en-arrow-hot); }
+      .inline-arrow { fill: var(--visual-line, #1d8fe1); }
+      .inline-arrow-hot { fill: var(--visual-hot, #c86c18); }
+      .inline-arrow-link { fill: var(--visual-line-secondary, #17aa7b); }
+      .inline-name { fill: var(--visual-ink, #12243f); font: 600 16px var(--font-display, 'Space Grotesk', sans-serif); text-anchor: middle; }
+      .inline-eyebrow { fill: var(--visual-muted, #486189); font: 500 8px var(--font-mono, 'IBM Plex Mono', monospace); letter-spacing: .16em; }
+      .inline-label { fill: var(--visual-muted, #486189); font: 500 8px var(--font-mono, 'IBM Plex Mono', monospace); letter-spacing: .08em; }
+      .inline-mask { fill: var(--visual-surface, #edf3ff); }
+      .inline-rule { stroke: color-mix(in srgb, var(--visual-ink, #12243f) 18%, transparent); stroke-width: 1; }
+      .inline-legend { fill: var(--visual-muted, #486189); font: 400 8px var(--font-mono, 'IBM Plex Mono', monospace); letter-spacing: .04em; }
+    ]]></style>
+  </defs>
+
+  <rect width="900" height="480" class="inline-paper" />
+  <rect width="900" height="480" fill="url(#unknown-unknowns-en-grid)" opacity=".7" />
+  <text x="40" y="36" class="inline-eyebrow">UNKNOWN UNKNOWNS · MAKE SURPRISES RECOVERABLE</text>
+
+  <path d="M168 164H216" class="inline-route inline-route-muted" />
+  <path d="M360 164H392" class="inline-route inline-route-muted" />
+  <path d="M536 164H568" class="inline-route inline-route-hot" />
+  <path d="M648 200V292" class="inline-route inline-route-hot" />
+  <path d="M568 328H520" class="inline-route inline-route-muted" />
+  <path d="M432 364V392H24Q16 392 16 384V216Q16 208 24 208H104Q112 208 112 200" class="inline-route inline-route-dashed" />
+
+  <rect x="40" y="128" width="128" height="72" rx="8" class="inline-node" />
+  <rect x="216" y="128" width="144" height="72" rx="8" class="inline-node" />
+  <rect x="392" y="128" width="144" height="72" rx="8" class="inline-node" />
+  <rect x="568" y="128" width="160" height="72" rx="8" class="inline-node-hot" />
+  <rect x="568" y="292" width="160" height="72" rx="8" class="inline-node-success" />
+  <rect x="344" y="292" width="176" height="72" rx="8" class="inline-node-success" />
+
+  <text x="104" y="156" class="inline-name"><tspan x="104">DECISION</tspan></text>
+  <text x="288" y="156" class="inline-name"><tspan x="288">IMPLICIT</tspan><tspan x="288" dy="20">ASSUMPTIONS</tspan></text>
+  <text x="464" y="156" class="inline-name"><tspan x="464">REAL</tspan><tspan x="464" dy="20">INTERACTION</tspan></text>
+  <text x="648" y="156" class="inline-name"><tspan x="648">FAILURE</tspan><tspan x="648" dy="20">SIGNAL</tspan></text>
+  <text x="648" y="320" class="inline-name"><tspan x="648">OBSERVABLE</tspan><tspan x="648" dy="20">EVIDENCE</tspan></text>
+  <text x="432" y="320" class="inline-name"><tspan x="432">REVISED</tspan><tspan x="432" dy="20">CONTRACT</tspan></text>
+
+  <rect x="200" y="368" width="80" height="16" rx="2" class="inline-mask" />
+  <text x="208" y="380" class="inline-label">REVISE / LEARN</text>
+
+  <line x1="40" y1="408" x2="860" y2="408" class="inline-rule" />
+  <text x="40" y="436" class="inline-eyebrow">READING KEY</text>
+  <line x1="160" y1="432" x2="196" y2="432" class="inline-route" />
+  <text x="208" y="436" class="inline-legend">NOMINAL FLOW</text>
+  <rect x="372" y="424" width="16" height="16" rx="2" class="inline-node-hot" />
+  <text x="400" y="436" class="inline-legend">SURPRISE SIGNAL</text>
+  <line x1="584" y1="432" x2="620" y2="432" class="inline-route inline-route-dashed" />
+  <text x="632" y="436" class="inline-legend">FEEDBACK LOOP</text>
 </svg>

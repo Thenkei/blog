@@ -508,55 +508,120 @@ function ForceMultiplierVisual({ copy, markerId, variant }: StoryProps) {
 
 function SseChannelVisual({ copy, markerId, variant }: StoryProps) {
   const arrow = `url(#${markerId}-arrow)`;
-
-  if (variant === "card") {
-    return (
-      <EditorialFrame markerId={markerId} variant={variant}>
-        <rect x="94" y="118" width="278" height="244" rx="62" className="visual-editorial-cloud-boundary" />
-        <circle cx="224" cy="240" r="48" className="visual-editorial-source" />
-        <rect x="406" y="82" width="48" height="316" rx="24" className="visual-editorial-firewall" />
-        <path d="M272 240H692" className="visual-editorial-flow-trace" markerEnd={arrow} />
-        {[526, 588, 650].map((x, index) => (
-          <circle key={x} cx={x} cy="240" r={8 + index * 2} className="visual-editorial-pulse-dot" />
-        ))}
-        <rect x="692" y="150" width="128" height="180" rx="44" className="visual-editorial-success" />
-      </EditorialFrame>
-    );
-  }
-
-  if (variant === "header") {
-    return (
-      <EditorialFrame markerId={markerId} variant={variant}>
-        <rect x="60" y="92" width="294" height="296" rx="66" className="visual-editorial-cloud-boundary" />
-        <circle cx="204" cy="240" r="54" className="visual-editorial-source" />
-        <rect x="398" y="62" width="56" height="356" rx="26" className="visual-editorial-firewall" />
-        <path d="M258 240H730" className="visual-editorial-flow-trace" markerEnd={arrow} />
-        {[510, 584, 658].map((x, index) => (
-          <circle key={x} cx={x} cy="240" r={8 + index * 3} className={`visual-editorial-pulse-dot visual-editorial-compute-${index + 1}`} />
-        ))}
-        <rect x="730" y="132" width="130" height="216" rx="46" className="visual-editorial-success" />
-        <path d="M730 306C604 390 430 390 312 316" className="visual-editorial-rejected" />
-      </EditorialFrame>
-    );
-  }
+  const layout = variant === "header"
+    ? {
+        network: { x: 48, y: 84, width: 296, height: 256 },
+        firewall: { x: 384, y: 72, width: 56, height: 272 },
+        agent: { x: 80, y: 160, width: 192, height: 88 },
+        control: { x: 700, y: 112, width: 160, height: 200 },
+        requestY: 192,
+        streamY: 256,
+      }
+    : variant === "card"
+      ? {
+          network: { x: 72, y: 108, width: 284, height: 232 },
+          firewall: { x: 400, y: 84, width: 52, height: 264 },
+          agent: { x: 104, y: 164, width: 168, height: 76 },
+          control: { x: 652, y: 132, width: 168, height: 180 },
+          requestY: 192,
+          streamY: 252,
+        }
+      : {
+          network: { x: 36, y: 96, width: 252, height: 244 },
+          firewall: { x: 320, y: 80, width: 60, height: 272 },
+          agent: { x: 68, y: 164, width: 172, height: 84 },
+          control: { x: 664, y: 112, width: 192, height: 200 },
+          requestY: 192,
+          streamY: 256,
+        };
+  const contract = { x: 36, y: 356, width: 820, height: 92 };
+  const channelStart = layout.agent.x + layout.agent.width;
+  const channelEnd = layout.control.x;
+  const channelMid = (channelStart + channelEnd) / 2;
+  const controlCenter = layout.control.x + layout.control.width / 2;
+  const agentCenter = layout.agent.x + layout.agent.width / 2;
+  const showLabels = variant === "inline";
 
   return (
     <EditorialFrame markerId={markerId} variant={variant}>
-      <rect x="42" y="110" width="230" height="228" rx="54" className="visual-editorial-cloud-boundary" />
-      <circle cx="156" cy="224" r="44" className="visual-editorial-source" />
-      <rect x="312" y="82" width="54" height="284" rx="26" className="visual-editorial-firewall" />
-      <path d="M200 224H706" className="visual-editorial-flow-trace" markerEnd={arrow} />
-      {[438, 514, 590, 666].map((x, index) => (
-        <circle key={x} cx={x} cy="224" r={7 + index * 2} className={`visual-editorial-pulse-dot visual-editorial-compute-${(index % 3) + 1}`} />
-      ))}
-      <rect x="706" y="130" width="146" height="188" rx="48" className="visual-editorial-success" />
-      <path d="M778 318C686 376 500 374 356 306" className="visual-editorial-rejected" />
-      <path d="M340 292L370 322M370 292L340 322" className="visual-editorial-cross" />
-      <InlineLabels labels={[
-        { x: 156, text: copy.labels.agent ?? "" },
-        { x: 520, text: copy.labels.channel ?? "" },
-        { x: 779, text: copy.labels.control ?? "" },
-      ]} />
+      <rect
+        x={layout.network.x}
+        y={layout.network.y}
+        width={layout.network.width}
+        height={layout.network.height}
+        rx="8"
+        className="visual-editorial-cloud-boundary"
+      />
+      <rect
+        x={layout.firewall.x}
+        y={layout.firewall.y}
+        width={layout.firewall.width}
+        height={layout.firewall.height}
+        rx="8"
+        className="visual-editorial-firewall"
+      />
+      <rect x={contract.x} y={contract.y} width={contract.width} height={contract.height} rx="8" className="visual-editorial-cloud-boundary" />
+
+      <path
+        d={`M${channelStart} ${layout.requestY}H${channelEnd}`}
+        className="visual-editorial-line-hot"
+        markerEnd={arrow}
+      />
+      <path
+        d={`M${channelEnd} ${layout.streamY}H${channelStart}`}
+        className="visual-editorial-sse-stream"
+        markerEnd={arrow}
+      />
+
+      <rect x={layout.agent.x} y={layout.agent.y} width={layout.agent.width} height={layout.agent.height} rx="8" className="visual-editorial-layer-middle" />
+      <rect x={layout.control.x} y={layout.control.y} width={layout.control.width} height={layout.control.height} rx="8" className="visual-editorial-panel-hot" />
+
+      {showLabels ? (
+        <>
+          <rect x={layout.network.x + 12} y={layout.network.y + 4} width="168" height="24" rx="4" fill="var(--visual-surface)" />
+          <text x={layout.network.x + 20} y={layout.network.y + 24} className="visual-editorial-architecture-label-technical">
+            {copy.labels.network?.toUpperCase()}
+          </text>
+          <rect x={layout.firewall.x - 32} y={layout.firewall.y - 28} width="120" height="24" rx="4" fill="var(--visual-surface)" />
+          <text x={layout.firewall.x + layout.firewall.width / 2} y={layout.firewall.y - 12} textAnchor="middle" className="visual-editorial-architecture-label-technical">
+            {copy.labels.firewall}
+          </text>
+
+          <text x={agentCenter} y={layout.agent.y + 40} textAnchor="middle" className="visual-editorial-architecture-label">
+            <tspan x={agentCenter}>{copy.labels.agent}</tspan>
+            <tspan x={agentCenter} dy="24" className="visual-editorial-architecture-label-muted">HTTPS CLIENT</tspan>
+          </text>
+          <text x={controlCenter} y={layout.control.y + 72} textAnchor="middle" className="visual-editorial-architecture-label">
+            <tspan x={controlCenter}>{copy.labels.control}</tspan>
+            <tspan x={controlCenter} dy="24" className="visual-editorial-architecture-label-muted">EVENT PRODUCER</tspan>
+          </text>
+          <rect x={channelMid - 140} y={layout.requestY - 40} width="280" height="24" rx="4" fill="var(--visual-surface)" />
+          <text x={channelMid} y={layout.requestY - 20} textAnchor="middle" className="visual-editorial-architecture-label-technical">
+            {copy.labels.outbound}
+          </text>
+          <rect x={channelMid - 140} y={layout.streamY + 12} width="280" height="24" rx="4" fill="var(--visual-surface)" />
+          <text x={channelMid} y={layout.streamY + 32} textAnchor="middle" className="visual-editorial-architecture-label-technical">
+            {copy.labels.stream}
+          </text>
+
+          <rect x={contract.x + 12} y={contract.y + 4} width="248" height="24" rx="4" fill="var(--visual-surface)" />
+          <text x={contract.x + 20} y={contract.y + 24} className="visual-editorial-architecture-label-technical">
+            {copy.labels.contract?.toUpperCase()}
+          </text>
+          {[contract.x + 276, contract.x + 548].map((x) => (
+            <line key={x} x1={x} y1={contract.y + 40} x2={x} y2={contract.y + 80} className="visual-editorial-detail" />
+          ))}
+          <text x={agentCenter + 20} y={contract.y + 64} textAnchor="middle" className="visual-editorial-architecture-label-muted">
+            {copy.labels.heartbeat}
+          </text>
+          <text x={channelMid} y={contract.y + 64} textAnchor="middle" className="visual-editorial-architecture-label-muted">
+            {copy.labels.disconnected} → {copy.labels.reconnect}
+          </text>
+          <text x={controlCenter - 10} y={contract.y + 64} textAnchor="middle" className="visual-editorial-architecture-label-muted">
+            {copy.labels.backoff}
+          </text>
+        </>
+      ) : null}
     </EditorialFrame>
   );
 }

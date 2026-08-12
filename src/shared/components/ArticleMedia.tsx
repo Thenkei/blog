@@ -30,9 +30,9 @@ const MEDIA_COPY: Record<PostLocale, Record<ArticleMediaId, MediaCopy>> = {
     "sse-polling-vs-stream": {
       title: "Polling repeats requests while SSE keeps one outbound connection open",
       description:
-        "A visual comparison of an agent repeatedly asking for updates and an SSE connection waiting for the server to push an event.",
+        "A static comparison of an agent polling repeatedly for updates versus an agent opening one HTTPS connection that receives SSE events from the control plane.",
       caption:
-        "Polling spends requests asking for nothing. SSE keeps one outbound connection open and sends data only when an event exists.",
+        "Polling repeats agent requests and receives no change. SSE opens one outbound connection; the control plane sends an event only when something changes.",
       eyebrow: "TWO WAYS TO MOVE AN UPDATE",
       labels: {
         polling: "POLLING",
@@ -40,23 +40,34 @@ const MEDIA_COPY: Record<PostLocale, Record<ArticleMediaId, MediaCopy>> = {
         agent: "AGENT",
         server: "CONTROL PLANE",
         request: "REQUEST",
-        event: "EVENT",
-        wait: "ASK · WAIT · ASK",
-        push: "OPEN PIPE · PUSH",
+        response: "NO CHANGE",
+        open: "OPEN HTTPS GET",
+        event: "EVENT ONLY",
+        cadence: "EVERY 5 s",
+        repeat: "REPEATS WHEN QUIET",
+        connection: "ONE OPEN CONNECTION",
+        send: "SEND ONLY ON EVENT",
       },
     },
     "sse-reconnect-storm": {
-      title: "Jitter spreads reconnects after a deployment",
+      title: "Long-lived SSE connections can turn a deploy into a reconnect storm",
       description:
-        "Agents reconnect at once after a deployment without backoff, then spread across a time window when jitter is applied.",
+        "Open SSE connections consume server capacity continuously; a deploy can release them at once, while jittered backoff spreads reconnects across a window the control plane can absorb.",
       caption:
-        "A graceful drain can still become an outage if every client reconnects at the same instant. Jitter turns the herd into a queue the server can absorb.",
-      eyebrow: "RECONNECTS AFTER A DEPLOY",
+        "The connection stays open until a deploy drains it. Without jitter, reconnections spike together; with jitter, the same work stays below the server capacity line.",
+      eyebrow: "LONG-LIVED CONNECTIONS · RECONNECT LOAD",
       labels: {
-        deploy: "DEPLOY",
-        herd: "THUNDERING HERD",
+        open: "OPEN SSE",
+        agents: "AGENTS",
+        control: "CONTROL PLANE",
+        heartbeat: "HEARTBEAT",
+        deploy: "DEPLOY / DRAIN",
+        spike: "LOAD SPIKE",
+        burst: "ALL RECONNECT NOW",
         jitter: "JITTERED BACKOFF",
-        time: "TIME",
+        window: "WINDOW · 1–10 s",
+        capacity: "SERVER CAPACITY",
+        absorbed: "LOAD ABSORBED",
         now: "NOW",
         later: "LATER",
       },
@@ -180,9 +191,9 @@ const MEDIA_COPY: Record<PostLocale, Record<ArticleMediaId, MediaCopy>> = {
     "sse-polling-vs-stream": {
       title: "Le polling répète les requêtes tandis que le SSE garde une connexion sortante ouverte",
       description:
-        "Comparaison visuelle entre un agent qui demande sans cesse les mises à jour et une connexion SSE qui attend que le serveur pousse un événement.",
+        "Comparaison statique entre un agent qui interroge sans cesse le serveur et un agent qui ouvre une connexion HTTPS recevant les événements SSE du plan de contrôle.",
       caption:
-        "Le polling consomme des requêtes pour demander du vide. Le SSE garde une connexion sortante ouverte et n'envoie des données que lorsqu'un événement existe.",
+        "Le polling répète les requêtes de l'agent et reçoit « aucun changement ». Le SSE ouvre une connexion sortante ; le plan de contrôle n'envoie un événement qu'en cas de changement.",
       eyebrow: "DEUX FAÇONS DE TRANSPORTER UNE MISE À JOUR",
       labels: {
         polling: "POLLING",
@@ -190,23 +201,34 @@ const MEDIA_COPY: Record<PostLocale, Record<ArticleMediaId, MediaCopy>> = {
         agent: "AGENT",
         server: "CONTROL PLANE",
         request: "REQUÊTE",
-        event: "ÉVÉNEMENT",
-        wait: "DEMANDER · ATTENDRE",
-        push: "TUYAU OUVERT · PUSH",
+        response: "AUCUN CHANGEMENT",
+        open: "OUVERTURE HTTPS GET",
+        event: "ÉVÉNEMENT UNIQUEMENT",
+        cadence: "TOUTES LES 5 s",
+        repeat: "RÉPÈTE SANS CHANGEMENT",
+        connection: "UNE CONNEXION OUVERTE",
+        send: "ENVOIE SI ÉVÉNEMENT",
       },
     },
     "sse-reconnect-storm": {
-      title: "Le jitter étale les reconnexions après un déploiement",
+      title: "Des connexions SSE longues peuvent transformer un déploiement en tempête de reconnexions",
       description:
-        "Les agents se reconnectent tous après un déploiement sans backoff, puis s'étalent sur une fenêtre temporelle lorsque le jitter est appliqué.",
+        "Les connexions SSE ouvertes consomment en continu de la capacité serveur ; un déploiement peut les libérer d'un coup, tandis que le jitter étale les reconnexions sur une fenêtre absorbable par le plan de contrôle.",
       caption:
-        "Un drain gracieux peut quand même devenir une panne si chaque client se reconnecte au même instant. Le jitter transforme la horde en file absorbable par le serveur.",
-      eyebrow: "RECONNEXIONS APRÈS UN DÉPLOIEMENT",
+        "La connexion reste ouverte jusqu'au drain du déploiement. Sans jitter, les reconnexions forment un pic ; avec jitter, la charge reste sous la capacité serveur.",
+      eyebrow: "CONNEXIONS LONGUES · CHARGE DE RECONNEXION",
       labels: {
-        deploy: "DÉPLOIEMENT",
-        herd: "THUNDERING HERD",
+        open: "SSE OUVERT",
+        agents: "AGENTS",
+        control: "PLAN DE CONTRÔLE",
+        heartbeat: "HEARTBEAT",
+        deploy: "DÉPLOIEMENT / DRAIN",
+        spike: "PIC DE CHARGE",
+        burst: "TOUS RECONNECTENT",
         jitter: "BACKOFF + JITTER",
-        time: "TEMPS",
+        window: "FENÊTRE · 1–10 s",
+        capacity: "CAPACITÉ SERVEUR",
+        absorbed: "CHARGE ABSORBÉE",
         now: "MAINTENANT",
         later: "PLUS TARD",
       },
@@ -340,6 +362,9 @@ function MediaFrame({ copy, markerId, children }: MediaSceneProps & { children: 
         <marker id={markerId} markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
           <path d="M0 0L8 4L0 8Z" className="article-media-arrow" />
         </marker>
+        <marker id={`${markerId}-hot`} markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0 0L8 4L0 8Z" className="article-media-arrow-hot" />
+        </marker>
       </defs>
       <rect width="900" height="360" rx="20" className="article-media-surface" />
       <path d="M0 72H900M0 144H900M0 216H900M0 288H900M90 0V360M180 0V360M270 0V360M360 0V360M450 0V360M540 0V360M630 0V360M720 0V360M810 0V360" className="article-media-grid" />
@@ -374,62 +399,89 @@ function PollingVsStream({ copy, markerId }: MediaSceneProps) {
   const label = (key: string) => copy.labels[key] ?? "";
   return (
     <MediaFrame copy={copy} markerId={markerId}>
-      <text x="164" y="88" textAnchor="middle" className="article-media-label">{label("polling")}</text>
-      <text x="696" y="88" textAnchor="middle" className="article-media-label">{label("sse")}</text>
-      <MediaNode x={62} y={138} label={label("agent")} />
-      <MediaNode x={692} y={138} label={label("agent")} />
-      <MediaNode x={294} y={138} label={label("server")} width={178} tone="hot" />
-      <MediaNode x={692} y={254} label={label("server")} width={154} tone="hot" />
-      <path d="M208 164H294M472 164H560V280H692" className="article-media-route" markerEnd={`url(#${markerId})`} />
-      <path d="M208 184H270M496 184H560V300H692" className="article-media-route article-media-route-muted" markerEnd={`url(#${markerId})`} />
-      <circle cx="230" cy="164" r="8" className="article-media-packet article-media-packet-poll" />
-      <circle cx="282" cy="184" r="8" className="article-media-packet article-media-packet-poll article-media-delay-1" />
-      <circle cx="334" cy="164" r="8" className="article-media-packet article-media-packet-poll article-media-delay-2" />
-      <path d="M560 164H692" className="article-media-route article-media-route-open" />
-      <circle cx="610" cy="164" r="8" className="article-media-packet article-media-packet-stream" />
-      <circle cx="646" cy="164" r="8" className="article-media-packet article-media-packet-stream article-media-delay-2" />
-      <circle cx="654" cy="280" r="10" className="article-media-event article-media-pulse" />
-      <text x="164" y="260" textAnchor="middle" className="article-media-note">{label("wait")}</text>
-      <text x="626" y="330" textAnchor="middle" className="article-media-note">{label("push")}</text>
-      <text x="168" y="318" textAnchor="middle" className="article-media-micro">{label("request")}</text>
-      <text x="654" y="248" textAnchor="middle" className="article-media-micro">{label("event")}</text>
+      <rect x="34" y="58" width="392" height="244" rx="8" className="article-media-boundary" />
+      <rect x="474" y="58" width="392" height="244" rx="8" className="article-media-boundary" />
+      <rect x="50" y="66" width="140" height="24" rx="4" className="article-media-label-mask" />
+      <rect x="490" y="66" width="100" height="24" rx="4" className="article-media-label-mask" />
+      <text x="58" y="84" className="article-media-label">{label("polling")}</text>
+      <text x="498" y="84" className="article-media-label">{label("sse")}</text>
+
+      <MediaNode x={62} y={132} label={label("agent")} width={132} />
+      <MediaNode x={274} y={132} label={label("server")} width={144} tone="hot" />
+      <MediaNode x={502} y={132} label={label("agent")} width={132} />
+      <MediaNode x={714} y={132} label={label("server")} width={144} tone="success" />
+
+      <path d="M194 148H274" className="article-media-route" markerEnd={`url(#${markerId})`} />
+      <path d="M274 188H194" className="article-media-route article-media-route-muted" markerEnd={`url(#${markerId})`} />
+      <path d="M634 148H714" className="article-media-route article-media-route-hot" markerEnd={`url(#${markerId})`} />
+      <path d="M714 188H634" className="article-media-route article-media-route-success" markerEnd={`url(#${markerId})`} />
+
+      <rect x="194" y="100" width="96" height="24" rx="4" className="article-media-label-mask" />
+      <text x="242" y="118" textAnchor="middle" className="article-media-micro">{label("request")}</text>
+      <rect x="194" y="204" width="112" height="24" rx="4" className="article-media-label-mask" />
+      <text x="250" y="222" textAnchor="middle" className="article-media-micro">{label("response")}</text>
+
+      <rect x="610" y="100" width="144" height="24" rx="4" className="article-media-label-mask" />
+      <text x="682" y="118" textAnchor="middle" className="article-media-micro">{label("open")}</text>
+      <rect x="630" y="204" width="132" height="24" rx="4" className="article-media-label-mask" />
+      <text x="696" y="222" textAnchor="middle" className="article-media-micro">{label("event")}</text>
+
+      <text x="230" y="258" textAnchor="middle" className="article-media-note article-media-note-danger">{label("cadence")}</text>
+      <text x="230" y="282" textAnchor="middle" className="article-media-micro">{label("repeat")}</text>
+      <text x="670" y="258" textAnchor="middle" className="article-media-note article-media-note-success">{label("connection")}</text>
+      <text x="670" y="282" textAnchor="middle" className="article-media-micro">{label("send")}</text>
     </MediaFrame>
   );
 }
 
 function ReconnectStorm({ copy, markerId }: MediaSceneProps) {
   const label = (key: string) => copy.labels[key] ?? "";
-  const agents: Array<[number, number]> = [
-    [122, 126], [122, 178], [122, 230], [122, 282],
-    [202, 126], [202, 178], [202, 230], [202, 282],
-  ];
-  const spread: Array<[number, number]> = [
-    [556, 126], [604, 174], [652, 222], [700, 270],
-    [748, 132], [796, 200], [844, 292], [524, 286],
-  ];
+  const openLanes = [126, 144, 162, 180];
+  const jitterBars = [538, 588, 642, 698, 754, 808];
+  const jitterHeights = [14, 22, 12, 20, 16, 18];
+  const burstPulseY = [244, 252, 260];
   return (
     <MediaFrame copy={copy} markerId={markerId}>
-      <text x="164" y="88" textAnchor="middle" className="article-media-label">{label("herd")}</text>
-      <text x="690" y="88" textAnchor="middle" className="article-media-label">{label("jitter")}</text>
-      <MediaNode x={50} y={154} label={label("deploy")} width={118} tone="hot" />
-      <path d="M168 180H252" className="article-media-route" markerEnd={`url(#${markerId})`} />
-      <rect x="252" y="108" width="168" height="144" rx="22" className="article-media-boundary article-media-boundary-danger" />
-      <text x="336" y="184" textAnchor="middle" className="article-media-label">{label("now")}</text>
-      {agents.map(([x, y], index) => (
-        <g key={`${x}-${y}`} className={`article-media-agent article-media-agent-${index % 4}`}>
-          <circle cx={x} cy={y} r="13" className="article-media-agent-dot" />
-          <path d={`M${x + 14} ${y}L336 180`} className="article-media-route article-media-route-muted" />
+      <rect x="34" y="58" width="392" height="244" rx="8" className="article-media-boundary" />
+      <rect x="474" y="58" width="392" height="244" rx="8" className="article-media-boundary" />
+      <rect x="50" y="66" width="150" height="24" rx="4" className="article-media-label-mask" />
+      <rect x="490" y="66" width="164" height="24" rx="4" className="article-media-label-mask" />
+      <text x="58" y="84" className="article-media-label">{label("open")}</text>
+      <text x="498" y="84" className="article-media-label">{label("jitter")}</text>
+
+      <MediaNode x={54} y={100} label={label("agents")} width={118} />
+      <MediaNode x={270} y={100} label={label("control")} width={128} tone="success" />
+      <text x="220" y="94" textAnchor="middle" className="article-media-micro">{label("heartbeat")}</text>
+      {openLanes.map((y, index) => (
+        <g key={y} className="article-media-live-connection">
+          <path d={`M172 ${y}H270`} className="article-media-route article-media-route-open" />
+          <circle cx="184" cy={y} r="5" className={`article-media-heartbeat article-media-delay-${index % 3}`} />
         </g>
       ))}
-      <path d="M470 180H844" className="article-media-timeline" />
-      <text x="470" y="330" className="article-media-micro">{label("now")}</text>
-      <text x="844" y="330" textAnchor="end" className="article-media-micro">{label("later")}</text>
-      {spread.map(([x, y], index) => (
-        <g key={`${x}-${y}`} className={`article-media-spread article-media-spread-${index % 4}`}>
-          <circle cx={x} cy={y} r="11" className="article-media-agent-dot article-media-agent-dot-success" />
-          <path d={`M${x - 10} ${y}L${x - 34} ${y}`} className="article-media-route article-media-route-success" markerEnd={`url(#${markerId})`} />
+
+      <MediaNode x={54} y={226} label={label("deploy")} width={134} tone="hot" />
+      <path d="M188 252H270" className="article-media-route article-media-route-hot" markerEnd={`url(#${markerId}-hot)`} />
+      <MediaNode x={270} y={226} label={label("spike")} width={128} tone="danger" />
+      {burstPulseY.map((y, index) => (
+        <circle key={y} cx={198} cy={y} r="6" className={`article-media-burst-pulse article-media-delay-${index}`} />
+      ))}
+      <text x="230" y="298" textAnchor="middle" className="article-media-note article-media-note-danger">{label("burst")}</text>
+
+      <MediaNode x={606} y={100} label={label("control")} width={150} tone="success" />
+      <text x="680" y="176" textAnchor="middle" className="article-media-micro">{label("capacity")}</text>
+      <path d="M526 184H834" className="article-media-capacity-track" />
+      <path d="M526 184H770" className="article-media-capacity-limit" />
+      <text x="526" y="216" className="article-media-micro">{label("window")}</text>
+      <path d="M526 246H834" className="article-media-timeline" />
+      {jitterBars.map((x, index) => (
+        <g key={x} className={`article-media-jitter-bar article-media-jitter-bar-${index}`}>
+          <rect x={x} y={246 - (jitterHeights[index] ?? 0)} width="14" height={jitterHeights[index] ?? 0} rx="4" />
+          <circle cx={x + 7} cy="246" r="6" className="article-media-agent-dot-success" />
         </g>
       ))}
+      <text x="526" y="274" className="article-media-micro">{label("now")}</text>
+      <text x="834" y="274" textAnchor="end" className="article-media-micro">{label("later")}</text>
+      <text x="680" y="298" textAnchor="middle" className="article-media-note article-media-note-success">{label("absorbed")}</text>
     </MediaFrame>
   );
 }

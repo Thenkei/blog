@@ -15,7 +15,7 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 2
 ---
 
-import selfServiceDiagram from "../../../src/assets/images/posts/self-service-analytics-fr.svg";
+import selfServiceDiagram from "../../../src/assets/images/posts/self-service-analytics-fr.svg?raw";
 
 ## Le contexte
 
@@ -71,14 +71,9 @@ Nous définissons chaque métrique partagée comme un produit avec un contrat mi
 | Preuve | Quels tests et rapprochements protègent le calcul ? |
 | Fraîcheur | À partir de quand le résultat n'est-il plus utilisable ? |
 
-<figure className="article-figure">
-  <img
-    src={selfServiceDiagram}
-    alt="Chaîne de confiance reliant sources, modèles gouvernés, contrats de métriques et décisions."
-    loading="lazy"
-  />
-  <figcaption>Le libre-service commence après la modélisation et les contrôles, pas au niveau des tables brutes.</figcaption>
-</figure>
+<InlineArticleDiagram svg={selfServiceDiagram}>
+  Le libre-service commence après la modélisation et les contrôles, pas au niveau des tables brutes.
+</InlineArticleDiagram>
 
 Les assistants IA accèdent en priorité à ces contrats et modèles certifiés. Ils peuvent proposer une exploration, mais doivent exposer leurs sources et signaler lorsqu'une question dépasse le périmètre certifié. Le résultat reste reviewable avant diffusion.
 
