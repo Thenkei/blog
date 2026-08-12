@@ -9,6 +9,7 @@ import {
 const editorialSlugs = [
   "agent-battle-2026",
   "ai-force-multiplier",
+  "ai-is-not-immaterial",
   "ai-human-judgment-rockfi",
   "architecture-sse-agent-communication",
   "backend-to-data-engineer-rockfi",

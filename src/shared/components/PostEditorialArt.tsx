@@ -41,6 +41,12 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
       fr: "Illustration éditoriale d'un ingénieur dirigeant plusieurs flux de travail contrôlés dans un paysage technique en strates.",
     },
   },
+  "ai-is-not-immaterial": {
+    alt: {
+      en: "Editorial Earth seen from orbit, split between mining scars and a growing shell of data centres, chips, and power infrastructure.",
+      fr: "Terre éditoriale vue depuis l'orbite, partagée entre les cicatrices des mines et une coque croissante de data centers, de puces et d'infrastructures électriques.",
+    },
+  },
   "ai-human-judgment-rockfi": {
     alt: {
       en: "Manga-inspired workshop scene of a team assembling a product system with a human review gate.",
