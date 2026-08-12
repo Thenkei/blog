@@ -1,8 +1,8 @@
 import { useId, useMemo, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type {
+  PostDiagramVisualId,
   PostLocale,
-  PostVisualId,
 } from "../../features/posts/content";
 import { normalizeLocale } from "../routing";
 import {
@@ -16,11 +16,11 @@ type PostVisualProps = {
   locale?: PostLocale;
   slug: string;
   variant: PostVisualVariant;
-  visualId?: PostVisualId | undefined;
+  visualId?: PostDiagramVisualId | undefined;
 };
 
 type ArticleDiagramProps = {
-  visualId: PostVisualId;
+  visualId: PostDiagramVisualId;
 };
 
 type DiagramCopy = {
@@ -30,7 +30,7 @@ type DiagramCopy = {
   labels: Record<string, string>;
 };
 
-type LocaleCopy = Record<PostVisualId, DiagramCopy> & {
+type LocaleCopy = Record<PostDiagramVisualId, DiagramCopy> & {
   fallback: DiagramCopy;
 };
 
@@ -105,12 +105,6 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       description: "Une couche IA lumineuse alimente l'infrastructure logicielle, les modules et les espaces de conception au-dessus ; les ingénieurs conservent l'intention, l'architecture et la vérification.",
       caption: "L'IA devient le substrat de l'exécution. Les ingénieurs restent au-dessus du système pour orienter, comprendre et vérifier ce qui est construit.",
       labels: { a: "Substrat IA", b: "Systèmes logiciels", c: "Direction humaine" },
-    },
-    "ai-is-not-immaterial": {
-      title: "La chaîne matérielle de l'intelligence artificielle",
-      description: "Une promesse d'intelligence traverse une chaîne matérielle de ressources extraites, d'électricité et d'infrastructures de calcul avant de revenir vers les usages humains.",
-      caption: "L'IA peut se distribuer dans les usages sans que les ressources, l'énergie et les infrastructures qui la rendent possible soient distribuées de la même manière.",
-      labels: { a: "Ressources", b: "Électricité", c: "Data centers", d: "Promesses", e: "Limites" },
     },
     "backend-to-data-engineer-rockfi": {
       title: "Transformer des flux partenaires en fondation gouvernée",
@@ -328,12 +322,6 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       description: "A luminous AI layer powers the software infrastructure, modules, and design surfaces above it; engineers retain intent, architecture, and verification.",
       caption: "AI becomes the substrate of execution. Engineers stay above the system to direct, understand, and verify what gets built.",
       labels: { a: "AI substrate", b: "Software systems", c: "Human direction" },
-    },
-    "ai-is-not-immaterial": {
-      title: "The material chain behind artificial intelligence",
-      description: "A promise of intelligence moves through extracted resources, electricity, and computing infrastructure before returning to human uses.",
-      caption: "AI can be distributed through products without the resources, energy, and infrastructure that make it possible being distributed in the same way.",
-      labels: { a: "Resources", b: "Electricity", c: "Data centres", d: "Promises", e: "Limits" },
     },
     "backend-to-data-engineer-rockfi": {
       title: "Turning partner feeds into a governed foundation",
@@ -1381,7 +1369,7 @@ function ArticleEssenceDiagram({
 }: {
   copy: DiagramCopy;
   markerId: string;
-  visualId: PostVisualId;
+  visualId: PostDiagramVisualId;
   compact: boolean;
   variant: PostVisualVariant;
 }) {

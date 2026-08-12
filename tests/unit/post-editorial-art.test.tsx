@@ -5,6 +5,7 @@ import {
   hasPostEditorialArt,
   PostEditorialArt,
 } from "../../src/shared/components/PostEditorialArt";
+import { postImageVisualIds } from "../../src/features/posts/content";
 
 const editorialSlugs = [
   "agent-battle-2026",
@@ -47,6 +48,15 @@ describe("PostEditorialArt", () => {
     expect(art?.alt.en).toMatch(/.+/);
     expect(art?.alt.fr).toMatch(/.+/);
     expect(hasPostEditorialArt(slug)).toBe(true);
+  });
+
+  it.each(postImageVisualIds)("renders %s as image-backed artwork", (slug) => {
+    const { container } = render(
+      <PostEditorialArt locale="en" slug={slug} variant="header" />,
+    );
+
+    expect(container.querySelector(`[data-editorial-art='${slug}']`)).toBeTruthy();
+    expect(container.querySelector("img")).toHaveAttribute("alt");
   });
 
   it("renders responsive sources for cards and headers", () => {
