@@ -2,7 +2,11 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { PostEditorialArt, hasPostEditorialArt } from "../../shared/components/PostEditorialArt";
 import { PostVisual } from "../../shared/components/PostVisual";
-import type { PostLocale, PostSummary } from "./content";
+import {
+  isPostDiagramVisualId,
+  type PostLocale,
+  type PostSummary,
+} from "./content";
 
 type RocketLogbookProps = {
   locale: PostLocale;
@@ -50,7 +54,11 @@ export function RocketLogbook({ locale, posts }: RocketLogbookProps) {
                   locale={locale}
                   slug={post.slug}
                   variant="card"
-                  visualId={post.visualId}
+                  visualId={
+                    isPostDiagramVisualId(post.visualId)
+                      ? post.visualId
+                      : undefined
+                  }
                 />
               )}
               <div className="post-card-body">

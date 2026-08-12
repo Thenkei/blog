@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { PostVisualId } from "../../features/posts/content";
+import type { PostDiagramVisualId } from "../../features/posts/content";
 import type { PostVisualVariant } from "./PostVisual";
 
 type EditorialCopy = {
@@ -14,7 +14,7 @@ type EditorialPostVisualProps = {
   markerId: string;
   slug: string;
   variant: PostVisualVariant;
-  visualId: PostVisualId;
+  visualId: PostDiagramVisualId;
 };
 
 type StoryProps = Omit<EditorialPostVisualProps, "visualId">;
@@ -38,10 +38,10 @@ export const editorialPostVisualIds = [
   "redis-memory-exhaustion-post-mortem",
   "scim-user-provisioning-forest-admin",
   "security-authentication-idp-openid-connect",
-] as const satisfies readonly PostVisualId[];
+] as const satisfies readonly PostDiagramVisualId[];
 
-export function hasEditorialPostVisual(visualId: PostVisualId): boolean {
-  return (editorialPostVisualIds as readonly PostVisualId[]).includes(visualId);
+export function hasEditorialPostVisual(visualId: PostDiagramVisualId): boolean {
+  return (editorialPostVisualIds as readonly PostDiagramVisualId[]).includes(visualId);
 }
 
 function EditorialFrame({

@@ -4,7 +4,9 @@ import type { ComponentType } from "react";
 import type {
   PostDocument,
   PostAccessScope,
+  PostDiagramVisualId,
   PostLocale,
+  PostImageVisualId,
   PostSummary,
   PostVisibility,
   SearchDocument,
@@ -260,7 +262,9 @@ export function getPostLocales(
 export type {
   PostDocument,
   PostAccessScope,
+  PostDiagramVisualId,
   PostFrontmatter,
+  PostImageVisualId,
   PostLocale,
   PostSummary,
   PostVisibility,
@@ -268,7 +272,13 @@ export type {
   SearchDocument,
 } from "./types";
 
-export { postVisibilities, postVisualIds } from "./types";
+export {
+  isPostDiagramVisualId,
+  postDiagramVisualIds,
+  postImageVisualIds,
+  postVisibilities,
+  postVisualIds,
+} from "./types";
 
 export { buildPostManifest };
 export { postFrontmatterSchema } from "./schema";

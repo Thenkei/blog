@@ -7,6 +7,7 @@ import {
   getSearchDocuments,
   getPostSummaries,
   getThemeExclusivePostSummaries,
+  isPostDiagramVisualId,
   type PostLocale,
 } from "./content";
 import { usePostKeyboardNavigation } from "./hooks/usePostKeyboardNavigation";
@@ -251,7 +252,11 @@ export function PostListPage({ locale }: PostListPageProps) {
                         locale={locale}
                         slug={post.slug}
                         variant="card"
-                        visualId={post.visualId}
+                        visualId={
+                          isPostDiagramVisualId(post.visualId)
+                            ? post.visualId
+                            : undefined
+                        }
                       />
                     )}
                     <div className="post-card-body">

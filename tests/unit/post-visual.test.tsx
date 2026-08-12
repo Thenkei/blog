@@ -7,11 +7,13 @@ import {
 } from "../../src/shared/components/PostVisual";
 import { editorialPostVisualIds } from "../../src/shared/components/EditorialPostVisual";
 import {
+  postDiagramVisualIds,
+  postImageVisualIds,
   postVisualIds,
-  type PostVisualId,
+  type PostDiagramVisualId,
 } from "../../src/features/posts/content";
 
-const visuals: Array<{ id: PostVisualId; title: RegExp }> = postVisualIds.map((id) => ({
+const visuals: Array<{ id: PostDiagramVisualId; title: RegExp }> = postDiagramVisualIds.map((id) => ({
   id,
   title: /.+/,
 }));
@@ -24,12 +26,12 @@ const editorialPrototypeIds = [
   "the-onboarding-matrix-forest-admin",
   "rebuilding-cloud-experience-forest-admin",
   "scaling-ci-github-actions-forest-admin",
-] as const satisfies readonly PostVisualId[];
+] as const satisfies readonly PostDiagramVisualId[];
 
 const editorialSystemIds = [
   ...editorialPrototypeIds,
   ...editorialPostVisualIds,
-] as const satisfies readonly PostVisualId[];
+] as const satisfies readonly PostDiagramVisualId[];
 
 const editorialSystemTextBudgets = [
   { id: "engineering-documents-age-poorly", inlineLabels: 3 },
@@ -57,7 +59,7 @@ const editorialSystemTextBudgets = [
   { id: "redis-memory-exhaustion-post-mortem", inlineLabels: 3 },
   { id: "scim-user-provisioning-forest-admin", inlineLabels: 3 },
   { id: "security-authentication-idp-openid-connect", inlineLabels: 3 },
-] as const satisfies ReadonlyArray<{ id: PostVisualId; inlineLabels: number }>;
+] as const satisfies ReadonlyArray<{ id: PostDiagramVisualId; inlineLabels: number }>;
 
 const localizedPrototypeLabels = [
   { id: "engineering-documents-age-poorly", en: "Active reference", fr: "Référence active" },
@@ -109,7 +111,7 @@ const localizedPrototypeLabels = [
     fr: "SCIM / Normaliser",
   },
   { id: "security-authentication-idp-openid-connect", en: "SAML / OIDC", fr: "SAML / OIDC" },
-] as const satisfies ReadonlyArray<{ id: PostVisualId; en: string; fr: string }>;
+] as const satisfies ReadonlyArray<{ id: PostDiagramVisualId; en: string; fr: string }>;
 
 const reworkedArticleMotifs = [
   {
@@ -153,7 +155,7 @@ const reworkedArticleMotifs = [
     motif: "hybrid-log-search",
   },
 ] as const satisfies ReadonlyArray<{
-  id: PostVisualId;
+  id: PostDiagramVisualId;
   slug: string;
   motif: string;
 }>;
@@ -178,7 +180,7 @@ describe("PostVisual", () => {
     expect(document.querySelector(`[data-visual-id="${id}"]`)).toBeTruthy();
   });
 
-  it.each(postVisualIds)("renders %s in card and header variants", (id) => {
+  it.each(postDiagramVisualIds)("renders %s in card and header variants", (id) => {
     const { container, rerender } = render(
       <PostVisual locale="en" slug={id} variant="card" visualId={id} />,
     );
@@ -191,7 +193,7 @@ describe("PostVisual", () => {
   });
 
   it("keeps a distinct SVG geometry for every article visual", () => {
-    const signatures = postVisualIds.map((id) => {
+    const signatures = postDiagramVisualIds.map((id) => {
       const { container, unmount } = render(
         <PostVisual locale="en" slug={id} variant="header" visualId={id} />,
       );
@@ -200,7 +202,7 @@ describe("PostVisual", () => {
       return geometry;
     });
 
-    expect(new Set(signatures).size).toBe(postVisualIds.length);
+    expect(new Set(signatures).size).toBe(postDiagramVisualIds.length);
   });
 
   it.each(editorialSystemIds)(
@@ -408,9 +410,15 @@ describe("PostVisual", () => {
     },
   );
 
-  it.each(postVisualIds)("maps %s to a concrete diagram", (id) => {
+  it.each(postDiagramVisualIds)("maps %s to a concrete SVG visual", (id) => {
     render(<PostVisual locale="en" slug={id} variant="inline" visualId={id} />);
     expect(screen.queryByText("UNMAPPED VISUAL")).not.toBeInTheDocument();
+  });
+
+  it("classifies every post visual by its rendering strategy", () => {
+    expect(
+      [...postDiagramVisualIds, ...postImageVisualIds].sort(),
+    ).toEqual([...postVisualIds].sort());
   });
 
   it("localizes visible captions", () => {

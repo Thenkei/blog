@@ -40,6 +40,26 @@ export const postVisualIds = [
 
 export type PostVisualId = (typeof postVisualIds)[number];
 
+// Some article visuals are raster artwork embedded in the MDX content rather
+// than SVG diagrams rendered by PostVisual.
+export const postImageVisualIds = [
+  "ai-is-not-immaterial",
+] as const satisfies readonly PostVisualId[];
+
+export type PostImageVisualId = (typeof postImageVisualIds)[number];
+export type PostDiagramVisualId = Exclude<PostVisualId, PostImageVisualId>;
+
+export const postDiagramVisualIds = postVisualIds.filter(
+  (visualId): visualId is PostDiagramVisualId =>
+    !postImageVisualIds.includes(visualId as PostImageVisualId),
+);
+
+export function isPostDiagramVisualId(
+  visualId: PostVisualId,
+): visualId is PostDiagramVisualId {
+  return !postImageVisualIds.includes(visualId as PostImageVisualId);
+}
+
 export interface PostFrontmatter {
   title: string;
   subtitle: string;

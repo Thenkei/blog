@@ -3,6 +3,7 @@ import type {
   PostLocale,
   PostVisualId,
 } from "../../features/posts/content";
+import { isPostDiagramVisualId } from "../../features/posts/content";
 import { PostVisual } from "./PostVisual";
 import { PostEditorialArt, hasPostEditorialArt } from "./PostEditorialArt";
 
@@ -55,7 +56,11 @@ export function PostHeader({
               locale={locale}
               slug={slug}
               variant="header"
-              visualId={visualId}
+              visualId={
+                visualId && isPostDiagramVisualId(visualId)
+                  ? visualId
+                  : undefined
+              }
             />
           )}
         </div>
