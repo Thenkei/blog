@@ -5,6 +5,7 @@ import { ThemeProvider } from "./providers/ThemeProvider";
 import { AppRouter } from "./router";
 import { ArticleDiagram } from "../shared/components/PostVisual";
 import { ArticleMedia } from "../shared/components/ArticleMedia";
+import { InlineArticleDiagram } from "../shared/components/InlineArticleDiagram";
 
 import type { ComponentProps } from "react";
 
@@ -15,6 +16,7 @@ const components = {
   picture: (props: ComponentProps<"picture">) => <picture {...props} />,
   ArticleDiagram,
   ArticleMedia,
+  InlineArticleDiagram,
 };
 
 export default function App() {

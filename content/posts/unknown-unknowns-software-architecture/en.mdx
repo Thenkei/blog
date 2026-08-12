@@ -15,7 +15,7 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 1
 ---
 
-import unknownUnknownsDiagram from "../../../src/assets/images/posts/unknown-unknowns-en.svg";
+import unknownUnknownsDiagram from "../../../src/assets/images/posts/unknown-unknowns-en.svg?raw";
 
 ## Context
 
@@ -68,14 +68,9 @@ We no longer try to predict every failure. We make surprises observable and reco
 3. **Detect** divergence through metrics, traces, reconciliation, and domain alerts.
 4. **Recover** through idempotency, controlled replay, kill switches, rollback, or compensation.
 
-<figure className="article-figure">
-  <img
-    src={unknownUnknownsDiagram}
-    alt="A design loop that exposes assumptions, searches for blind spots, bounds impact, and prepares recovery."
-    loading="lazy"
-  />
-  <figcaption>A useful review turns an assumption into evidence, a signal, or an explicitly accepted risk.</figcaption>
-</figure>
+<InlineArticleDiagram svg={unknownUnknownsDiagram}>
+  A useful review turns an assumption into evidence, a signal, or an explicitly accepted risk.
+</InlineArticleDiagram>
 
 The exit question is simple: if this assumption becomes false tomorrow, will we see it, limit the impact, and return to a safe state?
 
