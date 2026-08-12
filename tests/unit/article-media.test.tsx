@@ -39,4 +39,17 @@ describe("ArticleMedia", () => {
     expect(screen.getByText("EVENT ONLY")).toBeInTheDocument();
     expect(container.querySelectorAll(".article-media-packet, .article-media-event")).toHaveLength(0);
   });
+
+  it("shows held SSE connections and jittered reconnect load", () => {
+    const { container } = render(<ArticleMedia mediaId="sse-reconnect-storm" />);
+
+    expect(screen.getByText("OPEN SSE")).toBeInTheDocument();
+    expect(screen.getByText("ALL RECONNECT NOW")).toBeInTheDocument();
+    expect(screen.getByText("JITTERED BACKOFF")).toBeInTheDocument();
+    expect(screen.getByText("WINDOW · 1–10 s")).toBeInTheDocument();
+    expect(screen.getByText("LOAD ABSORBED")).toBeInTheDocument();
+    expect(container.querySelectorAll(".article-media-heartbeat")).toHaveLength(4);
+    expect(container.querySelectorAll(".article-media-burst-pulse")).toHaveLength(3);
+    expect(container.querySelectorAll(".article-media-jitter-bar")).toHaveLength(6);
+  });
 });

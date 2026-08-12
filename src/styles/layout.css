@@ -316,7 +316,12 @@ article th {
     overflow-x: auto;
   }
 
-  .article-media-sse-polling-vs-stream .article-media-svg {
+  .post-visual.article-media-sse-reconnect-storm {
+    overflow-x: auto;
+  }
+
+  .article-media-sse-polling-vs-stream .article-media-svg,
+  .article-media-sse-reconnect-storm .article-media-svg {
     width: 640px;
     min-width: 640px;
   }
