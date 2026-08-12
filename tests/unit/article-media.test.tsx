@@ -29,4 +29,14 @@ describe("ArticleMedia", () => {
 
     await i18n.changeLanguage("en");
   });
+
+  it("shows polling and SSE as distinct static flows", () => {
+    const { container } = render(<ArticleMedia mediaId="sse-polling-vs-stream" />);
+
+    expect(screen.getByText("REQUEST")).toBeInTheDocument();
+    expect(screen.getByText("NO CHANGE")).toBeInTheDocument();
+    expect(screen.getByText("OPEN HTTPS GET")).toBeInTheDocument();
+    expect(screen.getByText("EVENT ONLY")).toBeInTheDocument();
+    expect(container.querySelectorAll(".article-media-packet, .article-media-event")).toHaveLength(0);
+  });
 });

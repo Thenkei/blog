@@ -311,6 +311,17 @@ article th {
   background: var(--visual-surface);
 }
 
+@media (max-width: 640px) {
+  .post-visual.article-media-sse-polling-vs-stream {
+    overflow-x: auto;
+  }
+
+  .article-media-sse-polling-vs-stream .article-media-svg {
+    width: 640px;
+    min-width: 640px;
+  }
+}
+
 .meta {
   font-family: var(--font-mono);
   color: var(--text-secondary);

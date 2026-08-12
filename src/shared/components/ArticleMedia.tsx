@@ -30,9 +30,9 @@ const MEDIA_COPY: Record<PostLocale, Record<ArticleMediaId, MediaCopy>> = {
     "sse-polling-vs-stream": {
       title: "Polling repeats requests while SSE keeps one outbound connection open",
       description:
-        "A visual comparison of an agent repeatedly asking for updates and an SSE connection waiting for the server to push an event.",
+        "A static comparison of an agent polling repeatedly for updates versus an agent opening one HTTPS connection that receives SSE events from the control plane.",
       caption:
-        "Polling spends requests asking for nothing. SSE keeps one outbound connection open and sends data only when an event exists.",
+        "Polling repeats agent requests and receives no change. SSE opens one outbound connection; the control plane sends an event only when something changes.",
       eyebrow: "TWO WAYS TO MOVE AN UPDATE",
       labels: {
         polling: "POLLING",
@@ -40,9 +40,13 @@ const MEDIA_COPY: Record<PostLocale, Record<ArticleMediaId, MediaCopy>> = {
         agent: "AGENT",
         server: "CONTROL PLANE",
         request: "REQUEST",
-        event: "EVENT",
-        wait: "ASK · WAIT · ASK",
-        push: "OPEN PIPE · PUSH",
+        response: "NO CHANGE",
+        open: "OPEN HTTPS GET",
+        event: "EVENT ONLY",
+        cadence: "EVERY 5 s",
+        repeat: "REPEATS WHEN QUIET",
+        connection: "ONE OPEN CONNECTION",
+        send: "SEND ONLY ON EVENT",
       },
     },
     "sse-reconnect-storm": {
@@ -180,9 +184,9 @@ const MEDIA_COPY: Record<PostLocale, Record<ArticleMediaId, MediaCopy>> = {
     "sse-polling-vs-stream": {
       title: "Le polling répète les requêtes tandis que le SSE garde une connexion sortante ouverte",
       description:
-        "Comparaison visuelle entre un agent qui demande sans cesse les mises à jour et une connexion SSE qui attend que le serveur pousse un événement.",
+        "Comparaison statique entre un agent qui interroge sans cesse le serveur et un agent qui ouvre une connexion HTTPS recevant les événements SSE du plan de contrôle.",
       caption:
-        "Le polling consomme des requêtes pour demander du vide. Le SSE garde une connexion sortante ouverte et n'envoie des données que lorsqu'un événement existe.",
+        "Le polling répète les requêtes de l'agent et reçoit « aucun changement ». Le SSE ouvre une connexion sortante ; le plan de contrôle n'envoie un événement qu'en cas de changement.",
       eyebrow: "DEUX FAÇONS DE TRANSPORTER UNE MISE À JOUR",
       labels: {
         polling: "POLLING",
@@ -190,9 +194,13 @@ const MEDIA_COPY: Record<PostLocale, Record<ArticleMediaId, MediaCopy>> = {
         agent: "AGENT",
         server: "CONTROL PLANE",
         request: "REQUÊTE",
-        event: "ÉVÉNEMENT",
-        wait: "DEMANDER · ATTENDRE",
-        push: "TUYAU OUVERT · PUSH",
+        response: "AUCUN CHANGEMENT",
+        open: "OUVERTURE HTTPS GET",
+        event: "ÉVÉNEMENT UNIQUEMENT",
+        cadence: "TOUTES LES 5 s",
+        repeat: "RÉPÈTE SANS CHANGEMENT",
+        connection: "UNE CONNEXION OUVERTE",
+        send: "ENVOIE SI ÉVÉNEMENT",
       },
     },
     "sse-reconnect-storm": {
@@ -374,25 +382,37 @@ function PollingVsStream({ copy, markerId }: MediaSceneProps) {
   const label = (key: string) => copy.labels[key] ?? "";
   return (
     <MediaFrame copy={copy} markerId={markerId}>
-      <text x="164" y="88" textAnchor="middle" className="article-media-label">{label("polling")}</text>
-      <text x="696" y="88" textAnchor="middle" className="article-media-label">{label("sse")}</text>
-      <MediaNode x={62} y={138} label={label("agent")} />
-      <MediaNode x={692} y={138} label={label("agent")} />
-      <MediaNode x={294} y={138} label={label("server")} width={178} tone="hot" />
-      <MediaNode x={692} y={254} label={label("server")} width={154} tone="hot" />
-      <path d="M208 164H294M472 164H560V280H692" className="article-media-route" markerEnd={`url(#${markerId})`} />
-      <path d="M208 184H270M496 184H560V300H692" className="article-media-route article-media-route-muted" markerEnd={`url(#${markerId})`} />
-      <circle cx="230" cy="164" r="8" className="article-media-packet article-media-packet-poll" />
-      <circle cx="282" cy="184" r="8" className="article-media-packet article-media-packet-poll article-media-delay-1" />
-      <circle cx="334" cy="164" r="8" className="article-media-packet article-media-packet-poll article-media-delay-2" />
-      <path d="M560 164H692" className="article-media-route article-media-route-open" />
-      <circle cx="610" cy="164" r="8" className="article-media-packet article-media-packet-stream" />
-      <circle cx="646" cy="164" r="8" className="article-media-packet article-media-packet-stream article-media-delay-2" />
-      <circle cx="654" cy="280" r="10" className="article-media-event article-media-pulse" />
-      <text x="164" y="260" textAnchor="middle" className="article-media-note">{label("wait")}</text>
-      <text x="626" y="330" textAnchor="middle" className="article-media-note">{label("push")}</text>
-      <text x="168" y="318" textAnchor="middle" className="article-media-micro">{label("request")}</text>
-      <text x="654" y="248" textAnchor="middle" className="article-media-micro">{label("event")}</text>
+      <rect x="34" y="58" width="392" height="244" rx="8" className="article-media-boundary" />
+      <rect x="474" y="58" width="392" height="244" rx="8" className="article-media-boundary" />
+      <rect x="50" y="66" width="140" height="24" rx="4" className="article-media-label-mask" />
+      <rect x="490" y="66" width="100" height="24" rx="4" className="article-media-label-mask" />
+      <text x="58" y="84" className="article-media-label">{label("polling")}</text>
+      <text x="498" y="84" className="article-media-label">{label("sse")}</text>
+
+      <MediaNode x={62} y={132} label={label("agent")} width={132} />
+      <MediaNode x={274} y={132} label={label("server")} width={144} tone="hot" />
+      <MediaNode x={502} y={132} label={label("agent")} width={132} />
+      <MediaNode x={714} y={132} label={label("server")} width={144} tone="success" />
+
+      <path d="M194 148H274" className="article-media-route" markerEnd={`url(#${markerId})`} />
+      <path d="M274 188H194" className="article-media-route article-media-route-muted" markerEnd={`url(#${markerId})`} />
+      <path d="M634 148H714" className="article-media-route article-media-route-hot" markerEnd={`url(#${markerId})`} />
+      <path d="M714 188H634" className="article-media-route article-media-route-success" markerEnd={`url(#${markerId})`} />
+
+      <rect x="194" y="100" width="96" height="24" rx="4" className="article-media-label-mask" />
+      <text x="242" y="118" textAnchor="middle" className="article-media-micro">{label("request")}</text>
+      <rect x="194" y="204" width="112" height="24" rx="4" className="article-media-label-mask" />
+      <text x="250" y="222" textAnchor="middle" className="article-media-micro">{label("response")}</text>
+
+      <rect x="610" y="100" width="144" height="24" rx="4" className="article-media-label-mask" />
+      <text x="682" y="118" textAnchor="middle" className="article-media-micro">{label("open")}</text>
+      <rect x="630" y="204" width="132" height="24" rx="4" className="article-media-label-mask" />
+      <text x="696" y="222" textAnchor="middle" className="article-media-micro">{label("event")}</text>
+
+      <text x="230" y="258" textAnchor="middle" className="article-media-note article-media-note-danger">{label("cadence")}</text>
+      <text x="230" y="282" textAnchor="middle" className="article-media-micro">{label("repeat")}</text>
+      <text x="670" y="258" textAnchor="middle" className="article-media-note article-media-note-success">{label("connection")}</text>
+      <text x="670" y="282" textAnchor="middle" className="article-media-micro">{label("send")}</text>
     </MediaFrame>
   );
 }
