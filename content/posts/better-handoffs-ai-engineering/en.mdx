@@ -1,0 +1,255 @@
+---
+title: "The Future of AI Engineering Isn't Better Agents. It's Better Hand-offs."
+subtitle: "What an on-duty workflow taught us about building AI systems that actually work."
+summary: "As agents move from isolated tools to connected workflows, the hard problem is preserving investigation state and human judgment across every hand-off."
+visualId: "bounded-ai-loop"
+publishedAt: "2026-08-22"
+readTimeMinutes: 10
+tags:
+  - ai
+  - engineering
+  - agents
+  - reliability
+  - developer-tools
+---
+
+When people talk about AI agents, the conversation often starts with a question about autonomy:
+
+> How much can we let the system do on its own?
+
+It is an understandable question. We want agents that can inspect a codebase, investigate an alert, write a patch, run the tests, deploy the change, and move on to the next task without waiting for a human at every step.
+
+But our experience with an on-duty workflow has made me think that autonomy is not the most useful starting point.
+
+The more important question is this:
+
+> How well can the system hand work back to a human—or to another agent—when it reaches the edge of its confidence?
+
+That question sounds less futuristic. In practice, it is probably more important. A system that can investigate deeply and hand over its reasoning clearly is often more valuable than a system that claims to be autonomous but leaves the next person with a pile of logs and an unexplained decision.
+
+The future of AI engineering may be defined less by the quality of individual agents than by the quality of the hand-offs between them.
+
+## We did not start with an autonomous platform
+
+Our starting point was familiar to anyone who has worked on a production system: an on-duty rotation.
+
+When someone is on duty, they need a practical set of tools. They need to find the relevant data, understand what changed, inspect the repository, consult the runbook, try a diagnostic command, and decide what to do next. The systems evolve continuously, while documentation is always catching up. The right context is scattered across repositories, dashboards, command-line tools, tickets, and previous investigations.
+
+The person on duty is not simply executing a checklist. They are performing a small investigation under time pressure.
+
+They are asking questions such as:
+
+- Is this a real incident or a noisy signal?
+- Which system is actually responsible?
+- What changed recently?
+- What evidence would distinguish the likely causes?
+- Is the safest next step a rollback, a patch, a configuration change, or more observation?
+
+Much of this work is repetitive. Not because it is unimportant, but because the first phase of many investigations follows a recognizable pattern: collect the relevant data, inspect the current state, compare it with the expected state, search for recent changes, run the known diagnostics, and gather enough evidence for a decision.
+
+That made the workflow a natural place to introduce small, specialized agents.
+
+## Small agents, close to the work
+
+The agents we use are not one giant artificial engineer that knows everything. They are smaller tools, each close to a particular repository, data source, or diagnostic task.
+
+One agent may know how to fetch information from a system. Another may be useful for understanding a specific codebase. Another may help construct a patch or validate a hypothesis. Each agent has a bounded responsibility and a local view of the world.
+
+Individually, these agents are not magical. Together, they remove a substantial amount of repetitive work from the on-duty process.
+
+The person on duty can start an investigation, ask an agent to collect evidence, ask another to inspect a relevant implementation, and use the results to narrow the search. Instead of manually gathering every piece of context, the human can spend more time deciding what the evidence means.
+
+This leads to the first important lesson:
+
+> We did not automate responsibility. We automated investigation.
+
+That distinction matters. The human still owns the decision. The system simply makes it cheaper to reach an informed decision.
+
+This is a more useful form of automation than pretending that every problem can be delegated end to end. It also creates a natural boundary for trust. An agent can inspect, compare, summarize, propose, and even prepare a change. The human can decide whether the proposed action is appropriate given the impact and the uncertainty.
+
+At this stage, the human is still the orchestrator. They decide which agent to call, in what order, and when enough evidence has been gathered.
+
+<ArticleDiagram visualId="bounded-ai-loop" />
+
+That works surprisingly well—until we ask the obvious question.
+
+## What happens when the agents call one another?
+
+Once a collection of specialized agents exists, it is tempting to connect them.
+
+Why should the human manually trigger the next step if the first agent already knows what needs to happen? Why not let an agent fetch the data, pass it to a repository-aware agent, pass the result to a patch-building agent, and then ask a validation agent to run the relevant checks?
+
+This is where a simple toolchain becomes an architecture problem.
+
+The human was doing more than pressing buttons. They were acting as an implicit orchestrator. They were deciding which output was trustworthy, noticing when two pieces of evidence did not agree, changing direction when a hypothesis was disproven, and deciding when the investigation had become risky enough to require another person.
+
+When agents are chained together, those responsibilities have to be represented explicitly.
+
+An orchestrator agent might listen for an event and choose the next specialized agent. It might decide whether to continue automatically or pause for human review. It might route a low-impact, high-confidence task all the way through while escalating an ambiguous or high-impact task.
+
+That sounds straightforward until we ask what the orchestrator needs to know.
+
+It needs more than the last agent's output. It needs to understand the state of the investigation:
+
+- What was the original question?
+- Which hypotheses are currently plausible?
+- Which hypotheses have already been ruled out?
+- What evidence supports the leading explanation?
+- What evidence is missing?
+- What actions have already been attempted?
+- What are the risks of the available next steps?
+- What level of confidence is justified?
+
+Without this information, the chain may continue mechanically while losing the meaning of the work.
+
+## Context is necessary, but it is not enough
+
+Much of the current discussion around agent systems focuses on context engineering: how to retrieve the right documents, how to keep the prompt within a context window, how to summarize prior messages, and how to give an agent access to the right tools.
+
+All of that is important. An agent cannot reason about information it cannot access.
+
+But our workflow suggests that there is another layer that deserves equal attention: the transmission of reasoning.
+
+A hand-off should not merely say:
+
+```text
+The error rate increased at 14:03.
+```
+
+That is a fact, but it is not yet useful work. A better hand-off might say:
+
+```text
+Investigation: elevated error rate in the checkout service
+
+Current assessment: likely regression in the payment retry path
+Confidence: medium
+
+Evidence:
+- Errors began shortly after the latest checkout deployment.
+- The increase is concentrated in retry-related requests.
+- The dependent payment provider does not show a corresponding increase.
+
+Ruled out:
+- A broad provider outage
+- A database saturation event
+
+Not yet checked:
+- Whether the new retry configuration is active in every region
+
+Recommended next actions:
+1. Compare the active configuration across regions.
+2. If the configuration is inconsistent, pause rollout and prepare a rollback.
+3. Escalate before changing production configuration.
+```
+
+The second hand-off contains facts, but also structure. It shows the working hypothesis, the confidence level, what has already been eliminated, what remains unknown, and what the next actions might be.
+
+Most importantly, it does not hide uncertainty. It makes uncertainty legible.
+
+That is what allows the next agent—or the human—to continue the investigation instead of restarting it.
+
+## Slack as a point of hand-off
+
+This is where a tool like Slack becomes more interesting than a messaging interface.
+
+In a more automated architecture, the infrastructure and agents may run in the cloud. Events could trigger an orchestrator, which could invoke specialized agents and collect their results. The system might not need a person watching every step.
+
+But it will still need a place to pause, explain itself, and ask for judgment.
+
+Slack can become that point of passage between the automated system and the people responsible for it.
+
+Instead of sending a notification that says “investigation complete,” the system could create a structured hand-off in a channel or thread. The message could include the current state, the evidence, the hypotheses, the confidence level, and a small set of possible actions. The human would not arrive to a blank page. They would arrive at the point where the system needs judgment.
+
+This changes the role of the notification.
+
+It is no longer just an alert. It is an interface for continuing a line of thought.
+
+The same principle applies when the hand-off is between agents. An agent should not pass a raw transcript to the next agent and expect the next agent to reconstruct the investigation. It should pass a compact, explicit representation of what it believes, why it believes it, and what it does not know.
+
+The channel does not have to be Slack. It could be a ticket, a pull request, an incident timeline, or a task in an orchestration system. The important part is the protocol, not the product.
+
+## Designing a good hand-off protocol
+
+If hand-offs are going to become a central building block of agent systems, they need to be designed deliberately.
+
+A useful hand-off should answer at least five questions:
+
+### 1. What were we trying to do?
+
+The original objective must survive the chain. Otherwise, each agent may optimize for the immediate subtask while the overall investigation drifts.
+
+### 2. What do we currently believe?
+
+The hand-off should state the leading hypothesis, not force the recipient to infer it from a long collection of observations.
+
+### 3. Why do we believe it?
+
+The most relevant evidence should be included, with enough provenance for the next person or agent to verify it.
+
+### 4. What have we ruled out?
+
+Negative knowledge is part of the investigation. Repeating an already-disproven path wastes time and can create dangerous loops.
+
+### 5. What should happen next?
+
+The recipient should know whether the next step is to gather more evidence, review a proposed change, approve an action, or escalate to someone else.
+
+There is also a sixth question that is easy to overlook:
+
+### What is the cost of being wrong?
+
+Confidence alone is not enough. A high-confidence action that could cause a serious outage may still require human approval. Conversely, a low-risk diagnostic step may be safe to run automatically even when confidence is modest.
+
+This is why an orchestrator should consider both confidence and impact. Autonomy is not a binary property of an agent. It is a decision made for a particular action in a particular context.
+
+## The human should enter late, but never blind
+
+There is a subtle balance here.
+
+If a human must approve every tiny step, the system has not removed much operational friction. The person remains the bottleneck and the agents become a collection of assistants waiting for instructions.
+
+If the system continues without meaningful checkpoints, the human may only discover a problem after the consequences are expensive or difficult to reverse.
+
+The goal is not to keep the human in every loop. It is to put the human in the right loops.
+
+For low-impact actions with strong evidence, the system may proceed automatically. For ambiguous investigations, production changes, or actions with a large blast radius, it should prepare a clear hand-off and wait.
+
+When the human enters, they should not have to reconstruct the entire story. They should be able to understand what happened, challenge the reasoning, choose among the proposed options, and add context that the system could not access.
+
+That is a much better use of human attention than manually collecting the same facts the agents can already gather.
+
+## Better hand-offs are a form of system reliability
+
+We often think of reliability in terms of uptime, latency, error rates, and recovery time. Those metrics are essential, but agentic systems add another dimension: the reliability of understanding.
+
+Can the next participant reliably understand the current state of the work?
+
+Can they distinguish an observation from an assumption? Can they see which paths have already been tested? Can they tell whether a recommendation is safe to execute or merely worth investigating? Can they continue from the existing state without silently losing important context?
+
+A system that fails at these hand-offs may look impressive in isolated demonstrations and still perform badly in real operations. The individual agents may be capable, but the overall workflow becomes fragile because meaning is lost between steps.
+
+This is also why evaluation should not stop at “did the agent produce the right answer?” We should evaluate whether the next participant received enough information to make a good decision. A hand-off can be valuable even when the first agent did not solve the problem, as long as it narrowed the search and made the remaining uncertainty clear.
+
+## The next frontier is not full autonomy
+
+The appeal of fully autonomous agents is obvious. A system that can take a goal and deliver an outcome without intervention feels like the natural destination.
+
+But real work is rarely a clean sequence of predictable steps. It contains ambiguity, incomplete information, changing constraints, and decisions whose consequences are not evenly distributed. In that environment, the key capability is not simply acting. It is knowing when to continue, when to ask, and how to explain the difference.
+
+Our on-duty workflow started with a very practical goal: help the person on duty investigate incidents and changes more efficiently. It led to a broader realization.
+
+The hard part of an agent system is not only giving each agent the right tools. It is preserving the thread of the investigation as work moves between tools, agents, and people.
+
+The future may bring cloud-based orchestrators, Slack bots, and systems that can trigger entire investigations automatically. But those systems will only be useful if they can transfer understanding as well as data.
+
+The winning systems will not necessarily be the ones with the most autonomous agents. They will be the ones that make it cheapest to continue a thought across the boundary between machine and human.
+
+In the years ahead, the defining question in AI engineering may not be:
+
+> Can the agent finish the task by itself?
+
+It may be:
+
+> When the agent stops, does the next participant know exactly how to continue?
+
+That is the promise of a good hand-off: the human does not start over. They arrive at the edge of the known, with the reasoning visible and the next decision ready to be made.

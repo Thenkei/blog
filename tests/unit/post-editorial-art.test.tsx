@@ -14,6 +14,7 @@ const editorialSlugs = [
   "ai-human-judgment-rockfi",
   "architecture-sse-agent-communication",
   "backend-to-data-engineer-rockfi",
+  "better-handoffs-ai-engineering",
   "claude-code-product-os",
   "context-engineering-beyond-prompt-engineering",
   "coros-apex-4",
