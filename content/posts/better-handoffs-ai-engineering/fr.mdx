@@ -1,0 +1,255 @@
+---
+title: "L'avenir de l'ingénierie IA ne dépend pas de meilleurs agents, mais de meilleurs relais"
+subtitle: "Ce que notre astreinte nous a appris sur les systèmes d'IA qui fonctionnent vraiment."
+summary: "À mesure que les agents passent d'outils isolés à des workflows connectés, le vrai défi est de préserver l'état de l'investigation et le jugement humain à chaque relais."
+visualId: "bounded-ai-loop"
+publishedAt: "2026-08-22"
+readTimeMinutes: 10
+tags:
+  - ia
+  - ingenierie
+  - agents
+  - fiabilite
+  - developer-tools
+---
+
+Quand on parle d'agents IA, la conversation commence souvent par une question sur l'autonomie :
+
+> Jusqu'où peut-on laisser le système agir seul ?
+
+La question est légitime. Nous voulons des agents capables d'inspecter un dépôt, d'enquêter sur une alerte, d'écrire un patch, de lancer les tests, de déployer le changement et de passer à la tâche suivante sans attendre un humain à chaque étape.
+
+Mais notre expérience d'un workflow d'astreinte m'a convaincu que l'autonomie n'est pas le meilleur point de départ.
+
+La question la plus importante est plutôt celle-ci :
+
+> Avec quelle qualité le système peut-il transmettre le travail à un humain — ou à un autre agent — lorsqu'il atteint la limite de sa confiance ?
+
+Cette question paraît moins futuriste. En pratique, elle est probablement plus importante. Un système capable d'enquêter en profondeur et de transmettre clairement son raisonnement a souvent plus de valeur qu'un système qui se dit autonome mais laisse à la personne suivante un tas de logs et une décision inexpliquée.
+
+L'avenir de l'ingénierie IA sera peut-être moins défini par la qualité des agents pris individuellement que par la qualité des relais entre eux.
+
+## Nous n'avons pas commencé par une plateforme autonome
+
+Notre point de départ était familier à toute personne ayant travaillé sur un système en production : une rotation d'astreinte.
+
+Lorsqu'une personne est d'astreinte, elle a besoin d'un ensemble d'outils pratiques. Elle doit trouver les bonnes données, comprendre ce qui a changé, inspecter le dépôt, consulter le runbook, lancer une commande de diagnostic et décider de la suite. Les systèmes évoluent en permanence, tandis que la documentation essaie toujours de les rattraper. Le bon contexte est dispersé entre les dépôts, les dashboards, les outils en ligne de commande, les tickets et les investigations précédentes.
+
+La personne d'astreinte ne suit pas simplement une checklist. Elle mène une petite investigation sous contrainte de temps.
+
+Elle se pose des questions comme :
+
+- S'agit-il d'un incident réel ou d'un signal bruité ?
+- Quel système est réellement responsable ?
+- Qu'est-ce qui a changé récemment ?
+- Quelle preuve permettrait de départager les causes possibles ?
+- L'étape la plus sûre est-elle un rollback, un patch, une modification de configuration ou simplement davantage d'observation ?
+
+Une grande partie de ce travail est répétitive. Non pas parce qu'elle est sans importance, mais parce que la première phase de nombreuses investigations suit un schéma reconnaissable : récupérer les données pertinentes, observer l'état actuel, le comparer à l'état attendu, rechercher les changements récents, lancer les diagnostics connus et réunir assez de preuves pour prendre une décision.
+
+Le workflow était donc un terrain naturel pour introduire de petits agents spécialisés.
+
+## De petits agents proches du travail
+
+Les agents que nous utilisons ne forment pas un immense ingénieur artificiel qui saurait tout faire. Ce sont de petits outils, chacun proche d'un dépôt, d'une source de données ou d'une tâche de diagnostic particulière.
+
+Un agent peut savoir récupérer les informations d'un système. Un autre peut aider à comprendre une base de code précise. Un troisième peut construire un patch ou vérifier une hypothèse. Chaque agent possède une responsabilité bornée et une vision locale du monde.
+
+Pris séparément, ces agents n'ont rien de magique. Ensemble, ils retirent une quantité importante de travail répétitif du processus d'astreinte.
+
+La personne d'astreinte peut démarrer une investigation, demander à un agent de réunir les preuves, à un autre d'inspecter l'implémentation concernée, puis utiliser les résultats pour réduire l'espace de recherche. Au lieu de collecter chaque élément de contexte à la main, elle peut consacrer davantage de temps à comprendre ce que les preuves signifient.
+
+Cela nous mène à une première leçon importante :
+
+> Nous n'avons pas automatisé la responsabilité. Nous avons automatisé l'investigation.
+
+La distinction est importante. L'humain reste responsable de la décision. Le système rend simplement moins coûteux le chemin vers une décision informée.
+
+C'est une forme d'automatisation plus utile que de prétendre que tous les problèmes peuvent être délégués de bout en bout. Elle crée aussi une frontière de confiance naturelle. Un agent peut inspecter, comparer, résumer, proposer et même préparer une modification. L'humain peut décider si cette action est appropriée compte tenu de son impact et de l'incertitude restante.
+
+À ce stade, l'humain reste l'orchestrateur. Il décide quel agent appeler, dans quel ordre et à quel moment les preuves réunies sont suffisantes.
+
+<ArticleDiagram visualId="bounded-ai-loop" />
+
+Ce fonctionnement est étonnamment efficace — jusqu'à ce qu'une question évidente se pose.
+
+## Que se passe-t-il lorsque les agents s'appellent entre eux ?
+
+Dès qu'une collection d'agents spécialisés existe, la tentation est de les connecter.
+
+Pourquoi l'humain devrait-il déclencher manuellement l'étape suivante si le premier agent sait déjà ce qui doit se passer ? Pourquoi ne pas laisser un agent récupérer les données, les transmettre à un agent qui connaît le dépôt, transmettre le résultat à un agent chargé de préparer un patch, puis demander à un agent de validation de lancer les contrôles pertinents ?
+
+C'est à ce moment qu'une simple chaîne d'outils devient un problème d'architecture.
+
+L'humain ne se contentait pas d'appuyer sur des boutons. Il jouait le rôle d'orchestrateur implicite. Il évaluait la confiance à accorder à une sortie, remarquait lorsque deux éléments de preuve se contredisaient, changeait de direction lorsqu'une hypothèse était réfutée et décidait quand l'investigation devenait assez risquée pour nécessiter une autre personne.
+
+Lorsque les agents sont enchaînés, ces responsabilités doivent être représentées explicitement.
+
+Un agent orchestrateur pourrait écouter un événement et choisir le prochain agent spécialisé. Il pourrait décider de continuer automatiquement ou de suspendre le workflow pour une revue humaine. Il pourrait laisser aller jusqu'au bout une tâche peu risquée et très bien étayée, tout en escaladant une tâche ambiguë ou à fort impact.
+
+Cela paraît simple jusqu'à ce que l'on demande ce que l'orchestrateur doit savoir.
+
+Il a besoin de plus que la sortie du dernier agent. Il doit comprendre l'état de l'investigation :
+
+- Quelle était la question de départ ?
+- Quelles hypothèses restent plausibles ?
+- Lesquelles ont déjà été écartées ?
+- Quelles preuves soutiennent l'explication principale ?
+- Qu'est-ce qui manque encore ?
+- Quelles actions ont déjà été tentées ?
+- Quels sont les risques des prochaines étapes possibles ?
+- Quel niveau de confiance est réellement justifié ?
+
+Sans ces informations, la chaîne peut continuer mécaniquement tout en perdant le sens du travail.
+
+## Le contexte est nécessaire, mais il ne suffit pas
+
+Une grande partie des discussions actuelles sur les systèmes d'agents se concentre sur l'ingénierie du contexte : récupérer les bons documents, rester dans les limites de la fenêtre de contexte, résumer les messages précédents et donner à l'agent accès aux bons outils.
+
+Tout cela est important. Un agent ne peut pas raisonner sur une information à laquelle il n'a pas accès.
+
+Mais notre workflow suggère qu'une autre couche mérite autant d'attention : la transmission du raisonnement.
+
+Un relais ne devrait pas se contenter de dire :
+
+```text
+Le taux d'erreur a augmenté à 14 h 03.
+```
+
+C'est un fait, mais ce n'est pas encore un travail exploitable. Un meilleur relais pourrait ressembler à ceci :
+
+```text
+Investigation : taux d'erreur élevé sur le service de checkout
+
+Évaluation actuelle : régression probable dans le chemin de retry du paiement
+Confiance : moyenne
+
+Éléments de preuve :
+- Les erreurs ont commencé peu après le dernier déploiement du checkout.
+- L'augmentation se concentre sur les requêtes liées aux retries.
+- Le fournisseur de paiement ne montre pas d'augmentation correspondante.
+
+Hypothèses écartées :
+- Une panne générale du fournisseur
+- Une saturation de la base de données
+
+Vérification manquante :
+- La nouvelle configuration des retries est-elle active dans chaque région ?
+
+Prochaines actions recommandées :
+1. Comparer la configuration active entre les régions.
+2. Si elle est incohérente, suspendre le rollout et préparer un rollback.
+3. Demander une validation avant toute modification de la configuration de production.
+```
+
+Le second relais contient des faits, mais aussi une structure. Il expose l'hypothèse de travail, le niveau de confiance, ce qui a déjà été éliminé, ce qui reste inconnu et les prochaines actions possibles.
+
+Surtout, il ne masque pas l'incertitude. Il la rend lisible.
+
+C'est ce qui permet à l'agent suivant — ou à l'humain — de continuer l'investigation au lieu de la recommencer.
+
+## Slack comme point de relais
+
+C'est là qu'un outil comme Slack devient plus intéressant qu'une simple interface de messagerie.
+
+Dans une architecture plus automatisée, l'infrastructure et les agents peuvent tourner dans le cloud. Des événements pourraient déclencher un orchestrateur, qui invoquerait des agents spécialisés et rassemblerait leurs résultats. Le système n'aurait peut-être pas besoin d'une personne qui surveille chaque étape.
+
+Mais il lui faudrait toujours un endroit où s'arrêter, s'expliquer et demander un jugement.
+
+Slack peut devenir ce point de passage entre le système automatisé et les personnes qui en sont responsables.
+
+Au lieu d'envoyer une notification disant « investigation terminée », le système pourrait créer un relais structuré dans un canal ou un thread. Le message contiendrait l'état courant, les preuves, les hypothèses, le niveau de confiance et un petit nombre d'actions possibles. L'humain n'arriverait pas devant une page blanche. Il arriverait exactement au point où le système a besoin de jugement.
+
+Le rôle de la notification change alors.
+
+Ce n'est plus seulement une alerte. C'est une interface qui permet de poursuivre un raisonnement.
+
+Le même principe s'applique aux relais entre agents. Un agent ne devrait pas transmettre une transcription brute au suivant en espérant que celui-ci reconstruise l'investigation. Il devrait transmettre une représentation compacte et explicite de ce qu'il croit, des raisons de cette croyance et de ce qu'il ignore encore.
+
+Le canal n'a pas besoin d'être Slack. Cela peut être un ticket, une pull request, une timeline d'incident ou une tâche dans un système d'orchestration. Le point essentiel est le protocole, pas le produit.
+
+## Concevoir un protocole de relais efficace
+
+Si les relais deviennent un composant central des systèmes d'agents, il faut les concevoir délibérément.
+
+Un relais utile devrait répondre à au moins cinq questions :
+
+### 1. Que cherchions-nous à faire ?
+
+L'objectif initial doit survivre à la chaîne. Sinon, chaque agent risque d'optimiser sa sous-tâche immédiate tandis que l'investigation globale dérive.
+
+### 2. Que croyons-nous actuellement ?
+
+Le relais doit formuler l'hypothèse principale, et non obliger son destinataire à la déduire d'une longue liste d'observations.
+
+### 3. Pourquoi le croyons-nous ?
+
+Les preuves les plus pertinentes doivent être incluses, avec assez de provenance pour que la personne ou l'agent suivant puisse les vérifier.
+
+### 4. Qu'avons-nous écarté ?
+
+La connaissance négative fait partie de l'investigation. Reprendre une piste déjà réfutée fait perdre du temps et peut créer des boucles dangereuses.
+
+### 5. Que doit-il se passer ensuite ?
+
+Le destinataire doit savoir s'il doit réunir davantage de preuves, relire une modification proposée, approuver une action ou escalader vers quelqu'un d'autre.
+
+Une sixième question est aussi facile à oublier :
+
+### Quel est le coût d'une erreur ?
+
+La confiance seule ne suffit pas. Une action très probable qui pourrait provoquer une panne sérieuse peut tout de même nécessiter une validation humaine. À l'inverse, une étape de diagnostic peu risquée peut être lancée automatiquement même lorsque la confiance reste modeste.
+
+C'est pourquoi l'orchestrateur doit considérer à la fois la confiance et l'impact. L'autonomie n'est pas une propriété binaire de l'agent. C'est une décision prise pour une action donnée, dans un contexte donné.
+
+## L'humain doit intervenir tard, mais jamais à l'aveugle
+
+L'équilibre est subtil.
+
+Si un humain doit approuver chaque petite étape, le système n'a pas vraiment réduit la friction opérationnelle. La personne reste le goulot d'étranglement et les agents deviennent une collection d'assistants qui attendent des instructions.
+
+Si le système continue sans points de contrôle pertinents, l'humain peut ne découvrir le problème qu'après des conséquences coûteuses ou difficiles à inverser.
+
+L'objectif n'est pas de garder l'humain dans toutes les boucles. C'est de le placer dans les bonnes boucles.
+
+Pour les actions peu risquées et fortement étayées, le système peut continuer automatiquement. Pour une investigation ambiguë, une modification de production ou une action à fort rayon d'impact, il doit préparer un relais clair et attendre.
+
+Lorsque l'humain intervient, il ne devrait pas avoir à reconstruire toute l'histoire. Il doit pouvoir comprendre ce qui s'est passé, contester le raisonnement, choisir entre les options proposées et ajouter le contexte auquel le système n'avait pas accès.
+
+C'est une bien meilleure utilisation de son attention que de collecter manuellement les mêmes faits que les agents savent déjà réunir.
+
+## De meilleurs relais sont une forme de fiabilité
+
+Nous pensons souvent la fiabilité en termes de disponibilité, de latence, de taux d'erreur et de temps de récupération. Ces métriques sont essentielles, mais les systèmes d'agents ajoutent une autre dimension : la fiabilité de la compréhension.
+
+Le prochain participant peut-il comprendre de manière fiable l'état actuel du travail ?
+
+Peut-il distinguer une observation d'une hypothèse ? Voir les pistes déjà testées ? Savoir si une recommandation peut être exécutée sans risque ou si elle mérite seulement d'être étudiée ? Continuer depuis l'état existant sans perdre silencieusement un élément de contexte important ?
+
+Un système qui échoue sur ces relais peut sembler impressionnant dans une démonstration isolée et mal fonctionner dans les opérations réelles. Les agents pris séparément peuvent être capables, mais le workflow global devient fragile parce que le sens se perd entre les étapes.
+
+C'est aussi pourquoi l'évaluation ne devrait pas s'arrêter à « l'agent a-t-il produit la bonne réponse ? ». Il faut vérifier si le participant suivant a reçu assez d'informations pour prendre une bonne décision. Un relais peut être utile même lorsque le premier agent n'a pas résolu le problème, tant qu'il a réduit l'espace de recherche et rendu l'incertitude restante explicite.
+
+## La prochaine frontière n'est pas l'autonomie totale
+
+L'attrait des agents totalement autonomes est évident. Un système capable de recevoir un objectif et de livrer un résultat sans intervention semble être la destination naturelle.
+
+Mais le travail réel est rarement une suite propre d'étapes prévisibles. Il contient de l'ambiguïté, des informations incomplètes, des contraintes qui évoluent et des décisions dont les conséquences ne sont pas équivalentes. Dans cet environnement, la capacité essentielle n'est pas seulement d'agir. C'est de savoir quand continuer, quand demander et comment expliquer la différence.
+
+Notre workflow d'astreinte est parti d'un objectif très concret : aider la personne d'astreinte à enquêter plus efficacement sur les incidents et les changements. Il nous a conduits à une prise de conscience plus large.
+
+La difficulté d'un système d'agents ne consiste pas seulement à donner les bons outils à chaque agent. Elle consiste à préserver le fil de l'investigation lorsque le travail passe entre les outils, les agents et les humains.
+
+L'avenir apportera peut-être des orchestrateurs dans le cloud, des bots Slack et des systèmes capables de déclencher automatiquement des investigations complètes. Mais ces systèmes ne seront utiles que s'ils savent transférer la compréhension aussi bien que les données.
+
+Les systèmes gagnants ne seront pas nécessairement ceux qui possèdent le plus d'agents autonomes. Ce seront ceux qui réduisent le plus le coût nécessaire pour poursuivre une pensée à la frontière entre la machine et l'humain.
+
+Dans les années à venir, la question déterminante de l'ingénierie IA ne sera peut-être pas :
+
+> L'agent peut-il terminer la tâche seul ?
+
+Ce sera peut-être plutôt :
+
+> Lorsque l'agent s'arrête, le prochain participant sait-il exactement comment continuer ?
+
+C'est la promesse d'un bon relais : l'humain ne recommence pas à zéro. Il arrive au bord de ce qui est connu, avec le raisonnement visible et la prochaine décision prête à être prise.
