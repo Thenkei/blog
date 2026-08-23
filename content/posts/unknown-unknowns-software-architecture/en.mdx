@@ -1,7 +1,7 @@
 ---
 title: "Unknown Unknowns in Software Architecture"
-subtitle: "We cannot predict what we cannot name. We can limit the cost of discovering it."
-summary: "A design and review method for exposing assumptions, finding blind spots, and making surprises recoverable."
+subtitle: "An architecture review cannot name every surprise. It can make sure the system survives one."
+summary: "How to challenge hidden assumptions, look beyond the nominal path, and design systems that can recover when the map is wrong."
 visualId: "unknown-unknowns-software-architecture"
 publishedAt: "2026-08-10"
 readTimeMinutes: 7
@@ -17,51 +17,53 @@ seriesOrder: 1
 
 import unknownUnknownsDiagram from "../../../src/assets/images/posts/unknown-unknowns-en.svg?raw";
 
-## Context
+## The diagram stops at production
 
-Architecture reviews handle risks a team can name: expected load, provider availability, migration consistency, and retry strategy. The real danger sits outside that list: a shared but unwritten assumption, an interaction missing from the diagram, or a failure mode nobody has encountered yet.
+Architecture reviews are good at discussing risks a team can name: expected load, provider availability, migration consistency, retry strategy. A document can cover all four and still leave its most important assumption in the margins.
 
-These are **unknown unknowns**. Thariq Shihipar's [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386) describes the gap between the *map* supplied to an agent and the real *territory*. The same gap exists in software design: production includes operators, time, historical data, providers, and usage patterns that the document does not represent.
+That assumption may be shared but unwritten. It may be an interaction missing from the diagram, or a failure mode nobody in the room has encountered yet. These are the **unknown unknowns**: not the risks we forgot to tick off, but the ones that never made it onto the list.
+
+Thariq Shihipar's [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386) describes the gap between the *map* supplied to an agent and the real *territory*. Software has the same gap. Production contains operators, time, historical data, providers, and usage patterns that the design document cannot fully represent.
 
 <ArticleDiagram visualId="unknown-unknowns-software-architecture" />
 
-## The problem
+## Production always brings a plus-one
 
-A design can satisfy every written scenario and fail on an interaction outside the model: a request retried while the first attempt is still running, an event received after its target was deleted, or a provider returning a technically valid but operationally incomplete response.
+A design can satisfy every written scenario and still fail on an interaction outside the model. A request is retried while the first attempt is still running. An event arrives after its target has been deleted. A provider returns a response that is technically valid and operationally incomplete.
 
-The test suite did not lie. We asked it yesterday's questions. The more convincing the document or AI answer looks, the more dangerous that appearance of completeness becomes.
+The test suite did not lie; we asked it yesterday's questions. The danger is the comfortable leap from “everything we tested passed” to “we have modelled everything that matters”. A polished design document—or an AI answer delivered with perfect confidence—can make that leap especially easy to miss.
 
-## Bad ideas
+## Three comfortable stories
 
-The first bad idea is pursuing an exhaustive diagram. More boxes do not model time, concurrency, or degraded modes.
+**The exhaustive diagram.** Add enough boxes and every risk will eventually appear. Except boxes are poor at representing time, concurrency, manual intervention, and degraded modes.
 
-The second is treating a checklist as proof. A checklist covers known risks; it does not automatically reveal an assumption missing from everyone's model.
+**The checklist as proof.** A checklist is useful precisely because it remembers known risks. It does not reveal an assumption that is absent from everyone's model.
 
-The third is asking an agent to “find every risk”. It can widen the inspected surface and challenge reasoning, but it can only discover what leaves evidence in sources it may access.
+**The omniscient agent.** Asking an agent to “find every risk” can widen the inspected surface and challenge a line of reasoning. It still discovers only what leaves evidence in sources the agent can access.
 
-## What did not work
+None of these tools is useless. The mistake is asking any of them to certify completeness.
 
-We tried reviews centred on the nominal path: who calls whom, which component owns the data, and which API exposes the contract. They produced clean documents but postponed the important questions: what happens when the call is duplicated, reordered, partially applied, or replayed by an operator?
+## Ask questions with teeth
 
-Generic questions also produced generic answers. “Will it scale?” opens few useful paths. “Which cardinality assumption breaks this component first?” demands evidence.
+Nominal-path reviews tend to produce clean documents: who calls whom, which component owns the data, which API exposes the contract. They also postpone the awkward questions. What happens when the call is duplicated, reordered, partially applied, or replayed by an operator?
 
-## Alternatives
+The wording matters. “Will it scale?” invites a generic answer. “Which cardinality assumption breaks this component first?” sends the reviewer looking for evidence.
 
-We now use an internal review tool before consequential decisions. It orchestrates three separate moves: **gates** check known invariants, a **find blind spots** pass searches code, documents, and history for unproven assumptions, and **adversarial reviews** attack the proposal across operations, security, data, product, and deployment boundaries.
+Before consequential decisions, we use an internal review tool to bring several kinds of scrutiny into the same room. **Gates** check known invariants. A **find blind spots** pass searches code, documents, and history for unproven assumptions. **Adversarial reviews** attack the proposal across operations, security, data, product, and deployment boundaries.
 
-The tool does not decide. It produces traceable questions, connects each one to evidence or missing evidence, and asks explicitly:
+The tool does not decide. It produces traceable questions, connects each one to evidence—or to the conspicuous absence of evidence—and asks:
 
-- which financial or domain invariant could fail silently;
-- which dependency shares our blast radius;
-- which manual operation bypasses the nominal path;
-- which signal would expose the issue before a customer does;
-- which recovery remains possible when the assumption is false.
+- Which financial or domain invariant could fail silently?
+- Which dependency shares our blast radius?
+- Which manual operation bypasses the nominal path?
+- Which signal would expose the issue before a customer does?
+- Which recovery path remains possible when the assumption is false?
 
-A human reviewer remains accountable and may accept a bounded risk.
+A human reviewer remains accountable. Accepting a bounded risk is a decision; overlooking it is not.
 
-## The solution
+## Build the fire exits while it is still quiet
 
-We no longer try to predict every failure. We make surprises observable and recoverable:
+The practical goal is not to predict every failure. It is to make the eventual surprise visible, contain its impact, and keep the system recoverable:
 
 1. **Reduce** assumptions through explicit contracts and executable invariants.
 2. **Isolate** components and permissions to contain the blast radius.
@@ -72,12 +74,12 @@ We no longer try to predict every failure. We make surprises observable and reco
   A useful review turns an assumption into evidence, a signal, or an explicitly accepted risk.
 </InlineArticleDiagram>
 
-The exit question is simple: if this assumption becomes false tomorrow, will we see it, limit the impact, and return to a safe state?
+This leaves one useful exit question: if the assumption becomes false tomorrow, will we see it, limit the impact, and return to a safe state?
 
-## Limits
+## The map stays unfinished
 
-This method does not turn the unknown into the known. It can create noise, reward excessive caution, and delay reversible decisions. Effort must remain proportional to blast radius: more evidence for a financial calculation or irreversible migration, less for an isolated experiment that is easy to undo.
+No review method turns the unknown into the known. This one can create noise, reward excessive caution, and delay decisions that would have been cheap to reverse. The effort should follow the blast radius: demand more evidence for a financial calculation or an irreversible migration than for an isolated experiment with an obvious undo button.
 
-An adversarial review can also inherit the blind spots of its sources. Incidents, operator feedback, and production evidence remain irreplaceable. The goal is not certainty; it is bounded, observable, owned uncertainty.
+Adversarial reviews can also inherit the blind spots of their sources. Incidents, operator feedback, and production evidence remain irreplaceable. The point is not certainty. It is uncertainty that is bounded, observable, and owned.
 
 Next in the series: [Building Self-Service Analytics That Does Not Lie](../posts/self-service-analytics-that-doesnt-lie).

@@ -1,7 +1,7 @@
 ---
 title: "Building Self-Service Analytics That Does Not Lie"
-subtitle: "Give people access to numbers without abandoning their definition, lineage, or control."
-summary: "Self-service analytics works when every metric retains a contract, an owner, and a verifiable path to its source."
+subtitle: "Access is the easy part. Keeping a number's meaning intact as it travels is the real infrastructure."
+summary: "A practical model for giving teams analytical freedom without losing metric definitions, provenance, ownership, or control."
 visualId: "self-service-analytics-that-doesnt-lie"
 publishedAt: "2026-08-17"
 readTimeMinutes: 7
@@ -17,49 +17,41 @@ seriesOrder: 2
 
 import selfServiceDiagram from "../../../src/assets/images/posts/self-service-analytics-en.svg?raw";
 
-## Context
+## Three dashboards walk into a meeting
 
-A central data team quickly becomes a queue: every business question requires a ticket, an extract, and another explanation. Self-service analytics promises autonomy. At RockFi, that autonomy must preserve stricter constraints: confidentiality, auditability, and consistent definitions for assets, flows, clients, and performance.
+Nothing tests confidence in data quite like three dashboards answering the same question with three different numbers. Every query runs. Every chart looks respectable. Each result may even be internally consistent. The meeting still has to stop and ask a more basic question: what, exactly, did we count?
+
+This is why self-service analytics is attractive. A central data team quickly becomes a queue, where every business question requires a ticket, an extract, and another round of explanation. People need room to investigate without waiting at that counter.
+
+At RockFi, however, autonomy has to preserve confidentiality, auditability, and consistent definitions for assets, flows, clients, and performance. A fast answer is not much help if nobody can retrace how it was produced.
 
 <ArticleDiagram visualId="self-service-analytics-that-doesnt-lie" />
 
-## The problem
+## SQL can be right while the number is wrong
 
-Making the warehouse queryable does not make its numbers trustworthy. Two syntactically correct queries can disagree on grain, effective date, contract status, or cancellation treatment. The disagreement often appears only after a number reached a dashboard or informed a decision.
+Making a warehouse queryable does not make its numbers trustworthy. Two syntactically correct queries can disagree on grain, effective date, contract status, or cancellation treatment. The difference may remain invisible until the number reaches a dashboard or influences a decision.
 
-The problem is not access to data. It is access to **verifiable semantics**.
+The real product is therefore not access to data. It is access to **verifiable semantics**: enough shared meaning to understand, reproduce, and challenge a result.
 
-## Bad ideas
+## The warehouse is not a vending machine
 
-- Open every table and call it self-service.
-- Certify a dashboard without certifying the metrics it combines.
-- Duplicate domain logic in each query “to move faster”.
-- Present an AI-generated answer without provenance, freshness, or confidence.
-- Govern every exploration like regulatory reporting and eliminate exploration entirely.
+Opening every table is easy to present as self-service: choose a dataset, press a button, collect a number. It also pushes all the difficult domain decisions onto the person writing the query.
 
-These approaches confuse freedom to explore with authority to publish.
+Certifying a dashboard is not enough if the metrics inside it have no contract. Copying domain logic into each query “to move faster” works until two copies evolve differently. An AI answer without provenance, freshness, or confidence only hides the same problem behind a friendlier interface.
 
-## What did not work
+The opposite extreme is just as unhelpful. If every rough exploration is governed like regulatory reporting, people stop exploring. Freedom to investigate should not be confused with authority to publish.
 
-Data dictionaries alone aged too quickly. They described columns but rarely captured exclusions, expected grain, or the point when a metric becomes final.
+## Where the “source of truth” starts multiplying
 
-“Source of truth” dashboards did not work when they embedded private SQL. They moved the contract into a visualisation tool, made it hard to test, and created multiple truths as soon as another dashboard reimplemented the calculation.
+Data dictionaries help, but they age quickly when they describe columns and omit exclusions, expected grain, or the moment a metric becomes final.
 
-Letting an agent query raw sources directly also produced fast but fragile answers: it selected a plausible join without knowing which domain invariant the join had to preserve.
+A “source of truth” dashboard can be equally fragile when its definition lives in private SQL. The domain contract has merely moved into a visualisation tool, where it is hard to test. As soon as another dashboard reimplements the calculation, one source of truth becomes two.
 
-## Alternatives
+Letting an agent query raw sources directly is the faster version of that mistake. The agent can select a plausible join without knowing which domain invariant the join must preserve. The result arrives quickly; the uncertainty arrives later.
 
-Three levels should remain separate:
+## Give every shared metric a passport
 
-1. **Exploration**: bounded access, temporary output, visible assumptions.
-2. **Certified metric**: versioned definition, owner, tests, and freshness policy.
-3. **Decision or publication**: displayed provenance, access controls, and review proportional to impact.
-
-A semantic layer can carry shared dimensions, grains, and formulae. A catalogue can expose ownership and freshness. Governed marts can isolate sensitive data. None of those tools replaces the domain contract.
-
-## The solution
-
-We define every shared metric as a product with a minimum contract:
+We treat a shared metric as a small product. Before it travels into dashboards, analyses, or decisions, it needs a minimum contract:
 
 | Element | Question to settle |
 | --- | --- |
@@ -71,16 +63,30 @@ We define every shared metric as a product with a minimum contract:
 | Evidence | Which tests and reconciliations protect the calculation? |
 | Freshness | When is the result no longer usable? |
 
+The contract does not make the metric permanently correct. It makes disagreements inspectable: there is a definition to compare, an owner to ask, and evidence to rerun.
+
+## Self-service needs three lanes
+
+Not every question should pass through the same controls. We keep three levels distinct:
+
+1. **Exploration** allows bounded access, temporary output, and visible assumptions.
+2. **Certified metrics** add a versioned definition, owner, tests, and freshness policy.
+3. **Decisions or publications** display provenance, enforce access controls, and receive review proportional to their impact.
+
+A semantic layer can carry shared dimensions, grains, and formulae. A catalogue can expose ownership and freshness. Governed marts can isolate sensitive data. These are useful pieces of infrastructure, but none replaces the domain contract.
+
 <InlineArticleDiagram svg={selfServiceDiagram}>
   Self-service starts after modelling and controls, not at the raw-table layer.
 </InlineArticleDiagram>
 
-AI assistants receive certified contracts and models first. They may propose an exploration, but must expose sources and flag when a question exceeds the certified boundary. Output remains reviewable before publication.
+## Make the assistant show its working
 
-## Limits
+AI assistants receive certified contracts and models first. They may propose an exploration, but they must expose their sources and flag when a question crosses the certified boundary. Before publication, the output remains something a person can review—not an answer promoted to fact because it appeared in a polished sentence.
 
-This approach has a cost: contracts must be maintained, definition changes handled, and freshness monitored. Not every metric deserves that governance. A one-off analysis can remain explicitly exploratory.
+## A badge is not evidence
 
-A semantic layer cannot repair a wrong source or a missing event. It can even standardise a bad definition. Trust comes from a chain of evidence and accountability, not a “certified” badge.
+This model creates maintenance work. Contracts evolve, definition changes need handling, and freshness needs monitoring. Not every metric deserves that investment; a one-off analysis can remain explicitly exploratory.
+
+Nor can a semantic layer repair a wrong source or recreate a missing event. It can standardise a bad definition just as efficiently as a good one. Trust comes from the whole chain of evidence and accountability, not from a “certified” badge at the end of it.
 
 Next in the series: [Context Engineering: Beyond Prompt Engineering](../posts/context-engineering-beyond-prompt-engineering).

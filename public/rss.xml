@@ -5,38 +5,38 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
-<title>Why Most Engineering Documents Age Poorly</title>
+<title>Your Engineering Documents Have an Expiry Date</title>
 <link>https://thenkei.github.io/blog/en/posts/engineering-documents-age-poorly</link>
 <guid>https://thenkei.github.io/blog/en/posts/engineering-documents-age-poorly</guid>
-<description>Owners, evidence, review triggers, and expiry: a minimum contract for useful documentation.</description>
+<description>Owners, evidence, review triggers, and expiry: a minimum contract that lets useful documentation age honestly.</description>
 <pubDate>Mon, 31 Aug 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Context Engineering: Beyond Prompt Engineering</title>
 <link>https://thenkei.github.io/blog/en/posts/context-engineering-beyond-prompt-engineering</link>
 <guid>https://thenkei.github.io/blog/en/posts/context-engineering-beyond-prompt-engineering</guid>
-<description>Design context as an interface: provenance, freshness, permissions, priorities, and validation.</description>
+<description>Why reliable agents need context designed as an interface, with provenance, freshness, permissions, priorities, and tests.</description>
 <pubDate>Mon, 24 Aug 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Building Self-Service Analytics That Does Not Lie</title>
 <link>https://thenkei.github.io/blog/en/posts/self-service-analytics-that-doesnt-lie</link>
 <guid>https://thenkei.github.io/blog/en/posts/self-service-analytics-that-doesnt-lie</guid>
-<description>Self-service analytics works when every metric retains a contract, an owner, and a verifiable path to its source.</description>
+<description>A practical model for giving teams analytical freedom without losing metric definitions, provenance, ownership, or control.</description>
 <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
-<title>The Future Has Infrastructure</title>
+<title>AI Is Not Immaterial</title>
 <link>https://thenkei.github.io/blog/en/posts/ai-is-not-immaterial</link>
 <guid>https://thenkei.github.io/blog/en/posts/ai-is-not-immaterial</guid>
-<description>I believe in the AI revolution, but not in the idea that it can be distributed without accounting for the energy, resources, and infrastructure it requires.</description>
+<description>I believe AI can transform what we build. I am less convinced by visions of universal access that leave energy, resources, infrastructure, and control off the balance sheet.</description>
 <pubDate>Wed, 12 Aug 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Unknown Unknowns in Software Architecture</title>
 <link>https://thenkei.github.io/blog/en/posts/unknown-unknowns-software-architecture</link>
 <guid>https://thenkei.github.io/blog/en/posts/unknown-unknowns-software-architecture</guid>
-<description>A design and review method for exposing assumptions, finding blind spots, and making surprises recoverable.</description>
+<description>How to challenge hidden assumptions, look beyond the nominal path, and design systems that can recover when the map is wrong.</description>
 <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
 </item>
 <item>

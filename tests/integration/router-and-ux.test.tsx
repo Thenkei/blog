@@ -197,7 +197,7 @@ describe("routing and UX", () => {
 
     await screen.findByRole("heading", {
       level: 1,
-      name: "Why Most Engineering Documents Age Poorly",
+      name: "Your Engineering Documents Have an Expiry Date",
     });
 
     expect(

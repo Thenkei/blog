@@ -1,7 +1,7 @@
 ---
-title: "Pourquoi la plupart des documents d'ingénierie vieillissent mal"
-subtitle: "Un document durable ne prétend pas rester vrai : il rend sa dérive visible et sa révision explicite."
-summary: "Owners, preuves, déclencheurs de révision et expiration : un contrat minimal pour une documentation utile."
+title: "Vos documents d'ingénierie ont une date de péremption"
+subtitle: "Le document dangereux n'est pas celui qui paraît vieux. C'est celui qui continue à se présenter comme la vérité du jour."
+summary: "Responsable identifié, preuves, déclencheurs de révision et expiration : le contrat minimal qui permet à une documentation utile de vieillir honnêtement."
 visualId: "engineering-documents-age-poorly"
 publishedAt: "2026-08-31"
 readTimeMinutes: 7
@@ -15,71 +15,91 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 4
 ---
 
-## Le contexte
+Un document d'ingénierie peut devenir faux sans qu'un seul de ses mots change.
 
-Une décision d'architecture, un runbook ou un DiveIn est exact au moment où l'équipe l'écrit. Puis le code change, un fournisseur modifie son contrat, l'organisation déplace une responsabilité et la production révèle une exception. Le document reste au même endroit avec la même apparence d'autorité.
+Le jour où l'équipe rédige une décision d'architecture, un runbook ou un DiveIn, le texte peut décrire parfaitement la réalité. Puis le code bouge. Un fournisseur modifie son contrat. Une responsabilité change d'équipe. La production révèle l'exception que personne n'avait encore rencontrée.
 
-Avec les assistants IA, ce problème devient plus important : une page périmée n'est plus seulement lue par une personne prudente. Elle peut être récupérée automatiquement et transformée en plan ou en code.
+La page, elle, reste au même endroit, avec la même typographie et le même air tranquille de faire autorité.
+
+Les assistants IA rendent cette dérive silencieuse plus lourde de conséquences. Une page périmée n'est plus seulement lue par une personne prudente, susceptible de remarquer sa date ou de questionner une hypothèse. Elle peut être retrouvée automatiquement, utilisée comme contexte, puis transformée en plan ou en code.
 
 <ArticleDiagram visualId="engineering-documents-age-poorly" />
 
-## Le problème
+## Le document qui a toujours l'air en poste
 
-La plupart des wikis optimisent la création, pas le cycle de vie. Ils savent qui a créé une page, mais rarement quelle preuve la rend vraie, quel changement doit déclencher sa révision ou à partir de quand elle ne doit plus guider une décision.
+La plupart des wikis sont très bons pour les débuts. Ils savent qui a créé une page, quand elle a été publiée et, parfois, qui l'a touchée en dernier.
 
-Le résultat n'est pas une absence de documentation. C'est pire : un mélange de décisions actuelles, d'hypothèses historiques et de tutoriels partiellement exacts, tous présentés avec le même niveau de confiance.
+Les fins les intéressent beaucoup moins. Quelle preuve rend cette page vraie ? Quel changement doit forcer sa révision ? À partir de quand ne doit-elle plus guider une décision ? Qu'est-ce qui l'a remplacée ?
 
-## Les mauvaises idées
+On obtient alors quelque chose de plus dangereux qu'une documentation absente. Une page manquante signale son absence. Une page périmée emprunte la voix de la vérité actuelle. Les décisions encore valables, les hypothèses devenues historiques et les tutoriels à moitié exacts s'affichent avec la même assurance.
 
-- Demander une revue trimestrielle de toutes les pages, sans lien avec les changements réels.
-- Générer automatiquement davantage de documentation à partir du code et supposer qu'elle restera correcte.
-- Garder chaque document pour préserver l'historique, sans distinguer archive et référence active.
-- Ajouter « dernière mise à jour » comme seul signal de confiance.
-- Faire de la documentation la responsabilité diffuse de toute l'équipe.
+La mention « mis à jour mardi » ne sauve pas le lecteur. Elle prouve que quelqu'un a touché la page mardi, pas que le contrat décrit a été vérifié.
 
-Une date récente ne prouve rien si l'auteur n'a pas vérifié le contrat décrit.
+## Cinq façons très organisées de ne rien régler
 
-## Ce qui n'a pas marché
+- Revoir chaque page tous les trimestres, que la réalité ait changé ou non.
+- Générer davantage de documentation depuis le code, puis supposer que cette génération garantit sa justesse.
+- Tout conserver au nom de l'historique, sans séparer les archives des références actives.
+- Utiliser la date de dernière mise à jour comme seul signal de confiance.
+- Faire de la documentation la responsabilité de tout le monde, ce qui laisse souvent chaque page sans responsable précis.
 
-Les campagnes de nettoyage ont amélioré le wiki pendant quelques semaines, puis la dérive a repris. Elles étaient découplées des commits, migrations, incidents et changements d'ownership qui rendaient les pages fausses.
+Chaque idée produit une activité visible. Aucune ne donne un cycle de vie au document.
 
-La génération par IA a réduit le coût de rédaction, mais pas celui de validation. Elle a même produit des textes plus convaincants à partir de sources contradictoires. Générer un document n'établit ni sa vérité ni sa durée de validité.
+## Le grand ménage a une courte durée de vie
 
-Les longues pages « tout-en-un » ont également échoué : chaque section vieillissait à une vitesse différente, sans owner précis.
+Une campagne de nettoyage peut rendre un wiki rassurant pendant quelques semaines. Puis la dérive reprend, parce que cette campagne reste déconnectée des commits, des migrations, des incidents et des changements de responsabilité qui ont rendu les pages fausses.
 
-## Les alternatives
+La génération par IA modifie le coût de rédaction, pas celui de la validation. Elle peut même transformer des sources contradictoires en un texte plus cohérent que les preuves ne le permettent. Produire un document n'établit ni sa vérité ni la durée de cette vérité.
 
-Tous les documents ne doivent pas être maintenus de la même façon :
+La grande page « qui contient tout » échoue pour une raison voisine. Ses sections ne vieillissent pas ensemble. Un contrat change tous les mois, un autre reste stable pendant des années, et aucun n'a de responsable précis puisque, techniquement, la page appartient à tout le monde.
+
+Le problème n'est pas le manque de texte. C'est d'avoir demandé au texte de vivre sans règles de maintenance.
+
+## Tous les documents n'ont pas la même demi-vie
+
+Rien n'oblige à maintenir chaque catégorie de la même manière :
 
 - une **ADR** est immuable ; une nouvelle ADR la remplace ;
 - un **runbook** doit être testé contre l'exploitation réelle ;
-- une **référence d'API** peut être générée depuis le contrat exécutable ;
-- un **DiveIn** conserve la décision initiale, puis pointe vers les changements qui l'ont amendée ;
-- une **note d'exploration** peut expirer sans être mise à jour.
+- une **référence d'API** peut être générée depuis un contrat exécutable ;
+- un **DiveIn** conserve la décision d'origine et pointe vers ses amendements ;
+- une **note d'exploration** peut expirer sans jamais être mise à jour.
 
-L'alternative à « tout maintenir » n'est pas « tout supprimer ». C'est donner un cycle de vie explicite à chaque catégorie.
+L'alternative à « tout maintenir » n'est pas « tout supprimer ». Elle consiste à décider à l'avance comment chaque type de document a le droit de vieillir.
 
-## La solution
+## Six questions avant de faire autorité
 
-Un document actif porte un contrat minimal :
+Avant de demander à quelqu'un de lui faire confiance, un document actif devrait répondre à six questions :
 
 | Champ | Rôle |
 | --- | --- |
-| Statut | Draft, actif, remplacé ou archivé |
-| Owner | Personne ou équipe responsable de sa validité |
+| Statut | Brouillon, actif, remplacé ou archivé |
+| Responsable | Personne ou équipe qui répond de sa validité |
 | Preuve | Code, schéma, test, métrique ou décision qui le soutient |
-| Déclencheur | Événement qui impose une review |
-| Expiration | Date ou condition après laquelle il n'est plus une référence |
+| Déclencheur | Événement qui impose une révision |
+| Expiration | Date ou condition après laquelle il ne fait plus autorité |
 | Successeur | Document qui remplace cette version |
+
+Ce n'est pas la promesse que la page restera vraie pour toujours. C'est un contrat pour remarquer le moment où elle ne l'est peut-être plus.
 
 <ArticleMedia mediaId="document-lifecycle-motion" />
 
-La review documentaire se place dans le workflow de changement : une PR qui modifie un contrat liste les documents dépendants ; une migration invalide l'ancien runbook ; un incident crée ou corrige la procédure qui manquait. L'IA peut repérer les références candidates et préparer le diff. L'owner confirme le sens et publie.
+## Réviser là où la réalité a bougé
 
-## Les limites
+La maintenance documentaire fonctionne mieux dans le flux du changement que dans un lointain calendrier éditorial.
 
-Ce contrat ajoute des métadonnées et ne garantit pas que l'owner agira. Les dépendances entre code et prose restent difficiles à détecter exhaustivement. Une page peut être correcte mais inutile, ou obsolète sans changement technique identifiable.
+Une pull request qui modifie un contrat peut lister les documents qui en dépendent. Une migration peut invalider l'ancien runbook. Un incident peut créer la procédure manquante ou corriger celle qui a échoué. La révision suit alors l'événement qui a changé la vérité, pendant que les preuves sont encore à portée de main.
 
-Il faut donc réserver ce niveau de maintenance aux documents qui guident une décision ou une action répétée. Les notes historiques peuvent rester figées si leur statut est clair. L'objectif n'est pas un wiki parfaitement frais ; c'est l'absence d'autorité trompeuse.
+L'IA a ici un rôle utile, mais limité. Elle peut retrouver les références candidates et préparer un diff. Le responsable doit toujours confirmer le sens et publier la modification. Accélérer la rédaction est utile ; déléguer la responsabilité est une fiction.
 
-Début de la série : [Architecture logicielle : rendre les inconnus inconnus supportables](../posts/unknown-unknowns-software-architecture).
+## Pas de clause d'immortalité
+
+Six champs ne garantissent pas que le responsable agira. Les dépendances entre le code et la prose restent difficiles à détecter de manière exhaustive. Une page peut être correcte et inutile. Elle peut aussi devenir obsolète sans événement technique bien identifié pour donner l'alerte.
+
+Il faut donc appliquer ce niveau de maintenance en priorité aux documents qui guident des décisions ou des actions répétées. Les notes historiques peuvent rester figées si leur statut ne laisse aucun doute. Une exploration peut être temporaire. Tous les paragraphes n'ont pas besoin d'être maintenus en vie.
+
+L'objectif n'est pas un wiki où chaque page serait parfaitement fraîche.
+
+C'est un wiki où une vieille page ne peut plus se faire passer pour l'autorité du moment.
+
+Début de la série : [Architecture logicielle : apprivoiser les inconnus inconnus](../posts/unknown-unknowns-software-architecture).

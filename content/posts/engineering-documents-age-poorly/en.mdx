@@ -1,7 +1,7 @@
 ---
-title: "Why Most Engineering Documents Age Poorly"
-subtitle: "A durable document does not pretend to stay true; it makes drift visible and review explicit."
-summary: "Owners, evidence, review triggers, and expiry: a minimum contract for useful documentation."
+title: "Your Engineering Documents Have an Expiry Date"
+subtitle: "The dangerous page is not the old one. It is the old one still dressed as today's truth."
+summary: "Owners, evidence, review triggers, and expiry: a minimum contract that lets useful documentation age honestly."
 visualId: "engineering-documents-age-poorly"
 publishedAt: "2026-08-31"
 readTimeMinutes: 7
@@ -15,53 +15,61 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 4
 ---
 
-## Context
+An engineering document can become wrong without changing a single word.
 
-An architecture decision, runbook, or DiveIn is accurate when the team writes it. Then code changes, a provider modifies its contract, ownership moves, and production exposes an exception. The document remains in place with the same appearance of authority.
+The day an architecture decision, runbook, or DiveIn is written, it may describe reality perfectly. Then the code moves. A provider changes its contract. Ownership shifts. Production reveals the exception nobody had seen yet.
 
-AI assistants raise the stakes: a stale page is no longer read only by a cautious person. It can be retrieved automatically and turned into a plan or code.
+The page stays where it was, wearing the same typography and the same calm expression of authority.
+
+AI assistants make that quiet drift more consequential. A stale page is no longer read only by a cautious person who may notice the date or question an assumption. It can be retrieved automatically, treated as context, and turned into a plan or code.
 
 <ArticleDiagram visualId="engineering-documents-age-poorly" />
 
-## The problem
+## The page that still looks employed
 
-Most wikis optimise creation rather than lifecycle. They record who created a page but rarely which evidence makes it true, which change should trigger review, or when it should stop guiding a decision.
+Most wikis are good at beginnings. They know who created a page, when it was published, and perhaps who touched it last.
 
-The result is not missing documentation. It is worse: current decisions, historical assumptions, and partially correct tutorials all presented with the same confidence.
+They are much less interested in endings. Which evidence makes the page true? Which change should force a review? When must it stop guiding a decision? What replaced it?
 
-## Bad ideas
+This creates something more dangerous than missing documentation. A missing page announces its absence. A stale page borrows the voice of current truth. Decisions that still apply, assumptions that belong to history, and tutorials that are half-right all appear with the same confidence.
 
-- Review every page quarterly without connecting reviews to real changes.
-- Generate more documentation from code and assume it stays correct.
-- Keep every document for history without distinguishing archive from active reference.
-- Treat “last updated” as sufficient evidence of trust.
-- Make documentation the diffuse responsibility of the whole team.
+“Last updated Tuesday” does not rescue the reader. It proves that someone touched the page on Tuesday, not that anyone verified the contract it describes.
 
-A recent date proves nothing unless somebody verified the described contract.
+## Five organised ways to avoid the problem
 
-## What did not work
+- Review every page quarterly, whether or not reality changed.
+- Generate more documentation from code, then assume generation guarantees correctness.
+- Keep every document for historical reasons without separating the archive from active reference.
+- Use “last updated” as the only signal of trust.
+- Make documentation everyone's responsibility, which often gives each page no accountable owner.
 
-Clean-up campaigns improved the wiki for weeks, then drift resumed. They were disconnected from commits, migrations, incidents, and ownership changes that made pages false.
+Each idea creates visible activity. None gives the document a lifecycle.
 
-AI generation reduced writing cost but not validation cost. It sometimes created more convincing prose from contradictory sources. Generating a document establishes neither truth nor validity duration.
+## Spring cleaning lasts until the next merge
 
-Long “everything” pages failed too: each section aged at a different rate and had no precise owner.
+A clean-up campaign can make a wiki feel trustworthy for a few weeks. Then the drift resumes, because the campaign is disconnected from the commits, migrations, incidents, and ownership changes that made the pages false in the first place.
 
-## Alternatives
+AI generation changes the cost of writing, not the cost of validation. It can even turn contradictory sources into prose that sounds more coherent than the evidence deserves. Producing a document establishes neither its truth nor how long that truth will last.
 
-Documents need different maintenance models:
+The grand “everything” page fails for a related reason. Its sections do not age together. One contract changes monthly, another remains stable for years, and neither has a precise owner because technically the page belongs to everyone.
+
+The problem is not a shortage of prose. It is that prose has been asked to live without maintenance rules.
+
+## Documents have different half-lives
+
+There is no reason to maintain every category in the same way:
 
 - an **ADR** is immutable; a new ADR supersedes it;
-- a **runbook** must be exercised against real operations;
+- a **runbook** has to be exercised against real operations;
 - an **API reference** can be generated from an executable contract;
 - a **DiveIn** preserves the original decision and links to amendments;
-- an **exploration note** may expire without being updated.
+- an **exploration note** may expire without ever being updated.
 
-The alternative to maintaining everything is not deleting everything. It is assigning an explicit lifecycle to each category.
+The alternative to maintaining everything is not deleting everything. It is deciding, in advance, how each kind of document is allowed to age.
 
-## The solution
+## Six questions before a page can claim authority
 
-An active document carries a minimum contract:
+Before an active document asks anyone to trust it, it should answer six questions:
 
 | Field | Purpose |
 | --- | --- |
@@ -72,14 +80,26 @@ An active document carries a minimum contract:
 | Expiry | Date or condition after which it is no longer authoritative |
 | Successor | Document replacing this version |
 
+This is not a promise that the page will remain true forever. It is a contract for noticing when it may no longer be true.
+
 <ArticleMedia mediaId="document-lifecycle-motion" />
 
-Documentation review belongs in the change workflow: a PR modifying a contract lists dependent documents; a migration invalidates the old runbook; an incident creates or corrects the missing procedure. AI may locate candidate references and prepare a diff. The owner confirms meaning and publishes.
+## Review the page where reality changed
 
-## Limits
+Documentation maintenance works better inside the change workflow than on a distant editorial calendar.
 
-This contract adds metadata and cannot guarantee that an owner will act. Dependencies between code and prose remain hard to detect exhaustively. A page may be correct but useless, or become obsolete without an identifiable technical change.
+A pull request that modifies a contract can list the documents that depend on it. A migration can invalidate the old runbook. An incident can create the missing procedure or correct the one that failed. Review then follows the event that changed the truth, while the evidence is still nearby.
 
-Apply this maintenance level to documents that guide decisions or repeated actions. Historical notes may remain frozen when their status is clear. The goal is not a perfectly fresh wiki; it is the absence of misleading authority.
+AI has a useful but bounded role here. It can locate candidate references and prepare a diff. The owner still has to confirm the meaning and publish the change. Faster drafting is valuable; delegated accountability is fiction.
+
+## There is no immortality clause
+
+Six fields do not guarantee that an owner will act. Dependencies between code and prose remain difficult to detect exhaustively. A page can be correct but useless. It can also become obsolete without a neat technical event to trigger the alarm.
+
+That is why this maintenance level belongs first on documents that guide decisions or repeated actions. Historical notes can remain frozen when their status is unmistakable. Exploration can be temporary. Not every paragraph needs life support.
+
+The goal is not a wiki in which every page is perfectly fresh.
+
+It is a wiki in which an old page no longer gets to impersonate current authority.
 
 Start of the series: [Unknown Unknowns in Software Architecture](../posts/unknown-unknowns-software-architecture).

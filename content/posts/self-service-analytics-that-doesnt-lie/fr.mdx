@@ -1,7 +1,7 @@
 ---
 title: "Construire une analytique en libre-service qui ne ment pas"
-subtitle: "Donner accès aux chiffres sans abandonner leur définition, leur traçabilité ni leur contrôle."
-summary: "Le self-service analytics fonctionne lorsque chaque métrique garde un contrat, un owner et un chemin vérifiable jusqu'à sa source."
+subtitle: "Ouvrir l'accès est facile. Empêcher un chiffre de perdre son sens en chemin demande une vraie infrastructure."
+summary: "Un modèle concret pour donner de l'autonomie analytique sans perdre les définitions, la provenance, les responsabilités ni le contrôle."
 visualId: "self-service-analytics-that-doesnt-lie"
 publishedAt: "2026-08-17"
 readTimeMinutes: 8
@@ -17,49 +17,41 @@ seriesOrder: 2
 
 import selfServiceDiagram from "../../../src/assets/images/posts/self-service-analytics-fr.svg?raw";
 
-## Le contexte
+## Trois dashboards entrent en réunion
 
-Une équipe data centralisée devient vite une file d'attente : chaque question métier demande un ticket, une extraction et une nouvelle explication. Le self-service analytics promet de rendre les équipes autonomes. Chez RockFi, cette autonomie doit cependant préserver des contraintes fortes : confidentialité, auditabilité et définitions cohérentes pour les encours, flux, clients ou performances.
+Rien ne refroidit la confiance dans la donnée aussi vite que trois dashboards qui répondent à la même question avec trois chiffres différents. Chaque requête s'exécute. Chaque graphique paraît impeccable. Chaque résultat peut même être cohérent avec lui-même. La réunion doit pourtant s'arrêter sur une question beaucoup plus simple : qu'avons-nous compté, exactement ?
+
+C'est tout l'intérêt du self-service analytics. Une équipe data centralisée devient vite un guichet où chaque question métier exige un ticket, une extraction et une nouvelle explication. Les équipes ont besoin d'explorer sans attendre leur tour dans cette file.
+
+Chez RockFi, cette autonomie doit néanmoins préserver la confidentialité, l'auditabilité et des définitions cohérentes pour les encours, les flux, les clients ou les performances. Un chiffre obtenu rapidement ne sert pas à grand-chose si personne ne peut refaire son parcours.
 
 <ArticleDiagram visualId="self-service-analytics-that-doesnt-lie" />
 
-## Le problème
+## Le SQL peut être juste et le chiffre faux
 
-Rendre le warehouse requêtable ne rend pas les chiffres fiables. Deux requêtes syntaxiquement correctes peuvent diverger sur le grain, la date effective, le statut d'un contrat ou le traitement des annulations. Le désaccord apparaît souvent après que le chiffre a été partagé dans un dashboard ou utilisé pour décider.
+Rendre le warehouse requêtable ne rend pas ses chiffres fiables. Deux requêtes syntaxiquement correctes peuvent diverger sur le grain, la date effective, le statut d'un contrat ou le traitement des annulations. L'écart reste parfois invisible jusqu'à ce que le résultat arrive dans un dashboard ou serve à prendre une décision.
 
-Le problème n'est donc pas l'accès à la donnée. C'est l'accès à une **sémantique vérifiable**.
+Le vrai produit n'est donc pas l'accès à la donnée, mais l'accès à une **sémantique vérifiable** : assez de sens partagé pour comprendre, reproduire et contester un résultat.
 
-## Les mauvaises idées
+## Le warehouse n'est pas un distributeur automatique
 
-- Ouvrir toutes les tables et appeler cela du self-service.
-- Certifier un dashboard sans certifier les métriques qu'il compose.
-- Dupliquer une logique métier dans chaque requête « pour aller plus vite ».
-- Présenter une réponse générée par IA sans provenance, fraîcheur ni niveau de confiance.
-- Gouverner chaque exploration comme un reporting réglementaire et tuer ainsi toute exploration.
+Ouvrir toutes les tables ressemble facilement à du libre-service : on choisit un jeu de données, on appuie sur un bouton et un chiffre tombe. Toutes les décisions métier difficiles viennent simplement d'être transférées à la personne qui écrit la requête.
 
-Ces approches confondent liberté d'explorer et autorité de publier.
+Certifier un dashboard ne suffit pas si les métriques qu'il compose n'ont aucun contrat. Recopier la logique métier dans chaque requête « pour aller plus vite » fonctionne jusqu'au jour où deux copies évoluent différemment. Une réponse d'IA sans provenance, fraîcheur ni niveau de confiance masque le même problème derrière une interface plus agréable.
 
-## Ce qui n'a pas marché
+L'excès inverse ne vaut pas mieux. Si chaque exploration approximative reçoit la gouvernance d'un reporting réglementaire, plus personne n'explore. La liberté de chercher et l'autorité de publier sont liées, mais ce ne sont pas les mêmes droits.
 
-Les dictionnaires de données seuls vieillissent trop vite. Ils décrivent les colonnes, mais rarement les exclusions, le grain attendu ou le moment où une métrique devient définitive.
+## Quand la « source of truth » se dédouble
 
-Les dashboards « source of truth » n'ont pas mieux fonctionné lorsqu'ils embarquaient leur propre SQL. Ils déplaçaient le contrat dans un outil de visualisation, le rendaient difficile à tester et créaient plusieurs vérités dès qu'un second dashboard réimplémentait le calcul.
+Les dictionnaires de données rendent service, mais vieillissent vite lorsqu'ils décrivent les colonnes sans préciser les exclusions, le grain attendu ou le moment où une métrique devient définitive.
 
-Enfin, laisser un agent interroger directement des sources brutes produit des réponses rapides mais fragiles : le modèle choisit une jointure plausible sans connaître l'invariant métier qu'elle doit préserver.
+Un dashboard « source of truth » reste tout aussi fragile si sa définition reste enfermée dans une requête SQL privée. Le contrat métier a seulement déménagé dans un outil de visualisation où il devient difficile à tester. Dès qu'un deuxième dashboard réimplémente le calcul, l'unique vérité vient de se dédoubler.
 
-## Les alternatives
+Laisser un agent interroger directement les sources brutes est la version accélérée de cette erreur. Il peut choisir une jointure plausible sans connaître l'invariant métier qu'elle doit préserver. La réponse arrive vite ; le doute, un peu plus tard.
 
-Trois niveaux doivent rester distincts :
+## Un passeport pour chaque métrique partagée
 
-1. **Exploration** : accès borné, résultats temporaires, hypothèses visibles.
-2. **Métrique certifiée** : définition versionnée, owner, tests et politique de fraîcheur.
-3. **Décision ou diffusion** : provenance affichée, contrôle des accès et review proportionnelle à l'impact.
-
-Une couche sémantique peut porter les dimensions, grains et formules communes. Un catalogue peut rendre visibles l'owner et la fraîcheur. Des marts gouvernés peuvent isoler les données sensibles. Aucun outil ne remplace toutefois le contrat métier.
-
-## La solution
-
-Nous définissons chaque métrique partagée comme un produit avec un contrat minimal :
+Nous traitons une métrique partagée comme un petit produit. Avant de voyager vers les dashboards, les analyses et les décisions, elle reçoit un contrat minimal :
 
 | Élément | Question à trancher |
 | --- | --- |
@@ -67,20 +59,34 @@ Nous définissons chaque métrique partagée comme un produit avec un contrat mi
 | Grain | Une ligne représente quoi ? |
 | Population | Quelles entités sont incluses ou exclues ? |
 | Temps | Date d'événement, date effective ou snapshot ? |
-| Owner | Qui arbitre une ambiguïté ? |
+| Responsable | Qui arbitre une ambiguïté ? |
 | Preuve | Quels tests et rapprochements protègent le calcul ? |
 | Fraîcheur | À partir de quand le résultat n'est-il plus utilisable ? |
+
+Ce contrat ne garantit pas que la métrique restera juste pour toujours. En revanche, il permet d'examiner les désaccords : une définition à comparer, un responsable à solliciter et des preuves à rejouer.
+
+## Trois voies pour trois usages
+
+Toutes les questions ne doivent pas subir les mêmes contrôles. Nous distinguons trois niveaux :
+
+1. **L'exploration** autorise un accès borné, des résultats temporaires et des hypothèses visibles.
+2. **La métrique certifiée** ajoute une définition versionnée, un responsable, des tests et une politique de fraîcheur.
+3. **La décision ou la diffusion** affiche la provenance, contrôle les accès et fait l'objet d'une revue proportionnée à son impact.
+
+Une couche sémantique peut porter les dimensions, les grains et les formules communes. Un catalogue peut rendre visibles le responsable et la fraîcheur. Des marts gouvernés peuvent isoler les données sensibles. Cette infrastructure est utile, mais aucun de ses composants ne remplace le contrat métier.
 
 <InlineArticleDiagram svg={selfServiceDiagram}>
   Le libre-service commence après la modélisation et les contrôles, pas au niveau des tables brutes.
 </InlineArticleDiagram>
 
-Les assistants IA accèdent en priorité à ces contrats et modèles certifiés. Ils peuvent proposer une exploration, mais doivent exposer leurs sources et signaler lorsqu'une question dépasse le périmètre certifié. Le résultat reste reviewable avant diffusion.
+## L'assistant doit montrer sa copie
 
-## Les limites
+Les assistants IA accèdent d'abord aux contrats et aux modèles certifiés. Ils peuvent proposer une exploration, mais doivent exposer leurs sources et signaler lorsqu'une question sort du périmètre certifié. Avant diffusion, le résultat doit rester lisible et vérifiable par quelqu'un — pas devenir un fait simplement parce qu'il tient dans une phrase bien tournée.
 
-Cette approche coûte du temps : il faut maintenir les contrats, traiter les changements de définition et surveiller la fraîcheur. Toutes les métriques ne méritent pas ce niveau de gouvernance. Une analyse ponctuelle peut rester explicitement exploratoire.
+## Un badge ne prouve rien
 
-Une couche sémantique ne répare ni une source erronée ni un événement absent. Elle peut même standardiser une mauvaise définition. La confiance vient d'une chaîne de preuves et de responsabilités, pas d'un badge « certified ».
+Ce modèle crée du travail de maintenance. Les contrats évoluent, les changements de définition doivent être traités et la fraîcheur surveillée. Toutes les métriques ne méritent pas cet investissement ; une analyse ponctuelle peut rester explicitement exploratoire.
+
+Une couche sémantique ne répare pas une source erronée et ne recrée pas un événement absent. Elle peut standardiser une mauvaise définition aussi efficacement qu'une bonne. La confiance vient de toute la chaîne de preuves et de responsabilités, pas du badge « certifié » posé au bout.
 
 Suite de la série : [Ingénierie du contexte : au-delà du prompt](../posts/context-engineering-beyond-prompt-engineering).

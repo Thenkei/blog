@@ -1,7 +1,7 @@
 ---
 title: "Context Engineering: Beyond Prompt Engineering"
-subtitle: "A reliable agent depends less on magic wording than on selected, fresh, authorised state."
-summary: "Design context as an interface: provenance, freshness, permissions, priorities, and validation."
+subtitle: "The right wording is not enough. A reliable agent must know what is true now—and what it is allowed to do."
+summary: "Why reliable agents need context designed as an interface, with provenance, freshness, permissions, priorities, and tests."
 visualId: "context-engineering-beyond-prompt-engineering"
 publishedAt: "2026-08-24"
 readTimeMinutes: 7
@@ -17,66 +17,66 @@ seriesOrder: 3
 
 import contextDiagram from "../../../src/assets/images/posts/context-engineering-en.svg?raw";
 
-## Context
+## The prompt fits on a Post-it
 
-Prompt engineering optimises an instruction. Context engineering designs everything that lets an agent interpret that instruction: repository state, product decisions, team conventions, permissions, relevant history, and runtime signals.
+Prompt engineering asks how an instruction should be phrased. Context engineering asks what the agent must be able to see in order to interpret that instruction: the current repository state, product decisions, team conventions, permissions, relevant history, and runtime signals.
 
-As agents gain access to code, Notion, GitHub, and internal data, context becomes an interface between systems. It deserves API-level discipline: a contract, provenance, access control, freshness, and defined behaviour when data is absent.
+The prompt may say “update the checkout flow”. The work still depends on which branch is current, which product decision won, which payment invariant must not change, and whether “update” means propose a patch or deploy it. The clever sentence is only a small part of the brief.
+
+As agents gain access to code, Notion, GitHub, and internal data, context becomes an interface between systems. It deserves the discipline we expect from an API: a contract, provenance, access control, freshness, and defined behaviour when something is absent.
 
 <ArticleDiagram visualId="context-engineering-beyond-prompt-engineering" />
 
-## The problem
+## Coherent is not the same as correct
 
-An agent does not naturally distinguish a current decision from an old proposal, a fact from an assumption, or read access from authority to act. It produces the most coherent answer from what it receives.
+An agent does not naturally distinguish a current decision from an old proposal, a fact from an assumption, or read access from authority to act. It produces the most coherent answer it can from what it receives.
 
-Missing context forces a guess. Stale context produces an answer for the previous system. Excess context buries important constraints. Broad context also increases the blast radius of an error or hostile instruction.
+That creates several distinct failure modes. Missing context forces a guess. Stale context produces a good answer for the previous version of the system. Excess context buries the constraint that mattered. Context that is too broad increases the blast radius of both ordinary mistakes and hostile instructions.
 
-## Bad ideas
+Adding “be rigorous” to the prompt fixes none of them.
 
-- Add “be rigorous” to a prompt backed by incomplete sources.
-- Load the entire repository and history “just in case”.
-- Hide critical instructions in a long document without explicit priority.
-- Confuse technical capability with domain authorisation.
-- Evaluate only the final answer without checking which sources produced it.
+## The all-you-can-eat context buffet
 
-More context is not necessarily better context. It is a larger interpretation surface.
+Loading the entire repository and its history “just in case” feels safe because nothing has been deliberately omitted. In practice, it creates a larger interpretation surface and makes priority harder to see.
 
-## What did not work
+Monolithic instruction files develop the same problem over time. Current rules sit beside stale ones, contradictions accumulate, and the agent's behaviour changes with ordering and task. Similarity-only retrieval can then make a precise-looking mistake: it selects an obsolete document because the wording is close while missing a recent decision written in different language.
 
-Monolithic instruction files quickly accumulated contradictory and stale rules. Agents applied them inconsistently depending on ordering and task.
+Tool access belongs in this discussion too. Giving every tool to an agent from the first step makes a demo smooth and an audit murky. Technical capability is not domain authorisation, and unused access is still part of the blast radius.
 
-Similarity-only retrieval sometimes selected a lexically close but obsolete document while missing a recent decision written in different language.
+More context is not automatically better context. Sometimes it is simply more material to misunderstand.
 
-Giving an agent every tool from the start made demos easier but audits harder: we could no longer tell which access the workflow actually required.
+## Pack for the task in front of you
 
-## Alternatives
+Context can arrive in three ways. It can be **pushed** at startup, **retrieved** when a need appears, or **produced** by a previous step. None is free: push guarantees a baseline but spends the context budget; retrieval keeps the bundle smaller but depends on search quality; produced context preserves continuity but can also carry an earlier error forward.
 
-Context can be **pushed** at startup, **retrieved** on demand, or **produced** by a previous step. Each has a cost: push guarantees a baseline but consumes budget; retrieval reduces volume but depends on search quality; production preserves continuity but can propagate an error.
+The useful combination follows the task. A PR review needs the current diff and the team's review conventions. An incident investigation needs a timeline, logs, and deployment state. Giving both workflows the same generic bundle means arriving at code review with all the production logs, then bringing the style guide to an outage: nothing is technically wrong, but the essentials are elsewhere.
 
-The right combination depends on the task. A PR review needs the current diff and review conventions. An incident investigation needs a timeline, logs, and deployment state. One generic bundle serves both badly.
+## Context needs an order
 
-## The solution
-
-We treat context as an ordered stack:
+We organise the working context as a stack:
 
 1. **Authority**: user intent and action boundaries.
 2. **Current state**: the branch, diff, schema, or document actually in force.
 3. **Contracts**: domain invariants, conventions, and completion criteria.
-4. **Relevant history**: decisions and failures that explain current state.
-5. **Evidence**: tests, metrics, logs, and sources used to verify output.
+4. **Relevant history**: decisions and failures that explain the current state.
+5. **Evidence**: tests, metrics, logs, and sources used to verify the output.
 
 <InlineArticleDiagram svg={contextDiagram}>
   Every item must justify its presence, authority, and validity period.
 </InlineArticleDiagram>
 
-Each source carries ownership or provenance, a validity period, and a scope. Tools are granted with least privilege when needed. If a critical source is missing or contradictory, the agent stops and exposes the ambiguity.
+Each source records its owner and provenance, its validity period, and its scope. Critical instructions have an explicit priority instead of relying on where they happen to appear. Tools are granted with least privilege when they become necessary. If an essential source is missing or two authoritative sources disagree, the agent stops and makes that ambiguity visible.
 
-Evaluation also tests perturbations: what happens with a stale rule, two conflicting sources, or an unauthorised document? A good answer obtained from the wrong context remains a fragile system.
+## Test the route, not just the arrival
 
-## Limits
+Evaluating only the final answer misses half the system. We also need to know which sources produced it and what happens when the route is disturbed.
 
-Context engineering cannot repair a bad objective, a false source, or a model that cannot reason about the domain. It also adds a platform to maintain: indexing, permissions, invalidation, and observability.
+Give the workflow a stale rule. Present two conflicting sources. Add a document the agent is not authorised to use. A robust system should surface the problem rather than quietly turn it into prose. A good answer obtained from the wrong context is still a fragile system.
 
-Formalising everything would be a mistake. A short task may need only a prompt and one file. The discipline pays off when a workflow repeats, crosses systems, or can trigger a material action.
+## Sometimes one file is enough
 
-Next in the series: [Why Most Engineering Documents Age Poorly](../posts/engineering-documents-age-poorly).
+Context engineering cannot repair a bad objective, a false source, or a model that cannot reason about the domain. It also creates infrastructure to maintain: indexing, permissions, invalidation, and observability.
+
+Formalising every tiny task would be its own failure mode. A short, reversible change may genuinely need only a prompt and one file. The discipline starts paying for itself when a workflow repeats, crosses systems, or can trigger a material action.
+
+Next in the series: [Your Engineering Documents Have an Expiry Date](../posts/engineering-documents-age-poorly).
