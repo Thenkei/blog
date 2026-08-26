@@ -35,6 +35,12 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
       fr: "Scène inspirée du manga montrant un ingénieur choisissant entre trois itinéraires pour un travail assisté par IA.",
     },
   },
+  "frontier-model-race-2026": {
+    alt: {
+      en: "Editorial technical landscape where several luminous model routes converge toward a shifting frontier while an engineer observes from the map edge.",
+      fr: "Paysage technique éditorial où plusieurs trajectoires lumineuses de modèles convergent vers une frontière mouvante tandis qu'un ingénieur observe depuis le bord de la carte.",
+    },
+  },
   "ai-force-multiplier": {
     alt: {
       en: "Editorial illustration of an engineer directing several controlled workstreams across a layered technical landscape.",

@@ -9,6 +9,7 @@ import { postImageVisualIds } from "../../src/features/posts/content";
 
 const editorialSlugs = [
   "agent-battle-2026",
+  "frontier-model-race-2026",
   "ai-force-multiplier",
   "ai-is-not-immaterial",
   "ai-human-judgment-rockfi",

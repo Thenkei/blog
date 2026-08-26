@@ -8,6 +8,7 @@ export type PostAccessScope = PostVisibility;
 
 export const postVisualIds = [
   "agent-battle-2026",
+  "frontier-model-race-2026",
   "bounded-ai-loop",
   "ai-force-multiplier",
   "ai-is-not-immaterial",
@@ -44,6 +45,7 @@ export type PostVisualId = (typeof postVisualIds)[number];
 // than SVG diagrams rendered by PostVisual.
 export const postImageVisualIds = [
   "ai-is-not-immaterial",
+  "frontier-model-race-2026",
 ] as const satisfies readonly PostVisualId[];
 
 export type PostImageVisualId = (typeof postImageVisualIds)[number];
