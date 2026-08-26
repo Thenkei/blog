@@ -65,6 +65,12 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
       fr: "Scène éditoriale d'un pont où un ingénieur passe des services applicatifs vers une fondation de données en strates.",
     },
   },
+  "better-handoffs-ai-engineering": {
+    alt: {
+      en: "Editorial control-room scene where several small agents pass a luminous investigation dossier through a human review gate to an engineer.",
+      fr: "Scène de salle de contrôle éditoriale où plusieurs petits agents transmettent un dossier d'investigation lumineux à travers un point de revue humaine vers un ingénieur.",
+    },
+  },
   "claude-code-product-os": {
     alt: {
       en: "Editorial relay scene showing humans and tools passing work through discovery, delivery, review, and release.",
