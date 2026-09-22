@@ -4,7 +4,7 @@ subtitle: "Une revue d'architecture ne nommera jamais toutes les surprises. Elle
 summary: "Comment mettre à l'épreuve les hypothèses cachées, dépasser le chemin nominal et préparer le système à survivre lorsque la carte est fausse."
 visualId: "unknown-unknowns-software-architecture"
 publishedAt: "2026-08-10"
-readTimeMinutes: 8
+readTimeMinutes: 6
 tags:
   - architecture
   - reliability
@@ -19,39 +19,39 @@ import unknownUnknownsDiagram from "../../../src/assets/images/posts/unknown-unk
 
 ## La carte s'arrête à la porte de la production
 
-Une revue d'architecture sait bien traiter les risques que l'équipe peut nommer : charge attendue, disponibilité d'un fournisseur, cohérence d'une migration, stratégie de retry. Un document peut couvrir ces quatre sujets et laisser son hypothèse la plus importante dans la marge.
+Une revue d'architecture traite bien les risques connus : charge, disponibilité, migrations, retries. Elle peut couvrir ces sujets et laisser son hypothèse la plus importante dans la marge.
 
-Cette hypothèse est parfois partagée sans avoir jamais été écrite. Elle peut aussi se cacher dans une interaction absente du diagramme ou dans un mode de panne que personne autour de la table n'a encore rencontré. Ce sont les **inconnus inconnus** : non pas les risques que l'on a oublié de cocher, mais ceux qui ne sont jamais entrés dans la liste.
+Une hypothèse peut rester implicite, ou un mode de panne absent du diagramme. Ce sont les **inconnus inconnus** : les risques qui ne sont jamais entrés dans la liste.
 
-Dans [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386?lang=fr), Thariq Shihipar décrit l'écart entre la *map* fournie à un agent et le *territory* réel. La conception logicielle connaît le même décalage. La production contient des opérateurs, du temps, des données historiques, des fournisseurs et des usages qu'aucun document ne représente complètement.
+Dans [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386?lang=fr), Thariq Shihipar décrit l'écart entre la *map* fournie à un agent et le *territory* réel. En logiciel aussi, aucun document ne représente complètement les opérateurs, les données historiques et les usages de production.
 
 <ArticleDiagram visualId="unknown-unknowns-software-architecture" />
 
 ## La production ramène toujours un invité surprise
 
-Une conception peut satisfaire tous les scénarios écrits et échouer sur une interaction restée hors du modèle. Une requête repart alors que la première tentative s'exécute encore. Un événement arrive après la suppression de sa cible. Un fournisseur renvoie une réponse techniquement valide mais incomplète sur le plan métier.
+Une conception peut réussir tous les scénarios écrits et échouer lorsqu'une requête est rejouée pendant la première tentative, ou qu'un événement arrive après la suppression de sa cible.
 
-La suite de tests n'a pas menti : nous lui avons posé les questions d'hier. Le danger commence lorsque « tout ce que nous avons testé fonctionne » devient « nous avons modélisé tout ce qui compte ». Un document impeccable — ou une réponse d'IA formulée avec une confiance parfaite — rend ce glissement particulièrement discret.
+Les tests n'ont pas menti : nous leur avons posé les questions prévues. Le danger est de confondre « tous les tests passent » avec « nous avons tout modélisé ».
 
 ## Trois histoires confortables
 
-**Le diagramme total.** À force d'ajouter des boîtes, tous les risques finiront bien par apparaître. Sauf que les boîtes représentent mal le temps, la concurrence, les opérations manuelles et les modes dégradés.
+**Le diagramme total.** Ajouter des boîtes représente mal le temps, la concurrence et les opérations manuelles.
 
-**La checklist promue preuve.** Une checklist est utile justement parce qu'elle mémorise les risques connus. Elle ne révèle pas une hypothèse absente du modèle de tout le monde.
+**La checklist promue preuve.** Elle mémorise les risques connus, pas les hypothèses absentes du modèle.
 
-**L'agent omniscient.** Demander à un agent de « trouver tous les risques » peut élargir la surface inspectée et mettre un raisonnement à l'épreuve. Il ne découvre toujours que ce qui laisse une trace dans les sources auxquelles il a accès.
+**L'agent omniscient.** Il peut inspecter plus de sources, mais ne découvre que ce qui y laisse une trace.
 
-Aucun de ces outils n'est inutile. L'erreur consiste à demander à l'un d'eux de certifier que le tour du sujet est terminé.
+Aucun ne peut certifier que la revue est complète.
 
 ## Poser des questions qui piquent
 
-Les revues centrées sur le chemin nominal produisent souvent des documents très propres : qui appelle qui, quel composant possède la donnée, quelle API expose le contrat. Elles repoussent aussi les questions embarrassantes. Que se passe-t-il si l'appel est dupliqué, réordonné, partiellement appliqué ou rejoué par un opérateur ?
+Une revue centrée sur le chemin nominal décrit les composants, mais que se passe-t-il si un appel est dupliqué, réordonné ou rejoué par un opérateur ?
 
-La formulation change la qualité de la recherche. « Est-ce scalable ? » appelle une réponse générique. « Quelle hypothèse de cardinalité fait exploser ce composant en premier ? » oblige à aller chercher une preuve.
+« Est-ce scalable ? » appelle une réponse générique. « Quelle hypothèse de cardinalité casse ce composant en premier ? » pousse à chercher une preuve.
 
-Avant une décision lourde de conséquences, nous utilisons un outil interne de revue pour réunir plusieurs formes de contradiction. Des **gates** vérifient les invariants connus. Une passe **find blind spots** cherche les hypothèses non prouvées dans le code, les documents et l'historique. Des **adversarial reviews** attaquent ensuite la proposition depuis les frontières de l'exploitation, de la sécurité, des données, du produit et du déploiement.
+Avant une décision importante, notre outil interne combine des **gates** sur les invariants connus, une passe **find blind spots** sur les hypothèses non prouvées et des **adversarial reviews** côté exploitation, sécurité, données et déploiement.
 
-L'outil ne décide pas. Il produit des questions traçables, rattache chacune à une preuve — ou à son absence bien visible — puis demande :
+L'outil relie chaque question à une preuve, ou rend son absence visible :
 
 - Quel invariant financier ou métier pourrait être violé silencieusement ?
 - Quelle dépendance partage notre blast radius ?
@@ -59,11 +59,11 @@ L'outil ne décide pas. Il produit des questions traçables, rattache chacune à
 - Quel signal montrerait le problème avant qu'un client ne le fasse ?
 - Quelle action reste possible lorsque l'hypothèse est fausse ?
 
-La décision reste humaine. Accepter un risque borné est un choix ; passer à côté ne l'est pas.
+La décision reste humaine : on peut accepter un risque connu, pas un risque invisible.
 
 ## Installer les sorties de secours quand tout est calme
 
-L'objectif réaliste n'est pas de prédire chaque panne. Il est de rendre la surprise visible, de contenir son impact et de permettre un retour à un état sûr :
+On ne prédira pas chaque panne. On peut rendre la surprise visible, contenir son impact et revenir à un état sûr :
 
 1. **Réduire** la surface d'hypothèses avec des contrats explicites et des invariants exécutables.
 2. **Isoler** les composants et les permissions pour borner le blast radius.
@@ -74,12 +74,12 @@ L'objectif réaliste n'est pas de prédire chaque panne. Il est de rendre la sur
   Une revue utile transforme une hypothèse en preuve, en signal ou en risque explicitement accepté.
 </InlineArticleDiagram>
 
-Il reste alors une bonne question de sortie : si cette hypothèse devient fausse demain, saurons-nous le voir, limiter l'impact et revenir à un état sûr ?
+Question finale : si cette hypothèse devient fausse demain, saurons-nous le voir et réagir ?
 
 ## La carte restera inachevée
 
-Aucune méthode de revue ne transforme l'inconnu en connu. Celle-ci peut produire du bruit, encourager une prudence excessive et ralentir des décisions faciles à annuler. L'effort doit suivre le blast radius : davantage de preuves pour un calcul financier ou une migration irréversible que pour une expérience isolée avec un bouton « annuler » bien visible.
+Cette méthode peut produire du bruit et ralentir des décisions faciles à annuler. L'effort doit suivre les conséquences possibles : plus de preuves pour un calcul financier ou une migration irréversible que pour une expérience isolée.
 
-Les revues adversariales peuvent aussi hériter des angles morts de leurs sources. Les incidents, les retours des opérateurs et les données de production restent irremplaçables. Le but n'est pas la certitude, mais une incertitude bornée, observable et assumée.
+Les revues héritent aussi des angles morts de leurs sources. Les incidents, les opérateurs et les données de production restent irremplaçables. Le but est une incertitude observable et assumée.
 
 Suite de la série : [Construire une analytique en libre-service qui ne ment pas](../posts/self-service-analytics-that-doesnt-lie).
