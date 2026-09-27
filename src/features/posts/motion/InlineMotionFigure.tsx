@@ -2,10 +2,9 @@ import { Component, lazy, Suspense, useEffect, useRef, useState, type ReactNode 
 import { useTranslation } from "react-i18next";
 import type { PostDiagramVisualId } from "../content/types";
 import type { ArticleMediaId } from "../../../shared/components/ArticleMedia";
-import { StaticArticleMedia } from "../../../shared/components/ArticleMedia";
-import { PostVisual } from "../../../shared/components/PostVisual";
 import { normalizeLocale } from "../../../shared/routing";
 import { getDiagramScene, getMediaScene, type FigureScene } from "./figureScenes";
+import { NativeScenePoster } from "./NativeScenePoster";
 
 const FigureMotionPlayer = lazy(() => import("./FigureMotionPlayer"));
 
@@ -63,9 +62,7 @@ export function InlineMotionFigure(props: Props) {
     return () => observer.disconnect();
   }, [id]);
 
-  const fallback = props.visualId
-    ? <PostVisual slug={props.visualId} variant="inline" visualId={props.visualId} />
-    : <StaticArticleMedia mediaId={props.mediaId} />;
+  const fallback = <NativeScenePoster scene={scene} caption={scene.caption} />;
 
   return (
     <div ref={rootRef} className="inline-motion-root" data-inline-motion={id}>
@@ -74,7 +71,7 @@ export function InlineMotionFigure(props: Props) {
           <Suspense fallback={fallback}>
             <>
               <figure className="post-visual inline-motion-figure" aria-label={scene.title}>
-                <FigureMotionPlayer visualId={props.visualId} mediaId={props.mediaId} scene={scene} />
+                <FigureMotionPlayer scene={scene} />
                 <figcaption>{scene.caption}</figcaption>
               </figure>
               <div className="inline-motion-print" aria-hidden="true">{fallback}</div>

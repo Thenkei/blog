@@ -3,17 +3,17 @@ import { useTranslation } from "react-i18next";
 import { normalizeLocale } from "../../../shared/routing";
 import { FigureErrorBoundary } from "./InlineMotionFigure";
 import { getAssetScene, type AssetSceneId } from "./figureScenes";
+import { NativeScenePoster } from "./NativeScenePoster";
 
 const FigureMotionPlayer = lazy(() => import("./FigureMotionPlayer"));
 
 type Props = {
   assetId: AssetSceneId;
   src?: string | undefined;
-  rawSvg?: string | undefined;
   children: ReactNode;
 };
 
-export function AssetMotionFigure({ assetId, src, rawSvg, children }: Props) {
+export function AssetMotionFigure({ assetId, src, children }: Props) {
   const { i18n } = useTranslation();
   const locale = normalizeLocale(i18n.resolvedLanguage ?? i18n.language);
   const scene = getAssetScene(assetId, locale);
@@ -47,11 +47,7 @@ export function AssetMotionFigure({ assetId, src, rawSvg, children }: Props) {
   }, [assetId]);
 
   const caption = Children.toArray(children).find((child) => isValidElement(child) && child.type === "figcaption");
-  const fallback = rawSvg
-    ? <figure className="article-figure" data-inline-article-diagram><div className="article-figure-svg" dangerouslySetInnerHTML={{ __html: rawSvg }} /><figcaption>{children}</figcaption></figure>
-    : src
-      ? <figure className="post-visual">{children}</figure>
-      : <figure className="post-visual concept-motion-fallback"><ol>{scene.stages.map((stage) => <li key={stage.heading}><strong>{stage.heading}</strong><span>{stage.detail}</span></li>)}</ol><figcaption>{children}</figcaption></figure>;
+  const fallback = <NativeScenePoster scene={scene} caption={caption ?? children} imageSrc={src} />;
 
   return (
     <div ref={rootRef} className="inline-motion-root" data-inline-motion={assetId}>
@@ -60,8 +56,8 @@ export function AssetMotionFigure({ assetId, src, rawSvg, children }: Props) {
           <Suspense fallback={fallback}>
             <>
               <figure className="post-visual inline-motion-figure" aria-label={scene.title}>
-                <FigureMotionPlayer assetSrc={src} rawSvg={rawSvg} scene={scene} />
-                {rawSvg || (!src && !rawSvg) ? <figcaption>{children}</figcaption> : caption}
+                <FigureMotionPlayer imageSrc={src} scene={scene} />
+                {caption ?? <figcaption>{children}</figcaption>}
               </figure>
               <div className="inline-motion-print" aria-hidden="true">{fallback}</div>
             </>

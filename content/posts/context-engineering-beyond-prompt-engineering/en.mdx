@@ -15,8 +15,6 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 3
 ---
 
-import contextDiagram from "../../../src/assets/images/posts/context-engineering-en.svg?raw";
-
 ## The prompt fits on a Post-it
 
 Prompt engineering works on the wording of an instruction. Context engineering selects what the agent needs to interpret it: repository state, product decisions, conventions, permissions, and relevant history.
@@ -55,7 +53,7 @@ We organise the working context as a stack:
 4. **Relevant history**: decisions and failures that explain the current state.
 5. **Evidence**: tests, metrics, logs, and sources used to verify the output.
 
-<InlineArticleDiagram assetId="context-stack" svg={contextDiagram}>
+<InlineArticleDiagram assetId="context-stack">
   Every item must justify its presence, authority, and validity period.
 </InlineArticleDiagram>
 

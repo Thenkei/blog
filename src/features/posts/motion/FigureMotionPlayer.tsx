@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
 import { Player } from "@remotion/player";
-import type { PostDiagramVisualId } from "../content/types";
-import type { ArticleMediaId } from "../../../shared/components/ArticleMedia";
 import { FigureMotionComposition, FIGURE_DURATION, FIGURE_FPS } from "./FigureMotionComposition";
 import type { FigureScene } from "./figureScenes";
 
-export default function FigureMotionPlayer({ visualId, mediaId, assetSrc, rawSvg, scene }: {
-  visualId?: PostDiagramVisualId | undefined;
-  mediaId?: ArticleMediaId | undefined;
-  assetSrc?: string | undefined;
-  rawSvg?: string | undefined;
+export default function FigureMotionPlayer({ imageSrc, scene }: {
+  imageSrc?: string | undefined;
   scene: FigureScene;
 }) {
   const [compact, setCompact] = useState(false);
@@ -27,7 +22,7 @@ export default function FigureMotionPlayer({ visualId, mediaId, assetSrc, rawSvg
     <Player
       key={compact ? "compact" : "wide"}
       component={FigureMotionComposition}
-      inputProps={{ visualId, mediaId, assetSrc, rawSvg, scene, compact }}
+      inputProps={{ imageSrc, scene, compact }}
       durationInFrames={FIGURE_DURATION}
       fps={FIGURE_FPS}
       compositionWidth={compact ? 390 : 900}

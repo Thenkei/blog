@@ -1,19 +1,19 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import "../../src/i18n/config";
 import { InlineArticleDiagram } from "../../src/shared/components/InlineArticleDiagram";
 
 describe("InlineArticleDiagram", () => {
-  it("keeps the imported SVG accessible and renders its caption", () => {
+  it("renders a native storyboard and its caption without source SVG artwork", () => {
     render(
-      <InlineArticleDiagram
-        assetId="context-stack"
-        svg={`<svg role="img" aria-labelledby="diagram-title diagram-desc"><title id="diagram-title">Diagram title</title><desc id="diagram-desc">Diagram description</desc></svg>`}
-      >
+      <InlineArticleDiagram assetId="context-stack">
         Diagram caption
       </InlineArticleDiagram>,
     );
 
-    expect(screen.getByRole("img", { name: "Diagram title Diagram description" })).toBeInTheDocument();
+    expect(screen.getByRole("figure")).toBeInTheDocument();
+    expect(screen.getAllByText("Start with authority").length).toBeGreaterThan(1);
+    expect(screen.getAllByText("Verify the result").length).toBeGreaterThan(1);
     expect(screen.getByText("Diagram caption")).toBeInTheDocument();
   });
 });
