@@ -40,7 +40,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,avif,webp,jpg,json}"],
-        globIgnores: ["assets/posts/**", "assets/MotionPlayer-*.js"],
+        globIgnores: ["assets/posts/**", "assets/FigureMotionPlayer-*.js"],
         runtimeCaching: [
           {
             urlPattern: /\/blog\/assets\/posts\/.*$/,

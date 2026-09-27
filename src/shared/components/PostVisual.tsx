@@ -9,6 +9,7 @@ import {
   EditorialPostVisual,
   hasEditorialPostVisual,
 } from "./EditorialPostVisual";
+import { InlineMotionFigure } from "../../features/posts/motion/InlineMotionFigure";
 
 export type PostVisualVariant = "card" | "header" | "inline";
 
@@ -1705,5 +1706,9 @@ export function PostVisual({
 }
 
 export function ArticleDiagram({ visualId }: ArticleDiagramProps) {
-  return <PostVisual slug={visualId} variant="inline" visualId={visualId} />;
+  return <InlineMotionFigure visualId={visualId} />;
+}
+
+export function getDiagramCopy(visualId: PostDiagramVisualId, locale: PostLocale) {
+  return VISUAL_COPY[locale][visualId];
 }

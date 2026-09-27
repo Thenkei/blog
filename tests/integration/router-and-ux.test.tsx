@@ -9,6 +9,9 @@ import { ThemeProvider } from "../../src/app/providers/ThemeProvider";
 import { AppRouter } from "../../src/app/router";
 import { ArticleDiagram } from "../../src/shared/components/PostVisual";
 import { ArticleMedia } from "../../src/shared/components/ArticleMedia";
+import { InlineArticleDiagram } from "../../src/shared/components/InlineArticleDiagram";
+import { ImageMotionFigure } from "../../src/shared/components/ImageMotionFigure";
+import { ConceptMotionFigure } from "../../src/shared/components/ConceptMotionFigure";
 import { enhanceCodeBlocks } from "../../src/features/reading/enhanceCodeBlocks";
 
 const lazyContentTimeout = 3_000;
@@ -17,7 +20,7 @@ function renderApp(initialPath: string) {
   return render(
     <HelmetProvider>
       <ThemeProvider>
-        <MDXProvider components={{ ArticleDiagram, ArticleMedia }}>
+        <MDXProvider components={{ ArticleDiagram, ArticleMedia, InlineArticleDiagram, ImageMotionFigure, ConceptMotionFigure }}>
           <MemoryRouter initialEntries={[initialPath]}>
             <AppRouter />
           </MemoryRouter>

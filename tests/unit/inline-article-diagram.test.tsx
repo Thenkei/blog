@@ -6,6 +6,7 @@ describe("InlineArticleDiagram", () => {
   it("keeps the imported SVG accessible and renders its caption", () => {
     render(
       <InlineArticleDiagram
+        assetId="context-stack"
         svg={`<svg role="img" aria-labelledby="diagram-title diagram-desc"><title id="diagram-title">Diagram title</title><desc id="diagram-desc">Diagram description</desc></svg>`}
       >
         Diagram caption
