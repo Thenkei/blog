@@ -54,7 +54,7 @@ public async publishCodeCustomization(environmentId: string, userId: string) {
 }
 ```
 
-This decoupled the core engine updates from client logic. We could patch a security flaw in the core agent across 10,00s of projects instantly, without rebuilding a single client artifact.
+This decoupled the core engine updates from client logic. We could patch a security flaw in the core agent across thousands of projects instantly, without rebuilding a single client artifact.
 
 ## 2. Navigating the VPC: Static IPs and the NAT Gateway Tax
 
@@ -88,6 +88,8 @@ We needed a way to throttle this without dropping requests.
 
 1. **Concurrency Limits:** We had to strictly enforce `ReservedConcurrentExecutions` on the Lambdas. You cannot scale to 1,000 instances if your DB maxes out at 100 connections.
 2. **Aggressive Connection Dropping:** Unlike traditional Node.js servers that keep a pool warm indefinitely, our Serverless functions had to be ruthless about tearing down idle connections, lest a sleeping Lambda hold a crucial database connection hostage.
+
+<MotionScene id="cloud-lambda-pool-exhaustion" />
 
 ### The Downside
 

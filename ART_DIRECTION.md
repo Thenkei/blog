@@ -143,7 +143,12 @@ Les couleurs des diagrammes proviennent uniquement des tokens suivants :
 --visual-surface-strong
 --visual-hot
 --visual-danger
+--visual-ok
 ```
+
+`--visual-ok` porte la sortie correcte. Il vaut la couleur secondaire, sauf
+en Montagne et Rocket où celle-ci se confond avec `hot` : une couleur dédiée
+y garde succès et checkpoint distincts.
 
 Un diagramme ne doit pas introduire sa propre palette en dur, sauf nécessité sémantique validée et déclinée dans les quatre thèmes.
 
@@ -189,6 +194,51 @@ Exemple :
 ```mdx
 <ArticleMedia mediaId="backpressure-propagation" />
 ```
+
+### Scènes d'explication sur mesure
+
+Une scène sur mesure (`src/features/posts/motion/bespoke/scenes/<id>.tsx`) est
+une courte séquence Remotion de 8 à 20 secondes qui rend visible **un mécanisme
+précis d'un article** : le bug, l'échange de protocole, la file qui se vide, la
+frontière de décision. Lorsqu'un fichier porte l'identifiant d'une figure
+existante (`visualId`, `mediaId`, `assetId`), il remplace automatiquement le
+storyboard générique en trois étapes. `<MotionScene id="…" />` place une scène
+supplémentaire à un endroit précis de l'article.
+
+Contrat d'une scène :
+
+- elle montre ce que les paragraphes voisins expliquent, avec les données, le
+  code, les chiffres et le vocabulaire de l'article ; rien n'est inventé ;
+- le mouvement a un sens : une donnée, un temps, une pression ou une
+  responsabilité se déplace ; la forme préférée est l'avant/après ou le rejeu
+  de la même entrée sous une règle modifiée ;
+- deux canevas conçus séparément : large `960 × 420` et compact `540 × 520` ;
+- une narration en 3 à 6 temps (`beats`) décrit ce qui est à l'écran ; elle
+  sert aussi d'alternative textuelle dans le poster statique ;
+- le poster (`posterFrame`) est le même dessin figé : mouvement réduit,
+  impression, chargement ;
+- couleurs uniquement par tokens, sens toujours doublé d'un mot ou d'un glyphe ;
+- tous les mots à l'écran sont localisés, sauf code et identifiants.
+
+Langage visuel des scènes : des surfaces plutôt que des contours. Les acteurs
+sont des cartes levées (ombre douce, liseré fin, lavis de ton en tête) ; les
+structures sont des filets de 1 à 1,5 px ; les verdicts et mesures sont des
+puces ; le code est un éditeur sombre avec coloration syntaxique. À chaque
+instant, un seul élément porte la couleur à pleine intensité : la couleur est
+un événement, pas une décoration. Le mouvement montre les objets qui voyagent
+(paquet avec traîne, carte qui rejoint sa destination, lien qui transporte un
+flux) plutôt que des flèches qui apparaissent.
+
+Chaque thème donne sa propre atmosphère à la même scène, sans en changer le
+sens : papier à points et ombres portées en `light`, console nocturne et halos
+en `dark`, courbes de niveau qui dérivent en `mountain`, champ d'étoiles et
+orbite en `rocket`. Une scène peut ajouter une touche décorative propre à un
+thème (`scene-only-<thème>`), jamais une information.
+
+Le guide d'écriture et la boîte à outils sont décrits dans
+`src/features/posts/motion/bespoke/README.md`. La page de développement
+`/blog/scene-lab.html?id=<id>` affiche chaque temps d'une scène par thème et
+par canevas.
 
 ### Artwork de couverture
 
@@ -493,6 +543,7 @@ Si le diagramme ne fait qu’illustrer le sujet sans structurer une idée, le fa
 | Adaptation mobile | `src/styles/responsive.css` |
 | Hero et grille topographique | `src/shared/components/ParallaxHero.tsx`, `src/styles/base.css` |
 | Menu Apparence | `src/shared/components/ThemeSwitcher.tsx` |
+| Scènes Remotion sur mesure | `src/features/posts/motion/bespoke/` |
 
 ## Invariant final
 

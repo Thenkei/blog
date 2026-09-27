@@ -83,12 +83,39 @@ await pipeline(
 Si l'enrichissement DB domine la latence, un mapping purement séquentiel sous-utilise bêtement vos ressources. Une concurrence bornée explose le débit tout en gardant une empreinte mémoire prévisible.
 
 ```typescript
+async function* parallelMapOrdered(source, concurrency, mapper) {
+  const inFlight = new Map();
+  let nextIndex = 0;
+  let emitIndex = 0;
+
+  for await (const item of source) {
+    const index = nextIndex++;
+    inFlight.set(index, (async () => [index, await mapper(item)])());
+
+    if (inFlight.size >= concurrency) {
+      const [, value] = await inFlight.get(emitIndex);
+      inFlight.delete(emitIndex);
+      emitIndex += 1;
+      yield value;
+    }
+  }
+
+  while (inFlight.size > 0) {
+    const [, value] = await inFlight.get(emitIndex);
+    inFlight.delete(emitIndex);
+    emitIndex += 1;
+    yield value;
+  }
+}
+
 const enriched = parallelMapOrdered(events, 8, async (event) => {
   // Ne mettez pas la concurrence à 100 sauf si vous détestez viscéralement votre base de données.
   const extra = await db.getMetadata(event.userId);
   return { ...event, ...extra };
 });
 ```
+
+<MotionScene id="parallel-map-ordered" />
 
 **Règle :** ne jamais dépasser ce que le pool DB et le serializer aval peuvent absorber.
 

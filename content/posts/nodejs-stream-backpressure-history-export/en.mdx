@@ -185,6 +185,8 @@ const enriched = parallelMapOrdered(events, 8, async (event) => {
 });
 ```
 
+<MotionScene id="parallel-map-ordered" />
+
 **Rule:** parallelize enrichment only up to what your DB pool and downstream serializer can absorb.
 
 ## S3 multipart: two viable implementation patterns

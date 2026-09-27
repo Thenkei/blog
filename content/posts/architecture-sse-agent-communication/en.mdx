@@ -68,6 +68,8 @@ Corporate proxies and load balancers despise idle connections. If no data travel
 We think the connection is open. The agent thinks the connection is open. Both sides are staring at a dead phone line.
 **The Fix:** We had to implement aggressive application-level heartbeats. If the server doesn't send "ping" every 30 seconds, it's dead.
 
+<MotionScene id="sse-half-open-heartbeat" />
+
 ### 2. The Thundering Herd (Reconnect Storms)
 
 What happens when we deploy a new version of our central server? We gracefully drain connections. Suddenly, thousands of agents realize they are disconnected. In panic, they all immediately try to reconnect at the exact same millisecond. Your CPU melts.

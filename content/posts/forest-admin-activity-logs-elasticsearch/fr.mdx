@@ -65,6 +65,8 @@ Pour maintenir des garanties de performance strictes sous cette charge colossale
 - **Mappings Explicites** : Nous avons fortement optimisé nos index en utilisant des mappings explicites étroitement liés aux besoins de requêtage spécifiques de l'application, évitant ainsi à Elasticsearch de deviner les types et de gaspiller de la mémoire.
 - **Topologie du cluster** : Ce qui a commencé comme un simple nœud avec un réplica a évolué vers une architecture multinœud complexe, dotée de nœuds d'ingestion dédiés pour gérer le lourd débit d'écriture sans pénaliser les opérations de recherche.
 
+<MotionScene id="activity-logs-shard-evolution" />
+
 ## Le résultat
 
 Cette approche hybride nous a offert le meilleur des deux mondes. Nous avons conservé l'intégrité relationnelle stricte et les recherches rapides de métadonnées de PostgreSQL, tout en déléguant à Elasticsearch la lourde tâche de trier et d'explorer des charges utiles massives.

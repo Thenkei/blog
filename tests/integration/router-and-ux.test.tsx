@@ -12,6 +12,7 @@ import { ArticleMedia } from "../../src/shared/components/ArticleMedia";
 import { InlineArticleDiagram } from "../../src/shared/components/InlineArticleDiagram";
 import { ImageMotionFigure } from "../../src/shared/components/ImageMotionFigure";
 import { ConceptMotionFigure } from "../../src/shared/components/ConceptMotionFigure";
+import { MotionScene } from "../../src/shared/components/MotionScene";
 import { enhanceCodeBlocks } from "../../src/features/reading/enhanceCodeBlocks";
 
 const lazyContentTimeout = 3_000;
@@ -20,7 +21,7 @@ function renderApp(initialPath: string) {
   return render(
     <HelmetProvider>
       <ThemeProvider>
-        <MDXProvider components={{ ArticleDiagram, ArticleMedia, InlineArticleDiagram, ImageMotionFigure, ConceptMotionFigure }}>
+        <MDXProvider components={{ ArticleDiagram, ArticleMedia, InlineArticleDiagram, ImageMotionFigure, ConceptMotionFigure, MotionScene }}>
           <MemoryRouter initialEntries={[initialPath]}>
             <AppRouter />
           </MemoryRouter>
@@ -205,7 +206,8 @@ describe("routing and UX", () => {
 
     expect(
       await screen.findByRole("figure", {
-        name: /a document lifecycle makes drift visible/i,
+        // The bespoke scene replaces the generic storyboard once its chunk loads.
+        name: /review where reality changed/i,
       }),
     ).toBeInTheDocument();
   });

@@ -65,6 +65,8 @@ To maintain strict performance guarantees under this colossal load, we had to ev
 - **Explicit Mappings**: We heavily optimized our indices by using explicit mappings tightly coupled to the application's specific querying needs, preventing Elasticsearch from guessing types and wasting memory.
 - **Cluster Topology**: What started as a simple single node with a replica evolved into a complex multi-node architecture, complete with dedicated Ingest Nodes to handle the heavy write throughput without starving the search operations.
 
+<MotionScene id="activity-logs-shard-evolution" />
+
 ## The Result
 
 This hybrid approach gave us the best of both worlds. We retained the strict relational integrity and fast metadata lookups of PostgreSQL while offloading the heavy lifting of sorting and searching massive log payloads to Elasticsearch.

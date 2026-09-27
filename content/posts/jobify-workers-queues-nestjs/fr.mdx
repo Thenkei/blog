@@ -75,6 +75,8 @@ Ce point est critique : même comportement de timeout, même policy d'erreur, m�
 
 Les arguments sont stockés dans Redis (liste), traités dans l'ordre et dépilés dans `finally` pour éviter le blocage d'une lane en cas d'échec.
 
+<MotionScene id="jobify-sequential-lanes" />
+
 ## Cas concret : action-approvals-exporter.ts
 
 - job queue avec priorite low et timeout explicite;

@@ -96,6 +96,8 @@ In `queue-service.ts`, this maps to: find job by `jobId`, if state is delayed th
 
 Both debounce modes can keep the original queued payload if a job already exists for the same key. If later triggers contain semantically different arguments, you may execute stale data.
 
+<MotionScene id="jobify-payload-freshness" />
+
 **Rule: include every behavior-changing argument in makeJobId, or move mutable state lookup inside the processor.**
 
 ## Idempotency patterns that survived production

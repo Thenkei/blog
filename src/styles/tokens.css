@@ -259,6 +259,9 @@
   --visual-surface-strong: color-mix(in srgb, var(--surface-2) 86%, transparent);
   --visual-hot: #f0c277;
   --visual-danger: #ff7f8f;
+  /* "Correct outcome". Distinct from --visual-hot in every theme: in mountain
+     and rocket the secondary accent *is* the hot colour. */
+  --visual-ok: var(--accent-secondary);
 }
 
 [data-theme="light"] {
@@ -277,9 +280,11 @@
 [data-theme="mountain"] {
   --visual-hot: #f0c277;
   --visual-danger: #ff9279;
+  --visual-ok: #b9e27a;
 }
 
 [data-theme="rocket"] {
   --visual-hot: #ff8f5e;
   --visual-danger: #ff6f91;
+  --visual-ok: #7df0b4;
 }

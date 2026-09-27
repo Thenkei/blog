@@ -36,7 +36,7 @@ describe("in-article motion scenes", () => {
     for (const slug of readdirSync(posts)) {
       for (const locale of ["en", "fr"] as const) {
         const content = readFileSync(join(posts, slug, `${locale}.mdx`), "utf8");
-        expect(content, `${slug}/${locale}`).toMatch(/<(ArticleDiagram|ArticleMedia|InlineArticleDiagram|ImageMotionFigure|ConceptMotionFigure)\b/);
+        expect(content, `${slug}/${locale}`).toMatch(/<(ArticleDiagram|ArticleMedia|InlineArticleDiagram|ImageMotionFigure|ConceptMotionFigure|MotionScene)\b/);
         expect(content, `${slug}/${locale}`).not.toMatch(/\.svg(?:\?raw)?["']/);
       }
     }

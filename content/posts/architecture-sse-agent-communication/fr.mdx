@@ -68,6 +68,8 @@ Les proxys d'entreprise et les load balancers détestent les connexions inactive
 Nous pensons que la connexion est ouverte. L'agent pense qu'elle l'est aussi. Les deux se fixent en regardant une ligne téléphonique morte.
 **La solution :** Un ping agressif (heartbeat) au niveau de l'application. Si le serveur n'a pas lâché de "ping" toutes les 30 secondes, l'agent considère qu'il est cliniquement mort.
 
+<MotionScene id="sse-half-open-heartbeat" />
+
 ### 2. La tempête de reconnexions
 
 Que se passe-t-il lors du déploiement d'une nouvelle version de notre serveur central ? On draine élégamment les connexions. Mais soudainement, des milliers d'agents réalisent qu'ils ont été déconnectés. Dans un mouvement de panique générale, ils tentent tous de se reconnecter à la même milliseconde exacte. Le CPU de votre serveur s'évapore instantanément.

@@ -2,7 +2,7 @@
 title: "The Future of AI Engineering Isn't Better Agents. It's Better Hand-offs."
 subtitle: "What an on-duty workflow taught us about building AI systems that actually work."
 summary: "As agents move from isolated tools to connected workflows, the hard problem is preserving investigation state and human judgment across every hand-off."
-visualId: "bounded-ai-loop"
+visualId: "better-handoffs-ai-engineering"
 publishedAt: "2026-08-22"
 readTimeMinutes: 7
 tags:
@@ -39,7 +39,7 @@ One agent collects evidence, another knows the relevant codebase, and a third te
 
 The human still owns the decision. They choose which agent to call, in what order, and when there is enough evidence. Agents inspect, compare, and propose; their output alone does not authorise a risky change.
 
-<ArticleDiagram visualId="bounded-ai-loop" />
+<MotionScene id="better-handoffs-relay" />
 
 ## What happens when the agents call one another?
 
@@ -114,6 +114,8 @@ A hand-off should make six things explicit:
 Confidence alone is not enough. A low-risk diagnostic can run automatically; a production change may need review even when the hypothesis looks strong.
 
 Approving every tiny step recreates the bottleneck. Continuing without checkpoints can make errors costly. The system can run bounded diagnostics, then pause before an ambiguous or high-impact action. The person gets enough context to challenge the reasoning, choose an option, and add what the agents could not know.
+
+<MotionScene id="better-handoffs-checkpoints" />
 
 ## Better hand-offs are a form of system reliability
 

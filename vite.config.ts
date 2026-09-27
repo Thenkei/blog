@@ -9,6 +9,8 @@ import { VitePWA } from "vite-plugin-pwa";
 
 const postModulePattern = /\/content\/posts\/([^/]+)\/(en|fr)\.mdx$/;
 const postAssetPath = "src/assets/images/posts/";
+// Bespoke article scenes are per-post chunks: runtime-cached with the posts, never precached.
+const bespokeScenePattern = /\/motion\/bespoke\/scenes\/[^/]+\.tsx$/;
 
 export default defineConfig({
   base: "/blog/",
@@ -40,7 +42,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,avif,webp,jpg,json}"],
-        globIgnores: ["assets/posts/**", "assets/FigureMotionPlayer-*.js"],
+        globIgnores: ["assets/posts/**", "assets/FigureMotionPlayer-*.js", "assets/BespokePlayer-*.js"],
         runtimeCaching: [
           {
             urlPattern: /\/blog\/assets\/posts\/.*$/,
@@ -62,7 +64,7 @@ export default defineConfig({
       output: {
         chunkFileNames(chunk) {
           const containsPostModule = chunk.moduleIds.some((id) =>
-            postModulePattern.test(id),
+            postModulePattern.test(id) || bespokeScenePattern.test(id),
           );
 
           return containsPostModule

@@ -1,10 +1,13 @@
-import { Component, lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import { Component, lazy, Suspense, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { PostDiagramVisualId } from "../content/types";
 import type { ArticleMediaId } from "../../../shared/components/ArticleMedia";
 import { normalizeLocale } from "../../../shared/routing";
+import { BespokeMotionFigure } from "./bespoke/BespokeMotionFigure";
+import { hasBespokeScene } from "./bespoke/registry";
 import { getDiagramScene, getMediaScene, type FigureScene } from "./figureScenes";
 import { NativeScenePoster } from "./NativeScenePoster";
+import { useMotionGate } from "./useMotionGate";
 
 const FigureMotionPlayer = lazy(() => import("./FigureMotionPlayer"));
 
@@ -33,40 +36,19 @@ export function InlineMotionFigure(props: Props) {
   const scene: FigureScene = props.visualId
     ? getDiagramScene(props.visualId, locale)
     : getMediaScene(props.mediaId, locale);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  const [reduceMotion, setReduceMotion] = useState(false);
-
-  useEffect(() => {
-    const query = window.matchMedia?.("(prefers-reduced-motion: reduce)");
-    if (!query) return;
-    const update = () => setReduceMotion(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
-
-  useEffect(() => {
-    if (!rootRef.current) return;
-    if (typeof IntersectionObserver === "undefined") {
-      setVisible(true);
-      return;
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry?.isIntersecting) {
-        setVisible(true);
-        observer.disconnect();
-      }
-    }, { rootMargin: "120px", threshold: 0.15 });
-    observer.observe(rootRef.current);
-    return () => observer.disconnect();
-  }, [id]);
-
   const fallback = <NativeScenePoster scene={scene} caption={scene.caption} />;
 
+  // Bespoke scenes carry their own caption, written for the mechanism they show.
+  if (hasBespokeScene(id)) return <BespokeMotionFigure id={id} fallback={fallback} />;
+  return <GenericMotionFigure id={id} scene={scene} fallback={fallback} />;
+}
+
+function GenericMotionFigure({ id, scene, fallback }: { id: string; scene: FigureScene; fallback: ReactNode }) {
+  const { ref, animate } = useMotionGate(id);
+
   return (
-    <div ref={rootRef} className="inline-motion-root" data-inline-motion={id}>
-      {visible && !reduceMotion ? (
+    <div ref={ref} className="inline-motion-root" data-inline-motion={id}>
+      {animate ? (
         <FigureErrorBoundary key={id} fallback={fallback} id={id}>
           <Suspense fallback={fallback}>
             <>

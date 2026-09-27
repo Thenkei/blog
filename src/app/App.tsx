@@ -8,6 +8,7 @@ import { ArticleMedia } from "../shared/components/ArticleMedia";
 import { InlineArticleDiagram } from "../shared/components/InlineArticleDiagram";
 import { ImageMotionFigure } from "../shared/components/ImageMotionFigure";
 import { ConceptMotionFigure } from "../shared/components/ConceptMotionFigure";
+import { MotionScene } from "../shared/components/MotionScene";
 
 import type { ComponentProps } from "react";
 
@@ -21,6 +22,7 @@ const components = {
   InlineArticleDiagram,
   ImageMotionFigure,
   ConceptMotionFigure,
+  MotionScene,
 };
 
 export default function App() {

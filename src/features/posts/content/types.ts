@@ -10,6 +10,7 @@ export const postVisualIds = [
   "agent-battle-2026",
   "frontier-model-race-2026",
   "bounded-ai-loop",
+  "better-handoffs-ai-engineering",
   "ai-force-multiplier",
   "ai-is-not-immaterial",
   "sse-outbound-channel",
@@ -41,10 +42,11 @@ export const postVisualIds = [
 
 export type PostVisualId = (typeof postVisualIds)[number];
 
-// Some article visuals are raster artwork embedded in the MDX content rather
-// than SVG diagrams rendered by PostVisual.
+// Some article visuals are raster editorial artwork rather than SVG diagrams
+// rendered by PostVisual; they have no diagram fallback of their own.
 export const postImageVisualIds = [
   "ai-is-not-immaterial",
+  "better-handoffs-ai-engineering",
   "frontier-model-race-2026",
 ] as const satisfies readonly PostVisualId[];
 

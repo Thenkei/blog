@@ -1,0 +1,210 @@
+/* Bespoke article scenes (src/features/posts/motion/bespoke).
+   Composition units: 960×540 wide (stage 420), 540×720 compact (stage 520).
+   Every colour below is a scene token derived per theme; the scenes only use
+   TONE / tint() and these tokens, so a theme can restyle all of them at once. */
+
+.bespoke-scene {
+  /* night console (default = dark) */
+  --scene-bg-a: #121c33;
+  --scene-bg-b: #0a1120;
+  --scene-glow-top: .16;
+  --scene-glow-corner: .10;
+  --scene-dot: rgba(172, 191, 220, .13);
+  --scene-card: #16223b;
+  --scene-card-edge: rgba(172, 191, 220, .12);
+  --scene-shadow: rgba(2, 6, 18, .55);
+  --scene-glow: .9;
+  --scene-ink: var(--text-primary);
+  --scene-ink-soft: var(--text-secondary);
+  --scene-hairline: rgba(172, 191, 220, .28);
+  --scene-strip: rgba(13, 21, 38, .96);
+  --scene-code-bg: #0b1324;
+  --scene-code-edge: rgba(172, 191, 220, .10);
+  --scene-code-ink: #d9e4f5;
+  --scene-code-muted: #7a8cad;
+  --scene-code-kw: #7cc4ff;
+  --scene-code-str: #9fe6c6;
+  --scene-code-num: #f3c27d;
+  --scene-code-com: #66789a;
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--scene-bg-b);
+  color: var(--scene-ink);
+}
+
+/* drafting paper: shadows instead of glow, dark editor for contrast */
+[data-theme="light"] .bespoke-scene {
+  --scene-bg-a: #fdfdfb;
+  --scene-bg-b: #eef3fa;
+  --scene-glow-top: .07;
+  --scene-glow-corner: .05;
+  --scene-dot: rgba(18, 36, 63, .14);
+  --scene-card: #ffffff;
+  --scene-card-edge: rgba(18, 36, 63, .09);
+  --scene-shadow: rgba(30, 56, 100, .16);
+  --scene-glow: 0;
+  --scene-hairline: rgba(18, 36, 63, .22);
+  --scene-strip: rgba(255, 255, 255, .97);
+  --scene-code-bg: #111c30;
+  --scene-code-edge: rgba(18, 36, 63, .2);
+  --scene-code-ink: #dde6f3;
+  --scene-code-muted: #8193b2;
+  --scene-code-kw: #7cc4ff;
+  --scene-code-str: #8fe0bb;
+  --scene-code-num: #f0b86e;
+  --scene-code-com: #6c7d9c;
+}
+
+/* topographic map: warm contour lines on deep green */
+[data-theme="mountain"] .bespoke-scene {
+  --scene-bg-a: #163631;
+  --scene-bg-b: #0b1d1a;
+  --scene-glow-top: .13;
+  --scene-glow-corner: .10;
+  --scene-dot: rgba(184, 209, 200, .12);
+  --scene-card: #173a34;
+  --scene-card-edge: rgba(184, 209, 200, .12);
+  --scene-shadow: rgba(2, 12, 10, .5);
+  --scene-glow: .6;
+  --scene-hairline: rgba(184, 209, 200, .28);
+  --scene-strip: rgba(12, 31, 28, .96);
+  --scene-code-bg: #0b1f1b;
+  --scene-code-edge: rgba(184, 209, 200, .1);
+  --scene-code-ink: #e2efe8;
+  --scene-code-muted: #83a497;
+  --scene-code-kw: #7de0bf;
+  --scene-code-str: #f0c277;
+  --scene-code-num: #b9e27a;
+  --scene-code-com: #6a8a7e;
+}
+
+/* deep space: stars, strong glow, violet horizon */
+[data-theme="rocket"] .bespoke-scene {
+  --scene-bg-a: #0e1236;
+  --scene-bg-b: #04060f;
+  --scene-glow-top: .12;
+  --scene-glow-corner: .22;
+  --scene-dot: rgba(178, 190, 223, .10);
+  --scene-card: #121834;
+  --scene-card-edge: rgba(178, 190, 223, .14);
+  --scene-shadow: rgba(0, 0, 8, .6);
+  --scene-glow: 1;
+  --scene-hairline: rgba(178, 190, 223, .28);
+  --scene-strip: rgba(8, 11, 28, .96);
+  --scene-code-bg: #080b1d;
+  --scene-code-edge: rgba(178, 190, 223, .12);
+  --scene-code-ink: #e6ebff;
+  --scene-code-muted: #7f8aaf;
+  --scene-code-kw: #8be4ff;
+  --scene-code-str: #d6a4ff;
+  --scene-code-num: #7df0b4;
+  --scene-code-com: #66719a;
+}
+
+/* Theme atmospheres (Backdrop.tsx draws them all; exactly one is shown). */
+.bespoke-scene .scene-bd { display: none; }
+.bespoke-scene .scene-bd-grid { display: inline; }
+[data-theme="mountain"] .bespoke-scene .scene-bd-grid,
+[data-theme="rocket"] .bespoke-scene .scene-bd-grid { display: none; }
+[data-theme="mountain"] .bespoke-scene .scene-bd-mountain,
+[data-theme="rocket"] .bespoke-scene .scene-bd-rocket { display: inline; }
+
+/* Theme flourishes a scene may add: <g className="scene-only-rocket">…</g>.
+   Decorative only; never put information in a single theme. */
+.bespoke-scene .scene-only-light,
+.bespoke-scene .scene-only-mountain,
+.bespoke-scene .scene-only-rocket { display: none; }
+[data-theme="light"] .bespoke-scene .scene-only-light,
+[data-theme="mountain"] .bespoke-scene .scene-only-mountain,
+[data-theme="rocket"] .bespoke-scene .scene-only-rocket { display: inline; }
+[data-theme="light"] .bespoke-scene .scene-only-dark,
+[data-theme="mountain"] .bespoke-scene .scene-only-dark,
+[data-theme="rocket"] .bespoke-scene .scene-only-dark { display: none; }
+
+/* Depth: cards cast shadows, live signals glow in their own colour. */
+.bespoke-scene .scene-card { filter: drop-shadow(0 8px 18px var(--scene-shadow)) drop-shadow(0 1px 1px var(--scene-shadow)); }
+.bespoke-scene .scene-card { stroke: var(--scene-card-edge); stroke-width: 1px; }
+.bespoke-scene .scene-glow { filter: drop-shadow(0 0 calc(7px * var(--scene-glow)) color-mix(in srgb, currentColor calc(70% * var(--scene-glow)), transparent)); }
+[data-theme="light"] .bespoke-scene .scene-glow { filter: drop-shadow(0 2px 5px color-mix(in srgb, currentColor 28%, transparent)); }
+
+.bespoke-scene-composition {
+  background: var(--visual-surface);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+.bespoke-scene-stage { display: block; width: 100%; height: auto; aspect-ratio: 960 / 420; }
+.bespoke-scene-compact .bespoke-scene-stage { aspect-ratio: 540 / 520; }
+
+.bespoke-scene-kicker {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: calc(100% - 44px);
+  color: var(--scene-ink);
+  font: 600 13px/1.2 var(--font-display);
+  letter-spacing: .02em;
+  opacity: .88;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bespoke-scene-kicker i {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-primary) 20%, transparent);
+}
+
+.bespoke-scene-narration {
+  position: absolute;
+  inset: 420px 0 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 14px;
+  padding: 16px 32px 18px;
+  box-sizing: border-box;
+  border-top: 1px solid var(--scene-card-edge);
+  background: var(--scene-strip);
+}
+
+.bespoke-scene-compact .bespoke-scene-narration { inset-block-start: 520px; padding: 18px 26px 22px; gap: 16px; }
+
+.bespoke-scene-segments { display: flex; gap: 6px; }
+.bespoke-scene-segments span { flex: 1; height: 3px; border-radius: 3px; overflow: hidden; background: color-mix(in srgb, var(--scene-ink) 12%, transparent); }
+.bespoke-scene-segments i { display: block; height: 100%; background: var(--accent-primary); transform-origin: left; }
+.bespoke-scene-segments span.is-active i { background: var(--accent-secondary); }
+
+.bespoke-scene-caption { display: flex; gap: 18px; align-items: baseline; min-width: 0; }
+.bespoke-scene-beat-index { flex: none; color: var(--accent-primary); font: 600 13px var(--font-mono); letter-spacing: .08em; }
+.bespoke-scene-lines { display: grid; min-width: 0; }
+.bespoke-scene-lines p { grid-area: 1 / 1; margin: 0; color: var(--scene-ink); font: 500 22px/1.32 var(--font-display); letter-spacing: -.005em; text-wrap: balance; }
+.bespoke-scene-compact .bespoke-scene-lines p { font-size: 24px; }
+
+/* Static poster: same drawing, narration listed as an ordered text alternative. */
+.bespoke-scene-poster .bespoke-scene { height: auto; }
+.bespoke-scene-beats { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--divider); }
+.bespoke-scene-beats li { position: relative; display: grid; align-content: start; gap: 6px; padding: 16px 18px 18px; }
+.bespoke-scene-beats li + li::before { content: ""; position: absolute; inset: 16px auto 16px 0; width: 1px; background: var(--divider); }
+.bespoke-scene-beats li > span { color: var(--accent-primary); font: 600 11px var(--font-mono); letter-spacing: .08em; }
+.bespoke-scene-beats p { margin: 0; color: var(--text-secondary); font: 500 14px/1.45 var(--font-main); }
+
+.bespoke-scene-media { margin-block: 2rem 0; }
+.bespoke-scene-media img { display: block; width: 100%; height: auto; border-radius: 18px; }
+.bespoke-scene-loading { aspect-ratio: 16 / 9; margin-block: 2rem; border-radius: 18px; background: var(--visual-surface); }
+
+@media (max-width: 640px) {
+  .bespoke-scene-poster .bespoke-scene-kicker { top: 9px; left: 11px; gap: 6px; font-size: 10px; }
+  .bespoke-scene-poster .bespoke-scene-kicker i { width: 5px; height: 5px; box-shadow: none; }
+  .bespoke-scene-beats { grid-auto-flow: row; }
+  .bespoke-scene-beats li { padding: 12px 16px; }
+  .bespoke-scene-beats li + li::before { inset: 0 16px auto; width: auto; height: 1px; }
+}

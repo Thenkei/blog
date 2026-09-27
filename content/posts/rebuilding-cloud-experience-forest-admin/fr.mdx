@@ -54,7 +54,7 @@ public async publishCodeCustomization(environmentId: string, userId: string) {
 }
 ```
 
-Cela découple complètement le cœur du moteur, du code client. S'il fallait patcher une faille de sécu dans l'agent, on mettait à jour la Layer générique pour 10 000 projets d'un coup, sans recompiler un seul build client.
+Cela découple complètement le cœur du moteur, du code client. S'il fallait patcher une faille de sécu dans l'agent, on mettait à jour la Layer générique pour des milliers de projets d'un coup, sans recompiler un seul build client.
 
 ## 2. L'enfer du VPC : IP statiques et taxe du NAT gateway
 
@@ -88,6 +88,8 @@ Il fallait trouver comment limiter la casse sans purement abandonner les requêt
 
 1. **Limites de Concurrence :** Nous avons dû configurer agressivement le `ReservedConcurrentExecutions` des Lambdas. Impossible de scale à 1000 instances si la base plafonne à 100 connexions.
 2. **Fermeture Agressive des Connexions :** Contrairement à un serveur Node.js classique (qui garde son pool de connexion au chaud tout le temps), nos fonctions Serverless devaient être impitoyables et tuer les connexions inactives, de peur qu'une Lambda endormie ne prenne en otage un _socket_ vital sur la DB du client.
+
+<MotionScene id="cloud-lambda-pool-exhaustion" />
 
 ### Les Dommages Collatéraux
 

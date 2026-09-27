@@ -68,6 +68,8 @@ Utilisé dans `cloud-synchronize-data-service.ts`. Si un job delayed existe déj
 
 Les deux modes peuvent conserver le payload initial lorsqu'un job existe déjà pour la même clé. Si les nouveaux déclencheurs portent des arguments différents, vous pouvez exécuter des données obsolètes.
 
+<MotionScene id="jobify-payload-freshness" />
+
 **Règle : inclure tous les arguments qui changent le comportement dans `makeJobId`, ou relire l'état le plus récent dans le processor.**
 
 ## Patterns d'idempotence robustes
