@@ -2,6 +2,7 @@ import { useId, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { PostLocale } from "../../features/posts/content";
 import { normalizeLocale } from "../routing";
+import { InlineMotionFigure } from "../../features/posts/motion/InlineMotionFigure";
 
 export const articleMediaIds = [
   "sse-polling-vs-stream",
@@ -691,7 +692,7 @@ const SCENES: Record<ArticleMediaId, (props: MediaSceneProps) => ReactNode> = {
   "document-lifecycle-motion": DocumentLifecycleMotion,
 };
 
-export function ArticleMedia({ mediaId }: { mediaId: ArticleMediaId }) {
+export function StaticArticleMedia({ mediaId }: { mediaId: ArticleMediaId }) {
   const { i18n } = useTranslation();
   const locale = normalizeLocale(i18n.resolvedLanguage ?? i18n.language);
   const copy = MEDIA_COPY[locale][mediaId];
@@ -716,4 +717,12 @@ export function ArticleMedia({ mediaId }: { mediaId: ArticleMediaId }) {
       <figcaption>{copy.caption}</figcaption>
     </figure>
   );
+}
+
+export function ArticleMedia({ mediaId }: { mediaId: ArticleMediaId }) {
+  return <InlineMotionFigure mediaId={mediaId} />;
+}
+
+export function getArticleMediaCopy(mediaId: ArticleMediaId, locale: PostLocale) {
+  return MEDIA_COPY[locale][mediaId];
 }

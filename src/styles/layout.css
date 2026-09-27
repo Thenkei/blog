@@ -281,6 +281,85 @@ article th {
   background: color-mix(in srgb, var(--surface-raised) 92%, var(--visual-surface));
 }
 
+.inline-motion-root > .post-visual {
+  margin-block: 2rem;
+}
+
+.inline-motion-figure [data-testid="player"] {
+  background: var(--visual-surface);
+}
+
+.figure-motion-art > .post-system-visual,
+.figure-motion-art > .article-media {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.figure-motion-art .post-system-visual-svg,
+.figure-motion-art .article-media-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.figure-motion-art figcaption {
+  display: none;
+}
+
+.figure-motion-raw-svg,
+.figure-motion-raw-svg > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.concept-motion-fallback ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 1.5rem;
+  list-style: none;
+}
+
+.concept-motion-fallback li {
+  display: grid;
+  gap: .5rem;
+  padding: 1rem;
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  color: var(--text-secondary);
+}
+
+.concept-motion-fallback li strong {
+  color: var(--text-primary);
+}
+
+@media (max-width: 640px) {
+  .concept-motion-fallback ol {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inline-motion-print {
+  display: none;
+}
+
+@media print {
+  .inline-motion-figure {
+    display: none;
+  }
+
+  .inline-motion-print {
+    display: block;
+  }
+}
+
 .article-figure {
   margin: 2rem 0;
   overflow: hidden;

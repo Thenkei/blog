@@ -6,6 +6,8 @@ import { AppRouter } from "./router";
 import { ArticleDiagram } from "../shared/components/PostVisual";
 import { ArticleMedia } from "../shared/components/ArticleMedia";
 import { InlineArticleDiagram } from "../shared/components/InlineArticleDiagram";
+import { ImageMotionFigure } from "../shared/components/ImageMotionFigure";
+import { ConceptMotionFigure } from "../shared/components/ConceptMotionFigure";
 
 import type { ComponentProps } from "react";
 
@@ -17,6 +19,8 @@ const components = {
   ArticleDiagram,
   ArticleMedia,
   InlineArticleDiagram,
+  ImageMotionFigure,
+  ConceptMotionFigure,
 };
 
 export default function App() {

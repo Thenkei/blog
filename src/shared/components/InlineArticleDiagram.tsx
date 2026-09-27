@@ -1,18 +1,13 @@
 import type { ReactNode } from "react";
+import { AssetMotionFigure } from "../../features/posts/motion/AssetMotionFigure";
+import type { AssetSceneId } from "../../features/posts/motion/figureScenes";
 
 type InlineArticleDiagramProps = {
   svg: string;
+  assetId: AssetSceneId;
   children: ReactNode;
 };
 
-export function InlineArticleDiagram({ svg, children }: InlineArticleDiagramProps) {
-  return (
-    <figure className="article-figure" data-inline-article-diagram>
-      <div
-        className="article-figure-svg"
-        dangerouslySetInnerHTML={{ __html: svg }}
-      />
-      <figcaption>{children}</figcaption>
-    </figure>
-  );
+export function InlineArticleDiagram({ svg, assetId, children }: InlineArticleDiagramProps) {
+  return <AssetMotionFigure assetId={assetId} rawSvg={svg}>{children}</AssetMotionFigure>;
 }

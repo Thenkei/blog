@@ -38,7 +38,7 @@ Cela nous imposait un modèle à double rôle merveilleusement complexe vis-à-v
 
 Ce dédoublement de personnalité est ultra-classique pour une control plane SaaS. C'est aussi l'endroit exact où l'architecture s'effondre dans un grand fracas si les frontières protocolaires deviennent floues. Creusons un peu.
 
-<figure className="post-visual">
+<ImageMotionFigure assetId="identity-federation" src={federationOverviewDiagram}>
   <img
     src={federationOverviewDiagram}
     alt="Vue d'ensemble de la fédération d'identité montrant Forest Admin Server comme SP en amont et IdP en aval."
@@ -49,7 +49,7 @@ Ce dédoublement de personnalité est ultra-classique pour une control plane Saa
     Topologie globale : fédération amont vers Forest, puis accès délégué aval de
     Forest vers les agents.
   </figcaption>
-</figure>
+</ImageMotionFigure>
 
 ## Pourquoi ce modèle de "l'agent double" est critique
 
@@ -70,7 +70,7 @@ Forest Admin initie la connexion vers un IdP amont.
 - En **SAML**, Forest agit comme SP et consomme une assertion SAML signée.
 - En **OIDC**, Forest agit comme RP/client OAuth et consomme ID token + access token (typiquement en Authorization Code flow).
 
-<figure className="post-visual">
+<ImageMotionFigure assetId="oidc-code-flow" src={oidcAuthorizationCodeFlowDiagram}>
   <img
     src={oidcAuthorizationCodeFlowDiagram}
     alt="Sequence OIDC authorization code entre navigateur, Forest Admin Server et fournisseur OIDC amont."
@@ -81,7 +81,7 @@ Forest Admin initie la connexion vers un IdP amont.
     Détail du flux OIDC amont : redirections, callback code, échange de token et
     vérification de signature.
   </figcaption>
-</figure>
+</ImageMotionFigure>
 
 Contrôles indispensables à cette frontière :
 
@@ -112,7 +112,7 @@ Contrat minimal du token aval :
 - `jti` : identifiant anti-rejeu si nécessaire
 - `scope` ou claims de permissions en moindre privilège
 
-<figure className="post-visual">
+<ImageMotionFigure assetId="agent-token-validation" src={downstreamAgentValidationFlowDiagram}>
   <img
     src={downstreamAgentValidationFlowDiagram}
     alt="Flux de validation bearer aval où Forest émet un token et l'agent valide la signature et les claims avant allow ou deny."
@@ -123,7 +123,7 @@ Contrat minimal du token aval :
     Chemin de contrôle aval : chaque vérification de claim est explicite et la
     décision est observable.
   </figcaption>
-</figure>
+</ImageMotionFigure>
 
 Cette frontière répond à : "Cette requête frontend peut-elle appeler cet agent précis (hégbergé chez le client) dans ce tenant précis ?"
 
@@ -165,7 +165,7 @@ Pour une control plane, garder la séparation explicite :
 - comme authorization grant
 - comme mécanisme d'authentification client
 
-<figure className="post-visual">
+<ImageMotionFigure assetId="saml-token-bridge" src={samlRfc7522BridgeFlowDiagram}>
   <img
     src={samlRfc7522BridgeFlowDiagram}
     alt="Pont SAML vers OAuth2 via RFC 7522 où Forest valide une assertion puis effectue un échange de token contraint."
@@ -176,7 +176,7 @@ Pour une control plane, garder la séparation explicite :
     Pont RFC 7522 : validation stricte de l'assertion SAML amont avant échange et
     émission de l'accès aval.
   </figcaption>
-</figure>
+</ImageMotionFigure>
 
 C'est central pour les ponts SAML entreprise vers API OAuth2/OIDC. La plateforme peut accepter une assertion SAML amont puis l'échanger contre des tokens compatibles OAuth2, sous politique stricte.
 
