@@ -5,6 +5,7 @@ import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/layout.css";
 import "./styles/reading.css";
+import "./styles/post-motion.css";
 import "./styles/components.css";
 import "./styles/footer.css";
 import "./styles/animations.css";

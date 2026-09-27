@@ -27,6 +27,7 @@ import { ReadingProgressBar } from "../reading/ReadingProgressBar";
 import { TableOfContents } from "../reading/TableOfContents";
 import { CopyLinkButtons } from "../reading/CopyLinkButtons";
 import { enhanceCodeBlocks } from "../reading/enhanceCodeBlocks";
+import { PostMotion } from "./motion/PostMotion";
 
 type PostPageProps = {
   locale: PostLocale;
@@ -181,6 +182,7 @@ export function PostPage({ locale, slug }: PostPageProps) {
           <article ref={articleRef}>
             <TableOfContents articleRef={articleRef} contentKey={contentKey} />
             <CopyLinkButtons articleRef={articleRef} contentKey={contentKey} />
+            <PostMotion slug={post.slug} locale={locale} title={post.title} />
             {post ? (
               <Suspense key={`${locale}:${slug}`} fallback={<div aria-busy="true" />}>
                 <div className="post-document">

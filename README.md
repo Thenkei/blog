@@ -40,6 +40,10 @@ The MDX frontmatter drives whether the article is available in the application:
   must share both visibility and draft status.
 - Keep `publishedAt` as the date displayed by the application and emitted in
   the generated RSS feed and sitemap.
+- Add an English and French three-beat sequence in
+  `src/features/posts/motion/stories.ts`. The coverage test requires a sequence
+  for every slug. Each beat should state a concrete step in the article's
+  argument, not repeat the section heading.
 
 Before opening the change, run `npm run check` and verify the new article in
 both `/en` and `/fr`, including its direct `/posts/<slug>` route. The build
@@ -58,6 +62,12 @@ npm run typecheck
 npm run test
 npm run build
 ```
+
+The article motion uses Remotion's client-side Player. It loads only when the
+figure enters the viewport, plays once, and offers replay and scrubbing. Narrow
+screens use a vertical composition. Readers who request reduced motion see the
+same three beats as a static figure. A failed Player load also falls back to
+that figure, so the article text remains available.
 
 ## Design System (2026 Redesign)
 
