@@ -204,7 +204,7 @@ describe("routing and UX", () => {
     });
 
     expect(
-      await screen.findByRole("img", {
+      await screen.findByRole("figure", {
         name: /a document lifecycle makes drift visible/i,
       }),
     ).toBeInTheDocument();

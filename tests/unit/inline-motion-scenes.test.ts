@@ -16,9 +16,11 @@ describe("in-article motion scenes", () => {
       for (const scene of scenes) {
         expect(scene.stages).toHaveLength(3);
         expect(scene.title).toBeTruthy();
+        expect(scene.motif).toMatch(/^(pipeline|stack|network|queue|gauge|branch|orbit|exchange|comparison|route)$/);
         for (const stage of scene.stages) {
           expect(stage.heading).toBeTruthy();
           expect(stage.detail).toBeTruthy();
+          expect(stage.nodeLabel).toBeTruthy();
           expect(stage.detail).not.toMatch(/undefined/);
           expect(stage.x).toBeGreaterThanOrEqual(0);
           expect(stage.x).toBeLessThanOrEqual(1);
@@ -35,6 +37,7 @@ describe("in-article motion scenes", () => {
       for (const locale of ["en", "fr"] as const) {
         const content = readFileSync(join(posts, slug, `${locale}.mdx`), "utf8");
         expect(content, `${slug}/${locale}`).toMatch(/<(ArticleDiagram|ArticleMedia|InlineArticleDiagram|ImageMotionFigure|ConceptMotionFigure)\b/);
+        expect(content, `${slug}/${locale}`).not.toMatch(/\.svg(?:\?raw)?["']/);
       }
     }
   });
