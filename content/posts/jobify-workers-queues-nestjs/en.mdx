@@ -14,7 +14,7 @@ seriesId: "async-workloads-at-scale"
 seriesOrder: 2
 ---
 
-If you are already running `@nestjs/bullmq`, congratulations, you've survived the initial boss fight. But you can keep the exact same runtime stack and still gain infinitely stronger job contracts. The key idea is to stop writing boilerplate and add a thin, ruthless `jobify` layer that standardizes enqueue, processor registration, timeouts, retries, tracing, and sequencing. No more silent failures at 4 AM.
+If you are already running `@nestjs/bullmq`, congratulations, you've survived the initial boss fight. You can keep the exact same runtime stack and still get much stricter job contracts. The key idea is to stop writing boilerplate and add a thin `jobify` layer that standardizes enqueue, processor registration, timeouts, retries, tracing, and sequencing. No more silent failures at 4 AM.
 
 **Series: Async Workloads at Scale (Part 2/3)**
 
@@ -58,7 +58,7 @@ export class ExportsProcessor extends WorkerHost {
 }
 ```
 
-This works. It's the "Hello World" of queues. But as your job count grows, you usually end up with a sprawling mess: duplicated queue options, wildly weak typing between the producer and consumer, and ad-hoc behavior for idempotency, debounce, and sequential execution. Basically, it's a structural time bomb.
+This works. It's the "Hello World" of queues. But as your job count grows, you usually end up with a sprawling mess: duplicated queue options, weak typing between the producer and consumer, and ad-hoc behavior for idempotency, debounce, and sequential execution. Every new job copies the options of the previous one, mistakes included.
 
 ## What the jobify layer adds
 
@@ -82,7 +82,7 @@ const runExport = jobify(exportApprovals, {
 await runExport({ userId, projectId, environmentId, from, to });
 ```
 
-## Queue behavior centralized in one place (For your own sanity)
+## Queue behavior centralized in one place
 
 In `queue-service.ts`, enqueue behavior is explicit and reusable:
 
@@ -91,7 +91,7 @@ In `queue-service.ts`, enqueue behavior is explicit and reusable:
 - **repeat safety:** old repeatable configs are removed to avoid duplicated schedules after redeploy.
 - **queue hygiene:** `removeOnComplete` and `removeOnFail` are defaulted to prevent storage drift.
 
-## Worker execution model is wrapped, not ad-hoc
+## Worker execution wrapped in a fixed order
 
 `worker-service.ts` applies wrappers in strict order: monitoring -> onError -> timeout -> work.
 
@@ -145,7 +145,7 @@ const runSyncUser = registerSequential({
 
 ## Concrete export case: action approvals
 
-`action-approvals-exporter.ts` shows the full path: queue kickoff, streamed export, signed link, and user notification.
+`action-approvals-exporter.ts` shows the full path: queue kickoff, streamed export, signed link (24-hour TTL), and user notification.
 
 - queued with `JobPriority.low` and explicit timeout from env.
 - trace disabled for heavy long-running exports.
@@ -162,7 +162,7 @@ For our Fully Hosted Cloud version, we rely on heavily orchestrated jobs to prev
 
 ## How NestJS benefits from this pattern
 
-Keep Nest decorators and modules. Add a small internal package that exposes `jobify`, `queueService`, and `workerService` adapters.
+Keep Nest decorators and modules. Add a small internal package that exposes `jobify`, `queueService`, and `workerService` adapters, and optionally `jobifySequential`.
 
 ```typescript
 @Injectable()
@@ -194,16 +194,16 @@ export class JobifyFactory {
 2. Move queue options from callsites to JobOptions defaults.
 3. Add deterministic `makeJobId` for idempotency and debounce.
 4. Introduce sequential lanes only where write-order is a hard requirement.
-5. Roll out dashboards for queue depth, active count, failures, and job duration percentile before broad adoption.
+5. Roll out dashboards for queue depth, active count, failures, and job duration percentiles (p95/p99) before broad adoption.
 
-## Design Rules (Break these and you will suffer)
+## Design rules
 
 - **Do not expose BullMQ Job objects** to business code by default; pass typed args instead. Otherwise your domain logic becomes tightly coupled to BullMQ's internals, and you'll weep during the next major version bump.
 - **Always enforce timeout defaults**; shutdown behavior depends on bounded job execution.
 - **Keep producer and consumer contracts in one place** (jobify callsite), not spread across modules.
 - **Treat sequential lanes as scarce resources**; only use them where correctness requires serialization.
 
-The strongest outcome of this approach is not only throughput. It is operational determinism: same queue semantics, same monitoring contract, same error surface, across every background workflow.
+What this approach buys you is operational determinism: when a job fails at 4 AM, it fails like every other job, with the same timeout, the same error hook, and the same monitoring labels.
 
 ## Series navigation
 

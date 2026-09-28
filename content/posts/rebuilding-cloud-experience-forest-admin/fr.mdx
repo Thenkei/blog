@@ -21,19 +21,19 @@ Il arrive un moment dans toute boîte B2B où le management décide que le modè
 
 Et puis le couperet est tombé : _« Il nous faut une version cloud 100 % hébergée pour que les petites équipes fassent leur onboarding en deux clics. »_
 
-Sur le papier, packager une offre managée pour des milliers de projets, ça a l'air bête. On monte des clusters Kubernetes, on isole les namespaces, et on laisse l'orchestrateur faire la magie. Dans la vraie vie, gérer K8s pour des milliers de micro-déploiements client nécessite une armée de SREs (Site Reliability Engineers) que nous refusions de dédier à ça. Un EC2 par client ? Un suicide financier.
+Sur le papier, packager une offre managée pour des milliers de projets, ça a l'air bête. On monte des clusters Kubernetes, on isole les namespaces, et on laisse l'orchestrateur faire la magie. Dans la vraie vie, gérer K8s pour des milliers de micro-déploiements client nécessite une armée de SREs (Site Reliability Engineers) que nous refusions de dédier à ça. Un EC2 par client ? Notre facture AWS aurait grandi exactement aussi vite que notre base clients.
 
-Il fallait construire une expérience Cloud qui scale à l'infini, qui fournisse des adresses IP statiques (pour les whitelists de bases de données), qui permette le custom code, et qui nous coûte virtuellement zéro.
+Il fallait construire une expérience Cloud qui encaisse des milliers de projets, qui fournisse des adresses IP statiques (pour les whitelists de bases de données), qui permette le custom code, et qui nous coûte virtuellement zéro.
 
 La solution a été le **serverless**. Plus particulièrement, **AWS Lambda couplé à des couches d'abstraction sur mesure**, une passerelle centralisée et une configuration réseau extrêmement têtue. Le pari a été gagné : faire tourner des milliers de projets pour un coût marginal d'environ 200 $ par mois.
 
-Mais si vous pensez que le Serverless est une solution miracle, c'est que vous n'avez jamais été dans les tranchées. Voici la vérité nue, sans fard, sur les compromis que nous avons dû faire.
+Le serverless a réglé la question de l'hébergement, puis nous a présenté l'addition côté réseau et côté base de données. Voici les compromis que nous avons dû faire.
 
 ## 1. La passerelle et la couche de personnalisation Lambda
 
 Forest Admin n'est pas qu'un CRUD statique ; nos utilisateurs écrivent du code métier (les Smart Actions, les champs custom) qui doit tourner de manière sécurisée dans notre agent. Si on héberge l'agent, on doit héberger **leur** code arbitraire.
 
-### L'Architecture (Ou "Comment faire tourner leur code sans qu'ils ne pètent notre prod")
+### L'architecture (ou « comment faire tourner leur code sans qu'ils pètent notre prod »)
 
 Au lieu de builder une image Docker pour le moindre client (ce qui aurait ruiné nos temps de déploiement et fait exploser notre registry), on a massivement abusé des **AWS Lambda Layers**.
 
@@ -54,58 +54,56 @@ public async publishCodeCustomization(environmentId: string, userId: string) {
 }
 ```
 
-Cela découple complètement le cœur du moteur, du code client. S'il fallait patcher une faille de sécu dans l'agent, on mettait à jour la Layer générique pour des milliers de projets d'un coup, sans recompiler un seul build client.
+Cela découplait complètement le cœur du moteur du code client. S'il fallait patcher une faille de sécu dans l'agent, on mettait à jour la Layer générique pour des milliers de projets d'un coup, sans recompiler un seul build client.
 
-## 2. L'enfer du VPC : IP statiques et taxe du NAT gateway
+## 2. Le VPC : IP statiques et taxe de la NAT Gateway
 
 Le plus gros point de friction de l'hébergement cloud, c'est l'accès à la base de données. L'agent cloud doit interroger la base du client. Les entreprises sérieuses refuseront toujours catégoriquement d'ouvrir leur production à Internet (`0.0.0.0/0`). Elles exigent une **IP statique** à mettre sur liste blanche.
 
 Par défaut, les Lambdas se baladent joyeusement entre les zones de disponibilité d'AWS avec des adresses IP totalement aléatoires. Pour régler cela, nous avons dû attacher les Lambdas à un sous-réseau privé (VPC) et forcer tout le trafic sortant via une **NAT Gateway** dotée d'une adresse Elastic IP.
 
-### La Douleur du NAT
+### Ce que coûte vraiment une NAT Gateway
 
-Si vous avez déjà regardé une facture AWS, vous savez que les NAT gateways sont les tueuses silencieuses de votre budget. Vous payez à l'heure simplement parce qu'elles existent, puis au gigaoctet traité. D'un coup, notre configuration serverless « pas chère » s'est vu imposer une taxe mensuelle fixe.
+Si vous avez déjà lu une facture AWS, vous savez qu'une NAT Gateway est un péage qui vous facture aussi le fait d'être ouvert : vous payez à l'heure simplement parce qu'elle existe, puis au gigaoctet qui passe. D'un coup, notre configuration serverless « pas chère » s'est vu imposer une taxe mensuelle fixe.
 
-Pire encore, attacher une Lambda à un VPC causait historiquement des cold starts abominables. AWS a énormément amélioré ça avec les Hyperplane ENIs, mais le rebond réseau _Lambda -> ENI -> Sous-réseau privé -> NAT Gateway -> DB du client_ rajoute de la latence incompressible.
+Pire encore, attacher une Lambda à un VPC causait historiquement des cold starts brutaux. AWS a énormément amélioré ça avec les Hyperplane ENIs, mais le rebond réseau _Lambda -> ENI -> Sous-réseau privé -> NAT Gateway -> DB du client_ rajoute de la latence incompressible.
 
-**Le Compromis :** Nous avons accepté la taxe NAT et la légère latence, car c'était la **seule** façon de cocher la fameuse case "IP Statique" pour les entreprises, sans avoir à provisionner d'instances EC2 dédiées.
+**Le compromis :** nous avons accepté la taxe NAT et la légère latence, car c'était la **seule** façon de cocher la fameuse case "IP Statique" pour les entreprises, sans avoir à provisionner d'instances EC2 dédiées.
 
-## 3. L'assassin des bases de données : l'épuisement du connection pool
+## 3. 50 Lambdas, un seul Postgres : l'épuisement du pool de connexions
 
-C'est ici que le rêve Serverless se fracasse contre un mur en béton.
+C'est ici que le serverless rencontre `max_connections`.
 
-AWS Lambda _scale_ de manière magnifique. Si le dashboard d'un client se fait assaut d'un coup, AWS peut ouvrir instantanément 50 instances de Lambda concurrentes pour absorber la charge.
+AWS Lambda _scale_ de manière magnifique. Si le dashboard d'un client se fait prendre d'assaut d'un coup, AWS peut ouvrir instantanément 50 instances de Lambda concurrentes pour absorber la charge.
 
 Votre base de données, elle, ne scale pas magnifiquement. C'est un monolithe, fini, avec un état (stateful).
 
 Quand 50 Lambdas se réveillent en même temps, elles initialisent toutes leur propre connexion réseau vers la DB. D'un coup, votre Postgres se prend 50 requêtes de connexion dans les dents. Si le dashboard a beaucoup de widgets qui font chacun leur requête, les Lambdas continuent de spawn.
 
-Très vite, paf, l'erreur fatidique : `FATAL: sorry, too many clients already`. **Le compute horizontal assassine les bases de données.**
+Très vite, paf, l'erreur fatidique : `FATAL: sorry, too many clients already`. Postgres a au moins la politesse de s'excuser.
 
-### La Mécanique de Défense
+### Rationner les connexions
 
 Il fallait trouver comment limiter la casse sans purement abandonner les requêtes.
 
-1. **Limites de Concurrence :** Nous avons dû configurer agressivement le `ReservedConcurrentExecutions` des Lambdas. Impossible de scale à 1000 instances si la base plafonne à 100 connexions.
-2. **Fermeture Agressive des Connexions :** Contrairement à un serveur Node.js classique (qui garde son pool de connexion au chaud tout le temps), nos fonctions Serverless devaient être impitoyables et tuer les connexions inactives, de peur qu'une Lambda endormie ne prenne en otage un _socket_ vital sur la DB du client.
+1. **Limites de concurrence :** nous avons dû configurer agressivement le `ReservedConcurrentExecutions` des Lambdas. Impossible de scale à 1000 instances si la base plafonne à 100 connexions.
+2. **Fermeture agressive des connexions :** contrairement à un serveur Node.js classique (qui garde son pool de connexion au chaud tout le temps), nos fonctions Serverless devaient être impitoyables et tuer les connexions inactives, de peur qu'une Lambda endormie ne prenne en otage un _socket_ vital sur la DB du client.
 
 <MotionScene id="cloud-lambda-pool-exhaustion" />
 
-### Les Dommages Collatéraux
+### Ce que ça nous a coûté
 
 En bridant la concurrence et en gérant radicalement ce pool, nous avons importé de nouvelles contraintes :
 
-- **Le Throttling (Étranglement) :** Si un client a véritablement besoin d'une montée en charge massive, ses requêtes sont au mieux mises en file d'attente, au pire rejetées par l'API Gateway (qui lâche un joli 429 ou 503).
-- **Le Vrai Prix des Cold Starts :** Puisqu'on ne conservait pas nos pools de connexion ouverts, le fameux "Cold Start" (démarrage à froid) n'était plus juste le bout de code Lambda à charger... c'était aussi la Lambda qui se réveille, le handshake TLS avec la DB, et enfin l'exécution. L'impact sur la réactivité pour les utilisateurs sporadiques était réel.
+- **Le throttling :** si un client a véritablement besoin d'une montée en charge massive, ses requêtes sont au mieux mises en file d'attente, au pire rejetées par l'API Gateway (qui lâche un joli 429 ou 503).
+- **Le vrai prix des cold starts :** puisqu'on ne conservait pas nos pools de connexion ouverts, le fameux « cold start » (démarrage à froid) n'était plus juste le bout de code Lambda à charger... c'était aussi la Lambda qui se réveille, le handshake TLS avec la DB, et enfin l'exécution. L'impact sur la réactivité pour les utilisateurs sporadiques était réel.
 
-## Conclusion : Est-ce que ça valait le coup ?
-
-Bâtir cette version cloud a été une véritable leçon d'ingénierie et de compromis.
+## Conclusion : Kubernetes ou 200 $ par mois
 
 Aurait-on pu le faire avec des Pods Kubernetes managés ? Carrément. Ça aurait réglé les problèmes de pool (un process Node.js persistant par client) et absorbé les cold starts. Mais gérer du K8s pour des milliers de locataires isolés aurait requis des investissements draconiens en outillage interne et un lourd fardeau opérationnel.
 
-En misant à 100 % sur le serverless, le VPC et les NAT gateways, nous avons littéralement sous-traité le cauchemar opérationnel à AWS. Nous avons construit un système capable de gérer des milliers d'environnements clients asymétriques pour à peine plus de 200 $ par mois d'infrastructure.
+En misant à 100 % sur le serverless, le VPC et les NAT gateways, nous avons sous-traité l'essentiel de l'exploitation à AWS. Le résultat : des milliers d'environnements clients hétérogènes pour à peine plus de 200 $ par mois d'infrastructure.
 
-Oui, nous avons dû nous battre contre les démarrages à froid et mettre des pansements sur les pools de base de données. Mais, au bout du compte, nous avons offert un onboarding très fluide qui se gérait tout seul, permettant à nos ingénieurs de coder le produit plutôt que de redémarrer des instances EC2 en pleine nuit.
+Oui, nous avons dû nous battre contre les démarrages à froid et mettre des pansements sur les pools de base de données. En échange, l'onboarding tournait tout seul, et nos ingénieurs codaient le produit au lieu de redémarrer des instances EC2 en pleine nuit.
 
 _Note : Cet article a été écrit a posteriori, après mon départ de Forest Admin._
