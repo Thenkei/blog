@@ -11,6 +11,7 @@ export const articleMediaIds = [
   "ai-review-meme",
   "product-os-loop",
   "document-lifecycle-motion",
+  "hat-switching-tax",
 ] as const;
 
 export type ArticleMediaId = (typeof articleMediaIds)[number];
@@ -184,6 +185,22 @@ const MEDIA_COPY: Record<PostLocale, Record<ArticleMediaId, MediaCopy>> = {
         archive: "ARCHIVE",
       },
     },
+    "hat-switching-tax": {
+      title: "Switching hats looks free until the invoice comes due at day's end",
+      description:
+        "A pressure gauge fills silently every time focus shifts between roles sharing the same terminal, then the accumulated cost surfaces all at once at the end of the day.",
+      caption:
+        "Each hat switch looks free in the moment. The cost doesn't disappear — it just waits, then arrives as one invoice at day's end.",
+      eyebrow: "SAME TERMINAL · FIVE ROLES · ONE INVOICE",
+      labels: {
+        switch: "HAT SWITCH",
+        silent: "LOOKS FREE",
+        pressure: "COGNITIVE PRESSURE",
+        invisible: "BUILDS SILENTLY",
+        invoice: "THE INVOICE",
+        dayend: "ARRIVES AT DAY'S END",
+      },
+    },
   },
   fr: {
     "sse-polling-vs-stream": {
@@ -343,6 +360,22 @@ const MEDIA_COPY: Record<PostLocale, Record<ArticleMediaId, MediaCopy>> = {
         review: "REVUE",
         supersede: "REMPLACER",
         archive: "ARCHIVER",
+      },
+    },
+    "hat-switching-tax": {
+      title: "Changer de casquette semble gratuit, jusqu'à la facture en fin de journée",
+      description:
+        "Une jauge de pression se remplit en silence à chaque changement de rôle sur le même terminal, puis le coût accumulé arrive d'un coup en fin de journée.",
+      caption:
+        "Chaque changement de casquette semble gratuit sur l'instant. Le coût ne disparaît pas — il attend, puis arrive comme une seule facture en fin de journée.",
+      eyebrow: "MÊME TERMINAL · CINQ RÔLES · UNE SEULE FACTURE",
+      labels: {
+        switch: "CHANGEMENT DE CASQUETTE",
+        silent: "SEMBLE GRATUIT",
+        pressure: "PRESSION COGNITIVE",
+        invisible: "S'ACCUMULE EN SILENCE",
+        invoice: "LA FACTURE",
+        dayend: "ARRIVE EN FIN DE JOURNÉE",
       },
     },
   },

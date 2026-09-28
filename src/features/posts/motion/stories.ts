@@ -62,6 +62,11 @@ export const MOTION_STORIES = {
     en: ["A 100 km goal", "GPS must last the race", "Choose for endurance"],
     fr: ["Un objectif de 100 km", "Le GPS doit tenir la course", "Choisir pour l’endurance"],
   },
+  "engineer-life-late-2026": {
+    kind: "choice",
+    en: ["One terminal, five hats", "Boundaries get brittle", "Keep a human gate on each"],
+    fr: ["Un terminal, cinq casquettes", "Les frontières deviennent friables", "Garder un gate humain sur chacune"],
+  },
   "engineering-2026-ai-redefined-our-job": {
     kind: "choice",
     en: ["Production gets faster", "Review becomes the bottleneck", "Engineer the new controls"],
