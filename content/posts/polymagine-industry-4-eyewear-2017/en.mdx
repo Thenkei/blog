@@ -63,9 +63,11 @@ It was 2017, well before the "metaverse" wore everyone out and before 3D face sc
 
 Scanning happened on iPads, but also on a specialized tablet. Behind it, the geometric core ran on Java and C++, with a computational geometry library whose name I have completely forgotten. I gave it a significant share of my twenties. Such ingratitude.
 
-On the infrastructure side, the architecture was distributed on EKS, with instances dedicated to generating the 3D meshes. Geometry computation does not like sharing its machine with anything else.
+On the infrastructure side, the architecture was distributed on Kubernetes, on GCP, with instances dedicated to generating the 3D meshes. Geometry computation does not like sharing its machine with anything else.
 
 Real-time rendering went through three.js, embedded in a React app. And for the pretty pictures, we set up a Blender machine dedicated to PBR rendering: it turned every model into a virtual shop window, with reflections on the acetate the real frame could only dream of.
+
+Fun fact: for those renders, we had access to the most powerful graphics cards of the time (Titans, if memory serves). We rented them as spot instances for a few minutes, just long enough for a render. Pure luxury, billed by the minute.
 
 ## One Second, Because I Said So
 
