@@ -11,17 +11,17 @@ tags:
   - backend
 ---
 
-I just burned an embarrassing hour of my precious life on a seemingly "impossible" bug. My `ON CONFLICT DO UPDATE` was silently failing to detect duplicates, even though I had a supposedly rock-solid uniqueness constraint in place.
+I just lost a precious hour on an "impossible" case. My `ON CONFLICT DO UPDATE` was blithely ignoring obvious duplicates, even though I had protected my table with a uniqueness constraint.
 
-## The Plot Twist
+## The Reveal
 
 <ArticleDiagram visualId="postgresql-unique-nulls" />
 
-Here's the kicker: by default, PostgreSQL philosophically believes that `NULL ≠ NULL`. That's right. It sees two rows shaped like `(value, NULL)` and says, "Looks like two completely different things to me, boss!" Ergo, not duplicates.
+Here's the trap: by default, PostgreSQL considers that `NULL ≠ NULL`. In other words, show it two rows `(value, NULL)` and it will swear up and down that they are not identical. So much for duplicates!
 
 ## The Magic Spell
 
-To fix this without tearing your hair out, you just need to add the magic words `NULLS NOT DISTINCT` to your unique index:
+To avoid tearing your hair out, just add the magic incantation `NULLS NOT DISTINCT` to the unique index:
 
 ```sql
 CREATE UNIQUE INDEX idx_product_unique
@@ -29,6 +29,6 @@ ON products (isin, provider_product_reference)
 NULLS NOT DISTINCT;
 ```
 
-With this little tweak, PostgreSQL finally learns that two nulls are, in fact, the same flavor of empty. Uniqueness verification is suddenly sane again, and your upserts will actually work as intended!
+And just like that, PostgreSQL finally accepts that one NULL can be treated as identical to another when checking uniqueness. Result: your upserts work as expected again.
 
-_Pro tip: This lifesaver has been available since PostgreSQL 15. Check out the docs on [Unique Nulls Not Distinct](https://www.postgresql.org/about/featurematrix/detail/unique-nulls-not-distinct/)._
+_Worth remembering: this feature has been available since PostgreSQL 15. Take a look at the docs: [Unique Nulls Not Distinct](https://www.postgresql.org/about/featurematrix/detail/unique-nulls-not-distinct/)._

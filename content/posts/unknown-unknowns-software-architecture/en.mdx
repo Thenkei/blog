@@ -31,15 +31,11 @@ A design can pass every written scenario and still fail when a request is retrie
 
 The tests did not lie; we asked the questions we planned for. The danger is confusing “all tests passed” with “we modelled everything”.
 
-## Three comfortable stories
+## False reassurance
 
-**The exhaustive diagram.** More boxes do little to represent time, concurrency, or manual intervention.
+The first reflex is to flesh out the diagram. But more boxes do little to represent time, concurrency, or manual intervention. A checklist, for its part, records known risks: by construction, it holds none of the assumptions missing from everyone's model.
 
-**The checklist as proof.** It records known risks, not assumptions missing from everyone's model.
-
-**The omniscient agent.** It can inspect more sources, but only finds what left a trace in them.
-
-None can certify that a review is complete.
+Then there is the temptation of the omniscient agent. It can inspect more sources, but it only finds what left a trace in them. None of these tools can certify that a review is complete.
 
 ## Ask questions with teeth
 
@@ -61,12 +57,9 @@ A human reviewer remains accountable: a known risk can be accepted, an invisible
 
 ## Build the fire exits while it is still quiet
 
-We will not predict every failure. We can make surprises visible, contain their impact, and recover:
+We will not predict every failure. We can make surprises visible, contain their impact, and recover.
 
-1. **Reduce** assumptions through explicit contracts and executable invariants.
-2. **Isolate** components and permissions to contain the blast radius.
-3. **Detect** divergence through metrics, traces, reconciliation, and domain alerts.
-4. **Recover** through idempotency, controlled replay, kill switches, rollback, or compensation.
+It starts with shrinking the assumption surface: explicit contracts and executable invariants leave less room for the implicit. Isolating components and permissions then contains the blast radius. To detect divergence, we rely on metrics, traces, reconciliation, and domain alerts. That leaves the way back — idempotency, controlled replay, kill switches, rollback, or compensation — which is precisely what you set up while things are still quiet.
 
 <InlineArticleDiagram assetId="unknowns-review">
   A useful review turns an assumption into evidence, a signal, or an explicitly accepted risk.
@@ -74,7 +67,7 @@ We will not predict every failure. We can make surprises visible, contain their 
 
 One final question: if the assumption becomes false tomorrow, will we notice and respond?
 
-## The map stays unfinished
+## Limits of the method
 
 This method can create noise and delay decisions that are easy to undo. Scale the effort to the potential impact: a financial calculation or irreversible migration needs more evidence than an isolated experiment.
 
