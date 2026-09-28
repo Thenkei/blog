@@ -1,10 +1,10 @@
 ---
 title: "2017: When We Built the Future of Eyewear in Less Than a Second"
-subtitle: "Living the startup dream at Polymagine, at the edge of Industry 4.0."
+subtitle: "First job, five people, glasses generated in under a second, and a few runaway frames."
 summary: "A retrospective on building biometric scanning, real-time 3D mesh generation, and AR/VR eyewear fitting in 2017."
 visualId: "polymagine-industry-4-eyewear-2017"
 publishedAt: "2026-02-10"
-readTimeMinutes: 7
+readTimeMinutes: 5
 tags:
   - startup
   - industry-4-0
@@ -19,15 +19,13 @@ import heroWebp960 from "../../../src/assets/images/posts/polymagine-2017-hero-9
 import heroWebp1600 from "../../../src/assets/images/posts/polymagine-2017-hero-1600.webp";
 import heroJpeg1600 from "../../../src/assets/images/posts/polymagine-2017-hero-1600.jpg";
 
-## Introduction: Jumping Straight Into the Deep End
+## First Job, Five People, No Safety Net
 
 <ArticleDiagram visualId="polymagine-industry-4-eyewear-2017" />
 
-Fresh out of engineering school, diploma still practically warm in my hand, I definitely was not looking for a slow, comfortable corporate ladder to climb. I was looking for the absolute edge. And I found it at **Polymagine**.
+Fresh out of engineering school, I signed my first permanent contract at **Polymagine**. There were five of us. So there was not much of a ladder to climb: mostly problems to solve, and not many other people around to solve them.
 
-It was 2017. To put that in perspective, this was way before the "Metaverse" was a buzzword to annoy people with, and before 3D facial scanning became a completely mundane feature on every smartphone. At Polymagine, we weren't just predicting the future on whiteboards. We were furiously coding it.
-
-We were diving headfirst into **Industry 4.0 applied to eyewear**. The energy was electric, the deadlines were terrifying, and the innovation was entirely real.
+It was 2017, well before the "metaverse" wore everyone out and before 3D face scanning became a mundane smartphone feature. The project: **Industry 4.0 applied to eyewear**. Scan a face, generate a frame fitted to that exact face, let the customer try it on in augmented reality, then manufacture it.
 
 <ImageMotionFigure assetId="polymagine-pipeline" src={heroAvif960}>
   <picture>
@@ -57,45 +55,40 @@ We were diving headfirst into **Industry 4.0 applied to eyewear**. The energy wa
 </ImageMotionFigure>
 
 <div className="highlight">
-  The core performance challenge was clear: generate a customer-specific 3D mesh
-  in less than a second.
+  Under one second to generate a custom 3D mesh. Nobody imposed that number on
+  me: I set it myself.
 </div>
 
-## The Tech: At the Edge of the Possible
+## The Stack: Java, C++, and a Library Whose Name I Forgot
 
-Looking back, the stack we built was audacious. The goal was clear but complex: create perfectly adapted glasses for a unique human face, and do it fast enough to feel instantaneous.
+Scanning happened on iPads, but also on a specialized tablet. Behind it, the geometric core ran on Java and C++, with a computational geometry library whose name I have completely forgotten. I gave it a significant share of my twenties. Such ingratitude.
 
-Day to day, that meant bridging the physical and the digital in real time:
+On the infrastructure side, the architecture was distributed on EKS, with instances dedicated to generating the 3D meshes. Geometry computation does not like sharing its machine with anything else.
 
-- **Biometrics as the foundation:** no guessing. We used facial scans to capture precise biometric information.
-- **The one-second mesh:** from those biometrics, we generated a 3D mesh in under one second.
-- **Parametric adaptation:** we adjusted glasses templates strictly to the final customer morphology.
-- **True AR and VR previews:** before cutting acetate or metal, customers could preview mounts on their own head at the right scale and fit.
+Real-time rendering went through three.js, embedded in a React app. And for the pretty pictures, we set up a Blender machine dedicated to PBR rendering: it turned every model into a virtual shop window, with reflections on the acetate the real frame could only dream of.
 
-## Beyond the Flash: True Industry 4.0
+## One Second, Because I Said So
 
-The customer-facing layer was impressive, but the engineering value was deeper than visualization.
+The one-second target did not come from any spec. I set it myself, then pushed every performance knob as far as it would go, with one rule: no compromise on quality.
 
-We were controlling a production process end to end.
+It was all the more demanding because, after I arrived, we also reworked the generation algorithms. The glasses we proposed became much more realistic. Faster and prettier at the same time is the kind of challenge you mostly accept when you have just left school.
 
-From biometric scan to manufacturing floor, data flowed through a closed loop. The digital model directly informed physical production, with visibility for every stakeholder in the pipeline.
+## The Hall of Horrors
 
-That is what made it genuine Industry 4.0: not isolated demos, but an integrated system tied to real operations.
+Procedural generation means spectacular failures. I saw glasses with missing parts. Very avant-garde, not very wearable.
 
-## The Dream Startup Experience
+The early versions of head tracking brought their share of glitches too. When face tracking drops out, the frame quickly wanders off to live its own life. It was quite something to see.
 
-People talk about early-stage chaos, speed, and camaraderie. Polymagine was exactly that.
+I still have a soft spot for those runaway glasses.
 
-It was the startup environment many engineering students imagine: a tight team, hard constraints, fast iteration, and problems that had no Stack Overflow answer yet.
+## From Scan to Manufacturing
 
-We were not just writing software. We were watching code become physical products.
+The augmented reality demo was the visible part. The project aimed further: the same data flowing from the biometric scan all the way to production, with the digital design feeding directly into manufacturing the frame. That is what made it a real Industry 4.0 project, rather than a fancy photo filter.
 
-It was intense, technical, and honestly a great time.
+## What Happened Next
 
-## Conclusion
+Polymagine did not manage to sell the product. The technology worked; the go-to-market, much less so.
 
-My time at Polymagine set the bar high for the rest of my career.
+In 2024, walking into a store, I came across a virtual try-on screen. It offered more or less what we had built seven years earlier. I smiled, a bit like running into an ex who has done very well for themselves.
 
-It taught me that engineering is not only about maintaining systems. It is about reimagining them.
-
-Back in 2017, we proved that with the right data and the right vision, you can fit the world to the person instead of forcing the person to fit the world.
+In a startup, being right too early looks a lot like being wrong. But I know where my habit of pushing performance knobs all the way comes from.
