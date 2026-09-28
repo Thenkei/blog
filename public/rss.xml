@@ -127,7 +127,7 @@
 <title>Rebuilding Cloud Experience: The Trade-Offs of Serverless at Scale</title>
 <link>https://thenkei.github.io/blog/en/posts/rebuilding-cloud-experience-forest-admin</link>
 <guid>https://thenkei.github.io/blog/en/posts/rebuilding-cloud-experience-forest-admin</guid>
-<description>An incredibly deep dive into our journey transitioning from a self-hosted-only model to offering a Fully Hosted Cloud agent. We tackle Cold Starts, AWS Lambda Layers, VPC structuring, and why horizontal scaling is a database&apos;s worst enemy.</description>
+<description>How we went from a self-hosted-only model to a Fully Hosted Cloud agent: cold starts, AWS Lambda Layers, VPC structuring, and the limits of horizontal scaling against a database.</description>
 <pubDate>Wed, 20 Mar 2024 00:00:00 GMT</pubDate>
 </item>
 <item>
