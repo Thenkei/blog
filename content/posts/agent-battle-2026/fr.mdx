@@ -1,6 +1,6 @@
 ---
 title: "Codex, Claude Code et Herd : trouver la bonne place pour chaque outil"
-subtitle: "Le choix utile ne se fait pas sur une démo, mais sur la forme du travail, ses contrôles et son coût de supervision."
+subtitle: "Comment nous associons chaque agent à la forme du travail, à ses contrôles et à son coût de supervision."
 summary: "Notre grille pour choisir entre agent interactif, tâche déléguée et orchestration parallèle sans transformer l'équipe en superviseur de files d'attente."
 visualId: "agent-battle-2026"
 publishedAt: "2026-06-19"
@@ -12,42 +12,31 @@ tags:
   - strategie
 ---
 
-## Le contexte
-
 En quelques mois, nous sommes passés d'un assistant dans l'éditeur à plusieurs agents capables d'explorer un dépôt, modifier des fichiers, lancer des tests et préparer une PR. Nous utilisons notamment **Claude Code** et **Codex**, et nous expérimentons **Herd** pour piloter plusieurs agents natifs depuis une même interface.
 
-La question « quel est le meilleur ? » s'est révélée peu utile. Le bon outil dépend de la forme du travail : une investigation interactive, une tâche bien spécifiée que l'on peut déléguer, ou plusieurs unités indépendantes à coordonner.
+La question évidente, « lequel est le meilleur ? », ne nous a menés nulle part. Un benchmark ou une démo isolée y répond avec beaucoup d'aplomb et ne dit presque rien du ticket qui vous attend ce matin ; quant à imposer un outil unique à tous les workflows de l'équipe, cela revenait à trancher le débat par décret. Ce qui décide vraiment, c'est la forme du travail : une investigation interactive, une tâche bien spécifiée que l'on peut déléguer, ou plusieurs unités indépendantes à coordonner.
 
 <ArticleDiagram visualId="agent-battle-2026" />
 
-## Le problème
+## Dix agents, dix interprétations
 
-Tous les agents promettent du débit. Mais le coût caché se trouve dans la préparation du contexte, la surveillance, la résolution des conflits et la review. Lancer dix agents sur une conception incertaine ne multiplie pas la capacité par dix ; cela produit dix interprétations à réconcilier.
+Tous les agents promettent du débit. L'addition arrive plus tard : préparation du contexte, surveillance, résolution des conflits et review. Lancer dix agents sur une conception incertaine ne multiplie pas la capacité par dix ; cela produit dix interprétations à réconcilier. Dix diffs que personne ne sait intégrer valent à peu près autant que zéro diff, avec une réunion en prime.
 
-Le choix d'outil modifie aussi les frontières opérationnelles : où tourne le code, quels secrets sont disponibles, comment une action est approuvée, où restent les logs et qui peut interrompre la tâche.
+C'est aussi pour cela que nous avons arrêté de compter les gains en lignes de code. La seule unité qui tienne, c'est le temps nécessaire pour obtenir une modification fiable et reviewée.
 
-## Les mauvaises idées
+Le choix d'outil déplace aussi les frontières opérationnelles : où tourne le code, quels secrets sont disponibles, comment une action est approuvée, où restent les logs et qui peut interrompre la tâche. Un agent d'exploration et un agent de delivery n'ont pas besoin des mêmes permissions, et leur donner les mêmes fait partie de ces raccourcis qu'on ne remarque qu'après coup.
 
-- Choisir sur un benchmark ou une démo isolée.
-- Affecter un outil unique à tous les workflows de l'équipe.
-- Confondre parallélisme et indépendance des tâches.
-- Superviser plus de sessions que l'on ne peut en reviewer sérieusement.
-- Donner les mêmes permissions à un agent d'exploration et à un agent de delivery.
-- Mesurer les gains en lignes de code plutôt qu'en temps jusqu'à une modification fiable et reviewée.
+## Ce que nous avons raté au début
 
-La sortie d'un agent n'est pas du throughput tant qu'elle n'est pas intégrable.
+Le ping-pong permanent entre outils nous a coûté précisément le contexte que nous pensions gagner. Chaque transfert exigeait un nouveau résumé et réintroduisait des hypothèses.
 
-## Ce qui n'a pas marché
+Paralléliser des tâches couplées nous a valu des collisions de fichiers et des décisions incompatibles. Travail parallèle et travail indépendant se ressemblent sur un board ; dans un dépôt, ils se comportent très différemment. Un orchestrateur rend ces collisions visibles, ce qui aide, mais il ne les fait pas disparaître.
 
-Le ping-pong permanent entre outils nous faisait perdre le contexte que nous pensions gagner. Chaque transfert exigeait un nouveau résumé et réintroduisait des hypothèses.
+Les tâches longues sans checkpoints produisaient des diffs impressionnantes, et impressionnantes à reviewer. L'agent avait optimisé sa condition de fin, pas notre capacité à comprendre le changement. Multipliez cela par plus de sessions que l'équipe ne peut en relire sérieusement, et la supervision glisse discrètement vers le survol.
 
-Le parallélisme appliqué à des tâches couplées a créé des collisions de fichiers et des décisions incompatibles. Un orchestrateur rend ces collisions visibles ; il ne les supprime pas.
+## Le mode d'abord, la marque ensuite
 
-Enfin, les tâches longues sans checkpoints produisaient des diffs impressionnantes mais difficiles à reviewer. L'agent avait optimisé sa condition de fin, pas notre capacité à comprendre le changement.
-
-## Les alternatives
-
-Nous distinguons trois modes plutôt que trois marques :
+Nous distinguons désormais trois modes :
 
 | Mode | Bon cas d'usage | Contrôle principal |
 | --- | --- | --- |
@@ -55,9 +44,9 @@ Nous distinguons trois modes plutôt que trois marques :
 | Délégation bornée | Issue claire, critères testables, diff isolée | Sandbox, budget et preuve de fin |
 | Orchestration | Tâches réellement indépendantes | Isolation des worktrees et intégration explicite |
 
-Claude Code et Codex peuvent couvrir plusieurs modes selon leur environnement. Herd ajoute une couche de supervision multi-agent ; sa valeur apparaît lorsque le découpage est déjà bon et que l'opérateur doit suivre plusieurs flux, pas lorsqu'il faut encore découvrir le problème.
+Claude Code et Codex peuvent couvrir plusieurs modes selon leur environnement. Herd ajoute une couche de supervision multi-agent. Il prend tout son sens une fois le découpage solide, quand l'opérateur doit suivre plusieurs flux ; tant qu'on découvre encore le problème, il offre surtout davantage de fenêtres à surveiller.
 
-## La solution
+## Comment nous choisissons aujourd'hui
 
 Nous choisissons le mode à partir du risque et de l'incertitude :
 
@@ -65,12 +54,12 @@ Nous choisissons le mode à partir du risque et de l'incertitude :
 2. **Définir un contrat de tâche.** Périmètre, fichiers ou systèmes autorisés, critères de fin, tests attendus et condition d'arrêt.
 3. **Déléguer l'unité la plus petite qui produit une valeur reviewable.**
 4. **Paralléliser seulement les unités indépendantes.** Chaque agent travaille dans un environnement isolé.
-5. **Intégrer sous responsabilité humaine.** La review porte sur les invariants, pas seulement sur le diff et les tests.
+5. **Intégrer sous responsabilité humaine.** La review porte sur les invariants autant que sur le diff et les tests.
 
-Notre grille de décision regarde cinq coûts : temps jusqu'à la première preuve, qualité de la gestion du contexte, contrôlabilité des actions, effort de review et charge cognitive de supervision. Le meilleur outil est celui qui minimise le coût total pour ce workflow, pas celui qui écrit le plus vite.
+Notre grille de décision pèse cinq coûts : temps jusqu'à la première preuve, qualité de la gestion du contexte, contrôlabilité des actions, effort de review et charge cognitive de supervision. Le meilleur outil est celui qui garde ce total au plus bas. La vitesse de frappe n'apparaît nulle part dans la liste, ce qui n'est pas une bonne nouvelle pour l'agent qui écrit le plus vite.
 
-## Les limites
+## Date de péremption
 
-Cette grille reste liée à notre organisation, nos dépôts et nos contraintes de sécurité. Les produits évoluent vite ; un avantage d'interface ou de modèle peut disparaître en quelques semaines. Il faut donc réévaluer des workflows réels, pas défendre un classement historique.
+Cette grille reste liée à notre organisation, nos dépôts et nos contraintes de sécurité. Les produits évoluent vite et un avantage d'interface ou de modèle peut disparaître en quelques semaines : nous réévaluons donc sur des workflows réels plutôt que de défendre un classement historique.
 
-L'orchestration multi-agent ajoute un système distribué au travail d'ingénierie : files d'attente, états partiels, conflits et reprises. Pour une tâche courte ou fortement couplée, elle augmente souvent le temps total. La bonne place d'un outil peut être de ne pas l'utiliser.
+L'orchestration multi-agent ajoute en outre un système distribué au travail d'ingénierie, avec tout ce que cela implique : files d'attente, états partiels, conflits et reprises. Pour une tâche courte ou fortement couplée, elle augmente souvent le temps total. Parfois, la meilleure place d'un outil, c'est le tiroir.
