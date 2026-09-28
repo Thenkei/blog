@@ -77,12 +77,6 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
       fr: "Scène de salle de contrôle éditoriale où plusieurs petits agents transmettent un dossier d'investigation lumineux à travers un point de revue humaine vers un ingénieur.",
     },
   },
-  "claude-code-product-os": {
-    alt: {
-      en: "Editorial relay scene showing humans and tools passing work through discovery, delivery, review, and release.",
-      fr: "Scène éditoriale de relais montrant des humains et des outils faisant passer le travail par la découverte, la livraison, la revue et la mise en production.",
-    },
-  },
   "context-engineering-beyond-prompt-engineering": {
     alt: {
       en: "Editorial control room where curated documents and authorised signals pass through a narrow aperture to an agent.",

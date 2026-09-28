@@ -36,7 +36,6 @@ const DIAGRAM_PLANS: Record<PostDiagramVisualId, FigurePlan> = {
   "ai-force-multiplier": { story: "ai-force-multiplier", stages: [["a", "b", .18, .72], ["b", "c", .50, .46], ["c", "a", .80, .22]] },
   "sse-outbound-channel": { story: "architecture-sse-agent-communication", stages: [["agent", "outbound", .18, .50], ["channel", "stream", .50, .43], ["backoff", "reconnect", .80, .60]] },
   "backend-to-data-engineer-rockfi": { story: "backend-to-data-engineer-rockfi", stages: [["a", "b", .17, .52], ["c", "d", .50, .50], ["e", "d", .82, .50]] },
-  "claude-code-product-os": { story: "claude-code-product-os", stages: [["a", "b", .17, .54], ["c", "d", .53, .46], ["e", "a", .82, .53]] },
   "internal-tools-as-product": { story: "internal-tools-are-a-product", stages: [["a", "b", .17, .52], ["c", "d", .50, .46], ["e", "c", .82, .52]] },
   "context-engineering-beyond-prompt-engineering": { story: "context-engineering-beyond-prompt-engineering", stages: [["a", "c", .18, .53], ["b", "d", .50, .46], ["e", "a", .82, .53]] },
   "trail-endurance-profile": { story: "coros-apex-4", stages: [["objective", "horizon", .19, .37], ["smart", "four", .48, .63], ["sport", "fifteen", .81, .47]] },
@@ -77,7 +76,7 @@ const MEDIA_PLANS: Record<ArticleMediaId, readonly [readonly [string, string, nu
 const DIAGRAM_MOTIFS: Record<PostDiagramVisualId, FigureMotif> = {
   "agent-battle-2026": "comparison", "bounded-ai-loop": "branch", "ai-force-multiplier": "stack",
   "sse-outbound-channel": "exchange", "backend-to-data-engineer-rockfi": "pipeline",
-  "claude-code-product-os": "orbit", "context-engineering-beyond-prompt-engineering": "stack",
+  "context-engineering-beyond-prompt-engineering": "stack",
   "trail-endurance-profile": "gauge", "engineering-2026-ai-redefined-our-job": "orbit",
   "engineering-documents-age-poorly": "orbit", "forest-admin-activity-logs-elasticsearch": "network",
   "idempotency-debounce-jobify-bullmq": "queue", "internal-tools-as-product": "orbit", "jobify-workers-queues-nestjs": "queue",

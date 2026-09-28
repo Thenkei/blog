@@ -24,8 +24,8 @@ export const MOTION_STORIES = {
   },
   "ai-human-judgment-rockfi": {
     kind: "cycle",
-    en: ["Make intent explicit", "Build with shared context", "Review before release"],
-    fr: ["Clarifier l’intention", "Construire avec un contexte partagé", "Revoir avant la release"],
+    en: ["Challenges surface real practices", "Plugins carry context across handoffs", "Humans gate decisions and merge"],
+    fr: ["Les challenges révèlent les pratiques", "Les plugins portent le contexte", "Des humains valident décisions et merge"],
   },
   "ai-is-not-immaterial": {
     kind: "threshold",
@@ -46,11 +46,6 @@ export const MOTION_STORIES = {
     kind: "flow",
     en: ["Small agents investigate", "Evidence crosses the hand-off", "An engineer takes over"],
     fr: ["De petits agents enquêtent", "Les preuves passent le relais", "Un ingénieur reprend la main"],
-  },
-  "claude-code-product-os": {
-    kind: "cycle",
-    en: ["Capture a decision", "Carry it through delivery", "Review and learn"],
-    fr: ["Consigner une décision", "La porter jusqu’à la livraison", "Revoir et apprendre"],
   },
   "context-engineering-beyond-prompt-engineering": {
     kind: "flow",
