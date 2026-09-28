@@ -62,6 +62,31 @@ export const MOTION_STORIES = {
     en: ["A 100 km goal", "GPS must last the race", "Choose for endurance"],
     fr: ["Un objectif de 100 km", "Le GPS doit tenir la course", "Choisir pour l’endurance"],
   },
+  "data-platform-ingestion-drift": {
+    kind: "flow",
+    en: ["Sources change without notice", "Bronze keeps what was sent", "Silver contracts stop the drift"],
+    fr: ["Les sources changent sans prévenir", "Bronze garde ce qui a été envoyé", "Les contrats Silver bloquent la dérive"],
+  },
+  "data-platform-reverse-etl-freshness": {
+    kind: "threshold",
+    en: ["Every clock adds its own delay", "Only fresher values are applied", "Show the time, degrade past it"],
+    fr: ["Chaque horloge ajoute son retard", "N’appliquer que du plus frais", "Afficher l’heure, dégrader au-delà"],
+  },
+  "data-platform-retrospective": {
+    kind: "choice",
+    en: ["Count the moving parts", "Keep execution in our perimeter", "Match the stack to the constraints"],
+    fr: ["Compter les pièces mobiles", "Garder l’exécution chez nous", "Adapter le stack aux contraintes"],
+  },
+  "data-platform-terraform-access-and-flows": {
+    kind: "flow",
+    en: ["Access and connectors as code", "Every plan reviewed in a PR", "Destroys blocked before apply"],
+    fr: ["Accès et connecteurs en code", "Chaque plan relu en PR", "Destructions bloquées avant apply"],
+  },
+  "data-platform-tests-as-contracts": {
+    kind: "threshold",
+    en: ["dbt build tests between models", "A blocking check stops downstream", "An old number beats a wrong one"],
+    fr: ["dbt build teste entre les modèles", "Un check bloquant arrête l’aval", "Mieux vaut daté que faux"],
+  },
   "engineering-2026-ai-redefined-our-job": {
     kind: "choice",
     en: ["Production gets faster", "Review becomes the bottleneck", "Engineer the new controls"],

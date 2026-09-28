@@ -1,0 +1,180 @@
+---
+title: "Un seul plan Terraform pour les accès et les flux"
+subtitle: "Déclarer les droits Snowflake et les connexions Airbyte dans le même dépôt, c'est gagner une source de vérité. Et un blast radius."
+summary: "Quatrième épisode : gérer les accès Snowflake et la configuration Airbyte en Terraform. Rôles d'accès et rôles fonctionnels, future grants, un seul ordonnanceur, secrets dans le state, destructions bloquées en CI, et la dérive quand quelqu'un clique dans la console."
+visualId: "backend-to-data-engineer-rockfi"
+publishedAt: "2026-11-05"
+readTimeMinutes: 9
+tags:
+  - data-engineering
+  - terraform
+  - snowflake
+  - security
+  - devops
+  - rockfi
+seriesId: "what-trustworthy-data-costs"
+seriesOrder: 4
+draft: true
+---
+
+Quatrième épisode de **Ce que coûte une donnée fiable**. Les trois premiers parlaient de ce qui circule dans la plateforme. Celui-ci parle de qui a le droit d'y toucher, et de la façon dont nous le déclarons.
+
+Au début, comme partout, les droits se donnaient dans la console. Un rôle ici, un `GRANT` là, un connecteur configuré à la main un jeudi soir. Ça marche, jusqu'à la première question qu'on ne peut pas éluder : **qui peut lire cette table, depuis quand, et qui l'a validé ?**
+
+Dans la console, la réponse est « il faudrait regarder ». Dans un domaine régulé, ce n'est pas une réponse. Dans Git, c'est un `git log` et une pull request relue.
+
+## Ce que nous déclarons, et ce que nous ne déclarons pas
+
+Terraform porte chez nous deux familles d'objets :
+
+- **Les accès Snowflake** : rôles, grants, warehouses et leurs limites de consommation.
+- **La configuration Airbyte** : sources, destinations, connexions, flux sélectionnés et politique de changement de schéma.
+
+Ce qu'il ne porte pas : **les tables**. Les tables appartiennent à dbt, qui les crée et les recrée à chaque run. Deux outils qui gèrent le même objet finissent toujours par se battre, et c'est toujours à 2 heures du matin que le plan de l'un annule l'apply de l'autre.
+
+<ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
+
+Sur ce schéma, Terraform ne transporte aucune donnée. Il décide qui entre à chaque étape, et par quelle porte.
+
+## Les droits Snowflake en deux couches
+
+Le modèle qui tient dans la durée sépare deux notions que la console mélange volontiers :
+
+- **Les rôles d'accès** portent des privilèges sur des objets : lire la couche Silver, écrire dans le schéma brut. Ils ne sont jamais donnés à une personne.
+- **Les rôles fonctionnels** représentent un usage : analyste, service de transformation, reverse ETL. Ils reçoivent des rôles d'accès, et ce sont eux que l'on attribue.
+
+Aucun privilège n'est accordé directement à un utilisateur. Répondre à « qui peut lire Silver ? » revient à suivre un graphe de rôles déclaré, pas à fouiller des grants individuels.
+
+```hcl
+# Exemple simplifié : noms et périmètre illustratifs.
+
+resource "snowflake_database_role" "silver_read" {
+  database = snowflake_database.analytics.name
+  name     = "SILVER_READ"
+  comment  = "Lecture de la couche Silver. Jamais attribué directement à un humain."
+}
+
+# Les future grants couvrent les tables que dbt créera demain,
+# y compris celles qu'il recrée à chaque run.
+resource "snowflake_grant_privileges_to_database_role" "silver_read_future_tables" {
+  database_role_name = snowflake_database_role.silver_read.fully_qualified_name
+  privileges         = ["SELECT"]
+
+  on_schema_object {
+    future {
+      object_type_plural = "TABLES"
+      in_schema          = snowflake_schema.silver.fully_qualified_name
+    }
+  }
+}
+
+resource "snowflake_grant_database_role" "analyst_reads_silver" {
+  database_role_name = snowflake_database_role.silver_read.fully_qualified_name
+  parent_role_name   = snowflake_account_role.analyst.name
+}
+```
+
+Deux détails valent le détour.
+
+**Les future grants sont la seule option viable avec dbt.** Une matérialisation `table` fait un `create or replace` : c'est un nouvel objet, et les grants accordés sur l'ancien disparaissent avec lui. Les future grants s'appliquent à chaque objet créé dans le schéma, y compris celui qui vient de remplacer le précédent.
+
+**Les future grants de schéma masquent ceux de base.** Si des future grants existent pour le même type d'objet au niveau de la base et au niveau d'un schéma, Snowflake applique ceux du schéma et ignore ceux de la base. Ajouter un future grant de schéma pour un nouveau rôle peut donc retirer, sans bruit, l'accès que d'autres rôles tenaient de la base. Nous déclarons les future grants à un seul niveau, le schéma, partout.
+
+Les colonnes sensibles ajoutent une troisième couche : des **politiques de masquage** attachées aux colonnes, déclarées elles aussi en Terraform. Le rôle qui lit la table ne voit pas forcément la valeur.
+
+## Les connexions aussi sont du code
+
+Côté Airbyte, une connexion déclarée ressemble à ceci :
+
+```hcl
+resource "airbyte_connection" "partner_feed_to_raw" {
+  name           = "partner-feed-to-raw"
+  source_id      = var.partner_feed_source_id
+  destination_id = airbyte_destination_snowflake.raw.destination_id
+
+  # Dagster décide quand ça tourne. Deux ordonnanceurs, c'est un de trop.
+  schedule = {
+    schedule_type = "manual"
+  }
+
+  # On garde ce qui change dans Bronze, les contrats Silver décident du reste.
+  non_breaking_schema_updates_behavior = "propagate_columns"
+
+  configurations = {
+    streams = [
+      { name = "contracts", sync_mode = "incremental_deduped_history" },
+      { name = "movements", sync_mode = "incremental_append" },
+    ]
+  }
+}
+```
+
+Le `schedule_type = "manual"` est la ligne la plus importante du fichier. Il matérialise la décision de l'[épisode 2](../posts/data-platform-reverse-etl-freshness) : **un seul ordonnanceur**, et c'est l'orchestrateur, pour que la transformation parte quand la donnée est arrivée.
+
+Le reste a une vertu moins visible : la liste des flux synchronisés devient relisible. Ajouter un flux partenaire passe par une PR, avec une personne qui se demande si ce flux contient des données sensibles avant qu'il ne soit copié dans l'entrepôt.
+
+## Les secrets, ou le state qui en sait trop
+
+Une source Airbyte a des identifiants. Une destination Snowflake aussi. Et **Terraform écrit dans son state tout ce qu'il gère, en clair**, y compris les attributs marqués `sensitive`. Le marquage masque la sortie du plan. Il ne chiffre rien.
+
+Nos règles, qui n'ont rien d'original mais qu'il faut appliquer toutes :
+
+- les secrets viennent d'un gestionnaire de secrets, jamais d'un fichier `.tfvars` commité ;
+- le state vit dans un backend distant chiffré, avec verrouillage et accès restreint à l'identité de la CI ;
+- personne n'a besoin de lire le state pour travailler, donc personne ne le peut.
+
+## Le blast radius d'un plan
+
+Un dépôt qui touche à la fois aux droits et aux flux a une propriété inconfortable : **un refactoring anodin peut être destructeur**.
+
+- Renommer une ressource sans le dire à Terraform, c'est un `destroy` puis un `create`. Pour un rôle, c'est retirer l'accès à tout le monde pendant la durée de l'apply.
+- Recréer une connexion Airbyte, c'est perdre son état de synchronisation. La nouvelle connexion repart de zéro : resynchronisation complète de l'historique, doublons en Bronze, et une facture de calcul inattendue.
+
+Les parades sont connues. Il faut juste les rendre obligatoires :
+
+- des blocs `moved` pour chaque renommage, relus en PR ;
+- `prevent_destroy` sur les rôles, les bases et les connexions ;
+- **des states séparés** (accès, calcul, ingestion), pour que chaque plan reste lisible et que son pire cas reste borné ;
+- un apply uniquement depuis la CI, avec une identité dédiée ;
+- et un garde-fou qui fait échouer la CI dès qu'un plan contient une destruction :
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+terraform plan -input=false -out=plan.out
+terraform show -json plan.out > plan.json
+
+# Un "replace" est un delete suivi d'un create : il est attrapé aussi.
+deletes=$(jq '[.resource_changes[] | select(.change.actions | index("delete"))] | length' plan.json)
+
+if [[ "$deletes" -gt 0 ]]; then
+  jq -r '.resource_changes[] | select(.change.actions | index("delete")) | "  - \(.address)"' plan.json
+  echo "Le plan détruit ${deletes} ressource(s). Il faut une approbation explicite, pas un re-run." >&2
+  exit 1
+fi
+```
+
+Une destruction reste possible. Elle devient simplement une décision, prise par quelqu'un qui a lu la liste.
+
+## La dérive, ou la console qui ment
+
+Tôt ou tard, quelqu'un clique. Un grant « temporaire » pour débloquer une analyse, un intervalle de sync modifié à la main. Le prochain plan propose de l'annuler, et tout le monde se demande qui a raison.
+
+Notre réponse est structurelle : **Terraform a raison**. Les rôles utilisés au quotidien ne peuvent pas accorder de privilèges. Le rôle d'administration existe, pour les urgences, avec une procédure et une trace. Et un plan tourne chaque nuit avec `-detailed-exitcode` : un code de sortie 2 signifie que la réalité a divergé du code, et ça ouvre une alerte au lieu d'attendre le prochain apply pour le découvrir.
+
+## Ce que ça coûte
+
+- **Les providers bougent vite.** Le passage à la version 1 du provider Snowflake a renommé ou refondu une bonne partie des ressources. Une montée de version majeure est un projet, avec ses `moved` et ses imports, pas un changement de numéro.
+- **Importer l'existant est fastidieux.** Chaque rôle créé à la main avant Terraform doit être importé, relu, puis nettoyé. C'est le prix des premiers mois passés dans la console.
+- **La revue demande des gens qui lisent un plan.** Un diff HCL de trois lignes peut produire un plan de quarante ressources. Relire le code sans relire le plan, c'est relire la moitié du changement.
+
+## Quand c'est le mauvais choix
+
+Trois personnes, un warehouse, aucune donnée sensible ? Un script SQL de grants versionné dans Git, relu en PR, fait l'essentiel du travail pour une fraction du coût. Terraform se justifie quand le graphe de rôles grandit plus vite que la mémoire de l'équipe, et quand la question « qui a accès à quoi ? » vient de quelqu'un qui attend une réponse écrite.
+
+La question à vous poser : si vous supprimiez demain un rôle de votre entrepôt par erreur, combien de temps vous faudrait-il pour reconstruire exactement ses droits ? Si la réponse n'est pas « un apply », ces droits n'existent que dans votre console.
+
+## La suite de la série
+
+Dernier épisode : le bilan. Cinq outils, quatre langages et un orchestrateur hybride. Est-ce qu'on referait ce choix ?

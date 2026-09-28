@@ -1,0 +1,175 @@
+---
+title: "Reverse ETL : le mensonge du « presque temps réel »"
+subtitle: "Quand une donnée repart de l'entrepôt vers une application utilisée en direct, chaque minute de retard devient un problème produit."
+summary: "Deuxième épisode : pourquoi renvoyer des données calculées dans Snowflake vers une application vivante est la partie la plus délicate de la plateforme. Budget de fraîcheur, propriété des champs, écritures conditionnelles, runs atomiques, et l'heure affichée à côté de chaque chiffre."
+visualId: "backend-to-data-engineer-rockfi"
+publishedAt: "2026-10-29"
+readTimeMinutes: 9
+tags:
+  - data-engineering
+  - reverse-etl
+  - architecture
+  - postgresql
+  - reliability
+  - rockfi
+seriesId: "what-trustworthy-data-costs"
+seriesOrder: 2
+draft: true
+---
+
+Deuxième épisode de **Ce que coûte une donnée fiable**. Le premier parlait de faire entrer les données dans l'entrepôt. Celui-ci parle de les en faire sortir, ce qui est nettement moins documenté et nettement plus dangereux.
+
+Le scénario est simple. Un conseiller ouvre un écran. Il y voit un chiffre calculé dans l'entrepôt : une consolidation, un indicateur, une donnée partenaire nettoyée. Il s'en sert pour parler à un client.
+
+La seule question qui compte : **ce chiffre date de quand ?**
+
+## Le budget de fraîcheur (faites l'addition)
+
+Personne ne décide qu'une donnée aura deux heures de retard. Ça arrive par addition.
+
+Prenons une chaîne typique, avec des intervalles raisonnables pris un par un (exemple illustratif, pas notre configuration) :
+
+| Étape | Déclenchement | Pire cas ajouté |
+| --- | --- | --- |
+| Extraction de la source | toutes les heures | 60 min + durée de la sync |
+| Transformation dbt | toutes les heures, horloge indépendante | 60 min + durée du run |
+| Reverse sync vers l'application | toutes les 15 min | 15 min + durée d'application |
+
+Pire cas : **plus de deux heures un quart**, avant même de compter les durées d'exécution. Médiane : environ une heure. Et chaque équipe qui a réglé son intervalle pense, à juste titre, avoir fait un choix raisonnable.
+
+Le problème n'est pas un intervalle trop long. **C'est que chaque étape attend une horloge au lieu d'attendre l'étape précédente.**
+
+<ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
+
+Chaque flèche du schéma ci-dessus est une attente. Le reverse ETL en ajoute une dernière, entre l'entrepôt et l'écran.
+
+## Enchaîner sur l'événement, pas sur l'horloge
+
+C'est la raison pour laquelle Dagster déclenche tout, y compris les syncs Airbyte. Chaque étape est un asset. Un asset en aval se matérialise quand ses dépendances ont été mises à jour, pas quand un cron se réveille :
+
+```python
+from dagster import AssetExecutionContext, AssetKey, AutomationCondition, asset
+
+@asset(
+    deps=[AssetKey(["gold", "account_metrics"])],
+    # Part dès que le modèle Gold a été rematérialisé, pas au prochain quart d'heure.
+    automation_condition=AutomationCondition.eager(),
+    group_name="reverse_etl",
+)
+def account_metrics_projection(context: AssetExecutionContext, projection_store: ProjectionStore) -> None:
+    run = projection_store.publish_from_warehouse(
+        dataset="account_metrics",
+        dagster_run_id=context.run_id,
+    )
+    context.add_output_metadata({"rows": run.row_count, "as_of": run.as_of.isoformat()})
+```
+
+Le pire cas devient : l'intervalle de la source, plus la somme des durées. On a supprimé deux attentes sur trois sans rien accélérer.
+
+Il reste un plancher : la source elle-même. Si un partenaire publie une fois par jour, aucune orchestration ne rendra sa donnée fraîche à l'heure. **Le budget de fraîcheur se négocie avec le métier, source par source**, et il s'écrit quelque part.
+
+## Deux systèmes, deux vérités
+
+L'application a sa propre base, et ses utilisateurs y écrivent. L'entrepôt en a une copie, plus ancienne. Le reverse ETL renvoie des valeurs calculées à partir de cette copie.
+
+Voici le bug que tout le monde écrit une fois :
+
+1. À 10:02, un utilisateur modifie un champ dans l'application.
+2. À 10:00, l'extraction avait déjà lu l'ancienne valeur.
+3. À 10:40, le reverse ETL renvoie une ligne calculée à partir de l'ancienne valeur, et l'écrit dans la même table.
+4. La modification de 10:02 a disparu. Aucune erreur, aucun log. L'utilisateur jure qu'il avait enregistré. Il a raison.
+
+Le reverse ETL vient de faire un **last-writer-wins avec une donnée périmée**.
+
+La règle qui supprime cette classe de bugs : **un champ a un seul propriétaire**. Soit l'application l'écrit, soit l'entrepôt le calcule. Jamais les deux.
+
+Concrètement, le reverse ETL n'écrit **jamais dans une table que l'application écrit**. Il alimente un schéma de projections dédié, en lecture seule pour l'application, qui compose les deux à la lecture. Côté conception, ça force une discussion saine : pour chaque donnée affichée, qui en est la source de vérité ?
+
+## Appliquer, pas écraser
+
+Même dans un schéma dédié, un run peut arriver en retard, être rejoué, ou se croiser avec le suivant. Chaque écriture doit donc être **conditionnelle et idempotente**.
+
+Pour une synchronisation incrémentale, la garde tient dans une clause :
+
+```sql
+insert into projection.account_metrics as current
+    (account_id, metric_value, computed_as_of, run_id)
+values ($1, $2, $3, $4)
+on conflict (account_id) do update
+    set metric_value   = excluded.metric_value,
+        computed_as_of = excluded.computed_as_of,
+        run_id         = excluded.run_id
+    -- Ce WHERE est tout le post : un run rejoué ou en retard
+    -- ne peut plus écraser une valeur plus fraîche.
+    where current.computed_as_of < excluded.computed_as_of;
+```
+
+Pour un instantané complet, il y a un piège de plus : **l'application ne doit jamais voir un run à moitié écrit**. Si la moitié des lignes date de 10:00 et l'autre de 11:00, les totaux affichés ne correspondent à aucun état réel. Nous écrivons chaque run à côté, puis nous basculons un pointeur, en une seule écriture :
+
+```sql
+-- Publication, une fois toutes les lignes du run insérées.
+update projection.current_run
+   set run_id = $1, as_of = $2
+ where dataset = 'account_metrics'
+   and as_of < $2; -- Un vieux run qui termine en dernier ne gagne pas.
+
+-- Lecture côté application : un run complet, ou rien.
+select m.metric_value, r.as_of
+  from projection.account_metrics_runs m
+  join projection.current_run r
+    on r.dataset = 'account_metrics' and m.run_id = r.run_id
+ where m.account_id = $1;
+```
+
+Les anciens runs sont purgés plus tard, après un délai qui permet de revenir en arrière. Les suppressions se règlent au passage : une ligne absente du nouveau run disparaît de la lecture, sans `DELETE` à orchestrer.
+
+## Montrer l'heure
+
+Une fois qu'on accepte qu'une donnée a un âge, il faut **le montrer**. Dans notre métier, un chiffre sans « à date du » n'est pas une information, c'est un risque.
+
+Chaque projection porte son `as_of`. L'application décide quoi en faire, avec un budget explicite par jeu de données :
+
+```ts
+export type Freshness = "fresh" | "stale" | "expired";
+
+export type FreshnessBudget = {
+  staleAfterMs: number;  // au-delà : afficher l'heure et un avertissement
+  expireAfterMs: number; // au-delà : ne plus afficher le chiffre
+};
+
+export function freshnessOf(asOf: Date, now: Date, budget: FreshnessBudget): Freshness {
+  const ageMs = now.getTime() - asOf.getTime();
+  if (ageMs > budget.expireAfterMs) return "expired";
+  if (ageMs > budget.staleAfterMs) return "stale";
+  // Un âge négatif signifie une horloge en avance quelque part : on affiche, on log, on ne panique pas.
+  return "fresh";
+}
+```
+
+Le troisième état est le plus important. Quand la chaîne est cassée depuis trop longtemps, **un écran qui dit « donnée indisponible » vaut mieux qu'un écran qui affiche un chiffre d'hier avec l'aplomb d'un chiffre d'aujourd'hui**.
+
+## « Et si l'application interrogeait directement Snowflake ? »
+
+La question revient à chaque fois. La réponse est non, pour des raisons qui n'ont rien d'idéologique :
+
+- **Latence.** Un entrepôt analytique est conçu pour scanner beaucoup de données, pas pour répondre à une recherche par clé en quelques millisecondes. Un écran qui attend une seconde par requête est un écran que personne n'aime.
+- **Coût.** Un warehouse qui reçoit une requête toutes les trente secondes ne se suspend jamais. Votre facture non plus.
+- **Disponibilité.** L'application hérite de chaque maintenance, montée de version et incident de la plateforme data. Le blast radius d'un modèle dbt cassé inclut maintenant votre produit.
+
+L'entrepôt calcule. **Un store opérationnel sert.** Le reverse ETL est précisément le pont entre les deux, et c'est pour ça qu'il mérite autant de soin.
+
+## Ce que ça coûte (aka la chaîne est aussi forte que son maillon le plus lent)
+
+- **Un pipeline de plus à opérer.** Le reverse ETL a ses propres pannes, ses propres rejeux, ses propres alertes. Il ne se contente pas d'hériter de celles des étapes précédentes : il les additionne.
+- **La fraîcheur se surveille de bout en bout.** Une alerte par étape ne dit pas si la donnée affichée respecte son budget. Nous mesurons l'âge de ce que l'application sert réellement, pas seulement la santé de chaque job.
+- **Le produit doit accepter l'idée d'« à date du ».** C'est le coût le moins technique et le plus réel. Certaines fonctionnalités ne supportent pas une donnée qui a une heure. Celles-là n'ont rien à faire sur ce chemin.
+
+## Quand c'est le mauvais choix
+
+Si le besoin se compte en secondes, le reverse ETL par lots n'est pas la bonne architecture, et aucun réglage d'intervalle ne le deviendra. Une donnée qui doit être à jour à la seconde appartient aux services et aux événements (un topic, un consommateur, une projection maintenue en continu), pas à un entrepôt qui recalcule toutes les heures.
+
+Deux questions à vous poser : pour chaque chiffre renvoyé vers vos applications, qui a décidé de son âge maximal acceptable ? Et que voit l'utilisateur quand cet âge est dépassé ?
+
+## La suite de la série
+
+Prochain épisode : les tests dbt et les asset checks Dagster. Ou comment faire en sorte qu'une donnée fausse s'arrête dans le pipeline, plutôt que dans un rendez-vous client.

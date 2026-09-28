@@ -1,0 +1,187 @@
+---
+title: "Des tests comme contrat, pas comme filet"
+subtitle: "Un test qui échoue après que le conseiller a vu le chiffre n'est pas un test. C'est un post-mortem."
+summary: "Troisième épisode : comment dbt et Dagster transforment la qualité de données en feu rouge dans le pipeline. Contrats sur la couche Silver, tests de réconciliation, asset checks bloquants, politique warn ou error, et ce qu'aucun test ne verra jamais."
+visualId: "backend-to-data-engineer-rockfi"
+publishedAt: "2026-11-02"
+readTimeMinutes: 9
+tags:
+  - data-engineering
+  - dbt
+  - dagster
+  - testing
+  - reliability
+  - rockfi
+seriesId: "what-trustworthy-data-costs"
+seriesOrder: 3
+draft: true
+---
+
+Troisième épisode de **Ce que coûte une donnée fiable**. Le précédent se terminait sur une promesse : qu'une donnée fausse s'arrête dans le pipeline, pas dans un rendez-vous client.
+
+C'est la partie du stack qui nous a le plus convaincus. **Snowflake et dbt changent vraiment la donne sur la qualité**, et Dagster rend cette qualité visible au même endroit que le reste. Mais seulement si l'on traite les tests comme un contrat qui arrête la chaîne, et pas comme un rapport qu'on lit le lendemain.
+
+## Le seul test qui compte est celui qui arrive avant l'humain
+
+La plupart des équipes testent leurs données. Beaucoup les testent **après** : un job de qualité qui tourne la nuit, un tableau de bord de tests rouges que quelqu'un consultera peut-être. Pendant ce temps, les modèles en aval ont déjà été reconstruits avec la donnée fautive, et le reverse ETL l'a déjà poussée vers les applications.
+
+Nous posons une règle différente : **un test en erreur empêche tout ce qui en dépend de se reconstruire**. La donnée affichée reste celle du dernier run sain, avec son `as_of` honnête. Elle vieillit, l'écran le montre, et quelqu'un est alerté.
+
+> Mieux vaut un chiffre daté qu'un chiffre faux. Le premier se voit. Le second, non.
+
+## Où placer les tests (aux frontières, pas partout)
+
+Un test coûte une requête. Un millier de tests posés au hasard coûtent une facture et de la fatigue d'alerte. Nous les concentrons aux trois frontières où la nature de la donnée change.
+
+**À l'entrée : la source est-elle vivante ?** Fraîcheur, et les clés qui doivent exister. dbt sait mesurer la fraîcheur d'une source à partir d'une colonne de chargement :
+
+```yaml
+# models/sources.yml (exemple simplifié)
+sources:
+  - name: partner_feed
+    schema: raw_partner_feed
+    loaded_at_field: _airbyte_extracted_at
+    freshness:
+      warn_after: {count: 6, period: hour}
+      # 24 heures sans rien : ce n'est plus du retard, c'est un silence.
+      error_after: {count: 24, period: hour}
+    tables:
+      - name: contracts
+```
+
+**Au milieu : la forme est-elle respectée ?** La couche Silver porte des **contrats** : colonnes, types, contraintes. Un contrat appliqué fait échouer la construction du modèle si le SQL produit autre chose que ce qui est déclaré. C'est là que la dérive de schéma de l'[épisode 1](../posts/data-platform-ingestion-drift) casse bruyamment :
+
+```yaml
+# models/silver/_silver.yml
+models:
+  - name: stg_partner_contracts
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: contract_id
+        data_type: varchar
+        constraints:
+          - type: not_null
+        data_tests:
+          - unique
+      - name: amount
+        # Si la source envoie "1 234,56", le cast échoue ici, pas dans un tableau de bord.
+        data_type: number(18, 2)
+      - name: status
+        data_type: varchar
+        data_tests:
+          - accepted_values:
+              values: ['active', 'suspended', 'closed']
+```
+
+**À la sortie : le chiffre est-il cohérent avec le monde ?** Les tests de forme ne suffisent plus en Gold. On y vérifie des invariants métier, et surtout des **réconciliations** : un total calculé chez nous doit correspondre, à une tolérance près, au total déclaré par la source. Un test singulier dbt est une requête qui doit renvoyer zéro ligne :
+
+```sql
+-- tests/assert_totals_reconcile_with_source.sql
+-- Chaque ligne renvoyée est un écart que quelqu'un devra expliquer.
+select
+    entity_id,
+    computed_total,
+    reported_total,
+    abs(computed_total - reported_total) as gap
+from {{ ref('gold_entity_totals') }}
+where reported_total <> 0
+  and abs(computed_total - reported_total) > 0.005 * abs(reported_total)
+```
+
+C'est le test le moins élégant de la plateforme. C'est aussi celui qui trouve les problèmes les plus graves.
+
+## `dbt build`, pas `dbt run`
+
+Le détail le plus rentable de tout ce post tient dans un mot. `dbt run` construit les modèles, puis `dbt test` vérifie, après coup. **`dbt build` exécute modèles et tests dans l'ordre du graphe** : si un test en erreur échoue sur un modèle, tout ce qui en dépend est sauté.
+
+Dans Dagster, l'intégration dbt expose chaque modèle comme un asset, et les tests dbt comme des **asset checks** attachés à ces assets :
+
+```python
+from dagster import AssetExecutionContext
+from dagster_dbt import DbtCliResource, dbt_assets
+
+@dbt_assets(manifest=DBT_MANIFEST_PATH)
+def warehouse_models(context: AssetExecutionContext, dbt: DbtCliResource):
+    # `build` et pas `run` : les tests tournent entre les modèles, pas après la bataille.
+    yield from dbt.cli(["build"], context=context).stream()
+```
+
+Le résultat se voit directement dans le graphe d'assets : chaque modèle affiche ses checks, verts ou rouges, à côté de sa dernière matérialisation. Quand quelqu'un demande « pourquoi ce chiffre n'a pas bougé depuis ce matin ? », la réponse est sur la même page que la question.
+
+## Ce que dbt ne sait pas dire : les checks Python
+
+Certains contrôles ne s'écrivent pas bien en SQL déclaratif. Le plus utile chez nous : **le volume ne s'est pas effondré**. Une source qui renvoie soudain 40 % de lignes en moins passe tous les tests de forme. Chaque ligne est valide. Il en manque simplement beaucoup.
+
+```python
+from dagster import AssetCheckResult, AssetCheckSeverity, AssetKey, asset_check
+from dagster_snowflake import SnowflakeResource
+
+@asset_check(
+    asset=AssetKey(["gold", "gold_entity_totals"]),
+    # Bloquant : si le check échoue en ERROR, l'aval (reverse ETL compris) ne part pas.
+    blocking=True,
+    description="Le nombre d'entités ne chute pas de plus de 10 % en une heure.",
+)
+def entity_volume_did_not_collapse(snowflake: SnowflakeResource) -> AssetCheckResult:
+    with snowflake.get_connection() as conn:
+        current, previous = conn.cursor().execute(
+            """
+            select
+                count(*),
+                (select count(*) from gold.gold_entity_totals at(offset => -3600))
+            from gold.gold_entity_totals
+            """
+        ).fetchone()
+
+    # Table vide une heure plus tôt : rien à comparer, on ne bloque pas sur une division par zéro.
+    ratio = current / previous if previous else 1.0
+    return AssetCheckResult(
+        passed=ratio >= 0.9,
+        severity=AssetCheckSeverity.ERROR,
+        metadata={"current": current, "previous": previous, "ratio": round(ratio, 3)},
+    )
+```
+
+Le `at(offset => -3600)` utilise le Time Travel de Snowflake : on compare la table à elle-même une heure plus tôt, sans maintenir de table d'historique à côté. Le piège : ça ne marche que si le modèle est **incrémental**. Une matérialisation `table` fait un `create or replace`, donc un nouvel objet, et le Time Travel ne remonte pas avant sa création. Le check plante, et un check bloquant qui plante bloque.
+
+L'argument `blocking=True` fait le reste : le check échoue, le reverse ETL de l'[épisode 2](../posts/data-platform-reverse-etl-freshness) ne part pas, l'application continue d'afficher la version précédente avec son heure.
+
+<ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
+
+## Warn ou error : la vraie décision
+
+Écrire un test est facile. Choisir sa sévérité est la décision qui détermine si le système reste utilisable dans six mois.
+
+- **Trop d'`error`**, et le pipeline s'arrête pour des broutilles. L'équipe apprend à relancer sans lire. Le jour où l'erreur est grave, elle est relancée aussi.
+- **Trop de `warn`**, et personne ne lit les avertissements. Un warning que personne ne traite est un test désactivé avec des étapes en plus.
+
+Notre règle : **`error` seulement si un humain doit agir avant le prochain run**, et chaque test en `error` a un propriétaire nommé qui reçoit l'alerte. Le reste est en `warn`, et remonte dans une revue hebdomadaire où l'on décide de le promouvoir, de le corriger ou de le supprimer. Supprimer un test inutile est une contribution à la qualité, pas un renoncement.
+
+## Ce qu'aucun test ne verra (aka le partenaire qui change le sens d'une colonne)
+
+Les tests vérifient ce que vous avez anticipé. Le pire incident de qualité ne ressemble à rien de ce que vous avez anticipé.
+
+Une source continue d'envoyer une colonne `amount`, même nom, même type, mêmes volumes. Mais depuis mardi, le montant est net de frais au lieu d'être brut. Tous les tests passent. Les contrats tiennent. Le chiffre est faux.
+
+Deux défenses seulement, et aucune n'est un test de forme :
+
+1. **La réconciliation avec une source indépendante**, quand elle existe. C'est pour ça que le test le moins élégant est le plus précieux.
+2. **Un propriétaire métier par modèle Gold**, qui regarde les chiffres et sait quand ils ont « une drôle de tête ». La qualité de données reste, au bout du compte, une responsabilité humaine outillée.
+
+## Ce que ça coûte
+
+- **Les tests sont des requêtes, et les requêtes consomment du calcul.** Un `unique` sur une table de plusieurs centaines de millions de lignes est un scan complet à chaque run. Nous restreignons les tests coûteux aux partitions récentes avec une clause `where` dans leur configuration, et nous gardons un test complet hebdomadaire.
+- **Les tests de fraîcheur ne connaissent pas les week-ends.** Une source qui ne publie pas le dimanche déclenche une erreur de fraîcheur le lundi à 7 heures. Chaque lundi. Jusqu'à ce que quelqu'un encode le calendrier de publication de la source, ce qui aurait dû être fait dès le départ.
+- **Un check bloquant est une dépendance de disponibilité.** Si le check lui-même plante (timeout, droit manquant), il bloque l'aval comme un vrai échec. Les checks bloquants doivent être aussi simples et aussi fiables que ce qu'ils protègent.
+
+## Quand c'est le mauvais choix
+
+Si vos données alimentent une analyse exploratoire que personne ne réutilise, des checks bloquants et des propriétaires nommés sont excessifs. Des tests en `warn` et un peu de bon sens suffiront.
+
+La question à vous poser : aujourd'hui, si un test de qualité échoue sur un modèle, qu'est-ce qui empêche le modèle suivant de se reconstruire avec la donnée fautive ? Si la réponse est « rien », vos tests sont un filet posé après la chute.
+
+## La suite de la série
+
+Prochain épisode : Terraform. Déclarer les accès Snowflake et la configuration Airbyte dans le même dépôt, c'est gagner une source de vérité sur qui peut lire quoi. Et un plan dont le blast radius mérite une vraie revue.

@@ -1,0 +1,94 @@
+---
+title: "Est-ce qu'on referait ce choix ?"
+subtitle: "Cinq outils, quatre langages et un orchestrateur hybride : le bilan honnête d'une plateforme data construite pour durer."
+summary: "Dernier épisode de la série : ce qui a vraiment payé (Snowflake, dbt, les assets Dagster), ce qui coûte plus que prévu, pourquoi l'exécution de l'orchestrateur reste dans notre infrastructure, ce que nous ferions différemment, et une grille pour décider si un stack comme le nôtre se justifie chez vous."
+visualId: "backend-to-data-engineer-rockfi"
+publishedAt: "2026-11-09"
+readTimeMinutes: 8
+tags:
+  - data-engineering
+  - dagster
+  - snowflake
+  - architecture
+  - strategy
+  - rockfi
+seriesId: "what-trustworthy-data-costs"
+seriesOrder: 5
+draft: true
+---
+
+Dernier épisode de **Ce que coûte une donnée fiable**. Quatre posts sur la façon dont les données entrent, ressortent, sont testées et protégées. Reste la question qu'on nous pose le plus souvent, en général juste après avoir vu le schéma d'architecture : **est-ce que tout ça valait le coup ?**
+
+Réponse courte : oui. Réponse honnête : oui, pour nos contraintes, et à un prix que nous avions sous-estimé.
+
+## Compter les pièces mobiles
+
+Avant de juger, il faut compter. Une plateforme comme la nôtre, c'est :
+
+- cinq outils, chacun avec son rythme de versions, son interface et ses modes de panne ;
+- quatre langages : SQL et YAML pour dbt, Python pour Dagster, HCL pour Terraform ;
+- du code d'intégration entre chaque paire : syncs déclenchées par l'orchestrateur, tests exposés comme checks, reverse ETL vers les applications ;
+- et une astreinte qui doit savoir dans quelle interface commencer à chercher.
+
+<ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
+
+Aucun de ces éléments n'est compliqué seul. **La complexité est dans les jointures**, et les jointures sont à nous.
+
+## Ce qui a vraiment payé
+
+**Snowflake, pour la séparation du stockage et du calcul.** Chaque usage a son warehouse : ingestion, transformation, analytique. Une requête exploratoire mal écrite ne ralentit plus la transformation du matin, et le coût de chaque usage se lit directement sur la facture. Le Time Travel a changé notre rapport à l'erreur : une table écrasée par un mauvais run se relit telle qu'elle était une heure plus tôt, sans restauration de sauvegarde.
+
+**dbt, pour avoir fait du SQL analytique du code comme les autres.** Versionné, relu en PR, testé, documenté, avec un lignage que personne n'a eu à dessiner. La transformation n'est plus un ensemble de vues créées à la main que seule une personne comprend.
+
+**Dagster, pour l'asset comme unité de pensée.** Nous ne raisonnons plus en jobs qui tournent à des heures, mais en données qui existent, dépendent les unes des autres, et portent leurs contrôles. De la sync Airbyte au reverse ETL, tout est dans un seul graphe. Quand un chiffre semble faux, on part du chiffre et on remonte, au lieu de partir des logs et de deviner.
+
+**Terraform, pour une question qui a maintenant une réponse.** Qui peut lire quoi, depuis quand, validé par qui : c'est dans Git.
+
+## Ce qui coûte plus que prévu
+
+- **Les montées de version en cascade.** Une nouvelle version d'un connecteur, d'une intégration dbt, du provider Terraform : chacune est raisonnable, mais elles arrivent sans se concerter, et chaque combinaison doit être revalidée.
+- **Le débogage traverse quatre interfaces.** Une donnée en retard peut venir de la source, de la sync, d'un test bloquant ou du reverse ETL. Le graphe d'assets aide beaucoup. Il ne remplace pas quelqu'un qui connaît toute la chaîne.
+- **La connaissance se concentre.** Une plateforme de cette taille crée vite des personnes indispensables. C'est un risque opérationnel à traiter comme tel : documentation vivante, rotations, et du code d'intégration assez ennuyeux pour être repris par quelqu'un d'autre.
+- **Le coût du calcul se surveille dès le premier jour.** Un warehouse laissé trop grand, une suspension automatique trop longue, un test qui scanne une table entière à chaque run : aucune de ces erreurs n'est visible avant la facture.
+
+## Hybride : pourquoi l'exécution reste chez nous
+
+C'est la décision qu'on nous challenge le plus, à raison. Nous aurions pu tout prendre en service géré : l'extraction, la transformation hébergée, l'orchestration. Moins de choses à exploiter, un démarrage plus rapide, et probablement des mois gagnés au début.
+
+Nous avons choisi une orchestration **hybride**. Le plan de contrôle de Dagster est géré par l'éditeur : interface, ordonnancement, historique des runs. L'exécution, elle, tourne dans notre infrastructure : l'agent, le code des pipelines, les connexions aux bases et à l'entrepôt.
+
+Ce que ça nous donne :
+
+- **Les données et les secrets restent dans notre périmètre.** Les pipelines se connectent aux sources et à Snowflake depuis chez nous. Le plan de contrôle voit des métadonnées d'exécution, pas les données qui circulent.
+- **Le calcul est à nous.** Nous choisissons où tournent les runs, avec quelles ressources et quel réseau, et nous les observons avec nos outils.
+- **Un seul lignage**, de la source à l'application, au lieu de trois interfaces qui en connaissent chacune un morceau.
+
+Ce que ça nous coûte : **nous opérons l'agent, les images, le réseau et le calcul**. Une panne de l'agent, c'est notre astreinte. Et « seulement des métadonnées » demande de la discipline : une métadonnée attachée à un asset part vers le plan de contrôle. On ne met pas d'échantillon de données clients dans une prévisualisation, même pour déboguer, même « juste cette fois ».
+
+Pour une équipe plus petite, ou sans contrainte forte sur l'endroit où transitent les données, le tout-géré était probablement le bon choix. **Le bon stack n'est pas le plus contrôlé : c'est celui dont les contraintes justifient le coût d'exploitation.**
+
+## Si c'était à refaire
+
+- **Écrire les budgets de fraîcheur avant de construire le reverse ETL**, pas après la première réclamation. Chaque donnée renvoyée vers une application devrait naître avec un âge maximal accepté par le métier.
+- **Une source de bout en bout avant d'en brancher dix.** Extraction, contrat, test, modèle Gold, reverse ETL, affichage de l'heure. Une fois la chaîne complète validée sur une source, les suivantes vont vite. L'inverse donne dix chaînes à moitié finies.
+- **Des states Terraform séparés dès le départ.** Les séparer après coup demande des imports et des `moved` que personne n'a envie de relire.
+- **Un propriétaire par modèle Gold dès sa création.** Un modèle sans propriétaire est un modèle dont les tests en erreur n'alertent personne.
+- **Des limites de consommation dès le premier warehouse.** Configurer une alerte de coût après la première surprise, c'est la configurer une surprise trop tard.
+
+## La grille pour décider
+
+| Signal | Un stack comme le nôtre se justifie | Plus simple suffit |
+| --- | --- | --- |
+| Sources | Nombreuses, externes, changent sans prévenir | Quelques bases que vous possédez |
+| Fraîcheur | Heures, négociée par jeu de données | Secondes (services et événements) ou jours (un batch simple) |
+| Traçabilité | « D'où vient ce chiffre ? » est posée par écrit | Curiosité interne |
+| Consommateurs | Des applications en production | Des tableaux de bord internes |
+| Équipe | Capable d'opérer cinq outils et une astreinte | Une personne, à temps partiel |
+
+Si la majorité de vos réponses tombe dans la colonne de droite, un PostgreSQL, quelques jobs et un outil de BI vous emmèneront très loin. Ce n'est pas un aveu de faiblesse. C'est de l'ingénierie.
+
+## Fin de la série
+
+Nous sommes partis d'une phrase, « adopter un véritable entrepôt de données », dans [un post d'il y a un an](../posts/backend-to-data-engineer-rockfi). Cinq épisodes plus tard, elle se traduit ainsi : faire entrer des données qu'on ne contrôle pas ([épisode 1](../posts/data-platform-ingestion-drift)), les renvoyer vers des applications avec un âge assumé ([épisode 2](../posts/data-platform-reverse-etl-freshness)), arrêter la donnée fausse avant qu'elle n'atteigne un humain ([épisode 3](../posts/data-platform-tests-as-contracts)), et déclarer qui a le droit de toucher à tout ça ([épisode 4](../posts/data-platform-terraform-access-and-flows)).
+
+Une dernière question à vous poser : dans votre propre plateforme, quelle est la jointure entre deux outils que personne ne possède vraiment ? C'est là que se trouvera votre prochain incident.

@@ -1,0 +1,175 @@
+---
+title: "Reverse ETL: the \"near real-time\" lie"
+subtitle: "When data flows from the warehouse back into an application people use live, every minute of delay becomes a product problem."
+summary: "Second episode: why sending data computed in Snowflake back into a live application is the most delicate part of the platform. Freshness budgets, field ownership, conditional writes, atomic runs, and the timestamp shown next to every number."
+visualId: "backend-to-data-engineer-rockfi"
+publishedAt: "2026-10-29"
+readTimeMinutes: 9
+tags:
+  - data-engineering
+  - reverse-etl
+  - architecture
+  - postgresql
+  - reliability
+  - rockfi
+seriesId: "what-trustworthy-data-costs"
+seriesOrder: 2
+draft: true
+---
+
+Second episode of **What Trustworthy Data Costs**. The first was about getting data into the warehouse. This one is about getting it back out, which is far less documented and far more dangerous.
+
+The scenario is simple. An advisor opens a screen. On it is a number computed in the warehouse: a consolidation, an indicator, cleaned-up partner data. They use it to talk to a client.
+
+The only question that matters: **as of when?**
+
+## The freshness budget (do the math)
+
+Nobody decides that data will be two hours old. It happens by addition.
+
+Take a typical chain, with intervals that are each reasonable on their own (illustrative example, not our configuration):
+
+| Step | Trigger | Worst case added |
+| --- | --- | --- |
+| Source extraction | every hour | 60 min + sync duration |
+| dbt transformation | every hour, independent clock | 60 min + run duration |
+| Reverse sync to the application | every 15 min | 15 min + apply duration |
+
+Worst case: **over two hours and a quarter**, before counting any execution time. Median: about an hour. And every team that set its interval rightly believes it made a reasonable choice.
+
+The problem is not an interval that is too long. **It is that every step waits for a clock instead of waiting for the step before it.**
+
+<ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
+
+Every arrow in the diagram above is a wait. Reverse ETL adds one last wait, between the warehouse and the screen.
+
+## Chain on events, not on clocks
+
+This is why Dagster triggers everything, Airbyte syncs included. Each step is an asset. A downstream asset materializes when its dependencies have been updated, not when a cron wakes up:
+
+```python
+from dagster import AssetExecutionContext, AssetKey, AutomationCondition, asset
+
+@asset(
+    deps=[AssetKey(["gold", "account_metrics"])],
+    # Fires as soon as the Gold model is rematerialized, not at the next quarter hour.
+    automation_condition=AutomationCondition.eager(),
+    group_name="reverse_etl",
+)
+def account_metrics_projection(context: AssetExecutionContext, projection_store: ProjectionStore) -> None:
+    run = projection_store.publish_from_warehouse(
+        dataset="account_metrics",
+        dagster_run_id=context.run_id,
+    )
+    context.add_output_metadata({"rows": run.row_count, "as_of": run.as_of.isoformat()})
+```
+
+The worst case becomes: the source interval, plus the sum of durations. We removed two waits out of three without making anything faster.
+
+There is still a floor: the source itself. If a partner publishes once a day, no orchestration will make its data hourly. **The freshness budget is negotiated with the business, source by source**, and it gets written down somewhere.
+
+## Two systems, two truths
+
+The application has its own database, and its users write to it. The warehouse has a copy, which is older. Reverse ETL sends back values computed from that copy.
+
+Here is the bug everyone writes once:
+
+1. At 10:02, a user edits a field in the application.
+2. At 10:00, the extraction had already read the old value.
+3. At 10:40, reverse ETL sends back a row computed from the old value, and writes it into the same table.
+4. The 10:02 edit is gone. No error, no log. The user swears they saved. They are right.
+
+Reverse ETL just performed **last-writer-wins with stale data**.
+
+The rule that removes this whole class of bugs: **a field has exactly one owner**. Either the application writes it, or the warehouse computes it. Never both.
+
+In practice, reverse ETL **never writes into a table the application writes to**. It feeds a dedicated projection schema, read-only for the application, which composes both at read time. On the design side, it forces a healthy conversation: for every piece of data on screen, what is its source of truth?
+
+## Apply, don't overwrite
+
+Even in a dedicated schema, a run can arrive late, be replayed, or overlap with the next one. Every write must therefore be **conditional and idempotent**.
+
+For an incremental sync, the guard fits in one clause:
+
+```sql
+insert into projection.account_metrics as current
+    (account_id, metric_value, computed_as_of, run_id)
+values ($1, $2, $3, $4)
+on conflict (account_id) do update
+    set metric_value   = excluded.metric_value,
+        computed_as_of = excluded.computed_as_of,
+        run_id         = excluded.run_id
+    -- This WHERE is the whole post: a replayed or late run
+    -- can no longer overwrite a fresher value.
+    where current.computed_as_of < excluded.computed_as_of;
+```
+
+For a full snapshot, there is one more trap: **the application must never see a half-written run**. If half the rows are from 10:00 and the other half from 11:00, the totals on screen match no real state. We write each run alongside the current one, then flip a pointer, in a single write:
+
+```sql
+-- Publication, once every row of the run has been inserted.
+update projection.current_run
+   set run_id = $1, as_of = $2
+ where dataset = 'account_metrics'
+   and as_of < $2; -- An old run that finishes last does not win.
+
+-- Application read: a complete run, or nothing.
+select m.metric_value, r.as_of
+  from projection.account_metrics_runs m
+  join projection.current_run r
+    on r.dataset = 'account_metrics' and m.run_id = r.run_id
+ where m.account_id = $1;
+```
+
+Old runs are purged later, after a delay that leaves room to roll back. Deletes come for free: a row missing from the new run disappears from reads, with no `DELETE` to orchestrate.
+
+## Show the time
+
+Once you accept that data has an age, you have to **show it**. In our line of work, a number without an "as of" is not information, it is a liability.
+
+Every projection carries its `as_of`. The application decides what to do with it, with an explicit budget per dataset:
+
+```ts
+export type Freshness = "fresh" | "stale" | "expired";
+
+export type FreshnessBudget = {
+  staleAfterMs: number;  // beyond this: show the timestamp and a warning
+  expireAfterMs: number; // beyond this: stop showing the number
+};
+
+export function freshnessOf(asOf: Date, now: Date, budget: FreshnessBudget): Freshness {
+  const ageMs = now.getTime() - asOf.getTime();
+  if (ageMs > budget.expireAfterMs) return "expired";
+  if (ageMs > budget.staleAfterMs) return "stale";
+  // A negative age means a clock running ahead somewhere: display, log, don't panic.
+  return "fresh";
+}
+```
+
+The third state is the most important one. When the chain has been broken for too long, **a screen that says "data unavailable" beats a screen that shows yesterday's number with the confidence of today's**.
+
+## "What if the application just queried Snowflake?"
+
+The question comes up every time. The answer is no, for reasons that have nothing to do with ideology:
+
+- **Latency.** An analytical warehouse is built to scan a lot of data, not to answer a key lookup in a few milliseconds. A screen that waits a second per query is a screen nobody likes.
+- **Cost.** A warehouse that gets a query every thirty seconds never suspends. Neither does your bill.
+- **Availability.** The application inherits every maintenance window, upgrade, and incident of the data platform. The blast radius of a broken dbt model now includes your product.
+
+The warehouse computes. **An operational store serves.** Reverse ETL is exactly the bridge between the two, which is why it deserves this much care.
+
+## What it costs (aka the chain is as fast as its slowest link)
+
+- **One more pipeline to operate.** Reverse ETL has its own failures, its own replays, its own alerts. It does not just inherit those of the previous steps: it adds them up.
+- **Freshness is monitored end to end.** One alert per step does not tell you whether the data on screen is within budget. We measure the age of what the application actually serves, not just the health of each job.
+- **The product has to accept the idea of "as of."** It is the least technical cost and the most real one. Some features cannot live with data that is an hour old. Those have no business on this path.
+
+## When this is the wrong call
+
+If the requirement is measured in seconds, batch reverse ETL is the wrong architecture, and no interval tuning will fix that. Data that must be current to the second belongs to services and events (a topic, a consumer, a continuously maintained projection), not to a warehouse that recomputes every hour.
+
+Two questions worth asking yourself: for every number sent back to your applications, who decided its maximum acceptable age? And what does the user see once that age is exceeded?
+
+## Next in the series
+
+Next episode: dbt tests and Dagster asset checks. Or how to make bad data stop inside the pipeline, rather than in a client meeting.

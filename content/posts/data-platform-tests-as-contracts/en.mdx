@@ -1,0 +1,187 @@
+---
+title: "Tests as a contract, not a safety net"
+subtitle: "A test that fails after the advisor has seen the number is not a test. It is a post-mortem."
+summary: "Third episode: how dbt and Dagster turn data quality into a red light inside the pipeline. Contracts on the Silver layer, reconciliation tests, blocking asset checks, a warn-or-error policy, and what no test will ever catch."
+visualId: "backend-to-data-engineer-rockfi"
+publishedAt: "2026-11-02"
+readTimeMinutes: 9
+tags:
+  - data-engineering
+  - dbt
+  - dagster
+  - testing
+  - reliability
+  - rockfi
+seriesId: "what-trustworthy-data-costs"
+seriesOrder: 3
+draft: true
+---
+
+Third episode of **What Trustworthy Data Costs**. The previous one ended with a promise: bad data should stop inside the pipeline, not in a client meeting.
+
+This is the part of the stack that convinced us the most. **Snowflake and dbt genuinely change the game on quality**, and Dagster makes that quality visible in the same place as everything else. But only if tests are treated as a contract that stops the chain, not as a report someone reads the next day.
+
+## The only test that counts is the one that runs before a human
+
+Most teams test their data. Many test it **afterwards**: a quality job that runs overnight, a dashboard of red tests someone might look at. Meanwhile, downstream models have already been rebuilt with the bad data, and reverse ETL has already pushed it into the applications.
+
+We use a different rule: **a failing test prevents everything that depends on it from rebuilding**. The data on screen stays the one from the last healthy run, with its honest `as_of`. It ages, the screen shows it, and someone gets paged.
+
+> Better an old number than a wrong one. The first one is visible. The second one is not.
+
+## Where to put tests (at the boundaries, not everywhere)
+
+A test costs a query. A thousand tests scattered at random cost an invoice and alert fatigue. We concentrate them at the three boundaries where the nature of the data changes.
+
+**At the entrance: is the source alive?** Freshness, and the keys that must exist. dbt can measure a source's freshness from a load timestamp column:
+
+```yaml
+# models/sources.yml (simplified example)
+sources:
+  - name: partner_feed
+    schema: raw_partner_feed
+    loaded_at_field: _airbyte_extracted_at
+    freshness:
+      warn_after: {count: 6, period: hour}
+      # 24 hours of nothing: that is no longer a delay, it is silence.
+      error_after: {count: 24, period: hour}
+    tables:
+      - name: contracts
+```
+
+**In the middle: is the shape respected?** The Silver layer carries **contracts**: columns, types, constraints. An enforced contract fails the model build if the SQL produces anything other than what is declared. That is where the schema drift from [episode 1](../posts/data-platform-ingestion-drift) breaks loudly:
+
+```yaml
+# models/silver/_silver.yml
+models:
+  - name: stg_partner_contracts
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: contract_id
+        data_type: varchar
+        constraints:
+          - type: not_null
+        data_tests:
+          - unique
+      - name: amount
+        # If the source sends "1 234,56", the cast fails here, not on a dashboard.
+        data_type: number(18, 2)
+      - name: status
+        data_type: varchar
+        data_tests:
+          - accepted_values:
+              values: ['active', 'suspended', 'closed']
+```
+
+**At the exit: is the number consistent with the world?** Shape tests are no longer enough in Gold. There we check business invariants, and above all **reconciliations**: a total computed on our side must match, within a tolerance, the total reported by the source. A dbt singular test is a query that must return zero rows:
+
+```sql
+-- tests/assert_totals_reconcile_with_source.sql
+-- Every row returned is a gap someone will have to explain.
+select
+    entity_id,
+    computed_total,
+    reported_total,
+    abs(computed_total - reported_total) as gap
+from {{ ref('gold_entity_totals') }}
+where reported_total <> 0
+  and abs(computed_total - reported_total) > 0.005 * abs(reported_total)
+```
+
+It is the least elegant test on the platform. It is also the one that finds the most serious problems.
+
+## `dbt build`, not `dbt run`
+
+The highest-return detail in this entire post is one word. `dbt run` builds the models, then `dbt test` checks them, after the fact. **`dbt build` runs models and tests in graph order**: if an error-level test fails on a model, everything downstream is skipped.
+
+In Dagster, the dbt integration exposes each model as an asset, and dbt tests as **asset checks** attached to those assets:
+
+```python
+from dagster import AssetExecutionContext
+from dagster_dbt import DbtCliResource, dbt_assets
+
+@dbt_assets(manifest=DBT_MANIFEST_PATH)
+def warehouse_models(context: AssetExecutionContext, dbt: DbtCliResource):
+    # `build`, not `run`: tests run between models, not after the damage is done.
+    yield from dbt.cli(["build"], context=context).stream()
+```
+
+The result is visible directly in the asset graph: every model shows its checks, green or red, next to its latest materialization. When someone asks "why hasn't this number moved since this morning?", the answer is on the same page as the question.
+
+## What dbt can't say: Python checks
+
+Some checks don't fit declarative SQL well. The most useful one for us: **volume did not collapse**. A source that suddenly returns 40% fewer rows passes every shape test. Every row is valid. There are just a lot of them missing.
+
+```python
+from dagster import AssetCheckResult, AssetCheckSeverity, AssetKey, asset_check
+from dagster_snowflake import SnowflakeResource
+
+@asset_check(
+    asset=AssetKey(["gold", "gold_entity_totals"]),
+    # Blocking: if the check fails at ERROR, downstream (reverse ETL included) does not run.
+    blocking=True,
+    description="Entity count does not drop by more than 10% within an hour.",
+)
+def entity_volume_did_not_collapse(snowflake: SnowflakeResource) -> AssetCheckResult:
+    with snowflake.get_connection() as conn:
+        current, previous = conn.cursor().execute(
+            """
+            select
+                count(*),
+                (select count(*) from gold.gold_entity_totals at(offset => -3600))
+            from gold.gold_entity_totals
+            """
+        ).fetchone()
+
+    # Table was empty an hour ago: nothing to compare, don't block on a division by zero.
+    ratio = current / previous if previous else 1.0
+    return AssetCheckResult(
+        passed=ratio >= 0.9,
+        severity=AssetCheckSeverity.ERROR,
+        metadata={"current": current, "previous": previous, "ratio": round(ratio, 3)},
+    )
+```
+
+`at(offset => -3600)` uses Snowflake Time Travel: the table is compared with itself one hour earlier, without maintaining a history table on the side. The trap: this only works if the model is **incremental**. A `table` materialization does a `create or replace`, which is a new object, and Time Travel cannot reach back before it was created. The check crashes, and a blocking check that crashes blocks.
+
+The `blocking=True` argument does the rest: the check fails, the reverse ETL from [episode 2](../posts/data-platform-reverse-etl-freshness) does not run, and the application keeps showing the previous version with its timestamp.
+
+<ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
+
+## Warn or error: the real decision
+
+Writing a test is easy. Choosing its severity is the decision that determines whether the system is still usable six months from now.
+
+- **Too many `error`s**, and the pipeline stops over trivia. The team learns to rerun without reading. The day the error is serious, it gets rerun too.
+- **Too many `warn`s**, and nobody reads warnings. A warning nobody handles is a disabled test with extra steps.
+
+Our rule: **`error` only if a human must act before the next run**, and every `error` test has a named owner who receives the alert. Everything else is a `warn`, reviewed weekly, where we decide to promote it, fix it, or delete it. Deleting a useless test is a contribution to quality, not a surrender.
+
+## What no test will catch (aka the partner who changes what a column means)
+
+Tests check what you anticipated. The worst quality incident looks like nothing you anticipated.
+
+A source keeps sending an `amount` column, same name, same type, same volumes. But since Tuesday, the amount is net of fees instead of gross. Every test passes. The contracts hold. The number is wrong.
+
+There are only two defenses, and neither is a shape test:
+
+1. **Reconciliation against an independent source**, when one exists. That is why the least elegant test is the most valuable.
+2. **A business owner for every Gold model**, who looks at the numbers and knows when they "look off." Data quality remains, in the end, a human responsibility with good tooling.
+
+## What it costs
+
+- **Tests are queries, and queries burn compute.** A `unique` on a table with hundreds of millions of rows is a full scan on every run. We restrict expensive tests to recent partitions with a `where` clause in their config, and keep a full test running weekly.
+- **Freshness tests don't know about weekends.** A source that doesn't publish on Sundays triggers a freshness error Monday at 7 a.m. Every Monday. Until someone encodes the source's publication calendar, which should have been done from day one.
+- **A blocking check is an availability dependency.** If the check itself crashes (timeout, missing grant), it blocks downstream exactly like a real failure. Blocking checks must be as simple and as reliable as what they protect.
+
+## When this is the wrong call
+
+If your data feeds exploratory analysis nobody reuses, blocking checks and named owners are overkill. `warn` tests and some common sense will do.
+
+The question worth asking yourself: today, if a quality test fails on a model, what stops the next model from rebuilding with the bad data? If the answer is "nothing," your tests are a net installed after the fall.
+
+## Next in the series
+
+Next episode: Terraform. Declaring Snowflake access and Airbyte configuration in the same repository means gaining a source of truth about who can read what. And a plan whose blast radius deserves a real review.

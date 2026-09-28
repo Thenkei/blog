@@ -1,0 +1,180 @@
+---
+title: "One Terraform plan for access and data flows"
+subtitle: "Declaring Snowflake grants and Airbyte connections in the same repository buys you a source of truth. And a blast radius."
+summary: "Fourth episode: managing Snowflake access and Airbyte configuration with Terraform. Access roles and functional roles, future grants, a single scheduler, secrets in state, destroys blocked in CI, and drift when someone clicks in the console."
+visualId: "backend-to-data-engineer-rockfi"
+publishedAt: "2026-11-05"
+readTimeMinutes: 9
+tags:
+  - data-engineering
+  - terraform
+  - snowflake
+  - security
+  - devops
+  - rockfi
+seriesId: "what-trustworthy-data-costs"
+seriesOrder: 4
+draft: true
+---
+
+Fourth episode of **What Trustworthy Data Costs**. The first three were about what flows through the platform. This one is about who is allowed to touch it, and how we declare that.
+
+At first, like everywhere else, access was granted in the console. A role here, a `GRANT` there, a connector configured by hand on a Thursday evening. It works, until the first question you can't dodge: **who can read this table, since when, and who approved it?**
+
+In the console, the answer is "we'd have to check." In a regulated domain, that is not an answer. In Git, it is a `git log` and a reviewed pull request.
+
+## What we declare, and what we don't
+
+Terraform carries two families of objects for us:
+
+- **Snowflake access**: roles, grants, warehouses and their consumption limits.
+- **Airbyte configuration**: sources, destinations, connections, selected streams, and schema change policy.
+
+What it does not carry: **tables**. Tables belong to dbt, which creates and recreates them on every run. Two tools managing the same object always end up fighting, and it is always at 2 a.m. that one's plan reverts the other's apply.
+
+<ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
+
+In this diagram, Terraform moves no data at all. It decides who gets in at each step, and through which door.
+
+## Snowflake access in two layers
+
+The model that holds up over time separates two notions the console happily mixes:
+
+- **Access roles** carry privileges on objects: read the Silver layer, write to the raw schema. They are never granted to a person.
+- **Functional roles** represent a use: analyst, transformation service, reverse ETL. They receive access roles, and they are what gets assigned.
+
+No privilege is ever granted directly to a user. Answering "who can read Silver?" means walking a declared role graph, not digging through individual grants.
+
+```hcl
+# Simplified example: names and scope are illustrative.
+
+resource "snowflake_database_role" "silver_read" {
+  database = snowflake_database.analytics.name
+  name     = "SILVER_READ"
+  comment  = "Read access to the Silver layer. Never granted directly to a human."
+}
+
+# Future grants cover the tables dbt will create tomorrow,
+# including the ones it recreates on every run.
+resource "snowflake_grant_privileges_to_database_role" "silver_read_future_tables" {
+  database_role_name = snowflake_database_role.silver_read.fully_qualified_name
+  privileges         = ["SELECT"]
+
+  on_schema_object {
+    future {
+      object_type_plural = "TABLES"
+      in_schema          = snowflake_schema.silver.fully_qualified_name
+    }
+  }
+}
+
+resource "snowflake_grant_database_role" "analyst_reads_silver" {
+  database_role_name = snowflake_database_role.silver_read.fully_qualified_name
+  parent_role_name   = snowflake_account_role.analyst.name
+}
+```
+
+Two details are worth the detour.
+
+**Future grants are the only viable option with dbt.** A `table` materialization does a `create or replace`: it is a new object, and grants on the old one disappear with it. Future grants apply to every object created in the schema, including the one that just replaced its predecessor.
+
+**Schema-level future grants shadow database-level ones.** If future grants exist for the same object type at both the database and schema level, Snowflake applies the schema ones and ignores the database ones. Adding a schema-level future grant for a new role can therefore silently remove access that other roles held through the database. We declare future grants at a single level, the schema, everywhere.
+
+Sensitive columns add a third layer: **masking policies** attached to columns, also declared in Terraform. The role that can read the table does not necessarily see the value.
+
+## Connections are code too
+
+On the Airbyte side, a declared connection looks like this:
+
+```hcl
+resource "airbyte_connection" "partner_feed_to_raw" {
+  name           = "partner-feed-to-raw"
+  source_id      = var.partner_feed_source_id
+  destination_id = airbyte_destination_snowflake.raw.destination_id
+
+  # Dagster decides when this runs. Two schedulers is one too many.
+  schedule = {
+    schedule_type = "manual"
+  }
+
+  # Keep what changes in Bronze; Silver contracts decide the rest.
+  non_breaking_schema_updates_behavior = "propagate_columns"
+
+  configurations = {
+    streams = [
+      { name = "contracts", sync_mode = "incremental_deduped_history" },
+      { name = "movements", sync_mode = "incremental_append" },
+    ]
+  }
+}
+```
+
+`schedule_type = "manual"` is the most important line in the file. It encodes the decision from [episode 2](../posts/data-platform-reverse-etl-freshness): **a single scheduler**, and it is the orchestrator, so that transformation starts when the data has landed.
+
+The rest has a less visible virtue: the list of synced streams becomes reviewable. Adding a partner stream goes through a PR, with someone asking whether it contains sensitive data before it gets copied into the warehouse.
+
+## Secrets, or the state that knows too much
+
+An Airbyte source has credentials. So does a Snowflake destination. And **Terraform writes everything it manages into its state, in plain text**, including attributes marked `sensitive`. The flag hides plan output. It encrypts nothing.
+
+Our rules, none of them original, all of them required:
+
+- secrets come from a secrets manager, never from a committed `.tfvars` file;
+- state lives in an encrypted remote backend, with locking and access restricted to the CI identity;
+- nobody needs to read the state to do their job, so nobody can.
+
+## The blast radius of a plan
+
+A repository that touches both access and data flows has an uncomfortable property: **an innocent refactor can be destructive**.
+
+- Renaming a resource without telling Terraform is a `destroy` followed by a `create`. For a role, that means revoking everyone's access for the duration of the apply.
+- Recreating an Airbyte connection means losing its sync state. The new connection starts from scratch: full resync of history, duplicates in Bronze, and an unexpected compute bill.
+
+The countermeasures are well known. They just need to be mandatory:
+
+- `moved` blocks for every rename, reviewed in the PR;
+- `prevent_destroy` on roles, databases, and connections;
+- **separate states** (access, compute, ingestion), so every plan stays readable and its worst case stays bounded;
+- apply only from CI, with a dedicated identity;
+- and a guardrail that fails CI as soon as a plan contains a destroy:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+terraform plan -input=false -out=plan.out
+terraform show -json plan.out > plan.json
+
+# A "replace" is a delete followed by a create: this catches it too.
+deletes=$(jq '[.resource_changes[] | select(.change.actions | index("delete"))] | length' plan.json)
+
+if [[ "$deletes" -gt 0 ]]; then
+  jq -r '.resource_changes[] | select(.change.actions | index("delete")) | "  - \(.address)"' plan.json
+  echo "This plan destroys ${deletes} resource(s). It needs explicit approval, not a re-run." >&2
+  exit 1
+fi
+```
+
+A destroy is still possible. It just becomes a decision, made by someone who has read the list.
+
+## Drift, or the console that lies
+
+Sooner or later, someone clicks. A "temporary" grant to unblock an analysis, a sync interval changed by hand. The next plan proposes to revert it, and everyone wonders who is right.
+
+Our answer is structural: **Terraform is right**. The roles used day to day cannot grant privileges. The admin role exists, for emergencies, with a procedure and a trail. And a plan runs every night with `-detailed-exitcode`: exit code 2 means reality has diverged from code, and it opens an alert instead of waiting for the next apply to find out.
+
+## What it costs
+
+- **Providers move fast.** The move to version 1 of the Snowflake provider renamed or reworked a large share of its resources. A major upgrade is a project, with its `moved` blocks and imports, not a version bump.
+- **Importing what already exists is tedious.** Every role created by hand before Terraform has to be imported, reviewed, then cleaned up. That is the price of the early months spent in the console.
+- **Review needs people who read plans.** A three-line HCL diff can produce a forty-resource plan. Reviewing the code without reviewing the plan is reviewing half the change.
+
+## When this is the wrong call
+
+Three people, one warehouse, no sensitive data? A SQL grants script versioned in Git and reviewed in PRs does most of the job for a fraction of the cost. Terraform pays off when the role graph grows faster than the team's memory, and when "who has access to what?" comes from someone expecting a written answer.
+
+The question worth asking yourself: if you deleted a role from your warehouse by mistake tomorrow, how long would it take to rebuild exactly its grants? If the answer is not "one apply," those grants only exist in your console.
+
+## Next in the series
+
+Last episode: the retrospective. Five tools, four languages, and a hybrid orchestrator. Would we make the same choice again?

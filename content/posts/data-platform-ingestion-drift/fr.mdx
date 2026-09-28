@@ -1,0 +1,140 @@
+---
+title: "L'ingestion, ce problème « déjà résolu »"
+subtitle: "Brancher un connecteur prend une après-midi. Lui faire confiance prend le reste de l'année."
+summary: "Premier épisode de la série sur notre plateforme data : la carte du stack (Airbyte, Snowflake, dbt, Dagster, Terraform), puis pourquoi l'ingestion depuis des sources que l'on ne contrôle pas est d'abord un problème de curseurs, de suppressions invisibles et de dérive de schéma."
+visualId: "backend-to-data-engineer-rockfi"
+publishedAt: "2026-10-26"
+readTimeMinutes: 8
+tags:
+  - data-engineering
+  - airbyte
+  - snowflake
+  - architecture
+  - database
+  - rockfi
+seriesId: "what-trustworthy-data-costs"
+seriesOrder: 1
+draft: true
+---
+
+Il y a un an, [je terminais un post](../posts/backend-to-data-engineer-rockfi) en annonçant fièrement l'étape suivante : « adopter un véritable entrepôt de données ». Une phrase. Elle cachait environ douze mois de travail.
+
+Ce post ouvre une série, **Ce que coûte une donnée fiable**, sur la plateforme que nous avons construite derrière cette phrase. Pas un tour des outils : les vendeurs ont déjà écrit ces articles, avec de plus beaux schémas. Plutôt les endroits où ça résiste, et ce que nous avons dû ajouter pour que les chiffres tiennent.
+
+Version courte : **c'est un chantier énorme**, et la partie la plus sous-estimée est celle que tout le monde considère comme résolue.
+
+## La carte (version courte)
+
+Cinq pièces, chacune avec un rôle précis :
+
+- **Airbyte** extrait les données des sources (bases internes, APIs et fichiers de partenaires) et les dépose brutes dans Snowflake.
+- **Snowflake** stocke et calcule. Les couches Bronze, Silver et Gold y vivent.
+- **dbt** transforme, en SQL versionné, testé et relu comme du code.
+- **Dagster** orchestre l'ensemble, des syncs aux modèles jusqu'au retour des données vers les applications. Il tourne en mode hybride : le plan de contrôle est géré, l'exécution tourne dans notre propre infrastructure.
+- **Terraform** déclare les accès Snowflake et la configuration Airbyte.
+
+Et au bout de la chaîne, le **reverse ETL** : certaines données calculées dans l'entrepôt repartent vers des applications utilisées en direct. C'est l'épisode 2, et c'est celui qui empêche de dormir.
+
+<ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
+
+## Pourquoi nous achetons les connecteurs
+
+Écrire un client pour l'API paginée d'un partenaire n'est pas un avantage compétitif. Gérer ses tokens qui expirent, ses limites de débit et sa pagination qui saute une page quand quelqu'un insère une ligne pendant la lecture non plus. Airbyte nous donne un catalogue de connecteurs, un format de sortie homogène dans Snowflake, et un endroit unique où voir ce qui a tourné.
+
+Mais **acheter un connecteur n'achète pas la confiance dans ce qu'il ramène**. Un connecteur vous promet de copier ce que la source expose. Il ne vous promet pas que ce que la source expose est complet, stable ou même cohérent d'un jour à l'autre.
+
+## Trois façons de lire une source (et comment chacune ment)
+
+Chaque flux doit choisir un mode de lecture. Aucun n'est gratuit.
+
+**Full refresh.** On relit tout, à chaque fois. Simple, juste, et chaque suppression côté source se reflète naturellement. Le problème : le coût grandit avec l'historique, pas avec le changement. Tenable pour une table de référentiel. Moins pour dix ans de mouvements.
+
+**Incrémental sur curseur.** On relit ce qui a changé depuis le dernier `updated_at` vu. Efficace, et c'est le mode par défaut de la moitié des connecteurs. Il ment de deux façons :
+
+- **Les suppressions physiques sont invisibles.** Une ligne supprimée n'a plus d'`updated_at`. Elle n'apparaît dans aucune lecture incrémentale. Elle vit pour toujours dans votre entrepôt, et elle apparaît dans vos totaux.
+- **Les commits tardifs passent sous le curseur.** Une transaction démarre à 10:00:00, écrit un `updated_at` à 10:00:00, et commit à 10:00:07. Entre-temps, une sync a lu jusqu'à 10:00:05 et avancé son curseur. La ligne est désormais « dans le passé ». Elle ne sera jamais relue, sauf si elle est de nouveau modifiée.
+
+**CDC (Change Data Capture).** On lit le journal de réplication de la base. On voit tout : insertions, mises à jour, suppressions, dans l'ordre. C'est le bon choix pour nos bases internes. Le coût est opérationnel : un slot de réplication PostgreSQL retient le WAL tant que le consommateur ne l'a pas lu.
+
+> Un connecteur CDC en pause un vendredi soir est une alerte disque sur votre base de production le dimanche matin.
+
+C'est en général dans cet ordre qu'on l'apprend. Chez nous, la rétention du slot est surveillée comme une métrique de la base, pas comme une métrique de la plateforme data.
+
+## Dédupliquer, parce que ça arrivera
+
+Quel que soit le mode, **supposez que vous recevrez des doublons**. Une sync qui échoue au milieu et reprend, un curseur qu'on recule volontairement pour rattraper des commits tardifs, un partenaire qui renvoie le même fichier : la même ligne arrive plusieurs fois.
+
+Airbyte sait dédupliquer à l'écriture pour certains flux. Nous refaisons quand même le travail dans le premier modèle dbt, parce que c'est là que nous contrôlons la règle et que nous pouvons la tester :
+
+```sql
+-- models/silver/stg_partner_contracts.sql (exemple simplifié)
+{{ config(
+    materialized='incremental',
+    unique_key='contract_id',
+    incremental_strategy='merge'
+) }}
+
+select
+    contract_id,
+    status,
+    amount,
+    source_updated_at,
+    _airbyte_extracted_at
+from {{ source('partner_feed', 'contracts') }}
+
+{% if is_incremental() %}
+  -- Trois jours de recouvrement : les sources réécrivent le passé
+  -- plus souvent qu'elles ne l'avouent.
+  where _airbyte_extracted_at > (
+      select dateadd(day, -3, max(_airbyte_extracted_at)) from {{ this }}
+  )
+{% endif %}
+
+-- La version la plus récente côté source gagne, pas la dernière arrivée.
+qualify row_number() over (
+    partition by contract_id
+    order by source_updated_at desc, _airbyte_extracted_at desc
+) = 1
+```
+
+Le détail qui compte est dans le `order by` : trier sur la date d'extraction seule, c'est laisser un vieux fichier rejoué écraser une version plus récente. Avec la date de la source en premier, un rejeu dans la fenêtre devient inoffensif.
+
+Au-delà de la fenêtre, le `merge` écrase sans comparer : la ligne plus récente déjà en table n'est pas dans le lot, donc pas dans le `qualify`. Nous ne cherchons pas à rendre ce cas malin. **Un rejeu plus ancien que la fenêtre passe par un full refresh du modèle**, pas par l'incrémental.
+
+## La dérive de schéma, cette démission silencieuse
+
+Les sources changent sans prévenir. Une colonne apparaît. Une autre est renommée. Un montant passe de `number` à `string`, avec une virgule décimale et une espace comme séparateur de milliers, parce que quelqu'un a changé la locale d'un export.
+
+Airbyte détecte les changements de schéma et laisse choisir une politique par connexion : propager, ignorer, ou mettre en pause. La tentation est de tout propager automatiquement, « pour ne rien rater ». C'est confondre deux questions :
+
+1. **Est-ce que nous gardons ce que la source a envoyé ?** Oui, toujours.
+2. **Est-ce que nous laissons ce changement atteindre les modèles utilisés par des humains ?** Seulement après qu'un humain l'a regardé.
+
+Nous séparons donc les deux. La couche Bronze accepte ce qui arrive. La couche Silver a des **contrats** : types, colonnes attendues, clés non nulles. Si la source dérive, c'est le contrat qui casse, bruyamment, avant que le chiffre ne change en silence dans un tableau de bord. L'épisode 3 détaille ces contrats.
+
+## Bronze est un registre, pas un brouillon
+
+La couche brute est souvent traitée comme une zone de transit qu'on nettoie dès que possible. Nous la traitons à l'inverse : **Bronze est ce que la source nous a dit, et quand**.
+
+Chaque ligne garde sa date d'extraction et, quand c'est possible, sa charge utile d'origine. Ça coûte du stockage. Dans Snowflake, le stockage est rarement le poste qui fait mal : c'est le calcul. En échange, nous pouvons :
+
+- **rejouer** une transformation corrigée sur l'historique, sans redemander les données à la source ;
+- **répondre** à la question « qu'est-ce que ce partenaire nous a envoyé le 3 mars ? » avec une requête, pas avec un ticket chez lui ;
+- **distinguer** une erreur de la source d'une erreur de nos modèles. Dans un domaine régulé, c'est la différence entre corriger et expliquer.
+
+## Ce que ça coûte (aka les appels de 7 heures du matin)
+
+- **Les montées de version des connecteurs cassent des choses.** Un connecteur change la façon dont il nomme une colonne ou type un champ imbriqué. La sync réussit. Le modèle en aval, non. Nous épinglons les versions et les montons volontairement, avec un run de comparaison.
+- **Les limites de débit des sources deviennent vos SLA.** Si une API accepte cent requêtes par minute, votre fraîcheur a un plancher que personne chez vous n'a décidé.
+- **Une sync verte ne prouve rien.** « Zéro ligne extraite » est un succès technique. C'est parfois aussi la preuve qu'un partenaire a arrêté d'envoyer quoi que ce soit. Seul un contrôle de fraîcheur et de volume le voit.
+- **Deux ordonnanceurs, c'est un de trop.** Airbyte sait planifier ses syncs. Nous ne le laissons pas faire : c'est Dagster qui les déclenche, pour que la transformation parte quand la donnée est arrivée, pas quand l'horloge le dit. L'épisode 2 explique pourquoi cette décision pèse sur la fraîcheur.
+
+## Quand c'est le mauvais choix
+
+Si vous avez trois sources, toutes dans des bases que vous possédez, et un seul PostgreSQL pour l'analytique : un job de réplication et quelques vues matérialisées feront très bien l'affaire. Un stack comme le nôtre se justifie quand les sources sont nombreuses, externes, et changent sans vous consulter.
+
+Une question à vous poser : si une ligne est supprimée demain dans une de vos sources, combien de temps restera-t-elle dans vos totaux ? Si la réponse est « pour toujours », vous avez un curseur quelque part qui vous ment.
+
+## La suite de la série
+
+Prochain épisode : le reverse ETL. Quand une donnée calculée dans l'entrepôt repart vers une application utilisée en direct, chaque minute de retard devient un problème produit.
