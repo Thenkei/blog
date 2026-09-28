@@ -1,0 +1,126 @@
+---
+title: "Governance You Cannot Forget"
+subtitle: "Field-level permissions, masking that does not leak, and an audit trail no screen can skip."
+summary: "In a regulated back office, access control and audit cannot be features a developer remembers to add. In Nexus they live in the engine, so every read and every write is checked, masked, and logged whether the screen asked for it or not."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-12"
+readTimeMinutes: 8
+tags:
+  - security
+  - architecture
+  - developer-tools
+  - product
+  - rockfi
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 4
+---
+
+Part 4 of **Internal Tools at the Edge**. The previous posts covered the single path to the data and the query language on top of it. This one is about what that path makes possible.
+
+Ask people what makes an internal tool powerful and they usually talk about speed: how fast you find a client, how few clicks an operation takes. That matters. But in a regulated company, the first question is not *how fast can I see this*. It is *should I be seeing this at all*.
+
+At RockFi, the answer changes with the team. An operations colleague who processes a contract needs the client's assets. A support colleague who answers a question about a document does not. Both work on the same contract, on the same day, sometimes on the same screen.
+
+## Permissions on the collection are not enough
+
+The classic model is familiar: users have roles, roles have permissions, permissions apply to collections. *Support can read contracts. Operations can read and update them.*
+
+That model breaks as soon as a single record mixes information with different sensitivity. A contract carries a product, a status, dates, a provider, and the client's assets. Granting or refusing the whole collection forces a bad choice: either support cannot work, or support sees everything.
+
+So Nexus goes one level down. Permissions apply to collections **and** to the fields of a collection:
+
+```ts
+const support = role("support", {
+  "crm.contracts": {
+    read: true,
+    fields: { asset_value: "masked", advisor_notes: "masked" },
+  },
+  "crm.clients": { read: true, fields: { tax_id: "masked" } },
+});
+```
+
+The declaration is boring, and that is the point. It lives next to the model, it is reviewed like code, and no screen ever reads it. The engine does.
+
+## Mask it, do not hide it
+
+When a role cannot read a field, the engine has two options: drop the column, or return it redacted. We chose redaction, and it was not an aesthetic decision.
+
+**The interface stays stable.** A table does not change shape depending on who is looking at it. Layouts, exports, and documentation describe one screen, not one screen per role.
+
+**The user knows the data exists.** A masked value says: *this information is here, and you do not have the right to see it*. A missing column says nothing, so people assume a bug, ask a colleague, or open a ticket. Masking turns a support question into a self-explanatory state.
+
+**It is honest.** Nobody is misled about what the system contains. The boundary is visible, which makes it easier to discuss and easier to audit.
+
+## Masking is theatre if the engine lets you filter on it
+
+Here is the part that is easy to get wrong. Suppose support cannot see `asset_value`, but the table lets them filter on it:
+
+```ts
+db.collection("crm.contracts").list({
+  where: gte("asset_value", 1_000_000),
+});
+```
+
+The values are masked in the result. But the *rows that come back* tell you exactly who has more than a million. Sort by the masked column and you get a ranking. Ask for an aggregate and you get a sum. A handful of well-chosen filters and the mask is gone, without a single redacted cell ever being revealed.
+
+So we made it a design requirement: **a field you cannot read is a field you cannot query**. The engine rejects filters, sorts, searches, and aggregates on masked fields for that role, before any SQL is generated. The rejection is explicit, not a silent empty result, so the screen can explain it.
+
+<MotionScene id="field-level-masking-audit" />
+
+This only works because of the architecture from part 2. Every query goes through the engine. There is no second path a screen could take to "just run this one SQL query". If there were, the whole permission model would be a suggestion.
+
+## "Should I add audit to this screen?"
+
+The second pillar is traceability. In wealth management, "who looked at this client's data, and when" is a question an auditor can and will ask. So can "who changed this operation, from which role, and why".
+
+We get asked the same question by developers joining the project: *do I need to add audit logging to my screen?* The answer is always no. Audit is not something you add. It is always on.
+
+The audit sits in the engine, right after access control. Every request produces an event:
+
+- **reads**, including which collection, which record, and how many fields were masked;
+- **writes**: creations, updates, deletions;
+- **actions**, with the business intent attached.
+
+Logging reads surprises people. Most systems only audit writes. But in our domain, *accessing* client data is itself an event worth tracing. A leak rarely starts with a modification.
+
+> Audit you have to remember to add is audit you will forget. Put it where nobody can walk around it.
+
+## Writes are named actions, not free-form updates
+
+A generic `UPDATE contracts SET status = 'closed'` gives the audit a diff. A diff tells you *what* changed. It does not tell you *why*.
+
+In Nexus, writes go through named actions: *close contract*, *reassign advisor*, *cancel operation*. Each action has its own permission, its own validation, and it calls the internal service that owns that business rule. The engine never writes to a database directly.
+
+The consequence for the audit is significant. Instead of a row saying *status changed from active to closed*, the journal says *contract closed by an operations user, through the close-contract action, via the contracts service*. That is the sentence an auditor wants to read. It is also the sentence you want at 11 p.m. when you are trying to understand an incident.
+
+## What an audit trail needs in a financial context
+
+Having events is the easy part. Making them trustworthy is where the work is.
+
+**Append-only.** Audit events are never updated and never deleted by the application. If a correction is needed, it is a new event. Nobody, including us, should be able to rewrite history from the tool itself.
+
+**Complete context.** Who, when, which role at that moment, which record, which action, which fields were masked. Roles change over time; the event must capture the role *as it was*, not as it is today.
+
+**Retention you can defend.** Regulatory retention periods are long, and access to the audit is itself a sensitive permission. The audit trail has its own access rules, and reading it is, of course, audited.
+
+**Queryable by the people who need it.** Auditors do not read logs line by line. They ask questions: *everything this user saw last month*, *everyone who opened this client's record*, *every write on this operation*. If the audit cannot answer those in minutes, it exists on paper only.
+
+## Where this gets hard
+
+None of this is free, and I would be lying if I pretended otherwise.
+
+**Read audit is expensive.** Logging every read multiplies the event volume by orders of magnitude compared to writes. You need to decide what granularity is useful (a list query is one event, not one per row) and plan storage accordingly.
+
+**The audit trail contains sensitive data.** If an event records the filter a user typed, and that filter contains a client name, your audit log is now a copy of personal data with a long retention period. Events should reference identifiers, not duplicate values.
+
+**Roles explode.** It starts with three roles. Then someone needs "support, but with read access to one field". Six months later you have thirty roles nobody can explain. Field-level permissions make this pressure worse, not better. Resisting it requires an owner who says no, and roles that map to real jobs rather than to individual requests.
+
+**Permissions need tests, not reviews.** A permission model is a matrix: roles × collections × fields × operations. Reviewing a diff of that matrix by eye does not work. We test it as a matrix, with one expectation per cell, so a change that suddenly exposes a field to a role fails in CI instead of in production.
+
+## The question to ask
+
+If you run a back office today, try this: pick your most sensitive field and ask who can see it, who can filter on it, and where the last hundred reads of it are recorded.
+
+If the answer to any of the three is "it depends on the screen", that is not a governance model. It is a set of habits that happen to have held so far.
+
+Next time: what users actually feel from all this. Why every table filters, sorts, and searches by default, and why removing a capability should require a reason.

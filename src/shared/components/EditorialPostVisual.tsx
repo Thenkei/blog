@@ -30,6 +30,7 @@ export const editorialPostVisualIds = [
   "engineering-2026-ai-redefined-our-job",
   "forest-admin-activity-logs-elasticsearch",
   "idempotency-debounce-jobify-bullmq",
+  "internal-tools-as-product",
   "jobify-workers-queues-nestjs",
   "joining-rockfi",
   "nodejs-stream-backpressure-history-export",
@@ -764,6 +765,60 @@ function ProductOsVisual({ copy, markerId, variant }: StoryProps) {
           { x: 220, text: copy.labels.a ?? "" },
           { x: 450, text: copy.labels.c ?? "" },
           { x: 680, text: copy.labels.e ?? "" },
+        ]} />
+      ) : null}
+    </EditorialFrame>
+  );
+}
+
+// Scattered screens dock around one engine: the series' single idea. Card keeps
+// four docked screens, header adds the copy that drifts, inline names the layers.
+function InternalToolsEngineVisual({ copy, markerId, variant }: StoryProps) {
+  const core = { x: 450, y: 232, r: variant === "card" ? 78 : 88 };
+  const screens = variant === "card"
+    ? [{ x: 150, y: 86, rot: -4 }, { x: 618, y: 86, rot: 3 }, { x: 150, y: 290, rot: 3 }, { x: 618, y: 290, rot: -3 }]
+    : [{ x: 118, y: 70, rot: -5 }, { x: 650, y: 64, rot: 4 }, { x: 118, y: 268, rot: 4 }, { x: 650, y: 268, rot: -4 }];
+  const w = 132;
+  const h = 104;
+
+  return (
+    <EditorialFrame markerId={markerId} variant={variant}>
+      <circle cx={core.x} cy={core.y} r={core.r + 46} className="visual-editorial-ring" />
+      {screens.map((screen) => {
+        const cx = screen.x + w / 2;
+        const cy = screen.y + h / 2;
+        return (
+          <g key={`${screen.x}-${screen.y}`}>
+            <path d={`M${cx} ${cy}L${core.x} ${core.y}`} className="visual-editorial-flow-trace" />
+            <g transform={`rotate(${screen.rot} ${cx} ${cy})`}>
+              <rect x={screen.x} y={screen.y} width={w} height={h} rx="14" className="visual-editorial-source" />
+              <path d={`M${screen.x} ${screen.y + 24}H${screen.x + w}`} className="visual-editorial-line-muted" />
+              {[0, 1, 2].map((row) => (
+                <path
+                  key={row}
+                  d={`M${screen.x + 16} ${screen.y + 46 + row * 18}H${screen.x + w - 16 - row * 18}`}
+                  className="visual-editorial-detail"
+                />
+              ))}
+            </g>
+          </g>
+        );
+      })}
+      {variant === "header" ? (
+        <g transform="rotate(-8 762 424)">
+          <rect x="700" y="388" width="124" height="72" rx="12" className="visual-editorial-rejected" />
+        </g>
+      ) : null}
+      <circle cx={core.x} cy={core.y} r={core.r} className="visual-editorial-panel-hot" />
+      <circle cx={core.x} cy={core.y} r={core.r * 0.42} className="visual-editorial-checkpoint" />
+      {variant === "header" ? (
+        <circle cx={core.x + core.r + 46} cy={core.y} r="9" className="visual-editorial-pulse-dot" />
+      ) : null}
+      {variant === "inline" ? (
+        <InlineLabels labels={[
+          { x: 184, text: copy.labels.a ?? "" },
+          { x: 450, text: copy.labels.c ?? "" },
+          { x: 716, text: copy.labels.e ?? "" },
         ]} />
       ) : null}
     </EditorialFrame>
@@ -1664,6 +1719,8 @@ export function EditorialPostVisual({
       return <ActivityLogVisual copy={copy} markerId={markerId} slug={slug} variant={variant} />;
     case "idempotency-debounce-jobify-bullmq":
       return <DebounceVisual copy={copy} markerId={markerId} slug={slug} variant={variant} />;
+    case "internal-tools-as-product":
+      return <InternalToolsEngineVisual copy={copy} markerId={markerId} slug={slug} variant={variant} />;
     case "jobify-workers-queues-nestjs":
       return <JobContractVisual copy={copy} markerId={markerId} slug={slug} variant={variant} />;
     case "joining-rockfi":

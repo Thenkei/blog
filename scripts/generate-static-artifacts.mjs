@@ -2,11 +2,14 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
 import { z } from "zod";
+import { isPublished, isScheduled, utcToday } from "../src/features/posts/content/publication.ts";
 
 const root = process.cwd();
 const contentDir = path.join(root, "content", "posts");
 const publicDir = path.join(root, "public");
 const siteUrl = (process.env.SITE_URL || "https://thenkei.github.io/blog").replace(/\/$/, "");
+// PUBLISH_DATE (YYYY-MM-DD) pins the clock for previews and reproducible builds.
+const today = process.env.PUBLISH_DATE || utcToday();
 const topicSlugs = ["architecture", "platform", "security", "ai", "career", "running", "product"];
 
 const frontmatterSchema = z.object({
@@ -84,8 +87,15 @@ async function loadEntries() {
     entries.push(localizedEntries.en, localizedEntries.fr);
   }
 
+  // Feeds are built once per deploy: scheduled posts join them on the first
+  // build on or after their date (see the daily run in deploy.yml).
+  const scheduled = entries.filter((entry) => !entry.draft && entry.locale === "en" && isScheduled(entry, today));
+  if (scheduled.length > 0) {
+    console.log(`Scheduled after ${today}: ${scheduled.map((entry) => `${entry.slug} (${entry.publishedAt})`).join(", ")}`);
+  }
+
   return entries.filter(
-    (entry) => !entry.draft && entry.visibility === "public",
+    (entry) => isPublished(entry, { today, includeScheduled: false }) && entry.visibility === "public",
   );
 }
 

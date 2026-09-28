@@ -1,0 +1,149 @@
+---
+title: "A Deliberately Boring Query Language"
+subtitle: "One syntax for every source, relations that cross databases, and an engine that refuses anything it cannot turn into bounded SQL."
+summary: "Nexus has its own small query language. It is not clever, and that is the point: every screen builds queries the same way, relations across databases resolve in a fixed number of batched queries, and computed fields are rewritten to SQL or refused."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-08"
+readTimeMinutes: 9
+tags:
+  - architecture
+  - postgresql
+  - database
+  - developer-tools
+  - dx
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 3
+---
+
+This is part 3 of **Internal Tools at the Edge**. The previous post described the Core Engine: one path to the data, with reads on replicas and writes through services. This one is about the language screens use to ask that engine for data.
+
+We wrote our own. I know how that sounds. So let me start with what we did *not* try to build.
+
+## Not a new SQL
+
+The goal was never expressive power. SQL already has that, and so does every ORM. The goal was a **consistent way to build a query, whatever the source**, so that a filter, a relation, or a count looks the same on every screen and in every developer's hands.
+
+That constraint shaped everything. The language is small on purpose: a handful of clause builders, a typed `select`, a `where` tree, a few operations. If a feature makes the language more powerful but less predictable, it does not go in.
+
+```ts
+db.collection("crm.contracts").list({
+  where: and(eq("status", "active"), gte("age_days", 10)),
+  select: ["reference", "status", "provider.name", "product.isin"],
+});
+```
+
+That query touches three things a developer should not have to think about: a computed field (`status`), a relation inside the same database (`provider`), and a relation to another database entirely (`product`). The syntax is the same for all three. The engine decides how to execute each one.
+
+Under the hood, the query is an AST, not a string. That is what lets the engine inspect it, check permissions field by field, rewrite parts of it, and refuse the rest before anything reaches a database. For the cross-database layer, we build on the open-source Forest Admin datasource toolkit, which I know well from my previous job, wrapped under our own AST so the screens never see it.
+
+## Natural relations become JOINs
+
+The first rule is the least surprising: when two tables live in the same database and have a foreign key, the relation becomes a native `JOIN`.
+
+```sql
+SELECT c.reference, p.name, t.name
+FROM contracts c
+LEFT JOIN providers p ON p.id = c.provider_id
+LEFT JOIN contract_types t ON t.id = c.contract_type_id
+WHERE c.id = $1
+```
+
+It sounds obvious. It is not what a generic data layer does by default: many resolve each relation with its own query, one after the other. On a detail page measured in our staging environment, native joins took us from four queries in 151 ms to one query in 41 ms. Not a revolution. Multiplied by every screen and every row, it is the difference between a tool that feels instant and one that feels heavy.
+
+The result is typed from the schema. `row.provider?.name` is a `string`. A typo in a field name does not compile.
+
+## Virtual relations, without N+1
+
+Now the interesting case. Our data does not live in one database. Contracts are in one service, products in another, operations in a third. In a microservice architecture, that is normal. In an internal tool, it is where things usually go wrong.
+
+The naive approach is a loop: fetch twelve contract lines, then fetch the product of each line. One query plus twelve. The classic N+1, and it gets worse as the page grows.
+
+Nexus declares these as **virtual relations**: relations between collections in different databases, queryable from the same syntax as a native one. The engine resolves them in a fixed number of steps, whatever the number of rows.
+
+<MotionScene id="virtual-relation-batching" />
+
+1. Run the local query. Twelve contract lines come back, each with a `product_id`.
+2. Collect the **unique** keys. Twelve rows, nine distinct products.
+3. Run **one** query on the other database: `WHERE id IN ($1 … $9)`.
+4. Merge in memory, by `product_id`.
+
+Two queries for twelve rows. Two queries for five hundred rows. The cost is bounded by the number of hops in the query, never by the number of rows on the page.
+
+**Imported fields** push the same idea one step further. A collection can import a column from another database, and that column behaves like a local one, including in filters. Filtering operations by the name of their contract becomes: translate the filter into a query on the contracts database, get the matching ids, then query operations with `WHERE contract_id IN (...)`. Three bounded queries, never one per row. For the developer, `contract_name` is just a column.
+
+## Computed fields are rewritten, or refused
+
+Remember the three definitions of an active contract from the first post? This is where they collapse into one.
+
+```ts
+const contracts = collection("crm.contracts", {
+  fields: {
+    status: statusField("closed_at", { present: "closed", missing: "active" }),
+    age_days: ageField("created_at"),
+  },
+});
+```
+
+`status` and `age_days` are declared once, on the collection. Every list, filter, counter, and export inherits them. More importantly, **filters on them are rewritten to SQL**:
+
+```text
+status = 'active'   →  closed_at IS NULL
+age_days >= 10      →  created_at <= now() - interval '10 days'
+```
+
+The database does the filtering, on indexed stored columns. The computed values are then calculated once per page of results, for display.
+
+And here is the rule I would defend hardest: **an operator without an SQL rewrite is refused.** If someone asks for a filter on a computed field that the engine cannot translate, the query fails with an explicit error. It is never evaluated in memory.
+
+> Filtering in memory works perfectly on your laptop and fails politely in production. We would rather fail loudly in development.
+
+In-memory filtering is the most seductive shortcut in a data layer. It always works on the seed data. Then someone filters a table of two hundred thousand rows, and the engine loads all of them to keep twelve. Refusing is annoying for a day. It is also the only way to keep "filterable" meaning the same thing on every screen.
+
+## Aggregates: many metrics, one query
+
+The last piece is counting. Dashboards and list headers need numbers: how many contracts, how many active, the total value of the active ones.
+
+```ts
+db.collection("crm.contracts").summarize(
+  {
+    total: { op: "count" },
+    active: { op: "count", segment: "active" },
+    aum: { op: "sum", field: "asset_value", segment: "active" },
+  },
+  { where: byProvider },
+);
+```
+
+```sql
+SELECT COUNT(*),
+  COUNT(*) FILTER (WHERE closed_at IS NULL),
+  SUM(asset_value) FILTER (WHERE closed_at IS NULL)
+FROM contracts
+WHERE provider_id = $1
+```
+
+Three metrics, one query, thanks to PostgreSQL's `FILTER` clause. The `active` segment is named once and reused in lists, counters, and filters, so the number in the header and the rows in the table can never disagree about what "active" means. Our tests assert the number of SQL queries, not just the result.
+
+## Guardrails, because someone will try
+
+A query language that follows relations across databases is also a very convenient way to accidentally scan everything. So the engine enforces hard limits on every request:
+
+- **500 rows per page.**
+- **5,000 intermediate rows** when resolving relations and imported fields.
+- **32 reads per request**, across all sources.
+
+Crossing a limit is an error, not a silent truncation. A screen that hits one needs a better query or a better design, and it is much cheaper to learn that in development than from a replica at 100% CPU.
+
+## Where this is the wrong call
+
+Writing your own query language is a maintenance commitment. Every new need, a new operator, a new kind of relation, has to be designed, rewritten to SQL, and tested. If your internal tool reads from one database, use SQL or a good query builder and stop there.
+
+It is also a language nobody knows on day one. The documentation, the types, and the error messages *are* the onboarding. When an error says "operator `contains` has no SQL rewrite for computed field `status`", it teaches the rule. When it says "query failed", it teaches nothing.
+
+The bet only pays off when many screens query many sources and you want all of them to behave the same way. That was our case.
+
+So, a question about your own stack: when a screen in your back office filters a table, do you know whether the filter runs in the database or in memory? And would two screens give the same answer?
+
+## Next in the series
+
+Next up: governance. Permissions down to the field, masking instead of hiding, and an audit trail that nobody has to remember to add.

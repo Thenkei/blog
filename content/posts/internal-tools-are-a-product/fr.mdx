@@ -1,0 +1,134 @@
+---
+title: "Votre back office est un produit. Construisez-le comme tel."
+subtitle: "Pourquoi nous avons arrêté d'assembler des écrans internes pour construire un moteur, et ce que cela change au-delà de l'engineering."
+summary: "Les outils internes grandissent écran par écran, jusqu'à ce que chaque écran porte sa propre vérité. Nexus est notre tentative de déplacer cette vérité dans un seul moteur, pour que la cohérence devienne une propriété du système plutôt qu'une habitude de chaque développeur."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-01"
+readTimeMinutes: 8
+tags:
+  - architecture
+  - produit
+  - developer-tools
+  - dx
+  - rockfi
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 1
+---
+
+Personne ne conçoit un back office. Il s'accumule.
+
+Une équipe a besoin de retrouver un client : quelqu'un écrit une requête et l'enveloppe dans un tableau. Les opérations doivent corriger un statut : un bouton apparaît à côté du tableau. La conformité demande qui a modifié quoi : une vue de logs surgit ailleurs. Chaque écran est raisonnable. Chaque écran a été rapide à construire. Et au bout de quelques années, l'entreprise tourne sur quelques dizaines d'entre eux.
+
+C'est le premier épisode de **Outils internes à la pointe**, une courte série sur Nexus, la console interne que nous construisons chez RockFi. Je ne vais pas vous montrer nos écrans ni nos données. Je veux parler des choix d'ingénierie qui la sous-tendent, et de l'idée qui nous a fait démarrer : un outil interne mérite d'être traité comme un produit, avec la même exigence d'architecture que ce que nous livrons à nos clients.
+
+## Le low-code n'était pas l'erreur
+
+Soyons honnêtes d'abord. Les outils low-code de back office résolvent un vrai problème. On branche une base, on pose un tableau, on lie une requête, on ajoute un bouton qui appelle une API. Un nouvel écran en un après-midi. Pour une jeune entreprise, cette vitesse vaut cher, et nous en avons profité.
+
+Le problème n'apparaît pas au premier écran. Il apparaît vers le vingtième.
+
+Prenez une notion métier, disons un *contrat actif*. Dans un outil low-code, chaque écran qui en a besoin écrit sa propre requête :
+
+```sql
+-- Écran A
+SELECT * FROM contracts WHERE closed_at IS NULL;
+
+-- Écran B
+SELECT * FROM contracts WHERE status = 'active';
+
+-- Écran C
+SELECT * FROM contracts WHERE effective_at < now();
+```
+
+Trois écrans, trois définitions. Elles sont d'accord la plupart du temps, et c'est précisément pour ça que personne ne s'en rend compte. Puis un contrat est signé avec une date d'effet future, ou rouvert, ou son statut prend du retard sur sa date de clôture, et trois équipes regardent trois chiffres différents pour la même question.
+
+Même histoire pour les droits d'accès. Un écran masque le patrimoine du client sauf pour les opérations. Un autre a oublié. Un troisième ne l'affiche qu'à une seule équipe, parce que c'est ce que quelqu'un a demandé il y a deux ans. Et les tableaux ne se comportent pas non plus de la même façon : celui-ci trie, celui-là filtre, le troisième a une recherche mais aucun lien vers la fiche concernée.
+
+<ArticleDiagram visualId="internal-tools-as-product" />
+
+Le pire, c'est la façon dont naissent les nouveaux processus. Personne n'écrit un écran de zéro. On copie le plus proche, puis on l'adapte. La copie dérive dès le premier jour. Il existe maintenant quatre versions de tout.
+
+## Le coût, ce ne sont pas les écrans. Ce sont les définitions.
+
+On est tenté d'y voir un problème d'UX : des tableaux incohérents, des liens manquants, un peu de friction. Dans un domaine régulé, c'est plus sérieux que ça.
+
+En gestion de patrimoine, *qui peut voir les avoirs d'un client* n'est pas une préférence d'interface. *Quels contrats sont considérés comme actifs* finit dans des reportings qui comptent. *Qui a modifié une opération, et quand* est une question qu'un auditeur peut poser, et « ça dépend de l'écran utilisé » n'est pas une réponse acceptable.
+
+Quand chaque écran porte ses propres définitions, la justesse dépend de chaque développeur qui pense à faire la bonne chose au bon endroit, à chaque fois. Ce n'est pas un système. C'est une habitude, et les habitudes ne passent pas à l'échelle : ni avec la croissance de l'équipe, ni avec le turnover, ni avec des agents de code qui produisent des écrans à un rythme qu'aucun relecteur ne peut absorber entièrement.
+
+> Une cohérence qui repose sur la discipline n'est pas de la cohérence. C'est une coïncidence qui n'a pas encore échoué.
+
+## Traiter les outils internes comme un produit
+
+« L'outil interne comme produit » peut sonner comme un slogan. Pour nous, cela recouvre trois choses concrètes.
+
+**Il a des utilisateurs, et ils méritent le même niveau d'exigence que nos clients.** Les équipes opérations, conformité et support passent leur journée dans ces outils. Un tableau confus leur coûte du temps toutes les heures. Un lien manquant leur coûte un changement de contexte. Nous ne livrerions jamais ça à un client. Nous ne devrions pas le livrer à nos collègues non plus.
+
+**Il a une architecture, pas une collection de pages.** L'accès aux données, les droits, l'audit et les interactions ne sont pas réimplémentés écran par écran. Ils vivent à un seul endroit, et les écrans sont de fines déclarations par-dessus.
+
+**Il a une roadmap et un responsable.** L'outil interne n'est pas la colle que maintient celui qui a le temps. C'est un produit avec un backlog, des releases et un plan de déploiement, comme tout ce que nous construisons.
+
+Le mot qui revenait sans cesse était **systémique**. L'expérience doit être identique partout dans l'application, et cette identité ne doit reposer sur la vigilance de personne. Quand un développeur ajoute un écran, il doit être *impossible* d'oublier les droits ou l'audit, parce qu'ils ne font pas partie de l'écran.
+
+## Nexus, en un paragraphe
+
+Nexus est une console unique pour notre back office, maîtrisée de bout en bout : infrastructure, accès aux données, droits, composants et processus. Elle remplace nos écrans low-code progressivement, processus par processus, pas en une migration.
+
+En dessous, elle s'organise autour de quatre briques, et chacune aura son propre épisode :
+
+1. **Un Core Engine** qui porte chaque lecture et chaque écriture. Les lectures vont sur des read replicas PostgreSQL, en lecture seule. Les écritures ne touchent jamais une base directement : elles passent par les API de nos services internes.
+2. **Un petit langage de requête** identique quelle que soit la source, y compris pour des relations qui traversent plusieurs bases, sans tomber dans le N+1.
+3. **Une gouvernance intégrée au moteur** : rôles et permissions jusqu'au champ, masquage des valeurs sensibles, et un journal d'audit de chaque lecture et de chaque écriture qu'aucun écran ne peut contourner.
+4. **Une expérience partagée** : les mêmes primitives partout (liens entre entités, tableaux filtrables, triables et cherchables d'office), construites sur le même UI Kit que nos applications clients.
+
+L'idée derrière les quatre est la même : déplacer la vérité des écrans vers le moteur.
+
+```ts
+// Avant : chaque écran porte sa propre vérité.
+const rows = await sql`SELECT * FROM contracts WHERE closed_at IS NULL`;
+
+// Après : la collection la déclare une fois. Chaque écran, filtre,
+// compteur et export hérite de la même définition.
+const contracts = collection("contracts", {
+  fields: {
+    status: statusField("closed_at", { present: "closed", missing: "active" }),
+  },
+});
+```
+
+Cet extrait est volontairement trivial. L'intérêt n'est pas la syntaxe. C'est que `status = 'active'` a désormais exactement un sens dans toute l'entreprise, et que le moteur le traduit en SQL au lieu de faire confiance à chaque écran pour ne pas se tromper.
+
+## Ce qui change au-delà de l'engineering
+
+C'est la partie que je n'avais pas complètement anticipée en démarrant.
+
+Quand l'outil interne est un produit, **la connaissance opérationnelle trouve un domicile**. La définition d'un contrat actif, la règle qui masque les avoirs d'un client pour une équipe donnée, le fait que telle opération doive passer par tel service : tout cela n'est plus éparpillé entre des écrans et la mémoire des gens. C'est dans le moteur, versionné, relu et testé comme le reste de notre code.
+
+**La conformité obtient des garanties plutôt que des promesses.** La question n'est plus « a-t-on pensé à mettre l'audit sur cet écran ? ». La réponse est structurelle : chaque lecture et chaque écriture passent par le moteur, et le moteur les trace. Il n'existe pas d'autre chemin.
+
+**Construire un écran devient le déclarer.** Les ingénieurs arrêtent de reconstruire des tableaux, des filtres et des contrôles de droits. Ils décrivent la collection et le processus, le reste est hérité. Cela change le coût d'une « petite fonctionnalité interne », et donc celles que l'entreprise ose demander.
+
+**Et cela change qui peut contribuer sans risque.** Quand les garde-fous vivent dans le moteur, un écran écrit par un nouvel arrivant, par un collègue d'une autre équipe ou par un agent de code passe par les mêmes contrôles. Nous avons largement construit Nexus avec des agents de code pour exactement cette raison, et j'y reviendrai dans le dernier épisode.
+
+## Quand c'est le mauvais choix
+
+À un niveau staff, « on le construit nous-mêmes » devrait rendre nerveux. Ça nous a rendus nerveux aussi.
+
+Maîtriser l'outil interne, c'est aussi assumer sa maintenance, ses incidents et son évolution. Le moteur devient un produit avec son propre backlog, et quelqu'un doit savoir refuser les fonctionnalités qui en feraient un deuxième ORM. Si vous avez cinq écrans et une seule équipe pour les utiliser, un outil low-code est presque certainement le meilleur compromis.
+
+L'équation change quand trois conditions sont réunies : beaucoup d'écrans qui partagent les mêmes notions métier, un besoin réglementaire de contrôle d'accès et d'audit qu'on ne peut pas laisser à la convention, et une équipe capable de traiter l'outil comme un produit pendant des années, pas des semaines. C'était notre situation. Ce n'est pas celle de tout le monde.
+
+Alors, avant l'architecture, une question à poser sur votre propre back office : combien de définitions de vos notions métier essentielles contient-il aujourd'hui ? Si personne ne sait répondre rapidement, vous avez déjà votre réponse.
+
+## La suite de la série
+
+Un épisode tous les trois ou quatre jours :
+
+1. **Votre back office est un produit** (cet article)
+2. **Un seul chemin vers la donnée** : le Core Engine, les read replicas et les écritures par les services
+3. **Un langage de requête volontairement ennuyeux** : une syntaxe, des relations entre bases, zéro N+1
+4. **Une gouvernance qu'on ne peut pas oublier** : droits au champ, masquage et un audit impossible à contourner
+5. **La cohérence par défaut, pas par convention** : des primitives partagées et un UI Kit commun
+6. **Construit avec des agents, maîtrisé par nous** : pourquoi le moteur rend sûrs les écrans écrits par l'IA, et comment on bascule processus par processus
+
+Prochain épisode : ce qui se passe entre un clic sur un écran et une ligne dans une base, et pourquoi ce chemin n'a qu'une seule route.

@@ -1,4 +1,5 @@
 import { buildPostManifest } from "./manifest";
+import { isPublished as isPublishedOn, utcToday } from "./publication";
 import { getTopic } from "./topics";
 import type { ComponentType } from "react";
 import type {
@@ -73,8 +74,12 @@ function toSummary(post: PostDocument): PostSummary {
   };
 }
 
+// Dev previews scheduled posts; production shows a post from its publishedAt
+// (UTC), evaluated per call so an open tab picks it up without a reload of data.
+const includeScheduled = import.meta.env.DEV;
+
 function isPublished(post: PostDocument): boolean {
-  return !post.draft;
+  return isPublishedOn(post, { today: utcToday(), includeScheduled });
 }
 
 function isAccessible(
@@ -182,6 +187,15 @@ function overlapScore(a: string[], b: string[]): number {
   return a.reduce((score, tag) => score + (bSet.has(tag) ? 1 : 0), 0);
 }
 
+// A series sibling is the most relevant next read, even when it shares few
+// tags: without this, newer posts that only share a broad tag win the tiebreak.
+const SERIES_BONUS = 3;
+
+function relatedScore(current: PostDocument, post: PostDocument): number {
+  const sameSeries = current.seriesId !== undefined && post.seriesId === current.seriesId;
+  return overlapScore(current.tags, post.tags) + (sameSeries ? SERIES_BONUS : 0);
+}
+
 export function getRelatedPosts(
   locale: PostLocale,
   slug: string,
@@ -197,7 +211,7 @@ export function getRelatedPosts(
     .filter((post) => post.slug !== slug)
     .map((post) => ({
       post,
-      score: overlapScore(current.tags, post.tags),
+      score: relatedScore(current, post),
     }))
     .filter((entry) => entry.score > 0)
     .sort((a, b) => {

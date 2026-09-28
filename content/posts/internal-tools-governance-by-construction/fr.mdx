@@ -1,0 +1,126 @@
+---
+title: "Une gouvernance qu'on ne peut pas oublier"
+subtitle: "Des droits au niveau du champ, un masquage qui ne fuit pas et un audit qu'aucun écran ne peut contourner."
+summary: "Dans un back office régulé, le contrôle d'accès et l'audit ne peuvent pas dépendre de la mémoire d'un développeur. Dans Nexus, ils vivent dans le moteur : chaque lecture et chaque écriture est contrôlée, masquée et tracée, que l'écran l'ait demandé ou non."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-12"
+readTimeMinutes: 8
+tags:
+  - securite
+  - architecture
+  - developer-tools
+  - produit
+  - rockfi
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 4
+---
+
+Quatrième épisode de **Outils internes à la pointe**. Les précédents décrivaient le chemin unique vers la donnée et le langage de requête posé dessus. Celui-ci parle de ce que ce chemin rend possible.
+
+Demandez ce qui fait un outil interne puissant, on vous parlera souvent de vitesse : retrouver un client en deux secondes, traiter une opération en trois clics. C'est important. Mais dans une entreprise régulée, la première question n'est pas « à quelle vitesse je vois cette donnée ? ». C'est « est-ce que je devrais la voir ? ».
+
+Chez RockFi, la réponse dépend de l'équipe. Une personne des opérations qui traite un contrat a besoin du patrimoine du client. Une personne du support qui répond à une question sur un document, non. Les deux travaillent sur le même contrat, le même jour, parfois sur le même écran.
+
+## Des droits sur la collection ne suffisent pas
+
+Le modèle classique est connu : des utilisateurs ont des rôles, des rôles ont des permissions, et les permissions portent sur des collections. « Le support peut lire les contrats. Les opérations peuvent les lire et les modifier. »
+
+Ce modèle casse dès qu'un même enregistrement mélange des informations de sensibilités différentes. Un contrat porte un produit, un statut, des dates, un fournisseur et le patrimoine du client. Accorder ou refuser toute la collection impose un mauvais choix : soit le support ne peut pas travailler, soit il voit tout.
+
+Nexus descend donc d'un niveau. Les permissions portent sur les collections **et** sur les champs de chaque collection :
+
+```ts
+const support = role("support", {
+  "crm.contracts": {
+    read: true,
+    fields: { asset_value: "masked", advisor_notes: "masked" },
+  },
+  "crm.clients": { read: true, fields: { tax_id: "masked" } },
+});
+```
+
+La déclaration est ennuyeuse, et c'est voulu. Elle vit à côté du modèle, elle passe en revue comme du code, et aucun écran ne la lit jamais. C'est le moteur qui la lit.
+
+## Masquer plutôt que cacher
+
+Quand un rôle n'a pas le droit de lire un champ, le moteur a deux options : retirer la colonne, ou la renvoyer masquée. Nous avons choisi le masquage, et ce n'est pas une question d'esthétique.
+
+**L'interface reste stable.** Un tableau ne change pas de forme selon la personne qui le regarde. Les mises en page, les exports et la documentation décrivent un seul écran, pas un écran par rôle.
+
+**L'utilisateur sait que la donnée existe.** Une valeur masquée dit : « cette information est là, et vous n'avez pas le droit de la voir ». Une colonne absente ne dit rien. On suppose un bug, on demande à un collègue, on ouvre un ticket. Le masquage transforme une question au support en un état qui s'explique tout seul.
+
+**C'est honnête.** Personne n'est trompé sur ce que contient le système. La frontière est visible, donc plus facile à discuter et à auditer.
+
+## Un masque qu'on peut filtrer n'est qu'un décor
+
+C'est la partie où l'on se trompe facilement. Imaginons que le support ne puisse pas voir `asset_value`, mais que le tableau le laisse filtrer dessus :
+
+```ts
+db.collection("crm.contracts").list({
+  where: gte("asset_value", 1_000_000),
+});
+```
+
+Les valeurs sont masquées dans le résultat. Mais **les lignes renvoyées** disent exactement qui dépasse le million. Triez sur la colonne masquée, vous obtenez un classement. Demandez un agrégat, vous obtenez une somme. Quelques filtres bien choisis et le masque tombe, sans qu'aucune cellule masquée n'ait jamais été révélée.
+
+Nous en avons donc fait une exigence de conception : **un champ qu'on ne peut pas lire est un champ qu'on ne peut pas interroger**. Le moteur refuse les filtres, les tris, les recherches et les agrégats sur les champs masqués pour ce rôle, avant même de générer le moindre SQL. Le refus est explicite, pas un résultat vide silencieux, pour que l'écran puisse l'expliquer.
+
+<MotionScene id="field-level-masking-audit" />
+
+Cela ne tient que grâce à l'architecture décrite dans le deuxième épisode. Toute requête passe par le moteur. Il n'existe pas de second chemin par lequel un écran pourrait « juste lancer cette requête SQL ». S'il existait, tout le modèle de droits ne serait qu'une recommandation.
+
+## « Est-ce que je dois ajouter l'audit sur mon écran ? »
+
+Le second pilier, c'est la traçabilité. En gestion de patrimoine, « qui a consulté les données de ce client, et quand ? » est une question qu'un auditeur peut poser, et qu'il posera. Tout comme « qui a modifié cette opération, avec quel rôle, et pourquoi ? ».
+
+Les développeurs qui rejoignent le projet nous posent tous la même question : dois-je ajouter des logs d'audit sur mon écran ? La réponse est toujours non. L'audit ne s'ajoute pas. Il est en place en permanence.
+
+L'audit est dans le moteur, juste après le contrôle d'accès. Chaque requête produit un événement :
+
+- **les lectures**, avec la collection, l'enregistrement et le nombre de champs masqués ;
+- **les écritures** : créations, modifications, suppressions ;
+- **les actions**, avec l'intention métier associée.
+
+Tracer les lectures surprend souvent. La plupart des systèmes n'auditent que les écritures. Mais dans notre métier, **consulter** une donnée client est déjà un événement qui mérite d'être tracé. Une fuite commence rarement par une modification.
+
+> Un audit qu'il faut penser à ajouter est un audit qu'on finira par oublier. Placez-le là où personne ne peut le contourner.
+
+## Écrire, c'est déclencher une action nommée
+
+Un `UPDATE contracts SET status = 'closed'` générique donne un diff à l'audit. Un diff dit **ce qui** a changé. Il ne dit pas **pourquoi**.
+
+Dans Nexus, les écritures passent par des actions nommées : « clôturer le contrat », « réaffecter le conseiller », « annuler l'opération ». Chaque action a sa propre permission, sa propre validation, et appelle le service interne qui porte la règle métier. Le moteur n'écrit jamais directement dans une base.
+
+Pour l'audit, la différence est nette. Au lieu d'une ligne « statut passé de active à closed », le journal indique « contrat clôturé par un utilisateur des opérations, via l'action de clôture, par le service contrats ». C'est la phrase qu'un auditeur veut lire. C'est aussi celle que vous voulez lire à 23 h, en pleine analyse d'incident.
+
+## Ce qu'exige une piste d'audit dans la finance
+
+Produire des événements, c'est la partie facile. Les rendre dignes de confiance, c'est là que se trouve le travail.
+
+**Append-only.** L'application ne modifie ni ne supprime jamais un événement d'audit. Une correction est un nouvel événement. Personne, nous compris, ne doit pouvoir réécrire l'histoire depuis l'outil.
+
+**Un contexte complet.** Qui, quand, avec quel rôle à ce moment-là, sur quel enregistrement, via quelle action, avec quels champs masqués. Les rôles évoluent : l'événement doit capturer le rôle **tel qu'il était**, pas tel qu'il est aujourd'hui.
+
+**Une rétention défendable.** Les durées de conservation réglementaires sont longues, et l'accès à l'audit est lui-même une permission sensible. La piste d'audit a ses propres règles d'accès et, évidemment, la consulter est audité.
+
+**Interrogeable par ceux qui en ont besoin.** Un auditeur ne lit pas des logs ligne par ligne. Il pose des questions : « tout ce que cet utilisateur a consulté le mois dernier », « tous ceux qui ont ouvert la fiche de ce client », « toutes les écritures sur cette opération ». Si l'audit ne sait pas y répondre en quelques minutes, il n'existe que sur le papier.
+
+## Là où ça devient difficile
+
+Rien de tout cela n'est gratuit, et je mentirais en prétendant le contraire.
+
+**Auditer les lectures coûte cher.** Tracer chaque lecture multiplie le volume d'événements par plusieurs ordres de grandeur par rapport aux écritures. Il faut choisir la bonne granularité (une requête de liste est un événement, pas un par ligne) et dimensionner le stockage en conséquence.
+
+**La piste d'audit contient elle-même des données sensibles.** Si un événement enregistre le filtre saisi par l'utilisateur et que ce filtre contient un nom de client, votre journal d'audit devient une copie de données personnelles conservée très longtemps. Un événement doit référencer des identifiants, pas dupliquer des valeurs.
+
+**Les rôles prolifèrent.** On commence avec trois rôles. Puis quelqu'un a besoin de « support, mais avec accès en lecture à un champ ». Six mois plus tard, trente rôles que personne ne sait expliquer. Les droits au niveau du champ accentuent cette pression. Y résister demande un responsable capable de dire non, et des rôles qui correspondent à de vrais métiers plutôt qu'à des demandes individuelles.
+
+**Les droits se testent, ils ne se relisent pas.** Un modèle de permissions est une matrice : rôles × collections × champs × opérations. Relire le diff de cette matrice à l'œil ne marche pas. Nous la testons comme une matrice, avec une attente par cellule, pour qu'un changement qui expose soudain un champ à un rôle échoue en CI plutôt qu'en production.
+
+## La question à se poser
+
+Si vous opérez un back office aujourd'hui, faites l'exercice : prenez votre champ le plus sensible et demandez-vous qui peut le voir, qui peut filtrer dessus, et où sont enregistrées ses cent dernières lectures.
+
+Si l'une des trois réponses est « ça dépend de l'écran », ce n'est pas un modèle de gouvernance. C'est un ensemble d'habitudes qui ont tenu jusqu'ici.
+
+La prochaine fois : ce que les utilisateurs ressentent de tout cela. Pourquoi chaque tableau filtre, trie et recherche par défaut, et pourquoi retirer une capacité doit se justifier.

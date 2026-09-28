@@ -1,0 +1,109 @@
+---
+title: "La cohérence par défaut, pas par convention"
+subtitle: "Des liens entre entités, des tableaux qui filtrent et recherchent d'office, et un seul UI Kit partagé avec nos applications clients."
+summary: "Un utilisateur juge un outil interne à sa prévisibilité d'une page à l'autre. Nexus l'obtient en rendant chaque capacité disponible par défaut : le développeur doit justifier le retrait d'une fonctionnalité, pas son ajout."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-15"
+readTimeMinutes: 7
+tags:
+  - dx
+  - produit
+  - developer-tools
+  - architecture
+  - rockfi
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 5
+---
+
+Cinquième épisode de **Outils internes à la pointe**. Jusqu'ici, la série est restée sous la surface : le moteur, le langage de requête, la gouvernance. Celui-ci parle de la surface, parce que c'est là que les utilisateurs décident si un outil est bon.
+
+Les personnes qui passent leur journée dans un back office ne raisonnent pas en architecture. Elles raisonnent en habitudes. « Je clique sur le nom du client, j'arrive sur le client. Je tape dans la recherche, le tableau se réduit. Je trie par date, le plus récent est en haut. » Quand ces habitudes tiennent partout, l'outil s'efface et il ne reste que le travail. Quand elles tiennent sur certaines pages et pas sur d'autres, chaque page devient une petite énigme.
+
+Les cas d'usage d'un back office sont réellement variés : un contrat, une opération, une fiche produit, une revue d'accès, une piste d'audit. L'expérience, elle, ne devrait pas l'être.
+
+## L'incohérence que personne n'a décidée
+
+Dans notre ancien outillage, personne n'avait décidé qu'un tableau trierait et qu'un autre non. C'est arrivé parce que chaque écran a été construit par quelqu'un, à un moment donné, avec le temps dont il disposait. La personne qui a fait le tableau des contrats a ajouté une recherche. Celle qui a fait les opérations n'y a pas pensé, ou n'a pas eu le temps. La liste des produits renvoyait vers le fournisseur ; celle des opérations affichait son nom en simple texte.
+
+Pris isolément, aucun de ces écarts n'est un bug. Ensemble, ils apprennent aux utilisateurs qu'on ne peut pas compter sur l'outil. Alors ils cessent d'explorer et commencent à mémoriser. Et savoir « quelle page fait quoi » devient une connaissance de plus que chaque nouvel arrivant doit récupérer auprès de ses collègues.
+
+La cause est la même que dans le premier épisode : le comportement était une propriété de chaque écran. La solution aussi : en faire une propriété du système.
+
+## Des primitives, pas des pages
+
+Les écrans de Nexus sont assemblés à partir d'un petit nombre de primitives. Deux d'entre elles portent l'essentiel de la cohérence.
+
+**L'Entity Link.** Partout où une entité est affichée (un client dans un contrat, un fournisseur dans un produit, un conseiller dans une opération), c'est un lien vers la page de cette entité. Non pas parce qu'on demande aux développeurs d'ajouter des liens, mais parce que le composant qui affiche une relation **est** un lien. Le moteur connaît la relation grâce au modèle ; la primitive sait comment l'afficher. Impossible d'afficher un client lié en simple texte sans lutter contre le framework.
+
+**Le tableau.** Chaque tableau de collection est filtrable, triable et doté d'une recherche d'office, avec des filtres rapides pour les cas courants. Le développeur déclare la collection et les colonnes. Filtres, tris, recherche, pagination et liens dans chaque cellule viennent avec.
+
+<MotionScene id="defaults-not-conventions" />
+
+Ce que le développeur écrit ressemble à peu près à ceci :
+
+```ts
+export const contractsPage = collectionPage("crm.contracts", {
+  columns: ["reference", "client", "product", "status", "opened_at"],
+  quickFilters: [eq("status", "active")],
+});
+```
+
+`client` et `product` s'affichent comme des liens parce que ce sont des relations dans le modèle. `status` est le champ calculé du premier épisode, avec une seule définition pour toute l'entreprise. Chaque colonne filtre et trie, sauf si quelqu'un décide le contraire.
+
+## Retirer, jamais ajouter
+
+Cette dernière phrase résume toute la conception.
+
+Dans la plupart des outils internes, les capacités sont **opt-in** : un tableau trie si quelqu'un a activé le tri, une colonne filtre si quelqu'un a branché un filtre. Le défaut, c'est l'expérience la plus pauvre, et chaque amélioration dépend de la mémoire d'un développeur.
+
+Nous avons inversé la logique. Les capacités sont **actives par défaut**, et en retirer une est un acte explicite :
+
+```ts
+columns: [
+  "reference",
+  "client",
+  { field: "portfolio_breakdown", filterable: false, reason: "calculé par ligne, pas d'index" },
+],
+```
+
+Il y a parfois de bonnes raisons. Une colonne peut être calculée d'une manière impossible à traduire en SQL, ou filtrer dessus parcourrait une table bien trop volumineuse. Les garde-fous du troisième épisode existent précisément pour ces cas. Mais le retrait se voit dans le code, il porte une justification, et il apparaît en revue.
+
+> Le coût d'un oubli doit retomber sur le développeur qui écrit l'écran, pas sur chaque utilisateur qui l'ouvre.
+
+Cette inversion déplace la charge au bon endroit. En opt-in, un oubli coûte à l'utilisateur, en silence, tous les jours. En opt-out, un oubli ne coûte rien : on obtient l'expérience complète. Seule une décision délibérée peut retirer quelque chose, et un relecteur peut demander pourquoi.
+
+## Une recherche qui respecte les règles
+
+La recherche globale, à un raccourci de distance (`⌘K`), est l'endroit où cohérence et gouvernance se rencontrent. Elle interroge toutes les collections : clients, contrats, opérations, produits.
+
+Elle ne renvoie que ce que l'utilisateur a le droit de voir. Cela paraît évident, mais un index de recherche est un canal auxiliaire classique. Si l'index renvoie un enregistrement que l'utilisateur ne peut pas ouvrir, ou classe les résultats à partir d'un champ masqué, il laisse fuiter exactement ce que le modèle de droits devait protéger. La recherche passe donc par le même moteur et les mêmes règles d'accès que toute autre lecture. Une personne du support qui cherche un client trouve le client ; elle ne trouve pas de résultats correspondant à son patrimoine.
+
+Là encore, personne n'a eu besoin d'y penser. La recherche consomme le moteur comme n'importe quel autre écran.
+
+## Un seul UI Kit, partagé avec les applications clients
+
+Dernière pièce, la plus visible : Nexus repose sur l'UI Kit déjà développé pour nos applications destinées aux clients.
+
+Ce choix a des effets cumulatifs. Tous les composants existants sont disponibles gratuitement pour l'outil interne. Quand le kit évolue (un meilleur sélecteur de date, une correction d'accessibilité, une nouvelle densité de tableau), l'outil interne évolue avec lui. L'identité visuelle est la même, et l'exigence de qualité aussi : nos collègues profitent du même niveau de finition que nos clients.
+
+Il supprime aussi une dette discrète. Beaucoup d'entreprises finissent avec deux design systems : le vrai, pour les clients, et un improvisé pour les outils internes, que personne ne maintient. Nous n'avons pas d'UI parallèle à construire ni à entretenir. Il y a un kit, et l'outil interne en est un consommateur parmi d'autres.
+
+## Quand les défauts résistent
+
+Cette approche a ses limites, et elles apparaissent vite.
+
+**Des primitives génériques face à des workflows spécifiques.** Un tableau est parfait pour parcourir des contrats. Il n'a pas la bonne forme pour une revue en plusieurs étapes où l'on compare deux versions d'un document avant de valider. Pour ces cas, nous écrivons des composants sur mesure. La règle : ils lisent toujours via le moteur et utilisent les primitives à l'intérieur (liens, champs, valeurs masquées), pour que la porte de sortie ne devienne pas un contournement.
+
+**Un UI Kit pensé pour les clients n'est pas toujours assez dense.** Des composants conçus pour des clients privilégient l'air et la lisibilité. Un écran d'opérations doit afficher quarante lignes et dix colonnes sans défilement. Nous avons ajouté des variantes de densité au kit plutôt que de le forker. C'est du travail en plus, mais il est fait une fois, dans le kit, pour tout le monde.
+
+**« Tout est filtrable » a un prix.** Si chaque colonne peut être filtrée, quelqu'un filtrera sur la colonne sans index, sur la plus grosse table, un lundi matin. Des défauts généreux ont besoin de garde-fous : des index sur les colonnes réellement utilisées, des limites de pagination, et un refus clair quand une requête coûterait trop cher. Sans limites, des défauts généreux ne sont qu'une manière plus lente de provoquer un incident.
+
+**Les défauts se figent.** Quand un comportement est partout, le changer revient à le changer partout. C'est tout l'intérêt, mais cela signifie qu'une décision sur une primitive mérite plus de réflexion qu'une décision sur un écran.
+
+## Une question à poser à votre propre outil
+
+Ouvrez trois pages au hasard de votre back office. Sur chacune, cliquez sur une entité liée, triez une colonne, lancez une recherche.
+
+Si les trois pages ne se comportent pas de la même façon, demandez-vous qui l'a décidé. La plupart du temps, la réponse honnête est : personne. C'est toute la différence entre une convention et un défaut.
+
+Prochain et dernier épisode : comment nous avons construit tout cela avec des agents de code, pourquoi le moteur rend sûrs les écrans écrits par une IA, et comment nous remplaçons l'ancien outil processus par processus plutôt que d'un seul coup.

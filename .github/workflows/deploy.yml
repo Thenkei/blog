@@ -6,6 +6,11 @@ on:
   push:
     branches: ["main"]
 
+  # Daily rebuild so scheduled posts (future publishedAt) enter the RSS feed and
+  # sitemap on their date. 00:05 UTC, just after the app starts showing them.
+  schedule:
+    - cron: "5 0 * * *"
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 

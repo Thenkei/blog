@@ -119,6 +119,12 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       caption: "Le Product OS rend le chemin vers une release relisible et reproductible.",
       labels: { a: "Challenge", b: "Pratique", c: "Plugin", d: "Revue", e: "Release" },
     },
+    "internal-tools-as-product": {
+      title: "Un moteur au centre des outils internes",
+      description: "Des écrans épars, chacun avec ses requêtes, ses droits et ses comportements, se rattachent à un moteur commun qui porte données, droits, audit et composants.",
+      caption: "Un outil interne devient un produit quand la cohérence vient du moteur, pas de la discipline de chaque écran.",
+      labels: { a: "Écrans", b: "Droits", c: "Moteur", d: "Audit", e: "Données" },
+    },
     "context-engineering-beyond-prompt-engineering": {
       title: "Pile de contexte autorisée",
       description: "Un agent fiable combine état courant, permissions, fraîcheur, provenance et validation avant l'action.",
@@ -335,6 +341,12 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       description: "Individual practices become a shared system for decisions, delivery, and review.",
       caption: "A Product OS makes the path to a release explicit and repeatable.",
       labels: { a: "Challenge", b: "Practice", c: "Plugin", d: "Review", e: "Release" },
+    },
+    "internal-tools-as-product": {
+      title: "One engine at the centre of internal tools",
+      description: "Scattered screens, each with its own queries, access rules, and behaviour, attach to one shared engine that carries data, access, audit, and components.",
+      caption: "An internal tool becomes a product when consistency comes from the engine, not from the discipline of every screen.",
+      labels: { a: "Screens", b: "Access", c: "Engine", d: "Audit", e: "Data" },
     },
     "context-engineering-beyond-prompt-engineering": {
       title: "Authorized context stack",

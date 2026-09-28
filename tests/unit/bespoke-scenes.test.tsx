@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import "../../src/i18n/config";
@@ -83,6 +83,20 @@ describe("bespoke article scenes", () => {
     });
     expect(await screen.findByRole("figure", { name: /upsert inserted twice/i })).toBeInTheDocument();
     expect(container.querySelector('[data-motion-scene="bespoke"]')).toBeTruthy();
+  });
+
+  it("keeps the same figure node when the player replaces the poster", async () => {
+    await act(async () => {
+      render(<MotionScene id="postgresql-unique-nulls" />);
+      await loadBespokeScene("postgresql-unique-nulls");
+    });
+    const figure = await screen.findByRole("figure", { name: /upsert inserted twice/i });
+
+    // The poster's narration list leaves once the lazy player has mounted.
+    await waitFor(() => expect(figure.querySelector(".bespoke-scene-beats")).toBeNull(), { timeout: 5000 });
+
+    expect(figure.isConnected).toBe(true);
+    expect(screen.getByRole("figure", { name: /upsert inserted twice/i })).toBe(figure);
   });
 });
 

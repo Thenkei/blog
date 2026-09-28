@@ -1,0 +1,113 @@
+---
+title: "Construit avec des agents, maîtrisé par nous"
+subtitle: "Pourquoi un moteur gouverné rend sûrs les écrans écrits par une IA, comment nous déployons processus par processus, et ce que cela change pour l'entreprise."
+summary: "La première version de Nexus a été construite en trois semaines environ avec des agents de code. Cela ne fonctionne que parce que les règles vivent dans le moteur, pas dans les écrans. Dernier épisode de la série : maîtrise, agents et un déploiement processus par processus."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-19"
+readTimeMinutes: 9
+tags:
+  - ia
+  - agents
+  - developer-tools
+  - produit
+  - rockfi
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 6
+---
+
+Dernier épisode de **Outils internes à la pointe**. Les cinq premiers ont couvert le moteur, le langage de requête, la gouvernance et la cohérence. Celui-ci parle de la manière dont nous l'avons construit, de la manière dont nous le déployons, et de la raison pour laquelle cela change bien plus que notre back office.
+
+## Nexus a été construit avec la méthode qu'il propose
+
+La première version fonctionnelle de Nexus a pris environ trois semaines. Pas parce que nous avons bâclé, ni parce que quelqu'un a enchaîné les nuits blanches. Nous sommes partis d'un socle standard (la même stack, les mêmes conventions et le même UI Kit que nos autres applications), et l'essentiel du code a été écrit par des agents de code, sous une revue serrée.
+
+Cette phrase provoque en général l'une de deux réactions : « trois semaines, bien sûr » ou « donc plus personne ne comprend vraiment le code ». Les deux passent à côté de ce qui a rendu la chose possible.
+
+Les agents n'étaient pas particulièrement brillants. C'est l'environnement qui était contraint. Au moment de générer les premiers vrais écrans, les décisions difficiles étaient déjà dans le moteur : comment on lit la donnée, comment on l'écrit, qui voit quoi, ce qui est tracé. Un nouvel écran était une déclaration au-dessus de ce moteur, pas une réimplémentation. Un agent ne peut pas se tromper sur le contrôle d'accès d'un écran qui ne contient aucun contrôle d'accès.
+
+La connaissance qui a guidé le travail était écrite là où agents et humains la lisent :
+
+- **Dans le moteur**, sous forme de code : collections, champs calculés, actions nommées, règles d'accès.
+- **Dans les conventions du dépôt** : des instructions pour les agents qui décrivent comment déclarer une collection, comment structurer un processus, quels patterns sont interdits.
+- **Dans les tests**, qui décrivent le comportement attendu, jusqu'au nombre de requêtes SQL qu'une liste a le droit d'exécuter.
+- **Dans la documentation**, qui explique le *pourquoi* des patterns, pour que relecteurs et agents distinguent une exception légitime d'un raccourci.
+
+Rien de tout cela ne vit dans la tête de quelqu'un. C'est ce qui rend le rythme tenable, pas le modèle derrière l'agent.
+
+## Les garde-fous sont structurels, pas relus
+
+Voici l'argument le plus important de toute la série.
+
+Quand un agent écrit un écran dans un outil interne classique, chaque règle qui compte doit *figurer dans le diff* : la bonne clause `WHERE`, la vérification du rôle, l'appel au journal d'audit. Le relecteur doit repérer la ligne manquante dans un diff parfaitement plausible. Au rythme où les agents produisent du code, cela ne tient pas. La fatigue de revue est réelle, et un code plausible est précisément celui qu'un relecteur fatigué approuve.
+
+Dans Nexus, ces règles ne sont tout simplement pas dans le diff. Chaque lecture et chaque écriture passe par le moteur, qui authentifie l'appelant, applique le contrôle d'accès jusqu'au champ et ajoute l'événement au journal d'audit. Il n'existe aucun autre chemin vers la donnée. Un écran écrit par Claude Code, Codex, Cursor ou par un collègue dans sa première semaine passe par les mêmes portes.
+
+<MotionScene id="agents-behind-the-engine" />
+
+Cela change le rôle de la revue. Nous ne dépensons plus d'attention à vérifier « a-t-il pensé à la règle de masquage ». Nous la dépensons sur les questions auxquelles seul quelqu'un qui connaît le métier peut répondre : est-ce le bon processus ? Cette action a-t-elle le bon nom, les bonnes préconditions, les bons effets de bord ? Ce champ calculé correspond-il vraiment à la définition métier ?
+
+> Ne demandez pas aux agents de se souvenir des règles. Construisez un système où il est impossible de les oublier.
+
+## Maîtriser le code, et la connaissance qui le façonne
+
+Les outils low-code ajoutent eux aussi des agents IA, et certains sont réellement utiles. On décrit un écran, l'agent l'assemble. Le problème, c'est l'endroit où vit le résultat : dans le format de l'éditeur, sur sa plateforme, façonné par ses abstractions. L'agent est nouveau, la dépendance reste la même.
+
+Notre approche est volontairement banale. Nexus est un dépôt Git. N'importe quel agent capable de travailler sur un dépôt peut travailler sur Nexus, et il le fait avec le même workflow que tout autre changement : une branche, une pull request, des tests, la CI et une revue humaine. Si un meilleur agent sort le trimestre prochain, on change. Si l'un d'eux passe une mauvaise semaine, les autres continuent. L'agent est un outil remplaçable ; le moteur, les conventions et les tests sont le véritable actif.
+
+C'est ce que j'entends par maîtrise. Pas « nous avons écrit le code nous-mêmes » : nous n'en avons clairement pas tapé la majorité. Maîtriser, c'est posséder le code et la connaissance qui le façonne, de manière portable, versionnée et relisible. L'outil que nous utiliserons demain en hérite intégralement.
+
+## Pas de big bang : un processus à la fois
+
+Un nouvel outil interne que personne n'utilise, c'est un projet perso. Remplacer l'ancien en un week-end, c'est un pari, surtout quand les opérations et la conformité en dépendent tous les jours. Nous n'avons fait ni l'un ni l'autre.
+
+Nexus remplace notre ancien outil low-code **processus par processus, avec les équipes qui les font vivre**. Chaque processus passe par quatre étapes :
+
+1. **Tester.** Une petite cohorte d'utilisateurs réels déroule un vrai processus dans Nexus, en parallèle de l'ancien outil.
+2. **Qualifier.** Ils remontent les écarts : champs manquants, exceptions que l'ancien écran gérait implicitement, irritants qui les ralentissent.
+3. **Corriger.** L'équipe traite ces écarts, puis refait valider avec la même cohorte.
+4. **Basculer.** Alors seulement, l'ancien outil est retiré, pour ce processus et rien d'autre.
+
+Tant qu'un processus n'est pas qualifié, l'ancien outil reste disponible. Personne n'est forcé d'utiliser un écran qui ne fait pas encore le travail.
+
+C'est une pratique produit avant d'être un plan de migration. Il y a des utilisateurs, une boucle de feedback et un critère de mise en production explicite (« la cohorte a validé »), pas une date sur une slide. C'est aussi une pratique de maîtrise du risque. Dans un environnement régulé, les défaillances dangereuses ne sont pas les bugs visibles. Ce sont les comportements implicites de l'ancien outil que personne n'a documentés : le filtre qui masquait une catégorie de contrats, la colonne qu'une seule équipe utilisait pour vérifier une condition de conformité. L'étape de qualification existe précisément pour les faire remonter, tant que l'ancien outil sert encore de filet de sécurité.
+
+Elle garde aussi les ingénieurs honnêtes. La mesure du progrès n'est pas « écrans construits » mais « processus basculés ». Un écran qui existe mais qu'aucune cohorte n'a validé ne compte pas.
+
+## Ce que cela change pour l'entreprise
+
+Au départ, l'objectif semblait modeste : remplacer un outil low-code qui ne nous convenait plus. En chemin, l'objectif a changé.
+
+**Nous maîtrisons la chaîne de A à Z** : infrastructure, accès aux données, droits, composants, processus. Quand la conformité pose une question, la réponse est dans du code que nous possédons, pas dans le panneau de configuration d'un éditeur. Quand un processus évolue, le changement passe par la même revue que le reste de notre logiciel.
+
+**Le risque baisse et la vitesse augmente, en même temps.** D'habitude, on échange l'un contre l'autre. Ici, le moteur qui impose le contrôle d'accès et l'audit est aussi ce qui rend un nouvel écran bon marché. La gouvernance cesse d'être une taxe sur la livraison et devient la raison pour laquelle on livre vite.
+
+**Ensuite, les contributions de personnes qui ne sont pas ingénieurs.** Un collègue des opérations qui sait exactement ce qu'un écran doit afficher peut ouvrir une issue, mentionner `@claude` sur le dépôt et obtenir une pull request préparée pour lui. Cette pull request passe par la même revue, les mêmes tests et le même moteur que tout le reste. Nous n'en sommes pas encore là à grande échelle, mais le socle rend l'essai sûr : une contribution venue d'ailleurs que l'engineering rencontre exactement les mêmes garde-fous que les nôtres.
+
+**Puis, des cas d'usage agentiques sur le même moteur gouverné.** Un agent qui prépare un contrôle de conformité ou rapproche des opérations (par exemple sur Amazon Bedrock) n'est, du point de vue du moteur, qu'un appelant de plus. Il s'authentifie, reçoit un rôle, ses lectures sont masquées selon ce rôle, et chacune de ses actions entre dans le journal d'audit. Nous n'avons pas besoin d'un modèle de sécurité à part pour l'IA. Nous en avons déjà construit un pour tous les appelants.
+
+C'est ce qui a changé ma façon de voir les outils internes. Ce ne sont pas des centres de coût à minimiser. C'est la surface où s'encode la connaissance opérationnelle d'une entreprise, et quand cette surface est un produit, cette connaissance s'accumule au lieu de s'éparpiller.
+
+## Ce qui peut mal tourner
+
+Je ne ferais pas confiance à ce billet s'il s'arrêtait là. Voici donc ce qui m'inquiète.
+
+**Le moteur peut devenir un goulot d'étranglement.** Si une ou deux personnes seulement le comprennent, chaque nouveau besoin fait la queue derrière elles. Le remède est celui de toute plateforme : documentation, conventions suivies par les agents comme par les humains, et un effort délibéré pour répartir la maîtrise avant que cela ne fasse mal.
+
+**Les agents produisent des règles métier plausibles.** Les garde-fous structurels protègent l'accès et l'audit ; ils ne protègent pas le sens. Un agent peut déclarer un champ calculé qui compile, passe le lint et encode une mauvaise définition du contrat actif. C'est pour cela que les écritures passent par des actions nommées avec des préconditions explicites, que les tests décrivent un comportement métier et pas seulement des types, et que la revue se concentre sur la sémantique. Le moteur supprime une catégorie d'erreurs ; il ne supprime pas le besoin de jugement.
+
+**La maîtrise coûte cher, pendant des années.** Montées de version, incidents, astreinte, lente érosion d'une base de code que plus personne ne veut toucher. Nous avons accepté ce coût en connaissance de cause, parce que l'alternative était un autre coût que nous payions déjà. Faites le même calcul pour votre contexte.
+
+**La tentation de reconstruire une plateforme low-code.** Une fois le moteur en place, il est tentant de le rendre générique : un builder visuel, un système de plugins, de la configuration à la place du code. Résistez. La valeur de Nexus vient de ce qu'il est spécifique à notre métier et écrit sous forme de code que les agents et les humains peuvent relire. Le jour où il devient une plateforme générique, nous aurons reconstruit ce que nous avons quitté, avec une équipe plus petite pour le maintenir.
+
+Une question à emporter, donc : si un agent de code écrivait votre prochain écran interne cette nuit, de quelles règles devrait-il *se souvenir* pour ne pas se tromper ? Chaque élément de cette liste est une règle qui devrait rejoindre le système.
+
+## La série, en six épisodes
+
+1. **Votre back office est un produit** : traiter les outils internes avec la même discipline d'architecture que les logiciels destinés aux clients.
+2. **Un seul chemin vers la donnée** : le Core Engine, les lectures sur replicas, les écritures par les services.
+3. **Un langage de requête volontairement ennuyeux** : une syntaxe, des relations entre bases, zéro N+1.
+4. **Une gouvernance qu'on ne peut pas oublier** : droits au champ près, masquage et un audit impossible à contourner.
+5. **La cohérence par défaut, pas par convention** : des primitives partagées et un UI Kit commun.
+6. **Construit avec des agents, maîtrisé par nous** (ce billet) : garde-fous structurels, maîtrise et déploiement processus par processus.
+
+Le fil rouge des six épisodes est simple. Sortir les règles des écrans pour les mettre dans un système que l'on maîtrise. Tout le reste en découle : cohérence, conformité, vitesse, et la possibilité de laisser agents et collègues contribuer sans retenir son souffle.

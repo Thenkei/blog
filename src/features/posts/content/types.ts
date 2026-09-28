@@ -22,6 +22,7 @@ export const postVisualIds = [
   "engineering-documents-age-poorly",
   "forest-admin-activity-logs-elasticsearch",
   "idempotency-debounce-jobify-bullmq",
+  "internal-tools-as-product",
   "jobify-workers-queues-nestjs",
   "joining-rockfi",
   "nodejs-stream-backpressure-history-export",

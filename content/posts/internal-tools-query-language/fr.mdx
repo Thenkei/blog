@@ -1,0 +1,149 @@
+---
+title: "Un langage de requête volontairement ennuyeux"
+subtitle: "Une syntaxe pour toutes les sources, des relations qui traversent les bases, et un moteur qui refuse tout ce qu'il ne sait pas traduire en SQL borné."
+summary: "Nexus a son propre petit langage de requête. Il n'a rien de brillant, et c'est voulu : chaque écran construit ses requêtes de la même façon, les relations entre bases se résolvent en un nombre fixe de requêtes groupées, et les champs calculés sont réécrits en SQL ou refusés."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-08"
+readTimeMinutes: 9
+tags:
+  - architecture
+  - postgresql
+  - database
+  - developer-tools
+  - dx
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 3
+---
+
+Troisième épisode de **Outils internes à la pointe**. Le précédent décrivait le Core Engine : un seul chemin vers la donnée, avec des lectures sur replicas et des écritures par les services. Celui-ci parle du langage qu'utilisent les écrans pour demander des données à ce moteur.
+
+Nous avons écrit le nôtre. Je sais ce que ça évoque. Alors commençons par ce que nous n'avons *pas* cherché à construire.
+
+## Pas un nouveau SQL
+
+L'objectif n'a jamais été la puissance d'expression. SQL l'a déjà, tout comme n'importe quel ORM. L'objectif était une **manière cohérente de construire une requête, quelle que soit la source**, pour qu'un filtre, une relation ou un comptage se ressemblent sur chaque écran et sous les doigts de chaque développeur.
+
+Cette contrainte a tout façonné. Le langage est petit à dessein : une poignée de constructeurs de clauses, un `select` typé, un arbre `where`, quelques opérations. Si une fonctionnalité rend le langage plus puissant mais moins prévisible, elle n'entre pas.
+
+```ts
+db.collection("crm.contracts").list({
+  where: and(eq("status", "active"), gte("age_days", 10)),
+  select: ["reference", "status", "provider.name", "product.isin"],
+});
+```
+
+Cette requête touche trois choses auxquelles un développeur ne devrait pas avoir à penser : un champ calculé (`status`), une relation dans la même base (`provider`), et une relation vers une tout autre base (`product`). La syntaxe est identique pour les trois. C'est le moteur qui décide comment exécuter chacune.
+
+Sous le capot, la requête est un AST, pas une chaîne de caractères. C'est ce qui permet au moteur de l'inspecter, de vérifier les permissions champ par champ, d'en réécrire une partie et de refuser le reste avant que quoi que ce soit n'atteigne une base. Pour la couche multi-bases, nous nous appuyons sur le toolkit open source de datasources de Forest Admin, que je connais bien de mon poste précédent, enveloppé sous notre propre AST pour que les écrans ne le voient jamais.
+
+## Les relations naturelles deviennent des JOIN
+
+Première règle, la moins surprenante : quand deux tables vivent dans la même base et partagent une clé étrangère, la relation devient un `JOIN` natif.
+
+```sql
+SELECT c.reference, p.name, t.name
+FROM contracts c
+LEFT JOIN providers p ON p.id = c.provider_id
+LEFT JOIN contract_types t ON t.id = c.contract_type_id
+WHERE c.id = $1
+```
+
+Ça paraît évident. Ce n'est pourtant pas ce que fait une couche de données générique par défaut : beaucoup résolvent chaque relation avec sa propre requête, l'une après l'autre. Sur une page de détail mesurée dans notre environnement de staging, les jointures natives nous ont fait passer de quatre requêtes en 151 ms à une seule en 41 ms. Pas une révolution. Multiplié par chaque écran et chaque ligne, c'est la différence entre un outil qui paraît instantané et un outil qui paraît lourd.
+
+Le résultat est typé depuis le schéma. `row.provider?.name` est une `string`. Une faute de frappe dans un nom de champ ne compile pas.
+
+## Des relations virtuelles, sans N+1
+
+Passons au cas intéressant. Nos données ne vivent pas dans une seule base. Les contrats sont dans un service, les produits dans un autre, les opérations dans un troisième. Dans une architecture microservices, c'est normal. Dans un outil interne, c'est là que les choses tournent mal d'habitude.
+
+L'approche naïve est une boucle : récupérer douze lignes de contrat, puis le produit de chaque ligne. Une requête plus douze. Le N+1 classique, qui empire à mesure que la page grandit.
+
+Nexus les déclare comme des **relations virtuelles** : des relations entre collections de bases différentes, interrogeables avec la même syntaxe qu'une relation native. Le moteur les résout en un nombre fixe d'étapes, quel que soit le nombre de lignes.
+
+<MotionScene id="virtual-relation-batching" />
+
+1. Exécuter la requête locale. Douze lignes de contrat reviennent, chacune avec un `product_id`.
+2. Collecter les clés **uniques**. Douze lignes, neuf produits distincts.
+3. Lancer **une seule** requête sur l'autre base : `WHERE id IN ($1 … $9)`.
+4. Fusionner en mémoire, par `product_id`.
+
+Deux requêtes pour douze lignes. Deux requêtes pour cinq cents lignes. Le coût est borné par le nombre de sauts dans la requête, jamais par le nombre de lignes de la page.
+
+Les **champs importés** poussent la même idée un cran plus loin. Une collection peut importer une colonne d'une autre base, et cette colonne se comporte comme une colonne locale, y compris dans les filtres. Filtrer des opérations par le nom de leur contrat devient : traduire le filtre en requête sur la base des contrats, récupérer les identifiants correspondants, puis interroger les opérations avec `WHERE contract_id IN (...)`. Trois requêtes bornées, jamais une par ligne. Pour le développeur, `contract_name` est une colonne comme une autre.
+
+## Les champs calculés sont réécrits, ou refusés
+
+Vous vous souvenez des trois définitions d'un contrat actif du premier épisode ? C'est ici qu'elles se réduisent à une seule.
+
+```ts
+const contracts = collection("crm.contracts", {
+  fields: {
+    status: statusField("closed_at", { present: "closed", missing: "active" }),
+    age_days: ageField("created_at"),
+  },
+});
+```
+
+`status` et `age_days` sont déclarés une fois, sur la collection. Chaque liste, filtre, compteur et export en hérite. Surtout, **les filtres qui les visent sont réécrits en SQL** :
+
+```text
+status = 'active'   →  closed_at IS NULL
+age_days >= 10      →  created_at <= now() - interval '10 days'
+```
+
+C'est la base qui filtre, sur des colonnes stockées et indexées. Les valeurs calculées sont ensuite produites une fois par page de résultats, pour l'affichage.
+
+Et voici la règle que je défendrais le plus fermement : **un opérateur sans réécriture SQL est refusé.** Si quelqu'un demande un filtre sur un champ calculé que le moteur ne sait pas traduire, la requête échoue avec une erreur explicite. Elle n'est jamais évaluée en mémoire.
+
+> Filtrer en mémoire marche parfaitement sur votre laptop et échoue poliment en production. Nous préférons échouer bruyamment en développement.
+
+Le filtrage en mémoire est le raccourci le plus séduisant d'une couche de données. Il fonctionne toujours sur les données de seed. Puis quelqu'un filtre une table de deux cent mille lignes, et le moteur les charge toutes pour en garder douze. Refuser agace pendant une journée. C'est aussi la seule façon de garantir que « filtrable » veut dire la même chose sur chaque écran.
+
+## Les agrégats : plusieurs métriques, une requête
+
+Dernière pièce : compter. Les tableaux de bord et les en-têtes de liste ont besoin de chiffres : combien de contrats, combien d'actifs, la valeur totale des actifs.
+
+```ts
+db.collection("crm.contracts").summarize(
+  {
+    total: { op: "count" },
+    active: { op: "count", segment: "active" },
+    aum: { op: "sum", field: "asset_value", segment: "active" },
+  },
+  { where: byProvider },
+);
+```
+
+```sql
+SELECT COUNT(*),
+  COUNT(*) FILTER (WHERE closed_at IS NULL),
+  SUM(asset_value) FILTER (WHERE closed_at IS NULL)
+FROM contracts
+WHERE provider_id = $1
+```
+
+Trois métriques, une requête, grâce à la clause `FILTER` de PostgreSQL. Le segment `active` est nommé une fois et réutilisé dans les listes, les compteurs et les filtres : le chiffre de l'en-tête et les lignes du tableau ne peuvent jamais diverger sur ce que « actif » veut dire. Nos tests vérifient le nombre de requêtes SQL, pas seulement le résultat.
+
+## Des garde-fous, parce que quelqu'un essaiera
+
+Un langage qui suit des relations entre bases est aussi un moyen très pratique de tout scanner par accident. Le moteur impose donc des limites strictes à chaque requête :
+
+- **500 lignes par page.**
+- **5 000 lignes intermédiaires** pour résoudre les relations et les champs importés.
+- **32 lectures par requête**, toutes sources confondues.
+
+Dépasser une limite est une erreur, pas une troncature silencieuse. Un écran qui en atteint une a besoin d'une meilleure requête ou d'un meilleur design, et c'est bien moins cher de l'apprendre en développement que par un replica à 100 % de CPU.
+
+## Quand c'est le mauvais choix
+
+Écrire son propre langage de requête est un engagement de maintenance. Chaque nouveau besoin, un nouvel opérateur, un nouveau type de relation, doit être conçu, réécrit en SQL et testé. Si votre outil interne lit une seule base, utilisez SQL ou un bon query builder, et arrêtez-vous là.
+
+C'est aussi un langage que personne ne connaît le premier jour. La documentation, les types et les messages d'erreur *sont* l'onboarding. Quand une erreur dit « l'opérateur `contains` n'a pas de réécriture SQL pour le champ calculé `status` », elle enseigne la règle. Quand elle dit « la requête a échoué », elle n'enseigne rien.
+
+Le pari n'est rentable que lorsque de nombreux écrans interrogent de nombreuses sources et qu'on veut qu'ils se comportent tous de la même façon. C'était notre cas.
+
+Alors, une question sur votre propre stack : quand un écran de votre back-office filtre un tableau, savez-vous si le filtre s'exécute en base ou en mémoire ? Et deux écrans donneraient-ils la même réponse ?
+
+## La suite de la série
+
+Prochain épisode : la gouvernance. Des permissions jusqu'au champ, du masquage plutôt que de la dissimulation, et une piste d'audit que personne n'a besoin de penser à ajouter.

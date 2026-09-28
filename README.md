@@ -40,6 +40,15 @@ The MDX frontmatter drives whether the article is available in the application:
   must share both visibility and draft status.
 - Keep `publishedAt` as the date displayed by the application and emitted in
   the generated RSS feed and sitemap.
+- A future `publishedAt` schedules the article. `npm run dev` shows it
+  immediately; production hides it from every publication path until that
+  day (UTC). The RSS feed and sitemap only list articles live at build time,
+  so the deploy workflow also runs daily at 00:05 UTC to add scheduled
+  articles on their date. Set `PUBLISH_DATE=YYYY-MM-DD` when running
+  `npm run generate:static` to preview the feeds for another day. The rule
+  lives in `src/features/posts/content/publication.ts`, shared by the app and
+  the generator. Like Rocket visibility, scheduling hides an article from
+  discovery; it does not keep its content out of the shipped bundle.
 - Add an English and French three-beat sequence in
   `src/features/posts/motion/stories.ts`. The coverage test requires a sequence
   for every slug. Each beat should state a concrete step in the article's

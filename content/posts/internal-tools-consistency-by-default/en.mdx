@@ -1,0 +1,109 @@
+---
+title: "Consistency Is a Default, Not a Convention"
+subtitle: "Entity links, tables that filter and search out of the box, and one UI kit shared with our client apps."
+summary: "Users judge an internal tool by how predictable it feels from one page to the next. Nexus gets that predictability by making every capability available by default and asking developers to justify removing one, not adding it."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-15"
+readTimeMinutes: 7
+tags:
+  - dx
+  - product
+  - developer-tools
+  - architecture
+  - rockfi
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 5
+---
+
+Part 5 of **Internal Tools at the Edge**. So far this series has stayed below the surface: the engine, the query language, governance. This post is about the surface, because that is where users decide whether a tool is good.
+
+People who work in a back office all day do not think in terms of architecture. They think in terms of habits. *I click the client name, I land on the client. I type in the search box, the table narrows. I sort by date, the latest is on top.* When those habits hold everywhere, the tool disappears and the work remains. When they hold on some pages and not others, every page becomes a small puzzle.
+
+The use cases in a back office are genuinely varied: a contract, an operation, a product sheet, an access review, an audit trail. The experience should not be.
+
+## The inconsistency nobody decided
+
+In our previous setup, nobody decided that one table would sort and another would not. It happened because each screen was built by someone, at some point, with the time they had. The developer who built the contracts table added a search. The one who built operations did not think of it, or ran out of time. The product list linked to the provider; the operations list showed the provider's name as plain text.
+
+None of these is a bug in isolation. Together, they teach users that the tool cannot be trusted to behave, so they stop exploring and start memorising. And the knowledge of *which page does what* becomes one more thing new joiners must learn from colleagues.
+
+The root cause is the same as in the first post: behaviour was a property of each screen. The fix is also the same: make it a property of the system.
+
+## Primitives, not pages
+
+Nexus screens are assembled from a small set of primitives. Two of them carry most of the consistency.
+
+**The entity link.** Wherever an entity is displayed (a client in a contract, a provider in a product, an advisor in an operation), it is a link to that entity's page. Not because developers are asked to add links, but because the component that renders a relation *is* a link. The engine knows the relation from the model; the primitive knows how to render it. There is no way to display a related client as plain text short of fighting the framework.
+
+**The table.** Every collection table is filterable, sortable, and searchable out of the box, with quick filters for the common cases. The developer declares the collection and the columns. Filtering, sorting, search, pagination, and the entity links in each cell come with it.
+
+<MotionScene id="defaults-not-conventions" />
+
+What the developer writes looks roughly like this:
+
+```ts
+export const contractsPage = collectionPage("crm.contracts", {
+  columns: ["reference", "client", "product", "status", "opened_at"],
+  quickFilters: [eq("status", "active")],
+});
+```
+
+`client` and `product` render as entity links because they are relations in the model. `status` is the computed field from the first post, with one definition company-wide. Every column filters and sorts unless someone says otherwise.
+
+## Opt out, never opt in
+
+That last sentence is the whole design.
+
+In most internal tools, capabilities are **opt-in**: a table sorts if someone enabled sorting, a column filters if someone wired a filter. The default is the poorest experience, and every improvement depends on a developer remembering it.
+
+We inverted it. Capabilities are **on by default**, and removing one is an explicit act:
+
+```ts
+columns: [
+  "reference",
+  "client",
+  { field: "portfolio_breakdown", filterable: false, reason: "computed per row, no index" },
+],
+```
+
+Sometimes there is a good reason. A column may be computed in a way that cannot be pushed down to SQL, or filtering on it would scan a table far too large. The guardrails from part 3 exist for exactly those cases. But the removal is visible in the code, it carries a reason, and it shows up in review.
+
+> The cost of forgetting should fall on the developer who writes the screen, not on every user who opens it.
+
+That inversion moves the burden to the right place. With opt-in, forgetting costs the user, silently, every day. With opt-out, forgetting costs nothing: you get the full experience. Only a deliberate decision can take something away, and a reviewer can ask why.
+
+## Search that respects the rules
+
+The global search, one shortcut away (`⌘K`), is where consistency and governance meet. It searches across collections: clients, contracts, operations, products.
+
+It only returns what the current user has the right to see. That sounds obvious, but a search index is a classic side channel. If the index returns a record the user cannot open, or ranks results using a masked field, it leaks exactly what the permission model was built to protect. So the search goes through the same engine and the same access rules as every other read. A support user searching for a client finds the client; they do not find results matched on the client's assets.
+
+Once again, nobody had to remember this. The search is a consumer of the engine like any other screen.
+
+## One UI kit, shared with the client apps
+
+The last piece is visual. Nexus is built on the UI kit we already developed for our client-facing applications.
+
+That choice has compounding benefits. Every component that already exists is available to the internal tool for free. When the kit evolves (a better date picker, an accessibility fix, a new table density), the internal tool evolves with it. The branding is the same, and so is the quality bar: our colleagues get the same level of polish as our clients.
+
+It also removes a quiet form of debt. Many companies end up with two design systems: the real one for clients, and an improvised one for internal tools, maintained by nobody. We do not have a parallel UI to build or maintain. There is one kit, and the internal tool is one of its consumers.
+
+## Where the defaults push back
+
+This approach has limits, and they show up quickly.
+
+**Generic primitives meet specific workflows.** A table is perfect for browsing contracts. It is the wrong shape for a multi-step review where someone compares two versions of a document and signs off. For those, we write custom components. The rule is that custom components still read through the engine and still use the primitives inside them (links, fields, masked values), so the escape hatch does not become a bypass.
+
+**A client UI kit is not always dense enough.** Components designed for clients favour air and clarity. Operations screens need to show forty rows and ten columns without scrolling. We had to add density variants to the kit rather than fork it. That is extra work, but it happens once, in the kit, for everyone.
+
+**"Everything filterable" has a price.** If every column can be filtered, someone will filter on the column without an index, on the largest table, on a Monday morning. Defaults need guardrails behind them: indexes on the columns people actually use, page limits, and a clear refusal when a query would be too expensive. Generous defaults without limits are just a slower way to cause an incident.
+
+**Defaults ossify.** Once a behaviour is everywhere, changing it is a change everywhere. That is the point, but it means decisions about primitives deserve more thought than decisions about a single screen.
+
+## A question to ask your own tool
+
+Open three random pages of your back office. On each one, click a related entity, sort a column, and search for something.
+
+If the three pages do not behave the same way, ask who decided that. Most of the time, the honest answer is nobody. That is the difference between a convention and a default.
+
+Next and last in the series: how we built all this with coding agents, why the engine is what makes AI-written screens safe, and how we replace the old tool process by process instead of in one big switch.

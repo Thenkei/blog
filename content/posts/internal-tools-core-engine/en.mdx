@@ -1,0 +1,109 @@
+---
+title: "One Path to the Data"
+subtitle: "Reads on replicas, writes through services, and three gates nobody can walk around: the Core Engine behind Nexus."
+summary: "The Core Engine is the only way Nexus touches data. Reads go to read-only PostgreSQL replicas, writes go through the APIs of the services that own the data, and every request crosses authentication, access control, and audit in both directions."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-05"
+readTimeMinutes: 8
+tags:
+  - architecture
+  - postgresql
+  - security
+  - developer-tools
+  - rockfi
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 2
+---
+
+This is part 2 of **Internal Tools at the Edge**. The first post argued that a back office becomes a product when the truth moves out of the screens and into an engine. This one is about that engine: what happens between a click in Nexus and a row in a database.
+
+The short version: there is exactly one route, and it has no side doors.
+
+## Two questions before any feature
+
+When we started Nexus, we did not begin with tables or forms. We began with two questions:
+
+1. **How does the tool read data?**
+2. **How does the tool change data?**
+
+In most internal tools, the answer to both is "it depends on the screen". One screen queries the primary database directly. Another one calls an API. A third one runs an `UPDATE` because it was faster than asking the owning team for an endpoint. Each choice is defensible in isolation. Together, they make it impossible to say what the tool can do to your data.
+
+We wanted one answer to each question, enforced by the architecture rather than by a wiki page.
+
+## Reads: read-only, on replicas
+
+Nexus reads mostly from PostgreSQL. It reads from **read replicas**, with a **read-only role**.
+
+The replicas are about load. An internal tool has a very different query profile from a product: wide lists, ad hoc filters, exports, aggregates over a whole table because someone in operations needs a number before a meeting. None of that should compete with client traffic on the primaries. Replicas give the back office its own capacity, and a slow export becomes a back office problem, not a production incident.
+
+The read-only role is about defence in depth. The engine never issues a write against these connections, but "the code never does it" is a weaker guarantee than "the database refuses it". If a bug, a bad merge, or a creative screen ever tries to write through the read path, PostgreSQL says no. We did not have to trust anyone for that.
+
+## Writes: never SQL, always a service
+
+This is the decision that surprises people most: **Nexus never writes to a database directly.** Every change goes through the API of the internal service that owns the data.
+
+The reason is not purity. It is where the business rules live.
+
+In a microservice architecture, each service owns its aggregates and their invariants. Creating an operation is not "insert a row": it validates amounts, checks the state of the contract, emits events that other services consume, and sometimes refuses. That logic is tested, reviewed, and owned by a team.
+
+An internal tool that writes directly to the same tables quietly becomes a **second implementation of those rules**. Usually a partial one. Usually unreviewed by the team that owns the domain. And usually discovered the day an operation created from the back office skips a check that the service would have enforced.
+
+> An internal tool that writes to your database is a second backend. It just does not know it yet.
+
+Domain-Driven Design has a simple rule for this: one writer per aggregate. The back office is not special. It is one more client of the service, with its own credentials and its own permissions.
+
+In practice, a write in Nexus is a **named action**. A screen does not "save a row". It asks the engine to run an action, which the engine authorises, audits, and forwards to the owning service. What comes back is the service's answer, including its refusals, shown to the user as is.
+
+## Three gates, both ways
+
+Reads and writes follow the same path through the engine. Every request crosses three gates, in order.
+
+<MotionScene id="core-engine-one-path" />
+
+**Authentication: who is asking?** A valid session, resolved to a user and their roles. No anonymous path, no service account shared by the whole team.
+
+**Access control: what are they allowed to see or do?** Permissions apply per collection and per field. The engine checks that this role can read contracts, or run this action, before anything reaches a database or a service.
+
+**Audit: everything is recorded.** The request is appended to the audit journal: who, when, which entity, which action, and what was masked.
+
+Then the answer comes back **through the same gates**. That second pass matters. A role that may read a contract but not a client's assets still gets the contract, with the sensitive field masked on the way out. The screen never received the value, so no screen can leak it by mistake.
+
+Part 4 of the series goes deeper into permissions and masking. The point here is structural: those checks are not a library a screen calls. They are the only road to the data.
+
+## "No bypass" is the feature
+
+It is easy to describe an engine like this as a set of components: a connection pool, an authorisation layer, an audit writer. That misses the point.
+
+The property we care about is negative: **there is no other way**. A screen cannot open its own connection. An action cannot call a service without passing access control. A developer cannot forget the audit, because they never add it; it is already there.
+
+This is what makes the rest of Nexus possible. When someone asks "do I need to set up audit for this new screen?", the answer is no, not because we trust them to remember, but because it is not a decision they get to make.
+
+## What it costs
+
+This design has real costs, and some of them are not solved.
+
+**Replica lag breaks read-your-writes.** A user runs an action, the service commits on the primary, and the next list refreshes from a replica that is a few hundred milliseconds behind. The row they just changed looks unchanged. There is no universal fix; there are options, each with a trade-off:
+
+- Render the **service's response** directly after an action, instead of immediately re-reading the list.
+- For the few screens where freshness is critical, **re-read through the owning service**, which reads from its primary.
+- Show a **staleness indicator** when an action has just happened and the replica may be behind, and refresh when it catches up.
+
+We use the first by default and the second sparingly. The honest summary: replicas trade a little freshness for a lot of isolation, and you have to design the screens that care about the difference.
+
+**Going through services adds latency and coupling.** A direct `UPDATE` takes a millisecond. An API call through the network, with the service's own validation, takes more. For an internal tool, that is almost always acceptable. What is less comfortable is the organisational coupling: the back office now depends on the service teams' APIs.
+
+**Sometimes the endpoint does not exist.** This is the real test of the design. Operations needs to correct a field, and the owning service has no endpoint for it. The temptation is obvious: "just this once, write to the table".
+
+We do not. **You add the endpoint to the service.** It takes longer the first time. But the correction now goes through the domain's validation, it is available to every other client, and the owning team knows it exists. The day you route around a service "just this once", the back office has become the second backend again.
+
+## Where this is the wrong call
+
+If your internal tool sits on top of a single database with no service layer, forcing writes through APIs you would have to invent is ceremony, not architecture. Start by being clear about who owns which data; the rest follows.
+
+And if your data is small, your team is small, and nobody asks who read what, replicas and a mandatory audit are probably overkill. We are in a regulated domain, with client assets and audits. The cost of a missing trace is not a bug ticket.
+
+One question to ask about your own back office: if a compliance officer asked you for every person who read a given client record last month, which screens would you have to check? If the answer is "all of them", there is more than one path to your data.
+
+## Next in the series
+
+Next up: the query language the engine speaks, why we made it deliberately boring, and how it follows relations across databases without falling into N+1 queries.

@@ -92,6 +92,36 @@ export const MOTION_STORIES = {
     en: ["Many triggers arrive", "Debounce collapses the burst", "One job runs with fresh data"],
     fr: ["Les déclencheurs affluent", "Le debounce regroupe la rafale", "Un job lit les données à jour"],
   },
+  "internal-tools-are-a-product": {
+    kind: "flow",
+    en: ["Every screen redefines the rules", "Move the rules into one engine", "Screens inherit consistency"],
+    fr: ["Chaque écran redéfinit les règles", "Déplacer les règles dans un moteur", "Les écrans héritent la cohérence"],
+  },
+  "internal-tools-core-engine": {
+    kind: "flow",
+    en: ["A screen asks for data", "Identity, access, audit", "Replica reads, service writes"],
+    fr: ["Un écran demande une donnée", "Identité, accès, audit", "Lire en replica, écrire par service"],
+  },
+  "internal-tools-query-language": {
+    kind: "flow",
+    en: ["One syntax for every source", "The engine plans bounded queries", "No N+1, no in-memory filters"],
+    fr: ["Une syntaxe pour toutes les sources", "Le moteur planifie des requêtes bornées", "Ni N+1, ni filtre en mémoire"],
+  },
+  "internal-tools-governance-by-construction": {
+    kind: "threshold",
+    en: ["Same query, different roles", "Fields are masked, not hidden", "Every read lands in the audit"],
+    fr: ["Même requête, rôles différents", "Des champs masqués, pas cachés", "Chaque lecture entre dans l’audit"],
+  },
+  "internal-tools-consistency-by-default": {
+    kind: "choice",
+    en: ["Declare a collection", "Tables, links and search come free", "Opt out only when it costs"],
+    fr: ["Déclarer une collection", "Tables, liens et recherche offerts", "Retirer seulement si ça coûte"],
+  },
+  "internal-tools-built-with-agents": {
+    kind: "cycle",
+    en: ["Any agent writes a screen", "The engine enforces the rules", "Teams switch process by process"],
+    fr: ["N’importe quel agent écrit un écran", "Le moteur impose les règles", "Bascule processus par processus"],
+  },
   "jobify-workers-queues-nestjs": {
     kind: "flow",
     en: ["Declare a job contract", "Queue and worker execute", "Track failures and retries"],

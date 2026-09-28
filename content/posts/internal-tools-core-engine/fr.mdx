@@ -1,0 +1,109 @@
+---
+title: "Un seul chemin vers la donnée"
+subtitle: "Lire sur des replicas, écrire par les services, et trois contrôles que personne ne peut contourner : le Core Engine de Nexus."
+summary: "Le Core Engine est la seule voie par laquelle Nexus touche la donnée. Les lectures passent par des replicas PostgreSQL en lecture seule, les écritures par les APIs des services propriétaires, et chaque requête traverse authentification, contrôle d'accès et audit, à l'aller comme au retour."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-05"
+readTimeMinutes: 8
+tags:
+  - architecture
+  - postgresql
+  - securite
+  - developer-tools
+  - rockfi
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 2
+---
+
+Deuxième épisode de **Outils internes à la pointe**. Le premier défendait l'idée qu'un back-office devient un produit quand la vérité quitte les écrans pour vivre dans un moteur. Celui-ci parle de ce moteur : ce qui se passe entre un clic dans Nexus et une ligne en base.
+
+Version courte : il n'y a qu'un seul chemin, et il n'a pas de porte dérobée.
+
+## Deux questions avant toute fonctionnalité
+
+Quand nous avons démarré Nexus, nous n'avons pas commencé par les tableaux ou les formulaires. Nous avons commencé par deux questions :
+
+1. **Comment l'outil lit-il la donnée ?**
+2. **Comment l'outil modifie-t-il la donnée ?**
+
+Dans la plupart des outils internes, la réponse aux deux est « ça dépend de l'écran ». Un écran interroge directement la base primaire. Un autre appelle une API. Un troisième lance un `UPDATE` parce que c'était plus rapide que de demander un endpoint à l'équipe propriétaire. Chaque choix se défend isolément. Ensemble, ils rendent impossible de dire ce que l'outil peut faire à vos données.
+
+Nous voulions une seule réponse à chaque question, imposée par l'architecture plutôt que par une page de wiki.
+
+## Lire : en lecture seule, sur des replicas
+
+Nexus lit principalement dans PostgreSQL. Il lit sur des **read replicas**, avec un **rôle en lecture seule**.
+
+Les replicas, c'est une question de charge. Un outil interne n'a pas du tout le profil de requêtes d'un produit : des listes larges, des filtres improvisés, des exports, des agrégats sur une table entière parce que quelqu'un aux opérations a besoin d'un chiffre avant une réunion. Rien de tout ça ne devrait entrer en concurrence avec le trafic client sur les bases primaires. Les replicas donnent au back-office sa propre capacité, et un export lent devient un problème de back-office, pas un incident de production.
+
+Le rôle en lecture seule, c'est de la défense en profondeur. Le moteur n'émet jamais d'écriture sur ces connexions, mais « le code ne le fait jamais » est une garantie plus faible que « la base le refuse ». Si un bug, un mauvais merge ou un écran un peu trop créatif tente un jour d'écrire par le chemin de lecture, PostgreSQL dit non. Nous n'avons eu à faire confiance à personne.
+
+## Écrire : jamais de SQL, toujours un service
+
+C'est la décision qui surprend le plus : **Nexus n'écrit jamais directement en base.** Chaque modification passe par l'API du service interne propriétaire de la donnée.
+
+La raison n'est pas la pureté. C'est l'endroit où vivent les règles métier.
+
+Dans une architecture microservices, chaque service possède ses agrégats et leurs invariants. Créer une opération, ce n'est pas « insérer une ligne » : c'est valider des montants, vérifier l'état du contrat, émettre des événements consommés par d'autres services, et parfois refuser. Cette logique est testée, relue, et portée par une équipe.
+
+Un outil interne qui écrit directement dans les mêmes tables devient, sans bruit, une **deuxième implémentation de ces règles**. En général partielle. En général jamais relue par l'équipe qui porte le domaine. Et en général découverte le jour où une opération créée depuis le back-office saute un contrôle que le service aurait imposé.
+
+> Un outil interne qui écrit dans votre base est un deuxième backend. Il ne le sait simplement pas encore.
+
+Le Domain-Driven Design a une règle simple pour ça : un seul écrivain par agrégat. Le back-office n'a rien de spécial. C'est un client de plus du service, avec ses propres identifiants et ses propres permissions.
+
+Concrètement, une écriture dans Nexus est une **action nommée**. Un écran n'« enregistre pas une ligne ». Il demande au moteur d'exécuter une action, que le moteur autorise, trace, puis transmet au service propriétaire. Ce qui revient, c'est la réponse du service, refus compris, affichée telle quelle à l'utilisateur.
+
+## Trois contrôles, dans les deux sens
+
+Lectures et écritures suivent le même chemin dans le moteur. Chaque requête traverse trois contrôles, dans l'ordre.
+
+<MotionScene id="core-engine-one-path" />
+
+**Authentification : qui demande ?** Une session valide, résolue en un utilisateur et ses rôles. Pas de chemin anonyme, pas de compte de service partagé par toute l'équipe.
+
+**Contrôle d'accès : à quoi a-t-il droit ?** Les permissions s'appliquent par collection et par champ. Le moteur vérifie que ce rôle peut lire les contrats, ou exécuter cette action, avant que quoi que ce soit n'atteigne une base ou un service.
+
+**Audit : tout est tracé.** La requête est ajoutée au journal d'audit : qui, quand, quelle entité, quelle action, et ce qui a été masqué.
+
+Puis la réponse revient **par les mêmes contrôles**. Ce second passage compte. Un rôle qui peut lire un contrat mais pas le patrimoine du client reçoit bien le contrat, avec le champ sensible masqué au retour. L'écran n'a jamais reçu la valeur : aucun écran ne peut donc la laisser fuiter par erreur.
+
+Le quatrième épisode de la série détaillera les permissions et le masquage. Ce qui compte ici est structurel : ces contrôles ne sont pas une bibliothèque qu'un écran appelle. Ils sont la seule route vers la donnée.
+
+## « Aucun contournement », c'est ça la fonctionnalité
+
+On peut facilement décrire un moteur comme celui-ci comme un assemblage de composants : un pool de connexions, une couche d'autorisation, un écrivain d'audit. C'est passer à côté.
+
+La propriété qui nous intéresse est négative : **il n'y a pas d'autre chemin**. Un écran ne peut pas ouvrir sa propre connexion. Une action ne peut pas appeler un service sans passer le contrôle d'accès. Un développeur ne peut pas oublier l'audit, puisqu'il ne l'ajoute jamais : il est déjà là.
+
+C'est ce qui rend possible tout le reste de Nexus. Quand quelqu'un demande « est-ce que je dois mettre en place l'audit sur ce nouvel écran ? », la réponse est non. Pas parce qu'on lui fait confiance pour y penser, mais parce que ce n'est pas une décision qui lui appartient.
+
+## Ce que ça coûte
+
+Ce design a de vrais coûts, et certains ne sont pas résolus.
+
+**Le lag des replicas casse le read-your-writes.** Un utilisateur lance une action, le service commit sur la primaire, et la liste suivante se rafraîchit depuis un replica en retard de quelques centaines de millisecondes. La ligne qu'il vient de modifier semble inchangée. Il n'y a pas de solution universelle, seulement des options, chacune avec son compromis :
+
+- Afficher directement la **réponse du service** après une action, plutôt que de relire immédiatement la liste.
+- Pour les rares écrans où la fraîcheur est critique, **relire via le service propriétaire**, qui lit sur sa primaire.
+- Afficher un **indicateur de fraîcheur** quand une action vient d'avoir lieu et que le replica peut être en retard, puis rafraîchir quand il a rattrapé.
+
+Nous utilisons la première par défaut, la deuxième avec parcimonie. Résumé honnête : les replicas échangent un peu de fraîcheur contre beaucoup d'isolation, et il faut concevoir explicitement les écrans pour qui la différence compte.
+
+**Passer par les services ajoute de la latence et du couplage.** Un `UPDATE` direct prend une milliseconde. Un appel d'API à travers le réseau, avec la validation du service, prend davantage. Pour un outil interne, c'est presque toujours acceptable. Ce qui l'est moins, c'est le couplage organisationnel : le back-office dépend désormais des APIs des équipes de service.
+
+**Parfois, l'endpoint n'existe pas.** C'est le vrai test du design. Les opérations doivent corriger un champ, et le service propriétaire n'a pas d'endpoint pour ça. La tentation est évidente : « juste cette fois, on écrit dans la table ».
+
+Nous ne le faisons pas. **On ajoute l'endpoint au service.** C'est plus long la première fois. Mais la correction passe désormais par la validation du domaine, elle est disponible pour tous les autres clients, et l'équipe propriétaire sait qu'elle existe. Le jour où l'on contourne un service « juste cette fois », le back-office est redevenu le deuxième backend.
+
+## Quand c'est le mauvais choix
+
+Si votre outil interne repose sur une seule base sans couche de services, forcer les écritures à passer par des APIs qu'il faudrait inventer relève de la cérémonie, pas de l'architecture. Commencez par clarifier qui possède quelle donnée ; le reste suivra.
+
+Et si vos données sont modestes, votre équipe petite, et que personne ne demande qui a lu quoi, des replicas et un audit obligatoire sont probablement excessifs. Nous travaillons dans un domaine régulé, avec du patrimoine client et des audits. Le coût d'une trace manquante n'est pas un ticket de bug.
+
+Une question à vous poser sur votre propre back-office : si un responsable conformité vous demandait la liste de toutes les personnes ayant consulté une fiche client le mois dernier, quels écrans faudrait-il vérifier ? Si la réponse est « tous », il existe plus d'un chemin vers vos données.
+
+## La suite de la série
+
+Prochain épisode : le langage de requête que parle le moteur, pourquoi nous l'avons voulu volontairement ennuyeux, et comment il suit des relations entre bases sans tomber dans le N+1.

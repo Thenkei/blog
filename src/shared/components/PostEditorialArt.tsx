@@ -125,6 +125,42 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
       fr: "Scène ferroviaire en cartoon où des paquets de jobs en double sont regroupés en un train canonique par une porte temporelle.",
     },
   },
+  "internal-tools-are-a-product": {
+    alt: {
+      en: "Disconnected back-office screens converge on a central engine and a unified operations workspace.",
+      fr: "Des écrans de back office disparates convergent vers un moteur central et un espace de travail unifié.",
+    },
+  },
+  "internal-tools-built-with-agents": {
+    alt: {
+      en: "Abstract code modules surround a governed engine while an engineer reviews a gradual rollout.",
+      fr: "Des modules de code abstraits entourent un moteur gouverné tandis qu'une ingénieure vérifie un déploiement progressif.",
+    },
+  },
+  "internal-tools-consistency-by-default": {
+    alt: {
+      en: "Three operations workspaces share a central kit of consistent interface components.",
+      fr: "Trois espaces de travail opérationnels partagent un kit central de composants d'interface cohérents.",
+    },
+  },
+  "internal-tools-core-engine": {
+    alt: {
+      en: "A central engine connects read-only database replicas and a separate route through service gates.",
+      fr: "Un moteur central relie des réplicas de lecture à un chemin distinct passant par les services.",
+    },
+  },
+  "internal-tools-governance-by-construction": {
+    alt: {
+      en: "A guarded data stream passes through a masking screen while an audit trail enters an archive below.",
+      fr: "Un flux de données traverse un écran de masquage tandis qu'une trace d'audit rejoint une archive en contrebas.",
+    },
+  },
+  "internal-tools-query-language": {
+    alt: {
+      en: "One query route crosses several data islands in batches before reaching a single result.",
+      fr: "Une route de requête traverse plusieurs îlots de données par lots avant d'atteindre un résultat unique.",
+    },
+  },
   "jobify-workers-queues-nestjs": {
     alt: {
       en: "Editorial dispatch floor showing job packets moving through runner, worker, and export stations.",

@@ -1,0 +1,134 @@
+---
+title: "Your Back Office Is a Product. Build It Like One."
+subtitle: "Why we stopped assembling internal screens and started building an engine, and what that changes beyond engineering."
+summary: "Internal tools usually grow screen by screen until every screen carries its own truth. Nexus is our attempt to move that truth into one engine, so consistency becomes a property of the system rather than a habit of each developer."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-01"
+readTimeMinutes: 8
+tags:
+  - architecture
+  - product
+  - developer-tools
+  - dx
+  - rockfi
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 1
+---
+
+Nobody designs a back office. It accumulates.
+
+A team needs to look up a client, so someone writes a query and wraps it in a table. Operations needs to fix a status, so a button appears next to the table. Compliance asks who changed what, so a log view shows up somewhere else. Each screen is reasonable. Each screen was fast to build. And after a few years, the company runs on a few dozen of them.
+
+This is the first post of **Internal Tools at the Edge**, a short series about Nexus, the internal console we are building at RockFi. I will not show you our screens or our data. I want to talk about the engineering decisions behind it, and about the idea that made us start: an internal tool deserves to be treated as a product, with the same architecture discipline as what we ship to clients.
+
+## Low-code was not the mistake
+
+Let me be fair first. Low-code internal tool builders solve a real problem. You connect a database, drag a table, bind a query, add a button that calls an API. A new screen in an afternoon. For a young company, that speed is worth a lot, and we benefited from it.
+
+The problem does not show up at the first screen. It shows up around the twentieth.
+
+Take one business notion, say an *active contract*. In a low-code builder, every screen that needs it writes its own query:
+
+```sql
+-- Screen A
+SELECT * FROM contracts WHERE closed_at IS NULL;
+
+-- Screen B
+SELECT * FROM contracts WHERE status = 'active';
+
+-- Screen C
+SELECT * FROM contracts WHERE effective_at < now();
+```
+
+Three screens, three definitions. They agree most of the time, which is exactly why nobody notices. Then a contract is signed with a future effective date, or reopened, or its status field lags behind its closing date, and three teams look at three different numbers for the same question.
+
+It is the same story for access rules. One screen hides client wealth unless you are in operations. Another one forgot. A third shows it only to one team because that is what someone asked for two years ago. And the tables do not behave the same way either: this one sorts, that one filters, the third one has a search box but no link to the underlying record.
+
+<ArticleDiagram visualId="internal-tools-as-product" />
+
+The worst part is how new processes start. Nobody writes a new screen from scratch. They copy the closest one, then adapt it. The copy drifts on day one. Now there are four versions of everything.
+
+## The cost is not the screens. It is the definitions.
+
+It is tempting to see this as a UX problem: inconsistent tables, missing links, a bit of friction. In a regulated domain, it is more serious than that.
+
+In wealth management, *who can see a client's assets* is not a UI preference. *Which contracts count as active* ends up in reports that matter. *Who modified an operation, and when* is a question an auditor can ask, and "it depends which screen they used" is not an acceptable answer.
+
+When each screen carries its own definitions, correctness depends on every developer remembering to do the right thing in the right place, every time. That is not a system. That is a habit, and habits do not scale with headcount, with turnover, or with coding agents producing screens at a pace no reviewer can fully absorb.
+
+> Consistency that depends on discipline is not consistency. It is a coincidence that has not failed yet.
+
+## Treating internal tools as a product
+
+"Internal tools as a product" can sound like a slogan. For us, it means three concrete things.
+
+**It has users, and they deserve the same quality bar as our clients.** Operations, compliance, and support people spend their whole day in these tools. A confusing table costs them time every hour. A missing link costs them a context switch. We would never ship that to a client. We should not ship it to colleagues either.
+
+**It has an architecture, not a collection of pages.** Data access, permissions, audit, and interaction patterns are not re-implemented per screen. They live in one place, and screens are thin declarations on top of it.
+
+**It has a roadmap and an owner.** The internal tool is not the glue that whoever has time maintains. It is a product with a backlog, releases, and a rollout plan, like everything else we build.
+
+The word we kept coming back to was **systemic**. The experience should be identical everywhere in the application, and that identity should not rely on anyone thinking about it. If a developer adds a screen, it should be *impossible* to forget the access rules or the audit, because they are not part of the screen.
+
+## What Nexus is, in one paragraph
+
+Nexus is one console for our back office, owned end to end: infrastructure, data access, permissions, components, and processes. It replaces our low-code screens progressively, process by process, not in one migration.
+
+Underneath, it is organised around four pieces, and each gets its own post in this series:
+
+1. **A Core Engine** that owns every read and every write. Reads go to PostgreSQL read replicas, in read-only mode. Writes never touch a database directly: they go through the APIs of our internal services.
+2. **A small query language** that looks the same whatever the source, including relations that cross databases, without falling into N+1 queries.
+3. **Governance built into the engine**: roles and permissions down to the field, masking of sensitive values, and an audit trail of every read and every write that no screen can bypass.
+4. **A shared experience**: the same primitives everywhere (links between entities, tables that filter, sort, and search out of the box), built on the same UI kit as our client-facing applications.
+
+The idea behind all four is the same: move the truth from the screens into the engine.
+
+```ts
+// Before: each screen carries its own truth.
+const rows = await sql`SELECT * FROM contracts WHERE closed_at IS NULL`;
+
+// After: the collection declares it once. Every screen, filter,
+// counter and export inherits the same definition.
+const contracts = collection("contracts", {
+  fields: {
+    status: statusField("closed_at", { present: "closed", missing: "active" }),
+  },
+});
+```
+
+That snippet is trivial on purpose. The interesting part is not the syntax. It is that `status = 'active'` now has exactly one meaning in the whole company, and that the engine translates it into SQL rather than trusting each screen to get it right.
+
+## What changes beyond engineering
+
+This is the part I did not fully anticipate when we started.
+
+When the internal tool is a product, **operational knowledge gets a home**. The definition of an active contract, the rule that masks client assets for a given team, the fact that this operation must go through that service: these are no longer scattered across screens and people's memories. They are in the engine, versioned, reviewed, and tested like the rest of our code.
+
+**Compliance gets guarantees instead of promises.** The question stops being "did we remember to add audit on this screen?" The answer is structural: every read and every write goes through the engine, and the engine logs it. There is no other path.
+
+**Building a screen becomes declaring one.** Engineers stop rebuilding tables, filters, and permission checks. They describe the collection and the process, and the rest is inherited. That changes what "a small internal feature" costs, and therefore which ones the company is willing to ask for.
+
+**And it changes who can safely contribute.** When the guardrails live in the engine, a screen written by a new joiner, by a colleague from another team, or by a coding agent goes through the same checks. We built Nexus largely with coding agents for exactly that reason, and I will come back to it in the last post.
+
+## Where this is the wrong call
+
+At staff level, "build your own" should make you nervous. It made us nervous too.
+
+Owning the internal tool means owning its maintenance, its incidents, and its evolution. The engine becomes a product with its own backlog, and someone has to say no to features that would make it a second ORM. If you have five screens and one team using them, a low-code builder is almost certainly the better trade-off.
+
+The equation changes when three things are true at the same time: many screens sharing the same business notions, a regulatory need for access control and audit that you cannot leave to convention, and a team able to treat the tool as a product for years, not weeks. That was our situation. It is not everyone's.
+
+So before the architecture, one question worth asking about your own back office: how many definitions of your core business notions does it hold today? If nobody can answer quickly, you already have your answer.
+
+## Next in the series
+
+This series publishes every three or four days:
+
+1. **Your back office is a product** (this post)
+2. **One path to the data**: the Core Engine, read replicas, and writes through services
+3. **A deliberately boring query language**: one syntax, cross-database relations, no N+1
+4. **Governance you cannot forget**: field-level permissions, masking, and an audit that cannot be bypassed
+5. **Consistency is a default, not a convention**: shared primitives and a shared UI kit
+6. **Built with agents, owned by us**: why the engine makes AI-written screens safe, and how we roll out process by process
+
+Next up: what happens between a click on a screen and a row in a database, and why that path has exactly one route.

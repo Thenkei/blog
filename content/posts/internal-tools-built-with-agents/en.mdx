@@ -1,0 +1,113 @@
+---
+title: "Built With Agents, Owned by Us"
+subtitle: "Why a governed engine makes AI-written screens safe, how we roll out one process at a time, and what it changes for the company."
+summary: "We built the first version of Nexus in about three weeks with coding agents. That only works because the rules live in the engine, not in the screens. The last part of the series covers ownership, agents, and a rollout that runs one process at a time."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-19"
+readTimeMinutes: 8
+tags:
+  - ai
+  - agents
+  - developer-tools
+  - product
+  - rockfi
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 6
+---
+
+This is the last part of **Internal Tools at the Edge**. The first five covered the engine, the query language, governance, and consistency. This one is about how we built it, how we roll it out, and why that changes more than our back office.
+
+## Nexus was built with the method it proposes
+
+The first working version of Nexus took about three weeks. Not because we cut corners, and not because one person pulled all-nighters. We started from a standard foundation (the same stack, conventions, and UI kit as our other applications), and most of the code was written by coding agents working under close review.
+
+That sentence usually triggers one of two reactions. Either "three weeks, sure" or "so nobody really understands the code". Both miss what made it possible.
+
+The agents were not clever. The environment was constrained. By the time we generated the first real screens, the hard decisions were already in the engine: how data is read, how it is written, who can see what, what gets logged. A new screen was a declaration on top of that engine, not a fresh implementation of it. An agent cannot get the permission check wrong on a screen that does not contain a permission check.
+
+The knowledge that shaped the work was written down where agents and humans both read it:
+
+- **In the engine**, as code: collections, computed fields, named actions, access rules.
+- **In the repository conventions**: agent instructions describing how a collection is declared, how a process is structured, which patterns are forbidden.
+- **In the tests**, which describe the behaviour we expect, including the number of SQL queries a list may run.
+- **In the documentation**, which explains the *why* behind the patterns, so reviewers and agents can tell a legitimate exception from a shortcut.
+
+None of it lives in someone's head. That is what makes the pace sustainable, not the model behind the agent.
+
+## Guardrails are structural, not reviewed in
+
+Here is the argument that matters most in this series.
+
+When an agent writes a screen in a classic internal tool, every rule that matters has to be *present in the diff*: the right `WHERE` clause, the role check, the call to the audit logger. A reviewer has to spot the one missing line in a diff that looks perfectly plausible. At the pace agents produce code, that does not scale. Review fatigue is real, and plausible code is exactly the kind a tired reviewer approves.
+
+In Nexus, those rules are not in the diff at all. Every read and every write goes through the engine, which authenticates the caller, applies access control down to the field, and appends to the audit trail. There is no other route to the data. A screen written by Claude Code, Codex, Cursor, or a colleague on their first week goes through the same gates.
+
+<MotionScene id="agents-behind-the-engine" />
+
+That changes what review is for. We no longer spend attention on "did it remember the masking rule". We spend it on the questions only a human who knows the business can answer: is this the right process? Does this action have the right name, the right preconditions, the right side effects? Is this computed field really how the business defines that notion?
+
+> Don't ask agents to remember the rules. Build a system where forgetting them is impossible.
+
+## Owning the code, and the knowledge behind it
+
+Low-code builders are adding AI agents too, and some of them are genuinely useful. You describe a screen, the agent assembles it. The catch is where the result lives: in the vendor's format, on the vendor's platform, shaped by the vendor's abstractions. The agent is new; the lock-in is the same as before.
+
+Our setup is deliberately boring. Nexus is a repository. Any agent that can work on a repository can work on Nexus, and it does so through the same workflow as every other change: a branch, a pull request, tests, CI, and a human review. If a better agent appears next quarter, we switch. If one of them has a bad week, the others keep working. The agent is a replaceable tool; the engine, the conventions, and the tests are the asset.
+
+That is what I mean by ownership. Not "we wrote the code ourselves": we clearly did not type most of it. Ownership means the code and the knowledge that shapes it are ours, portable, versioned, and reviewable. Whatever tool we use tomorrow inherits all of it.
+
+## No big bang: one process at a time
+
+A new internal tool that nobody uses is a hobby project. Replacing the old one in a single weekend is a gamble, especially when operations and compliance depend on it every day. We chose neither.
+
+Nexus replaces our previous low-code tool **process by process, with the teams who run those processes**. Each process goes through four steps:
+
+1. **Test.** A small cohort of real users runs one real process in Nexus, in parallel with the old tool.
+2. **Qualify.** They report the gaps: missing fields, exceptions the old screen handled implicitly, irritants that slow them down.
+3. **Fix.** The team addresses those gaps, then validates again with the same cohort.
+4. **Switch.** Only then is the old tool retired, for that process and nothing else.
+
+Until a process is qualified, the old tool stays available. Nobody is forced onto a screen that does not yet do the job.
+
+This is a product practice before it is a migration plan. It has users, a feedback loop, and an explicit release criterion ("the cohort validated it"), not a date on a slide. It is also a risk practice. In a regulated environment, the dangerous failures are not the visible bugs. They are the implicit behaviours of the old tool that nobody documented: the filter that hid a category of contracts, the column that only one team used to check a compliance condition. The qualification step exists to surface exactly those, while the old tool is still there as a safety net.
+
+It also keeps the engineers honest. The measure of progress is not "screens built" but "processes switched". A screen that exists but that no cohort has validated counts for nothing.
+
+## What changes for the company
+
+When we started, the goal sounded modest: replace a low-code tool that no longer fit. Along the way, the goal changed.
+
+**We master the chain from end to end**: infrastructure, data access, permissions, components, processes. When compliance asks a question, the answer is in code we own, not in a vendor's configuration panel. When a process changes, the change goes through the same review as the rest of our software.
+
+**Risk goes down, and speed goes up, together.** Usually you trade one for the other. Here, the same engine that enforces access control and audit is what makes a new screen cheap to build. Governance stops being a tax on delivery and becomes the reason delivery is fast.
+
+**Next, contributions from people who are not engineers.** A colleague in operations who knows exactly what a screen should show can open an issue, mention `@claude` on the repository, and get a pull request drafted for them. That pull request goes through the same review, the same tests, and the same engine as everything else. We are not there yet at scale, but the foundation makes it safe to try: a contribution from outside engineering meets exactly the same guardrails as ours.
+
+**Then, agentic use cases on the same governed engine.** An agent that prepares a compliance check or reconciles operations (for example running on Amazon Bedrock) is, from the engine's point of view, just another caller. It authenticates, it gets a role, its reads are masked according to that role, and every one of its actions lands in the audit trail. We do not need a separate security model for AI. We already built one for every caller.
+
+This is the part that reshaped how I think about internal tools. They are not a cost centre to minimise. They are the surface where a company's operational knowledge is encoded, and when that surface is a product, the knowledge compounds instead of scattering.
+
+## What can go wrong
+
+I would not trust this post if it stopped there, so here is what worries me.
+
+**The engine can become a bottleneck.** If only one or two people understand it, every new need queues behind them. The mitigation is the same as for any platform: documentation, conventions that agents and humans both follow, and a deliberate effort to spread ownership before it hurts.
+
+**Agents produce plausible business rules.** Structural guardrails protect access and audit; they do not protect meaning. An agent can declare a computed field that compiles, passes lint, and encodes the wrong definition of an active contract. That is why writes go through named actions with explicit preconditions, why tests describe business behaviour and not just types, and why review focuses on semantics. The engine removes a category of mistakes; it does not remove the need for judgment.
+
+**Ownership costs money for years.** Upgrades, incidents, on-call, the slow erosion of a codebase nobody wants to touch. We accepted that cost knowingly, because the alternative was a different cost we were already paying. You should do the same arithmetic for your own context.
+
+**The temptation to rebuild a low-code platform.** Once the engine works, it is tempting to make it generic: a visual builder, a plugin system, configuration instead of code. Resist it. The value of Nexus comes from being specific to our domain and written as code that agents and humans can review. The day it becomes a generic platform, we will have rebuilt the thing we left, with a smaller team to maintain it.
+
+So, a question to take away: if a coding agent wrote your next internal screen tonight, which of your rules would it have to *remember* to get right? Every item on that list is a rule that should move into the system.
+
+## The series, in six parts
+
+1. **Your back office is a product**: treat internal tools with the same architecture discipline as client-facing software.
+2. **One path to the data**: the Core Engine, reads on replicas, writes through services.
+3. **A deliberately boring query language**: one syntax, cross-database relations, no N+1.
+4. **Governance you cannot forget**: field-level permissions, masking, and an audit that cannot be bypassed.
+5. **Consistency is a default, not a convention**: shared primitives and a shared UI kit.
+6. **Built with agents, owned by us** (this post): structural guardrails, ownership, and a rollout that runs one process at a time.
+
+The thread running through all six is simple. Move the rules out of the screens and into a system you own. Everything else follows from that: consistency, compliance, speed, and the ability to let agents and colleagues contribute without holding your breath.
