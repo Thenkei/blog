@@ -1,6 +1,6 @@
 ---
 title: "Jobify au-dessus de BullMQ : un pattern de production pour jobs, workers et queues"
-subtitle: "De l'intégration NestJS classique aux runners typés, au séquentiel et aux exports robustes."
+subtitle: "De l'intégration NestJS classique aux runners typés, au séquentiel et à des exports plus sûrs."
 summary: "Un pattern de production BullMQ/NestJS pour des workers plus fiables, traçables et prévisibles sous charge."
 visualId: "jobify-workers-queues-nestjs"
 publishedAt: "2022-11-15"
@@ -14,7 +14,7 @@ seriesId: "async-workloads-at-scale"
 seriesOrder: 2
 ---
 
-Si vous utilisez déjà `@nestjs/bullmq`, félicitations, vous avez survécu au premier boss. Bonne nouvelle : vous pouvez garder la même stack et ajouter un contrat d'exécution des jobs infiniment plus robuste. L'idée est d'arrêter de copier-coller du boilerplate et d'introduire une fine couche `jobify` qui standardise l'enqueue, l'enregistrement des processors, les timeouts, les retries, le tracing et l'exécution séquentielle. Fini les jobs "silencieusement morts" à 4h mat.
+Si vous utilisez déjà `@nestjs/bullmq`, félicitations, vous avez survécu au premier boss. Vous pouvez garder exactement la même stack et obtenir des contrats de jobs beaucoup plus stricts. L'idée : arrêter de réécrire du boilerplate et ajouter une fine couche `jobify` qui standardise l'enqueue, l'enregistrement des processors, les timeouts, les retries, le tracing et l'exécution séquentielle. Fini les jobs morts en silence à 4 h du matin.
 
 **Série : Async Workloads at Scale (partie 2/3)**
 
@@ -45,77 +45,155 @@ export class ExportsService {
 }
 ```
 
-Ce modèle "Hello World" fonctionne bien au début. Mais avec la croissance du nombre de jobs, vous accumulez très vite un plat de spaghettis : du code dupliqué partout, des contrats faibles entre le producer et le consumer, et des stratégies improvisées pour l'idempotence ou le debounce. Bref, une bombe à retardement architecturale.
+Ça fonctionne. C'est le « Hello World » des queues. Mais à mesure que le nombre de jobs augmente, on se retrouve vite avec un plat de spaghettis : des options de queue dupliquées, un typage très faible entre producer et consumer, et des comportements improvisés pour l'idempotence, le debounce et l'exécution séquentielle. Chaque nouveau job copie les options du précédent, erreurs comprises.
 
 ## Ce que la couche Jobify apporte
 
-- **Fonction nommée obligatoire :** clé de processor stable.
-- **Registration seulement côté worker :** évite les doublons de handlers.
-- **Priorité dynamique :** valeur statique, fonction sync ou async.
-- **Contrat debounce strict :** `delayInMs` + `makeJobId` + `name`.
+Le pattern `make-jobify.ts` crée un contrat unique : **on enregistre une fois côté workers, on appelle un runner typé partout ailleurs.**
 
-## Queue centralisée dans queue-service.ts
+- **Fonction nommée obligatoire :** une fonction anonyme est refusée, pour garder des clés de processor stables.
+- **Enregistrement côté worker uniquement :** les processors ne sont ajoutés que si `isWorker` vaut `true` et qu'ils ne sont pas déjà présents.
+- **Priorité dynamique :** la priorité peut être une valeur statique, une fonction synchrone ou une fonction asynchrone.
+- **Contrat de debounce :** `delayInMs`, `makeJobId` et `name` sont obligatoires, avec des vérifications de marqueurs pour éviter les erreurs de configuration.
 
-- propagation de trace au moment de l'enqueue ;
-- reschedule des jobs delayed via `changeDelay` ;
-- nettoyage des repeatables pour éviter les doubles schedules ;
-- hygiène par défaut avec `removeOnComplete/removeOnFail`.
+```typescript
+const runExport = jobify(exportApprovals, {
+  priority: JobPriority.low,
+  timeoutInMinutes: 180,
+  onError: onExportError,
+  makeJobId: (params) =>
+    "approvals-" + params.environmentId + "-" + params.from + "-" + params.to,
+});
 
-## Exécution worker standardisée dans worker-service.ts
+await runExport({ userId, projectId, environmentId, from, to });
+```
 
-Ordre des wrappers: monitoring -> onError -> timeout -> work.
+## Comportement de queue centralisé au même endroit
 
-Ce point est critique : même comportement de timeout, même policy d'erreur, mêmes métriques, quel que soit le job.
+Dans `queue-service.ts`, le comportement d'enqueue est explicite et réutilisable :
+
+- **propagation de trace :** les paramètres de span sont embarqués à la création du job ;
+- **reschedule du debounce :** les jobs delayed sont retrouvés par `jobId` et replanifiés sur place avec `changeDelay` ;
+- **sécurité des repeatables :** les anciennes configurations repeatable sont supprimées pour éviter les doubles schedules après un redéploiement ;
+- **hygiène de queue :** `removeOnComplete` et `removeOnFail` sont activés par défaut pour éviter que le stockage ne dérive.
+
+## Exécution worker enveloppée dans un ordre fixe
+
+`worker-service.ts` applique les wrappers dans un ordre strict : monitoring -> onError -> timeout -> work.
+
+```typescript
+const timeoutWrap = timeoutAfterMinutes(
+  jobFunction,
+  timeoutInMinutes || DEFAULT_TIMEOUT,
+);
+const onErrorWrap = WorkerService.onErrorWrap(job, timeoutWrap, options);
+const monitoringWrap = workerMonitoringService.monitoringWrap({
+  name,
+  job,
+  work: onErrorWrap,
+  service: options.service,
+});
+
+await monitoringWrap();
+```
+
+Résultat : la même sémantique de timeout, des hooks d'erreur prévisibles et des labels de monitoring uniformes, sans que chaque équipe réécrive la même plomberie.
 
 ## Exécution séquentielle avec make-jobify-sequential
 
-- **sequentialKey** definit la lane;
-- **processingKey** definit le type d'action;
-- **identifier** scope une entite.
+`make-jobify-sequential.ts` répond à un problème classique des systèmes distribués : certaines actions doivent être sérialisées pour une même entité logique, tout en restant concurrentes entre entités différentes.
 
-Les arguments sont stockés dans Redis (liste), traités dans l'ordre et dépilés dans `finally` pour éviter le blocage d'une lane en cas d'échec.
+- **Modèle de clés :** `sequentialKey` définit la lane, `processingKey` identifie le type d'action et `identifier` restreint le scope à une entité.
+- **File dans une liste Redis :** les arguments sont ajoutés avec `RPUSH` et consommés avec `LRANGE/LPOP`.
+- **Sécurité :** le dépilement se fait dans le `finally`, pour qu'un processor en échec ne bloque pas la lane indéfiniment.
+- **Chaînage :** `onComplete` déclenche le traitement suivant en attente pour la même lane et le même identifiant.
+
+```typescript
+const registerSequential = makeJobifySequential({
+  jobify,
+  jobsRedisClient,
+  logger,
+  datadogService,
+});
+
+const runSyncUser = registerSequential({
+  sequentialKey: "user-sync",
+  processingKey: "sync-profile",
+  getSequentialId: (userId) => String(userId),
+  priority: JobPriority.normal,
+  processor: async (userId) => {
+    await syncUserProfile(userId);
+  },
+});
+```
 
 <MotionScene id="jobify-sequential-lanes" />
 
-## Cas concret : action-approvals-exporter.ts
+## Cas concret d'export : les approbations d'actions
 
-- job queue avec priorite low et timeout explicite;
-- pipeline stream vers CSV puis upload S3 multipart;
-- URL signee en sortie (TTL 24h);
-- branches d'e-mails success/error directement branchées.
+`action-approvals-exporter.ts` montre le chemin complet : lancement en queue, export en streaming, lien signé (TTL de 24 h) et notification de l'utilisateur.
+
+- mise en queue avec `JobPriority.low` et un timeout explicite lu dans l'environnement ;
+- tracing désactivé pour ces exports lourds et longs ;
+- pipeline de streams : `Readable.from(iterator) -> Transform -> csv-stringify -> S3 multipart writable` ;
+- les e-mails de succès et d'échec sont branchés directement via `onError` et la logique de complétion.
 
 ## Cas d'orchestration cloud complexe : l'agent hébergé de Forest Admin
 
-Pour notre version Cloud entièrement hébergée, nous reposons sur des jobs lourdement orchestrés pour éviter que l'API principale ne s'effondre. Lorsqu'un utilisateur modifie son schéma ou supprime un environnement, nous lançons des jobs asynchrones gérant des destructions complexes d'infrastructure (S3, configs NAT) ou de la synchronisation de données à travers des milliers de projets.
+Pour notre version Cloud entièrement hébergée, nous reposons sur des jobs lourdement orchestrés pour éviter que l'API principale ne s'effondre. Lorsqu'un utilisateur modifie son schéma ou supprime un environnement, nous lançons des jobs asynchrones qui gèrent des démontages d'infrastructure complexes ou de la synchronisation de données à travers des milliers de projets.
 
-- **Synchronisation avec Debounce :** Lorsqu'une API Map change (modèle de données), nous passons le job de redéploiement au filtre anti-rebond (`debouncedSynchronizeAgentData`). Les utilisateurs sauvegardent souvent en rafale, et nous voulons éviter de lancer 10 déploiements de Lambda AWS en parallèle pour un seul environnement.
-- **Suppression en file d'attente :** supprimer un environnement cloud implique d'effacer des objets AWS S3 et de mettre à jour le système central. On envoie tout cela dans un `cloudDeleteService.queuedDeleteAgent()`. Si AWS nous applique une limite de débit, BullMQ retentera la suppression plus tard, sans laisser d'infrastructure fantôme traîner (et sans enflammer nos factures NAT).
-- **Priorité des jobs :** nous routons strictement ces événements : une synchronisation bloquante pour l'utilisateur a une priorité absolue par rapport à un job de nettoyage de fond.
+- **Synchronisation avec debounce :** lorsqu'une API Map change, nous appliquons un debounce au job de redéploiement (`debouncedSynchronizeAgentData`), parce que les utilisateurs sauvegardent souvent en rafale. Nous ne voulons pas 10 redéploiements Lambda simultanés pour un seul environnement.
+- **Suppression en file d'attente :** supprimer un environnement cloud implique d'effacer des objets S3, de démonter les configurations de NAT Gateway et de mettre à jour notre Postgres central. On envoie tout cela dans un job `cloudDeleteService.queuedDeleteAgent()`. Si AWS nous applique une limite de débit, BullMQ retente la suppression plus tard, sans laisser d'infrastructure fantôme traîner (ni payer la taxe NAT pour rien).
+- **Priorité des jobs :** nous routons strictement ces événements d'orchestration : une synchronisation visible par l'utilisateur passe avant un job de nettoyage de fond.
 
-## Comment appliquer le pattern dans NestJS
+## Ce que NestJS gagne à ce pattern
 
-Gardez les modules NestJS, ajoutez un package interne qui expose `jobify`, `queueService`, `workerService` et optionnellement `jobifySequential`.
+Gardez les décorateurs et les modules Nest. Ajoutez un petit package interne qui expose des adaptateurs `jobify`, `queueService` et `workerService`, et optionnellement `jobifySequential`.
 
-## Stratégie de migration
+```typescript
+@Injectable()
+export class JobifyFactory {
+  constructor(
+    private readonly queueService: QueueService,
+    private readonly workerService: WorkerService,
+    @Inject(IS_WORKER) private readonly isWorker: boolean,
+  ) {}
 
-1. Commencer par un export lourd.
-2. Centraliser les options queue dans JobOptions.
-3. Ajouter des jobId déterministes pour l'idempotence et le debounce.
-4. N'activer le séquentiel que là où l'ordre est obligatoire.
-5. Mesurer queue depth, failures et p95/p99 avant généralisation.
+  create<T extends (...args: any[]) => Promise<any>>(
+    work: T,
+    options: JobOptions<T>,
+  ) {
+    return makeJobify({
+      queueService: this.queueService,
+      workerService: this.workerService,
+      isWorker: this.isWorker,
+      logConfig: (k, v) => logger.info({ key: k, value: v }),
+      assertPresent,
+    })(work, options);
+  }
+}
+```
 
-## Règles de design de survie (À graver dans le marbre)
+## Stratégie de migration sans interruption de service
 
-- ne pas exposer les objets BullMQ Job à la logique métier par défaut. Sinon, votre cœur pur sera corrompu par les entrailles de BullMQ, et la prochaine version majeure vous fera pleurer de sang ;
-- imposer des timeouts par défaut pour garantir les shutdowns ;
-- garder le contrat producer/consumer au même endroit ;
-- traiter les lanes séquentielles comme une ressource rare.
+1. Envelopper un export lourd existant avec jobify.
+2. Déplacer les options de queue des callsites vers les valeurs par défaut de `JobOptions`.
+3. Ajouter un `makeJobId` déterministe pour l'idempotence et le debounce.
+4. N'introduire des lanes séquentielles que là où l'ordre d'écriture est une exigence stricte.
+5. Déployer des dashboards (profondeur de queue, jobs actifs, échecs, percentiles de durée p95/p99) avant de généraliser.
 
-Le principal gain n'est pas seulement le débit. C'est le déterminisme opérationnel sur l'ensemble des workflows asynchrones.
+## Règles de design
+
+- **Ne pas exposer les objets `Job` de BullMQ** au code métier par défaut : passez plutôt des arguments typés. Sinon, votre logique métier se retrouve couplée aux entrailles de BullMQ, et vous pleurerez à la prochaine montée de version majeure.
+- **Toujours imposer des timeouts par défaut** : le comportement au shutdown dépend d'une exécution de job bornée.
+- **Garder les contrats producer et consumer au même endroit** (l'appel à jobify), plutôt qu'éparpillés entre modules.
+- **Traiter les lanes séquentielles comme une ressource rare** : ne les utiliser que là où la correction exige la sérialisation.
+
+Ce que cette approche apporte, c'est du déterminisme opérationnel : quand un job échoue à 4 h du matin, il échoue comme tous les autres, avec le même timeout, le même hook d'erreur et les mêmes labels de monitoring.
 
 ## Navigation dans la série
 
-- Besoin du contexte stream/export en amont ? Lire [Partie 1](../posts/nodejs-stream-backpressure-history-export).
-- Besoin des patterns idempotence/debounce ensuite ? Lire [Partie 3](../posts/idempotency-debounce-jobify-bullmq).
+- Besoin du contexte stream/export d'abord ? Lire la [Partie 1](../posts/nodejs-stream-backpressure-history-export).
+- Besoin des patterns idempotence/debounce ensuite ? Lire la [Partie 3](../posts/idempotency-debounce-jobify-bullmq).
 
 _Note : Cet article a été écrit a posteriori, après mon départ de Forest Admin._

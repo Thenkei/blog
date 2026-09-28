@@ -1,6 +1,6 @@
 ---
 title: "Codex, Claude Code, and Herd: Finding the Right Place for Each Tool"
-subtitle: "The useful choice is not made from a demo, but from the shape of the work, its controls, and supervision cost."
+subtitle: "How we match agents to the shape of the work, its controls, and the cost of supervising them."
 summary: "Our framework for choosing interactive agents, delegated tasks, and parallel orchestration without turning engineers into queue supervisors."
 visualId: "agent-battle-2026"
 publishedAt: "2026-06-19"
@@ -12,42 +12,31 @@ tags:
   - strategy
 ---
 
-## Context
-
 In a few months, we moved from an editor assistant to agents that can explore a repository, edit files, run tests, and prepare a PR. We use **Claude Code** and **Codex**, among others, and we are experimenting with **Herd** to operate several native agents from one interface.
 
-“Which one is best?” proved unhelpful. The right tool depends on the shape of the work: an interactive investigation, a well-specified task that can be delegated, or several independent units that need coordination.
+The obvious question, “which one is best?”, got us nowhere. A benchmark or an isolated demo answers it very confidently and tells you almost nothing about the ticket waiting on your board this morning, and picking one tool for every workflow in the team would have meant settling the argument by decree. What actually decides is the shape of the work: an interactive investigation, a well-specified task that can be delegated, or several independent units that need coordination.
 
 <ArticleDiagram visualId="agent-battle-2026" />
 
-## The problem
+## Ten agents, ten interpretations
 
-Every agent promises throughput. The hidden cost sits in context preparation, supervision, conflict resolution, and review. Running ten agents against an uncertain design does not multiply capacity by ten; it produces ten interpretations to reconcile.
+Every agent promises throughput. The bill arrives later, in context preparation, supervision, conflict resolution, and review. Running ten agents against an uncertain design does not multiply capacity by ten; it produces ten interpretations to reconcile. Ten diffs nobody can integrate are worth about as much as zero diffs, plus a meeting.
 
-Tool choice also changes operational boundaries: where code runs, which secrets are available, how actions are approved, where logs remain, and who can stop a task.
+That is also why we stopped counting gains in lines of code. The only unit that holds up is the time it takes to reach a reliable, reviewed change.
 
-## Bad ideas
+Tool choice also moves operational boundaries: where code runs, which secrets are available, how actions are approved, where logs remain, and who can stop a task. An exploration agent and a delivery agent do not need the same permissions, and handing them identical ones is the kind of shortcut you only notice afterwards.
 
-- Choose from a benchmark or isolated demo.
-- Assign one tool to every team workflow.
-- Confuse parallel work with independent work.
-- Supervise more sessions than the team can review seriously.
-- Give an exploration agent and a delivery agent identical permissions.
-- Measure gains in lines of code instead of time to a reliable, reviewed change.
+## What we got wrong first
 
-Agent output is not throughput until it is integrable.
+Switching tools constantly cost us the very context we expected to gain. Every transfer required another summary and slipped assumptions back in.
 
-## What did not work
+Parallelising coupled tasks gave us file collisions and incompatible decisions. Parallel work and independent work look alike on a board; they behave very differently in a repository. An orchestrator makes these collisions visible, which helps, but it does not make them go away.
 
-Constantly switching tools lost the context we expected to gain. Every transfer required another summary and reintroduced assumptions.
+Long tasks without checkpoints produced impressive diffs, and impressively hard to review. The agent had optimised its completion condition, not our ability to understand the change. Multiply that by more sessions than the team can seriously review, and supervision quietly turns into skimming.
 
-Parallelising coupled tasks created file collisions and incompatible decisions. An orchestrator exposes these collisions; it does not remove them.
+## Pick the mode first, the brand second
 
-Long tasks without checkpoints also produced impressive but difficult-to-review diffs. The agent optimised its completion condition, not our ability to understand the change.
-
-## Alternatives
-
-We distinguish three modes rather than three brands:
+We now distinguish three modes:
 
 | Mode | Good fit | Primary control |
 | --- | --- | --- |
@@ -55,9 +44,9 @@ We distinguish three modes rather than three brands:
 | Bounded delegation | Clear issue, testable criteria, isolated diff | Sandbox, budget, completion evidence |
 | Orchestration | Genuinely independent tasks | Worktree isolation and explicit integration |
 
-Claude Code and Codex can cover several modes depending on their environment. Herd adds multi-agent supervision; its value appears when decomposition is already sound and an operator must track several flows, not while the problem is still being discovered.
+Claude Code and Codex can cover several modes depending on their environment. Herd adds multi-agent supervision. It earns its keep once the decomposition is sound and an operator has several flows to track; while the problem is still being discovered, it mostly gives you more windows to watch.
 
-## The solution
+## How we choose now
 
 We select the mode from risk and uncertainty:
 
@@ -65,12 +54,12 @@ We select the mode from risk and uncertainty:
 2. **Define a task contract.** Scope, authorised files or systems, completion criteria, expected tests, and stop condition.
 3. **Delegate the smallest unit that produces reviewable value.**
 4. **Parallelise only independent units.** Each agent works in an isolated environment.
-5. **Integrate under human accountability.** Review invariants, not only the diff and tests.
+5. **Integrate under human accountability.** Review covers invariants as well as the diff and tests.
 
-Our decision framework considers five costs: time to first evidence, context handling quality, action controllability, review effort, and supervision load. The best tool minimises total workflow cost; it is not necessarily the fastest writer.
+Our decision framework weighs five costs: time to first evidence, context handling quality, action controllability, review effort, and supervision load. The best tool is the one that keeps that total lowest. Typing speed does not appear anywhere on the list, which is bad news for whichever agent writes fastest.
 
-## Limits
+## Best-before date
 
-This framework reflects our organisation, repositories, and security constraints. Products evolve quickly; a model or interface advantage can disappear within weeks. We must reassess real workflows rather than defend an old ranking.
+This framework reflects our organisation, repositories, and security constraints. Products evolve quickly, and a model or interface advantage can disappear within weeks, so we reassess on real workflows rather than defend an old ranking.
 
-Multi-agent orchestration adds a distributed system to engineering work: queues, partial states, conflicts, and recovery. For short or tightly coupled tasks, it often increases total time. The right place for a tool can be outside the workflow.
+Multi-agent orchestration also adds a distributed system to engineering work, with everything that implies: queues, partial states, conflicts, and recovery. For short or tightly coupled tasks, it often increases total time. Sometimes the right place for a tool is the drawer.

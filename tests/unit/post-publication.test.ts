@@ -1,4 +1,7 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { isPublished, utcToday } from "../../src/features/posts/content/publication";
 import {
   getAvailableTags,
   getPost,
@@ -15,6 +18,18 @@ const engineeringIdeasSlugs = [
   "context-engineering-beyond-prompt-engineering",
   "engineering-documents-age-poorly",
 ];
+
+const postsDirectory = join(process.cwd(), "content", "posts");
+const contentSlugs = readdirSync(postsDirectory).sort();
+// Same clock as the content module: dev and tests preview scheduled posts.
+const clock = { today: utcToday(), includeScheduled: import.meta.env.DEV };
+
+function readPublicationFields(slug: string) {
+  const source = readFileSync(join(postsDirectory, slug, "en.mdx"), "utf8");
+  const publishedAt = /^publishedAt: "(\d{4}-\d{2}-\d{2})"$/m.exec(source)?.[1];
+  if (!publishedAt) throw new Error(`Missing publishedAt for ${slug}`);
+  return { publishedAt, draft: /^draft: true$/m.test(source) };
+}
 
 const rocketLogbookSlugs = [
   "stars-volcanoes-childhood-curiosity",
@@ -36,12 +51,39 @@ describe("published article discovery", () => {
     },
   );
 
+  // Checked against the real content set: every draft present in content/posts
+  // must stay out of every path, and every path must apply the shared rule
+  // (whose draft branch is unit-tested in post-scheduling.test.ts).
   it("keeps draft articles out of every publication path", () => {
-    expect(getPost("en", "claude-code-product-os", "rocket")).toBeNull();
-    expect(hasPostSlug("claude-code-product-os", "rocket")).toBe(false);
-    expect(
-      getPostSummaries("en", "rocket").map((post) => post.slug),
-    ).not.toContain("claude-code-product-os");
+    const liveSlugs = contentSlugs.filter((slug) =>
+      isPublished(readPublicationFields(slug), clock),
+    );
+    const draftSlugs = contentSlugs.filter(
+      (slug) => readPublicationFields(slug).draft,
+    );
+
+    for (const slug of draftSlugs) {
+      expect(liveSlugs).not.toContain(slug);
+    }
+
+    for (const locale of ["en", "fr"] as const) {
+      expect(
+        getPostSummaries(locale, "rocket").map((post) => post.slug).sort(),
+      ).toEqual(liveSlugs);
+      expect(
+        getSearchDocuments(locale, "rocket").map((post) => post.slug).sort(),
+      ).toEqual(liveSlugs);
+
+      for (const slug of contentSlugs) {
+        expect(getPost(locale, slug, "rocket") !== null, slug).toBe(
+          liveSlugs.includes(slug),
+        );
+      }
+    }
+
+    for (const slug of contentSlugs) {
+      expect(hasPostSlug(slug, "rocket"), slug).toBe(liveSlugs.includes(slug));
+    }
   });
 
   it.each(["en", "fr"] as const)(

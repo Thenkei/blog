@@ -1,6 +1,6 @@
 ---
 title: "Post-Mortem: The Day Redis Reached its Limits"
-subtitle: "Why consolidating all your use cases into a single in-memory database is a ticking time bomb."
+subtitle: "Why consolidating all your use cases into a single in-memory database means they all go down together."
 summary: "A weekend outage at Forest Admin caused by Redis memory exhaustion, highlighting the dangers of a single point of failure, data lifecycles, and scaling issues."
 visualId: "redis-memory-exhaustion-post-mortem"
 publishedAt: "2021-10-15"
@@ -13,9 +13,9 @@ tags:
 
 _Note: This article was written post-mortem, after my departure from Forest Admin._
 
-Storing complex and large objects in Redis for super-fast serving sounds like a great idea until it isn't. At Forest Admin, we learned the hard way that treating a single Redis instance as a silver bullet for everything can lead to catastrophic, cascading failures.
+Storing complex and large objects in Redis for sub-millisecond serving is a great idea, as long as they fit in RAM. At Forest Admin, we learned the hard way that a single Redis instance trusted with everything can also take everything down at once.
 
-Here is the story of a weekend outage caused by an Out-Of-Memory (OOM) error, and the crucial architectural and lifecycle lessons we learned.
+Here is the story of a weekend outage caused by an Out-Of-Memory (OOM) error, and what it taught us about architecture and data lifecycles.
 
 ## The Context
 
@@ -23,9 +23,9 @@ Here is the story of a weekend outage caused by an Out-Of-Memory (OOM) error, an
 
 To achieve sub-millisecond latency for some heavily accessed data, we built a use case that cached complex, large objects in Redis.
 
-This feature was implemented 2 to 3 years before the incident. At the time, we had fewer clients, and the objects being stored were incredibly small anyway. In fact, most of the engineering team dealing with the incident (myself included) wasn't even at the company when this code was originally written.
+This feature was implemented 2 to 3 years before the incident. At the time, we had fewer clients, and the objects being stored were tiny anyway. In fact, most of the engineering team dealing with the incident (myself included) wasn't even at the company when this code was originally written.
 
-Because Redis is incredibly fast and reliable, it had organically become our go-to solution for various other needs over time:
+Because Redis is fast and reliable, it had gradually become our default answer to a bunch of other needs:
 
 - **BullMQ**: Queueing and executing background jobs.
 - **Authentication**: Managing user sessions.
@@ -33,11 +33,11 @@ Because Redis is incredibly fast and reliable, it had organically become our go-
 
 All of these distinct processes were happily co-existing inside a **single Redis instance**.
 
-## The Boiling Frog
+## A Memory Graph Nobody Was Watching
 
-As Forest Admin grew, so did our clients' use cases. What started as small, innocuous cached objects slowly expanded into massive data structures. Since the growth was gradual, it crept up on us silently.
+As Forest Admin grew, so did our clients' use cases. What started as small, innocuous cached objects slowly expanded into massive data structures. Since the growth was gradual, no single day looked abnormal: the memory graph just climbed a few pixels a week.
 
-Then, it happened on a weekend. A sudden spike in data volume pushed the caching mechanism over the edge. Before anyone noticed, our Redis instance hit its memory limit and exhausted its capacity.
+Then, it happened on a weekend. A sudden spike in data volume did the rest. Before anyone noticed, our Redis instance hit its memory limit.
 
 The consequences were immediate and widespread. Because everything relied on that single instance, the issue wasn't isolated to just the caching layer:
 
@@ -45,13 +45,13 @@ The consequences were immediate and widespread. Because everything relied on tha
 - **Authentication Broke**: Users couldn't log in or maintain their sessions.
 - **Security Mechanisms Failed**: Our anti-brute force tracking went offline.
 
-The entire platform was effectively suffering from a massive degradation, all stemming from one exhausted memory pool.
+The whole platform was degraded, because of a cache that was never supposed to be critical.
 
 <ArticleMedia mediaId="redis-memory-pressure" />
 
 ## The Root Causes
 
-When we investigated the incident, several glaring failures in our infrastructure design and data lifecycle management stood out:
+When we investigated the incident, several failures in our infrastructure design and data lifecycle management stood out:
 
 ### 1. No Memory Alarms in Datadog
 
@@ -63,18 +63,16 @@ By coupling highly volatile, memory-intensive caching with mission-critical syst
 
 ### 3. Inefficient Data Lifecycles
 
-We initially thought we had data retention covered. We had a TTL (Time-To-Live) configured, but it simply wasn't aggressive enough. Furthermore, we realized that we weren't actively purging data belonging to deleted projects—leaving stale, bloated objects consuming precious RAM for absolutely no reason.
+We initially thought we had data retention covered. We had a TTL (Time-To-Live) configured, but it simply wasn't aggressive enough. Worse, we weren't actively purging data belonging to deleted projects: stale objects were holding RAM on behalf of projects that no longer existed.
 
 ## The Fixes & Takeaways
 
-We obviously split the architecture so that caching, queues, and sessions now live in isolated Redis instances. But we didn't stop there.
-
-To fix the fundamental data issues, we:
+First, we split the architecture: caching, queues, and sessions now live in isolated Redis instances. That left the underlying problem, the data itself. We:
 
 - **Shortened the TTLs**: Making them much more aggressive to ensure memory is freed up faster.
 - **Cleaned up Stale Data**: Implementing routines to immediately remove cached items belonging to deleted projects.
-- **Compressed the Payloads**: A colleague ([Guillaume Gautreau](https://www.ghusse.com/redis/node/compress/does-it-worth-compressing-large-json-in-redis/)) took the time to study and implement a compression solution for the data _before_ it gets stored in Redis. Not only did this optimize our memory costs significantly, but it also resulted in faster HTTPS transport times due to the smaller payload sizes.
+- **Compressed the Payloads**: A colleague ([Guillaume Gautreau](https://www.ghusse.com/redis/node/compress/does-it-worth-compressing-large-json-in-redis/)) took the time to study and implement a compression solution for the data _before_ it gets stored in Redis. It cut our memory usage significantly and, since smaller payloads travel faster, shortened HTTPS transport times too.
 
 <MotionScene id="redis-cache-lifecycle-fixes" />
 
-If you are using an in-memory database like Redis in production, this post-mortem serves as a reminder: always monitor your memory, isolate your functional domains, and never assume that a caching strategy that works for a small client base will automatically scale gracefully as your data complexity grows.
+If you run Redis in production, the lesson fits in one question: what happens to your sessions and jobs the day your cache fills up the RAM? For us, the answer was "they go down with it." And a caching strategy tuned for a handful of clients doesn't retune itself when their data grows.

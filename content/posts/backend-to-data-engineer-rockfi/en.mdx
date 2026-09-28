@@ -1,10 +1,10 @@
 ---
 title: "Changing Hats: From Backend to Data Engineer at RockFi"
-subtitle: "Building the data foundation for the new generation of wealth management."
-summary: "Why I transitioned towards Data Engineering at RockFi, diving into Dagster, medallion architecture, and our future with modern data warehouses."
+subtitle: "Ten sources, ten formats, and partners who do not all agree on what \"fixing a row\" means."
+summary: "Why a backend engineer ended up doing data at RockFi: partner feeds, Dagster, medallion architecture, dbt, and the data warehouse question."
 visualId: "backend-to-data-engineer-rockfi"
 publishedAt: "2025-10-15"
-readTimeMinutes: 4
+readTimeMinutes: 5
 tags:
   - data-engineering
   - backend
@@ -13,24 +13,38 @@ tags:
   - rockfi
 ---
 
-# Changing Hats: From Backend to Data Engineer
-
 <ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
 
-Recently at [RockFi](https://www.rockfi.fr/), I've found myself changing my hat ("changer de casquette", as we say in French). While my roots lie deep in backend engineering, I've increasingly stepped into the fascinating, albeit complex, world of Data Engineering.
+At [RockFi](https://www.rockfi.fr/), I have found myself changing hats ("changer de casquette", as we say in French). My roots are in backend engineering, but since I joined, most of my time goes into data.
 
-Why the shift? In my previous experiences, we were 100% in control of the data because we produced it ourselves. At RockFi, the challenge is entirely different: while we do produce data internally, our primary hurdle lies in interconnecting with a multitude of external partners (Insurers, Asset Managers, Price Providers, etc.). It becomes crucial to master this complexity to consolidate and govern these flows. Being _data-driven_ isn't just an empty buzzword; it's the very foundation of our product. Even as a Backend Engineer, you quickly learn to love data and adapt to tackle this kind of large-scale integration challenge.
+It was not a career plan. In my previous jobs, we produced our own data, so we controlled it end to end. At RockFi, a large part of what matters comes from outside: insurers, asset managers, price providers… Consolidating all of it properly is, quite literally, the product.
 
-## Orchestrating the Chaos with Dagster
+## Ten Sources, Ten Formats (and That Is Not the Worst Part)
 
-My days are now revolving around [Dagster](https://dagster.io/). We are building a robust orchestrator capable of managing our data pipelines based on the **medallion architecture** (Bronze, Silver, Gold). This approach is the very essence of all our business operations.
+At the start, we had around ten sources, and roughly as many formats. There are more today. 😅
 
-We gather immense amounts of data from all our providers to fuel the new generation of wealth management at RockFi. But raw data isn't enough. We are also building and integrating semantic models to ensure proper data governance, giving our teams confidence in the numbers they see and use every day.
+Against all expectations, formats are not the real problem. An exotic CSV can be parsed. What hurts is the **transmission modes**, and above all the way each partner fixes its own mistakes.
 
-## The Next Step: A Proper Data Warehouse
+Some use reversals: they send a row that cancels the old one, then a new, correct row. Others rewrite history: yesterday's row simply changed this morning, without warning. Both approaches are defensible; the real sport is making them coexist in the same table.
 
-Achieving this orchestration has been a huge milestone. We have successfully laid down the pipelines and the governance models. But data at this scale never sleeps, and our systems need to evolve.
+So the job is less about reading files than understanding intentions, which are not always documented. A good share of the work looks like archaeology: dig up a feed, date it, and try to guess what its author had in mind.
 
-We can proudly say that this foundational work is done. It's now time to move to the next level: adopting a proper Data Warehouse like **Snowflake** or **Clickhouse**. This migration will allow us to scale our analytics capabilities and truly unlock the potential of the data asset we've built, serving our wealth management platform with unprecedented speed and reliability.
+## Orchestrating It All with Dagster
 
-Being a Data Engineer (or a Backend Engineer wearing a very large data hat) at RockFi is a thrilling ride. It requires a different mindset from traditional software engineering, but the impact you have on the entire company is undeniable.
+My days now revolve around [Dagster](https://dagster.io/). It was our CTO's choice: he wanted a newer tool, betting that it would evolve faster than the established alternatives.
+
+Our pipelines follow the **medallion architecture**:
+
+- **Bronze**: the data exactly as the partner sent it, reversals and rewrites included. No judgment, just archiving.
+- **Silver**: cleaned, deduplicated, and reconciled data.
+- **Gold**: what the teams and the product actually consume.
+
+So that everyone talks about the same numbers, we are building a semantic layer with **dbt**. We also looked at **Cube**, which did not meet our needs, so we set it aside.
+
+## Next: A Proper Data Warehouse
+
+The pipelines are running and the first governance models are in place. The next step is a proper data warehouse. **Snowflake** and **ClickHouse** are both on the table.
+
+_Update (2026): it will be Snowflake. ClickHouse might join the stack one day, for cases where latency really matters (real-time analytics). To be continued._
+
+As for the hat, the takeaway is simple. Data calls for a different reflex than backend work: you no longer control the source, only what you do with it. And when ten partners each have their own idea of what "fixing a row" means, you pick up that reflex fairly quickly.

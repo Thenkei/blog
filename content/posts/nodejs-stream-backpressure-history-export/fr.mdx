@@ -14,9 +14,9 @@ seriesId: "async-workloads-at-scale"
 seriesOrder: 1
 ---
 
-Ce pipeline d'export est littéralement né d'un traumatisme opérationnel : les utilisateurs pouvaient exiger des logs d'activité sur des plages de dates dantesques, parfois depuis le tout premier jour du projet. Les données dormaient dans Elasticsearch (récemment [migrées depuis PostgreSQL](/posts/forest-admin-activity-logs-elasticsearch)), chaque événement devait être farci d'infos provenant de bases relationnelles, puis le monstrueux CSV final devait atterrir sagement sur S3. Plutôt simple, non ?
+Ce pipeline d'export existe parce que les utilisateurs pouvaient exiger des logs d'activité sur des plages de dates dantesques, parfois depuis le tout premier jour du projet. Les données dormaient dans Elasticsearch (récemment [migrées depuis PostgreSQL](/posts/forest-admin-activity-logs-elasticsearch)), chaque événement devait être farci d'infos provenant de bases relationnelles, puis un CSV de plus de 3 Go devait atterrir sur S3 derrière une URL signée. Côté produit, c'est un bouton « Exporter ». Côté worker, ce sont 3 Go de CSV qui doivent traverser un process Node.js sans jamais y tenir en entier.
 
-Sur nos plus gros clients, les exports prenaient entre 10 et 15 minutes de calcul intensif. La grosse contrainte n'était pas seulement d'avoir le bon CSV à la fin, mais de garantir la survie des workers avec une empreinte mémoire en béton armé.
+Sur nos plus gros clients, les exports prenaient entre 10 et 15 minutes de calcul intensif. Sortir le bon CSV était la partie facile ; la vraie contrainte était de garder les workers disponibles, avec une empreinte mémoire prévisible à l'avance.
 
 **Série : Async Workloads at Scale (partie 1/3)**
 
@@ -28,18 +28,18 @@ Ce post ouvre une série en trois parties :
 
 **La backpressure était le mécanisme de contrôle principal.**
 
-## Contraintes système (alias "Comment ça va inévitablement exploser en prod")
+## Contraintes système (alias « comment ça va inévitablement exploser en prod »)
 
 <ArticleDiagram visualId="nodejs-stream-backpressure-history-export" />
 
 - **Producteur non borné :** le scroll Elasticsearch peut se transformer en lance à incendie qui noiera votre sérialisation en aval.
 - **Risque N+1 :** l'enrichissement relationnel par événement va rapidement mettre votre pool de connexions DB à genoux.
-- **Risque de starvation worker :** un export de 15 minutes va joyeusement prendre un worker en otage pendant que vos petits jobs critiques patientent.
-- **Risque de retry tardif :** si un upload de 3GB plante à 99%, un retry naïf signifie tout recommencer depuis le début. Votre facture AWS appréciera.
+- **Risque de starvation worker :** un export de 15 minutes occupe un worker pendant 15 minutes, et vos petits jobs critiques font la queue derrière lui.
+- **Risque de retry tardif :** si un upload de 3 Go plante à 99 %, un retry naïf signifie tout recommencer : re-scroller Elasticsearch, ré-enrichir chaque événement, ré-uploader chaque part.
 
 ## Approche A : pipeline de streams + Transform
 
-C'est le modèle le plus proche de ce que vous verrez dans un environnement de production qui a survécu à la guerre. On utilise `Readable.from(asyncIterator)`, des étapes Transform explicites, puis un writable multipart S3. C'est verbeux, ce n'est pas le plus beau code du monde, mais opérationnellement, c'est du béton armé.
+C'est le modèle le plus proche de ce que vous trouverez dans un code de production qui a déjà traversé quelques incidents. On utilise `Readable.from(asyncIterator)`, des étapes Transform explicites, puis un writable multipart S3. C'est verbeux et ce n'est pas le plus beau code du monde, mais son comportement en production est prévisible.
 
 ```typescript
 import { Readable, Transform, pipeline } from "node:stream";
@@ -78,9 +78,9 @@ await pipeline(
 );
 ```
 
-## Approche C : enrichissement parallèle borné (attendre séquentiellement n'est pas toujours nécessaire)
+## Approche C : enrichissement parallèle borné (attendre les lignes une par une est facultatif)
 
-Si l'enrichissement DB domine la latence, un mapping purement séquentiel sous-utilise bêtement vos ressources. Une concurrence bornée explose le débit tout en gardant une empreinte mémoire prévisible.
+Si l'enrichissement DB domine la latence, un mapping purement séquentiel passe l'essentiel de son temps à attendre la base. Une concurrence bornée améliore nettement le débit tout en gardant une empreinte mémoire prévisible.
 
 ```typescript
 async function* parallelMapOrdered(source, concurrency, mapper) {
@@ -122,7 +122,7 @@ const enriched = parallelMapOrdered(events, 8, async (event) => {
 ## S3 multipart : deux patterns valides
 
 - **Writable custom :** contrôle fin des parts, retries, métriques.
-- **Upload SDK gere:** moins de code applicatif, mais vigilance sur `partSize` et `queueSize`.
+- **Upload géré par le SDK :** moins de code applicatif, mais vigilance sur `partSize` et `queueSize`.
 
 
 ```typescript
@@ -177,7 +177,7 @@ new Worker(queueName, processExport, {
 ## Contrôles opérationnels critiques
 
 - **Idempotence :** clé déterministe tenant/environment/date-range/timezone.
-- **Budgets de timeout:** separer ES, DB et commit multipart.
+- **Budgets de timeout :** séparer ES, DB et commit multipart.
 - **Telemetry structurée :** attente queue, lignes/s, bytes/s, watermark mémoire, retries.
 - **Support :** checkpoints de progression + URL signée TTL (24 heures dans cette implémentation).
 
@@ -202,11 +202,11 @@ Ces chiffres ne sont pas universels, mais ils sont utiles pour analyser le compo
 | Latence d'enrichissement dominante et marge sur le pool DB | C - Mapping parallèle borné        | Débit plus élevé si la concurrence est strictement capée    |
 | Équipe peu familière avec les internals stream             | A puis B/C de manière incrémentale | Charge cognitive plus faible et rollout production plus sûr |
 
-Dans notre cas, la combinaison gagnante était : backpressure stream + isolation de queue + concurrence bornée. C'est ce qui a rendu le système stable sur les gros volumes.
+Dans notre cas, la combinaison gagnante était : backpressure stream + isolation de queue + concurrence bornée. C'est ce qui a gardé la mémoire stable et les workers disponibles, même sur nos plus gros clients.
 
 ## Navigation dans la série
 
 - Continuer avec les contrats d'architecture worker/queue dans [Partie 2](../posts/jobify-workers-queues-nestjs).
-- Puis durcir dedupe et tempetes de triggers dans [Partie 3](../posts/idempotency-debounce-jobify-bullmq).
+- Puis durcir dedupe et tempêtes de triggers dans [Partie 3](../posts/idempotency-debounce-jobify-bullmq).
 
 _Note : Cet article a été écrit a posteriori, après mon départ de Forest Admin._

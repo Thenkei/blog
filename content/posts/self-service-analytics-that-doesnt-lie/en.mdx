@@ -1,10 +1,10 @@
 ---
 title: "Building Self-Service Analytics That Does Not Lie"
-subtitle: "Access is the easy part. Keeping a number's meaning intact as it travels is the real infrastructure."
-summary: "A practical model for giving teams analytical freedom without losing metric definitions, provenance, ownership, or control."
+subtitle: "From everyone's own Metabase queries to metrics defined in dbt: what you learn when ten or so partners each correct their data their own way."
+summary: "How RockFi moved from Metabase queries written by whoever needed them to a dbt semantic layer on Snowflake, why the early chaos stayed manageable, and why a metric's date is the trickiest field in its contract."
 visualId: "self-service-analytics-that-doesnt-lie"
 publishedAt: "2026-08-17"
-readTimeMinutes: 6
+readTimeMinutes: 7
 tags:
   - data
   - analytics
@@ -15,72 +15,99 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 2
 ---
 
-## Three dashboards walk into a meeting
+## In the beginning, everyone had their own Metabase
 
-Three dashboards answer the same question with three different numbers. The queries run and the charts look fine, but the meeting stops: what, exactly, did we count?
+At RockFi, self-service analytics started in the most natural way possible: a Metabase plugged into the data, and everyone writing their own queries. At the time, nobody thought about agreeing on strong metric definitions. You had a question, you wrote some SQL, you had an answer. No ticket, no waiting, no committee.
 
-Self-service keeps every business question from becoming a ticket for the data team. People need room to investigate without waiting.
-
-At RockFi, that also means protecting confidential data and keeping definitions for assets, flows, and clients consistent. A fast number is little help if nobody can trace its calculation.
+If you have ever opened a Metabase instance older than six months, you know what comes next: the “Assets” question sits next to “Assets (copy)”, which sits next to “Assets v2 DO NOT USE”, which someone obviously uses every Monday. Every copy starts from good intentions and drifts one `WHERE` clause at a time.
 
 <ArticleDiagram visualId="self-service-analytics-that-doesnt-lie" />
 
-## SQL can be right while the number is wrong
+## Plenty of wrong numbers, all easy to unmask
 
-Two correct SQL queries may disagree on grain, effective date, or cancellation treatment. The difference can remain hidden until someone makes a decision.
+This regime produced plenty of inconsistent numbers, and a few fine blunders. The typical scene: two people walk into an internal meeting with two values for the number of clients, not even in the same ballpark, and the agenda gives way to a comparative reading of `JOIN` clauses.
 
-We need **verifiable semantics** to understand, reproduce, and challenge the number.
+Both queries were often “correct”. One counted clients, the other accounts. One used the transaction date, the other the value date. One excluded cancelled rows, the other cheerfully added them up. No SQL engine fails over that.
 
-## The warehouse is not a vending machine
+```sql
+-- Identikit of a Metabase question from that era (names made up)
+SELECT COUNT(*)                 -- clients? accounts? yes.
+FROM accounts a
+JOIN positions p ON p.account_id = a.id  -- the join that multiplies in silence
+WHERE p.status != 'cancelled'   -- copied from another question, never reread
+  AND p.date >= {{start_date}}  -- which date? whichever one was in the table
+```
 
-Opening every table pushes the difficult domain decisions onto whoever writes the query.
+To be fair about one thing: every time, we found the source of the problem easily. The query was right there in Metabase, two clicks away. We opened it, spotted the missing filter or the duplicating join, and fixed it. The chaos was unpleasant, but traceable. That is also why we took our time before structuring anything: as long as an error fits in a query you can read, it costs a meeting, not a project.
 
-Certifying a dashboard is not enough if its metrics have no contract. Copying domain logic into each query creates variants; an AI answer without provenance hides the same problem.
+## Ten or so partners, as many ways to correct a mistake
 
-At the other extreme, treating every rough exploration like regulatory reporting discourages investigation. Exploring and publishing need different permissions.
+What kept the chaos manageable was that all the logic lived in the query. That holds up less well when part of the logic lives in the source data itself.
 
-## Where the “source of truth” starts multiplying
+Our data comes from about ten external partners, with different transmission methods. And when a partner corrects a record, it does not necessarily do it like its neighbour. Some post reversals: the original row stays, an offsetting row cancels it, and a new row carries the right value. Others rewrite history: the past row changes in place, and yesterday's file no longer quite matches the day before's.
 
-A dictionary that describes columns but omits grain or exclusions ages quickly. A “source of truth” dashboard with a definition locked in private SQL is just as fragile: when another dashboard copies the calculation, the versions diverge.
+Writing a correct query under those conditions means knowing how each partner behaves. In the “everyone has their own Metabase” world, that knowledge is re-encoded in every query, by every author, at whatever level of knowledge they had that day. The query stays readable; what it assumes about the sources does not.
 
-An agent querying raw tables speeds up the mistake. It may choose a plausible join without knowing which domain invariant to preserve.
+## Snowflake, dbt, Dagster, and Cube, which did not stay
 
-## Give every shared metric a passport
+The current stack, built after that era, looks like this:
 
-A shared metric needs a contract before it feeds dashboards or decisions:
+- **Snowflake** as the warehouse;
+- **dbt** for modelling and the semantic layer: that is where metric definitions are written, versioned, and tested, once, instead of being copied into every question;
+- **Dagster** as the orchestrator, chosen before this work began.
+
+We also evaluated **Cube** as a dedicated semantic layer. It did not meet our needs, so we set it aside.
+
+The whole thing is still evolving: what follows describes work in progress, not a finished reference architecture. What has changed is where the discussion happens: in a shared definition that anyone can reread and challenge, rather than between two screenshots in a meeting.
+
+## A metric's passport
+
+Before a metric feeds a shared dashboard, it has to answer a few questions. Nothing exotic, but each one could tell the story of its own derailed meeting:
 
 | Element | Question to settle |
 | --- | --- |
-| Meaning | Which decision does this number support? |
-| Grain | What does one row represent? |
-| Population | Which entities are included or excluded? |
+| Meaning | Which decision is this number meant to support? |
+| Grain | Is one row a client, an account, or a position? |
+| Population | Who is in: closed accounts, clients still onboarding, cancelled rows? |
 | Time | Event date, effective date, or snapshot? |
-| Owner | Who resolves ambiguity? |
-| Evidence | Which tests and reconciliations protect the calculation? |
-| Freshness | When is the result no longer usable? |
+| Owner | Who decides when two readings are both defensible? |
+| Evidence | Which tests and reconciliations against the sources protect the calculation? |
+| Freshness | When does the result stop reflecting the partners' latest deliveries? |
 
-When results disagree, there is a definition to compare, an owner to ask, and checks to rerun.
+The “Time” row looks like the most academic one. It is the trickiest, and our partners make sure to prove it.
 
-## Self-service needs three lanes
+Take the assets for a given month, and a correction received the following month. With a partner that posts reversals, the correction arrives as new rows dated on the day of the correction: last month does not move, and the current month absorbs the difference. With a partner that rewrites history, it is last month that changes, retroactively, without anyone touching the dashboard.
 
-Not every question should pass through the same controls. We keep three levels distinct:
+Depending on the date you choose, “the month's assets” do not have the same value:
 
-1. **Exploration** allows bounded access, temporary output, and visible assumptions.
-2. **Certified metrics** add a versioned definition, owner, tests, and freshness policy.
-3. **Decisions or publications** display provenance, enforce access controls, and receive review proportional to their impact.
+- on a raw **event date**, you mix both behaviours: last month is corrected for partners that rewrite, not for those that post reversals;
+- on an **effective date**, you attach each correction to the transaction it corrects: everyone converges, but every reversal has to be linked to its original row, and last month's number moves after the fact;
+- on a **snapshot**, you freeze what you knew at month end: the number presented last month stays last month's number, provided you kept the deliveries as they were, since some partners have rewritten them since.
 
-A semantic layer holds shared formulae, a catalogue shows owners and freshness, and governed marts isolate sensitive data. None replaces the domain contract.
+The last two readings are both defensible; they simply answer different questions. What is wrong is not saying which one you chose, or letting the first one settle in by default because `date` was the column in the table. Hence the order of operations: the model must first normalise the two ways of correcting, the metric then chooses its date, and the passport writes it down in black and white.
+
+## Explore, certify, publish
+
+The goal was never to kill self-service. An exploratory question does not need a passport: it needs bounded access to the models, temporary output, and visible assumptions. That is the spirit of the Metabase era, which we wanted to keep, on firmer ground.
+
+A shared metric, on the other hand, has a versioned definition, an owner, tests, and a freshness policy. And a number used to make a decision, or one that leaves the team, displays its provenance, respects access controls, and goes through a review proportionate to what it commits us to.
 
 <InlineArticleDiagram assetId="self-service-lanes">
   Self-service starts after modelling and controls, not at the raw-table layer.
 </InlineArticleDiagram>
 
-## Make the assistant show its working
+## An agent plugged into raw tables
 
-AI assistants start with certified models, show their sources, and flag when they leave that boundary. Before publication, someone must be able to verify the result.
+The current temptation is to plug an AI assistant straight into the warehouse and ask it the question. On raw tables, it would replay the Metabase era at machine speed: a plausible join, a date picked from whatever columns were there, a reversal counted twice. With one extra flaw: if nobody sees the query it improvised, we lose the only virtue of our early chaos, which was being able to find the source of the error easily.
 
-## A badge is not evidence
+So our assistants start from certified models, show the query and the sources they used, and flag when they leave that boundary. Before publication, someone must be able to reread the result the way we used to reread a Metabase question.
 
-Contracts and freshness need maintenance. A one-off analysis can remain exploratory. A semantic layer cannot fix a wrong source: a “certified” badge is only as good as the evidence and ownership behind it.
+## What the semantic layer does not fix
+
+A flawless definition does not fix a wrong partner file: it cleanly computes a wrong number. Reconciliations against the sources remain essential, and they do not write themselves.
+
+Contracts also need maintenance. A partner that changes how it corrects its data silently invalidates an assumption in the model, and the “certified” badge keeps shining in the meantime. It is only worth the tests and the owner behind it.
+
+And not everything deserves this treatment. A one-off analysis can stay exploratory, and that is fine. An “Assets (copy)” question can keep existing; it has just lost the right to present itself as the reference.
 
 Next in the series: [Context Engineering: Beyond Prompt Engineering](../posts/context-engineering-beyond-prompt-engineering).

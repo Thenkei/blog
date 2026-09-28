@@ -15,58 +15,47 @@ tags:
 
 Quand on parle d'agents IA, on demande souvent jusqu'où ils peuvent agir seuls. Notre expérience de l'astreinte m'a amené à poser une autre question : que transmettent-ils lorsqu'ils s'arrêtent ?
 
-Un agent qui enquête puis laisse un tas de logs et une décision inexpliquée fait recommencer le travail à la personne suivante. La qualité du relais compte autant que celle de l'investigation.
+Un agent qui enquête, puis laisse derrière lui un tas de logs et une décision inexpliquée, oblige la personne suivante à tout recommencer. C'est l'équivalent logiciel du collègue qui part en vacances en laissant un post-it « c'est le cache ». La qualité du relais compte autant que celle de l'investigation.
 
-## Nous n'avons pas commencé par une plateforme autonome
+## Tout a commencé par les corvées d'astreinte
 
-En astreinte, il faut trouver les données utiles, comprendre ce qui a changé, consulter le dépôt et le runbook, puis décider de la suite. Le contexte est dispersé entre dashboards, tickets et investigations précédentes. C'est une enquête sous contrainte de temps.
+En astreinte, il faut trouver les données utiles, comprendre ce qui a changé, consulter le dépôt et le runbook, puis décider de la suite. Le contexte est dispersé entre dashboards, tickets et investigations précédentes, et l'horloge tourne.
 
-La personne d'astreinte se pose des questions comme :
+Les questions changent peu d'une alerte à l'autre. S'agit-il d'un incident réel ou d'un signal bruité ? Quel système est réellement responsable ? Qu'est-ce qui a changé récemment ? Quelle preuve permettrait de départager les causes possibles ? Et l'étape la plus sûre est-elle un rollback, un patch, une modification de configuration, ou simplement d'observer encore un peu ?
 
-- S'agit-il d'un incident réel ou d'un signal bruité ?
-- Quel système est réellement responsable ?
-- Qu'est-ce qui a changé récemment ?
-- Quelle preuve permettrait de départager les causes possibles ?
-- L'étape la plus sûre est-elle un rollback, un patch, une modification de configuration ou simplement davantage d'observation ?
-
-La collecte initiale revient souvent : comparer l'état actuel à l'état attendu, chercher les changements récents, lancer les diagnostics connus. Nous avons confié ces étapes à de petits agents spécialisés.
+Les premières étapes se répètent aussi : comparer l'état actuel à l'état attendu, chercher les changements récents, lancer les diagnostics connus. Ce sont ces corvées que nous avons confiées à de petits agents spécialisés.
 
 ## De petits agents proches du travail
 
-Un agent collecte les preuves, un autre connaît le dépôt concerné, un troisième vérifie une hypothèse ou prépare un patch. La personne d'astreinte peut ainsi passer moins de temps à rassembler le contexte et plus de temps à interpréter les résultats.
+Un agent collecte les preuves, un autre connaît le dépôt concerné, un troisième vérifie une hypothèse ou prépare un patch. La personne d'astreinte passe ainsi moins de temps à rassembler le contexte et plus de temps à interpréter les résultats.
 
 > Nous n'avons pas automatisé la responsabilité. Nous avons automatisé l'investigation.
 
-L'humain reste responsable de la décision. Il choisit quel agent appeler, dans quel ordre et quand les preuves suffisent. Les agents inspectent, comparent et proposent ; leur sortie n'autorise pas à elle seule une modification risquée.
+Concrètement, c'est toujours la personne d'astreinte qui décide : quel agent appeler, dans quel ordre, et quand les preuves suffisent. Les agents inspectent, comparent et proposent, et leur sortie n'autorise pas à elle seule une modification risquée.
 
 <MotionScene id="better-handoffs-relay" />
 
 ## Que se passe-t-il lorsque les agents s'appellent entre eux ?
 
-Une fois ces agents en place, il est tentant de les enchaîner : collecte des données, lecture du dépôt, préparation du patch, validation. Mais l'humain faisait plus que lancer l'étape suivante.
+Une fois ces agents en place, il est tentant de les enchaîner : collecte des données, lecture du dépôt, préparation du patch, validation. Mais l'humain au milieu faisait bien plus qu'appuyer sur « suivant ».
 
-Il évaluait les preuves, remarquait les contradictions, abandonnait les hypothèses réfutées et décidait quand demander un autre avis. Si les agents s'appellent entre eux, cette fonction d'orchestration doit devenir explicite.
+Il pesait les preuves, repérait les contradictions, abandonnait les hypothèses réfutées et décidait quand demander un autre avis. Si les agents s'appellent entre eux, cette orchestration doit devenir explicite.
 
-L'orchestrateur peut poursuivre une tâche bien étayée et peu risquée, ou demander une revue. Pour choisir, il lui faut l'état de l'investigation, pas seulement la dernière réponse :
+L'orchestrateur peut poursuivre une tâche bien étayée et peu risquée, ou demander une revue. Pour choisir, il lui faut l'état de l'investigation plutôt que la dernière réponse : l'objectif, les pistes déjà écartées, ce qui a été tenté, les preuves derrière l'hypothèse actuelle et ce qui manque encore, le niveau de confiance, et ce que risquent les prochaines actions.
 
-- Quel était l'objectif et quelles pistes ont été écartées ?
-- Quelles preuves soutiennent l'hypothèse actuelle, et que manque-t-il ?
-- Qu'a-t-on déjà tenté ?
-- Quelle confiance et quel risque portent les prochaines actions ?
+Sans cela, la chaîne continue d'avancer et perd le fil.
 
-Sans cela, la chaîne avance tout en perdant le fil.
+## 14 h 03, et ensuite ?
 
-## Le contexte est nécessaire, mais il ne suffit pas
+Retrouver les bons documents et donner accès aux bons outils, c'est la moitié du chemin. L'autre moitié consiste à transmettre le raisonnement construit à partir d'eux.
 
-Retrouver les bons documents et donner accès aux bons outils est nécessaire. Encore faut-il transmettre le raisonnement construit à partir d'eux.
-
-Un relais ne devrait pas se contenter de dire :
+Voici un relais qui a l'air utile :
 
 ```text
 Le taux d'erreur a augmenté à 14 h 03.
 ```
 
-C'est un fait isolé. Voici un relais que la personne suivante peut exploiter :
+Exact, précis, et presque inutile tel quel : la personne qui le lit doit refaire l'enquête pour savoir ce qu'il signifie. Voici un relais que la suivante peut vraiment exploiter :
 
 ```text
 Investigation : taux d'erreur élevé sur le service de checkout
@@ -92,13 +81,13 @@ Prochaines actions recommandées :
 3. Demander une validation avant toute modification de la configuration de production.
 ```
 
-On y voit l'hypothèse, ses preuves, les pistes écartées et l'incertitude restante. L'agent suivant — ou l'humain — peut continuer sans repartir de zéro.
+L'hypothèse, ses preuves, les pistes écartées et l'incertitude restante sont toutes là. L'agent suivant, ou l'humain, peut reprendre sans repartir de zéro.
 
 ## Un endroit où reprendre la main
 
 Un événement pourrait déclencher une investigation automatique, puis l'orchestrateur déposerait un relais structuré dans un thread Slack. La personne d'astreinte y trouverait les preuves, les hypothèses, la confiance et les actions possibles au moment précis où son jugement devient nécessaire.
 
-Le même format peut vivre dans un ticket, une pull request ou une timeline d'incident. Entre agents aussi, il vaut mieux transmettre cet état compact qu'une transcription brute que chacun devra réinterpréter.
+Le même format peut vivre dans un ticket, une pull request ou une timeline d'incident. Entre agents aussi, cet état compact vaut mieux qu'une transcription brute que chacun devra réinterpréter.
 
 ## Concevoir un protocole de relais efficace
 
@@ -111,18 +100,16 @@ Un relais doit rendre explicites six choses :
 5. **La prochaine étape** : enquêter, relire, approuver ou escalader.
 6. **Le coût d'une erreur**, qui détermine si une validation humaine est nécessaire.
 
-La confiance ne suffit pas : un diagnostic peu risqué peut partir automatiquement, tandis qu'une modification de production exige parfois une revue même si l'hypothèse paraît solide.
+La confiance ne tranche pas tout. Un diagnostic peu risqué peut partir automatiquement, tandis qu'une modification de production exige parfois une revue même si l'hypothèse paraît solide.
 
-Approuver chaque petite étape recrée le goulot d'étranglement. Continuer sans contrôle peut rendre une erreur coûteuse. Le système peut avancer seul sur les diagnostics bornés, puis s'arrêter avant une action ambiguë ou à fort impact. L'humain reçoit assez de contexte pour contester le raisonnement, choisir une option et apporter ce que les agents ignorent.
+Demander une validation à chaque micro-étape recrée le goulot d'étranglement, et supprimer tout point de contrôle rend les erreurs coûteuses. Le juste milieu : laisser le système avancer seul sur les diagnostics bornés, puis l'arrêter avant une action ambiguë ou à fort impact. À ce moment-là, l'humain reçoit assez de contexte pour contester le raisonnement, choisir une option et apporter ce que les agents ignorent.
 
 <MotionScene id="better-handoffs-checkpoints" />
 
-## De meilleurs relais sont une forme de fiabilité
+## Le relais fait partie de la fiabilité
 
 La fiabilité d'un workflow d'agents dépend aussi de ce que comprend le participant suivant. Peut-il distinguer une observation d'une hypothèse, vérifier une preuve et savoir si la recommandation doit être exécutée ou seulement étudiée ?
 
-L'évaluation doit regarder ce relais, pas seulement la réponse de chaque agent. Une investigation inachevée reste utile si elle réduit les pistes possibles et expose ce qui demeure incertain.
+L'évaluation doit donc regarder le relais, et pas uniquement la réponse de chaque agent. Une investigation inachevée reste utile si elle réduit les pistes possibles et dit clairement ce qui demeure incertain.
 
-Le travail réel mêle ambiguïtés, contraintes changeantes et conséquences inégales. Un agent doit savoir quand avancer et quand demander un jugement. Notre expérience d'astreinte montre qu'il doit aussi préserver le fil de l'enquête en passant la main.
-
-La question à poser est donc simple : lorsque l'agent s'arrête, la personne suivante sait-elle quoi vérifier et quelle décision prendre ?
+Notre astreinte nous a appris qu'un agent doit savoir quand avancer et quand demander un jugement, et qu'il doit garder le fil de l'enquête au moment de passer la main. Le test que j'applique désormais tient en une phrase : lorsque l'agent s'arrête, la personne suivante sait-elle quoi vérifier et quelle décision prendre ?

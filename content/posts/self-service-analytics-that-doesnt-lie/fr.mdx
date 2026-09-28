@@ -1,10 +1,10 @@
 ---
 title: "Construire une analytique en libre-service qui ne ment pas"
-subtitle: "Ouvrir l'accès est facile. Empêcher un chiffre de perdre son sens en chemin demande une vraie infrastructure."
-summary: "Un modèle concret pour donner de l'autonomie analytique sans perdre les définitions, la provenance, les responsabilités ni le contrôle."
+subtitle: "De chacun ses requêtes Metabase à des métriques définies dans dbt : ce qu'on apprend quand une dizaine de partenaires corrigent leurs données chacun à leur façon."
+summary: "Comment RockFi est passé de requêtes Metabase écrites par chacun à une couche sémantique dbt sur Snowflake, pourquoi le premier chaos restait gérable, et pourquoi la date d'une métrique est le champ le plus piégeux de son contrat."
 visualId: "self-service-analytics-that-doesnt-lie"
 publishedAt: "2026-08-17"
-readTimeMinutes: 6
+readTimeMinutes: 7
 tags:
   - data
   - analytics
@@ -15,72 +15,99 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 2
 ---
 
-## Trois dashboards entrent en réunion
+## Au début, chacun avait son Metabase
 
-Trois dashboards répondent à la même question avec trois chiffres différents. Les requêtes tournent, les graphiques semblent corrects, mais la réunion s'arrête : qu'avons-nous compté, exactement ?
+Chez RockFi, le libre-service analytique a commencé de la façon la plus naturelle du monde : un Metabase branché sur les données, et chacun qui écrivait ses propres requêtes. Personne n'a pensé, à ce moment-là, à se mettre d'accord sur une définition forte des métriques. On avait une question, on écrivait du SQL, on avait une réponse. Pas de ticket, pas d'attente, pas de comité.
 
-Le libre-service évite que chaque question métier passe par un ticket à l'équipe data. Les équipes doivent pouvoir explorer sans attendre.
-
-Chez RockFi, cela demande de préserver la confidentialité et des définitions cohérentes pour les encours, les flux ou les clients. Un chiffre rapide sert peu si personne ne peut retracer son calcul.
+Vous connaissez la suite si vous avez déjà ouvert une instance Metabase de plus de six mois : la question « Encours » côtoie « Encours (copie) », qui côtoie « Encours v2 NE PAS UTILISER », que quelqu'un utilise évidemment tous les lundis. Chaque copie part d'une bonne intention et dérive d'un `WHERE` à la fois.
 
 <ArticleDiagram visualId="self-service-analytics-that-doesnt-lie" />
 
-## Le SQL peut être juste et le chiffre faux
+## Beaucoup de chiffres faux, tous faciles à démasquer
 
-Deux requêtes SQL correctes peuvent diverger sur le grain, la date effective ou le traitement des annulations. L'écart peut rester invisible jusqu'à la prise de décision.
+Ce régime a produit plein de chiffres incohérents, et quelques belles bêtises. La scène type : deux personnes arrivent en réunion interne avec deux valeurs pour le nombre de clients, pas du tout du même ordre, et l'ordre du jour cède la place à une séance de lecture comparée de clauses `JOIN`.
 
-Il faut une **sémantique vérifiable** pour comprendre, reproduire et contester le chiffre.
+Les deux requêtes étaient souvent « justes ». L'une comptait des clients, l'autre des comptes. L'une prenait la date de l'opération, l'autre la date de valeur. L'une excluait les lignes annulées, l'autre les additionnait joyeusement. Aucun SQL ne plante pour ça.
 
-## Le warehouse n'est pas un distributeur automatique
+```sql
+-- Portrait-robot d'une question Metabase de l'époque (noms inventés)
+SELECT COUNT(*)                 -- des clients ? des comptes ? oui.
+FROM accounts a
+JOIN positions p ON p.account_id = a.id  -- la jointure qui multiplie en silence
+WHERE p.status != 'cancelled'   -- copié depuis une autre question, jamais relu
+  AND p.date >= {{date_debut}}  -- quelle date ? celle qui était dans la table
+```
 
-Ouvrir toutes les tables transfère les décisions métier difficiles à la personne qui écrit la requête.
+Il faut être honnête sur un point : à chaque fois, on retrouvait facilement la source du problème. La requête était là, dans Metabase, à deux clics. On l'ouvrait, on voyait le filtre oublié ou la jointure qui dupliquait, on corrigeait. Le chaos était désagréable, mais traçable. C'est aussi pour ça qu'on a tardé à structurer : tant qu'une erreur tient dans une requête qu'on peut lire, elle coûte une réunion, pas un chantier.
 
-Certifier un dashboard ne suffit pas si ses métriques n'ont aucun contrat. Recopier la logique métier dans chaque requête crée des variantes ; une réponse d'IA sans provenance cache le même problème.
+## Une dizaine de partenaires, autant de façons de corriger une erreur
 
-À l'inverse, imposer à toute exploration les contrôles d'un reporting réglementaire freine la recherche. Explorer et publier ne demandent pas les mêmes droits.
+Ce qui rendait le chaos gérable, c'était que toute la logique vivait dans la requête. Ça tient moins bien quand une partie de la logique vit dans les données sources elles-mêmes.
 
-## Quand la « source of truth » se dédouble
+Nos données viennent d'environ dix partenaires externes, avec des modes de transmission différents. Et quand un partenaire corrige une donnée, il ne le fait pas forcément comme le voisin. Certains extournent : la ligne d'origine reste, une ligne inverse l'annule, une nouvelle ligne porte la bonne valeur. D'autres réécrivent l'historique : la ligne passée change en place, et le fichier d'hier ne ressemble plus tout à fait à celui d'avant-hier.
 
-Un dictionnaire qui décrit les colonnes sans préciser le grain ou les exclusions vieillit vite. Un dashboard « source of truth » dont la définition reste enfermée dans du SQL privé est tout aussi fragile : dès qu'un autre dashboard recopie le calcul, les versions divergent.
+Pour écrire une requête juste dans ces conditions, il faut savoir comment chaque partenaire se comporte. Dans le monde « chacun son Metabase », ce savoir est réencodé dans chaque requête, par chaque auteur, avec son niveau de connaissance du jour. La requête reste lisible ; ce qu'elle suppose sur les sources ne l'est plus.
 
-Un agent branché sur les tables brutes accélère cette erreur. Il peut choisir une jointure plausible sans connaître l'invariant métier à préserver.
+## Snowflake, dbt, Dagster, et Cube qui n'est pas resté
 
-## Un passeport pour chaque métrique partagée
+La stack actuelle, construite après cette époque, ressemble à ceci :
 
-Une métrique partagée a besoin d'un contrat avant d'alimenter des dashboards ou des décisions :
+- **Snowflake** comme entrepôt ;
+- **dbt** pour la modélisation et la couche sémantique : c'est là que les définitions de métriques sont écrites, versionnées et testées, une fois, au lieu d'être recopiées dans chaque question ;
+- **Dagster** comme orchestrateur, choisi avant ces travaux.
+
+Nous avons aussi évalué **Cube** comme couche sémantique dédiée. Il ne répondait pas à nos besoins, et nous l'avons écarté.
+
+L'ensemble est encore en évolution : ce qui suit décrit un chantier en cours, pas une architecture de référence livrée clés en main. Ce qui a changé, c'est l'endroit où la discussion a lieu : dans une définition commune qu'on peut relire et contester, plutôt qu'entre deux captures d'écran en réunion.
+
+## Le passeport d'une métrique
+
+Avant qu'une métrique alimente un dashboard partagé, elle doit répondre à quelques questions. Rien d'exotique, mais chacune pourrait raconter sa propre réunion qui a déraillé :
 
 | Élément | Question à trancher |
 | --- | --- |
-| Sens | Quelle décision ce chiffre éclaire-t-il ? |
-| Grain | Une ligne représente quoi ? |
-| Population | Quelles entités sont incluses ou exclues ? |
+| Sens | Quelle décision ce chiffre sert-il à prendre ? |
+| Grain | Une ligne, c'est un client, un compte ou une position ? |
+| Population | Qui est dedans : comptes clôturés, clients en cours d'ouverture, lignes annulées ? |
 | Temps | Date d'événement, date effective ou snapshot ? |
-| Responsable | Qui arbitre une ambiguïté ? |
-| Preuve | Quels tests et rapprochements protègent le calcul ? |
-| Fraîcheur | À partir de quand le résultat n'est-il plus utilisable ? |
+| Responsable | Qui tranche quand deux lectures sont défendables ? |
+| Preuve | Quels tests et rapprochements avec les sources protègent le calcul ? |
+| Fraîcheur | À partir de quand le résultat ne reflète plus les derniers envois des partenaires ? |
 
-En cas de désaccord, on sait quelle définition comparer, qui consulter et quels contrôles rejouer.
+La ligne « Temps » paraît la plus scolaire. C'est la plus piégeuse, et nos partenaires se chargent de le démontrer.
 
-## Trois voies pour trois usages
+Prenons les encours d'un mois donné, et une correction reçue le mois suivant. Chez un partenaire qui extourne, la correction arrive sous forme de nouvelles lignes, datées du jour de la correction : le mois passé ne bouge pas, le mois courant absorbe l'écart. Chez un partenaire qui réécrit l'historique, c'est le mois passé qui change, rétroactivement, sans que personne n'ait touché au dashboard.
 
-Toutes les questions ne doivent pas subir les mêmes contrôles. Nous distinguons trois niveaux :
+Selon la date retenue, « les encours du mois » n'ont pas la même valeur :
 
-1. **L'exploration** autorise un accès borné, des résultats temporaires et des hypothèses visibles.
-2. **La métrique certifiée** ajoute une définition versionnée, un responsable, des tests et une politique de fraîcheur.
-3. **La décision ou la diffusion** affiche la provenance, contrôle les accès et fait l'objet d'une revue proportionnée à son impact.
+- en **date d'événement** brute, on mélange les deux comportements : le mois passé est corrigé pour les partenaires qui réécrivent, pas pour ceux qui extournent ;
+- en **date effective**, on rattache chaque correction à l'opération qu'elle corrige : tout le monde converge, mais il faut relier chaque extourne à sa ligne d'origine, et le chiffre du mois passé bouge après coup ;
+- en **snapshot**, on fige ce qu'on savait à la clôture : le chiffre présenté le mois dernier reste celui du mois dernier, à condition d'avoir conservé les envois tels qu'ils étaient, puisque certains partenaires les ont réécrits depuis.
 
-Une couche sémantique porte les formules communes, un catalogue montre les responsables et la fraîcheur, et des marts isolent les données sensibles. Aucun ne remplace le contrat métier.
+Les deux dernières lectures sont défendables ; elles ne répondent simplement pas à la même question. Ce qui est faux, c'est de ne pas dire laquelle on a choisie, ou de laisser la première s'installer par défaut parce que c'est la colonne `date` qui était dans la table. D'où l'ordre des opérations : le modèle doit d'abord normaliser les deux façons de corriger, la métrique choisit ensuite sa date, et le passeport l'écrit noir sur blanc.
+
+## Explorer, certifier, publier
+
+Le but n'était pas de supprimer le libre-service. Une question exploratoire n'a pas besoin de passeport : elle a besoin d'un accès borné aux modèles, de résultats temporaires et d'hypothèses visibles. C'est l'esprit de l'époque Metabase, qu'on voulait garder, avec des fondations moins meubles.
+
+Une métrique partagée, en revanche, a une définition versionnée, un responsable, des tests et une politique de fraîcheur. Et un chiffre qui sert à décider ou qui quitte l'équipe affiche sa provenance, respecte les contrôles d'accès et passe une revue proportionnée à ce qu'il engage.
 
 <InlineArticleDiagram assetId="self-service-lanes">
   Le libre-service commence après la modélisation et les contrôles, pas au niveau des tables brutes.
 </InlineArticleDiagram>
 
-## L'assistant doit montrer sa copie
+## Un agent branché sur les tables brutes
 
-Les assistants IA partent des modèles certifiés, exposent leurs sources et signalent quand ils sortent de ce périmètre. Avant diffusion, quelqu'un doit pouvoir vérifier le résultat.
+La tentation actuelle, c'est de brancher un assistant IA directement sur l'entrepôt et de lui poser la question. Sur les tables brutes, il reproduirait l'époque Metabase à vitesse machine : une jointure plausible, une date prise au hasard des colonnes, une extourne comptée deux fois. Avec un défaut en plus : si personne ne voit la requête qu'il a improvisée, on perd la seule vertu de notre premier chaos, celle de retrouver facilement la source de l'erreur.
 
-## Un badge ne prouve rien
+Nos assistants partent donc des modèles certifiés, montrent la requête et les sources utilisées, et signalent quand ils sortent de ce périmètre. Avant diffusion, quelqu'un doit pouvoir relire le résultat comme on relisait une question Metabase.
 
-Les contrats et la fraîcheur demandent de l'entretien. Une analyse ponctuelle peut rester exploratoire. Une couche sémantique ne répare pas une source erronée : le badge « certifié » ne vaut que par les preuves et les responsabilités qui le soutiennent.
+## Ce que la couche sémantique ne règle pas
+
+Une définition impeccable ne corrige pas un fichier partenaire erroné : elle calcule proprement un chiffre faux. Les rapprochements avec les sources restent indispensables, et ils ne s'écrivent pas tout seuls.
+
+Les contrats demandent aussi de l'entretien. Un partenaire qui change sa façon de corriger ses données invalide silencieusement une hypothèse du modèle, et le badge « certifié » continue de briller pendant ce temps. Il ne vaut que par les tests et le responsable qui le soutiennent.
+
+Enfin, tout ne mérite pas ce traitement. Une analyse ponctuelle peut rester exploratoire, et c'est très bien. Une question « Encours (copie) » peut bien continuer d'exister ; elle a seulement perdu le droit de se présenter comme la référence.
 
 Suite de la série : [Ingénierie du contexte : au-delà du prompt](../posts/context-engineering-beyond-prompt-engineering).

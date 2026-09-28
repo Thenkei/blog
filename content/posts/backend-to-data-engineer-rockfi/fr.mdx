@@ -1,10 +1,10 @@
 ---
 title: "De développeur backend à data engineer : changer de casquette chez RockFi"
-subtitle: "Construire les fondations data pour la nouvelle génération de la gestion de patrimoine."
-summary: "Pourquoi je me suis tourné vers la data chez RockFi, en plongeant dans Dagster, l'architecture medallion et notre avenir avec les entrepôts de données modernes."
+subtitle: "Dix sources, dix formats, et des partenaires qui n'ont pas tous la même idée de ce que veut dire « corriger une ligne »."
+summary: "Pourquoi un backend engineer se retrouve à faire de la data chez RockFi : flux partenaires, Dagster, architecture medallion, dbt, et la question de l'entrepôt de données."
 visualId: "backend-to-data-engineer-rockfi"
 publishedAt: "2025-10-15"
-readTimeMinutes: 4
+readTimeMinutes: 5
 tags:
   - data-engineering
   - backend
@@ -13,24 +13,38 @@ tags:
   - rockfi
 ---
 
-# De développeur backend à data engineer : changer de casquette
-
 <ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
 
-Récemment chez [RockFi](https://www.rockfi.fr/), je me suis surpris à changer de casquette. Bien que mes racines soient profondément ancrées dans le développement backend, je me suis aventuré de plus en plus loin dans le monde fascinant, mais complexe, de la data.
+Chez [RockFi](https://www.rockfi.fr/), je me suis retrouvé à changer de casquette. Mes racines sont dans le backend, mais depuis mon arrivée, je passe l'essentiel de mon temps dans la data.
 
-Pourquoi ce changement ? Dans mes expériences passées, nous contrôlions entièrement les données parce que nous les produisions nous-mêmes. Chez RockFi, le défi est tout autre : bien que nous produisions aussi des données en interne, notre principal enjeu réside dans l'interconnexion avec une multitude de partenaires externes (assureurs, sociétés de gestion, fournisseurs de prix, etc.). Il devient alors crucial de maîtriser cette complexité pour consolider et gouverner ces flux. Être _data-driven_ n'est pas qu'un mot à la mode : c'est le fondement même de notre produit. Même en tant que backend engineer, on apprend vite à aimer les données et à s'adapter pour relever ce type de challenge d'intégration à grande échelle.
+Ce n'était pas un plan de carrière. Dans mes expériences précédentes, nous produisions nous-mêmes nos données, donc nous les maîtrisions de bout en bout. Chez RockFi, une grande partie de ce qui compte vient de l'extérieur : assureurs, sociétés de gestion, fournisseurs de prix… Consolider tout ça correctement, c'est littéralement le produit.
 
-## Orchestrer le chaos avec Dagster
+## Dix sources, dix formats (et ça n'est pas le pire)
 
-Mes journées tournent désormais autour de [Dagster](https://dagster.io/). Nous construisons un orchestrateur robuste capable de gérer nos pipelines de données, fondés sur l'**architecture medallion** (Bronze, Silver, Gold). Cette approche est au cœur de notre modèle économique chez RockFi.
+Au démarrage, nous avions une dizaine de sources, et à peu près autant de formats. Il y en a davantage aujourd'hui. 😅
 
-Nous rassemblons d'énormes quantités de données de tous nos fournisseurs pour alimenter la nouvelle génération de la gestion de patrimoine. Mais la donnée brute ne suffit pas. Nous intégrons également des modèles sémantiques pour assurer une gouvernance adéquate, donnant à nos équipes confiance dans les chiffres qu'elles voient et utilisent au quotidien.
+Contre toute attente, les formats ne sont pas le vrai problème. Un CSV exotique, ça se parse. Ce qui fait mal, ce sont les **modes de transmission**, et surtout la façon dont chaque partenaire corrige ses erreurs.
 
-## La prochaine étape : un véritable entrepôt de données
+Certains extournent : ils envoient une ligne qui annule l'ancienne, puis une nouvelle ligne correcte. D'autres réécrivent l'historique : la ligne d'hier a simplement changé ce matin, sans prévenir. Les deux approches se défendent ; le vrai sport, c'est de les faire cohabiter dans la même table.
 
-Réussir cette orchestration a été une étape clé. Nous avons mis en place les pipelines et les modèles de gouvernance avec succès. Mais à cette échelle, la donnée ne dort jamais, et nos systèmes doivent évoluer.
+Le travail consiste donc moins à lire des fichiers qu'à comprendre des intentions, pas toujours documentées. Une bonne partie du métier ressemble à de l'archéologie : on déterre un flux, on le date, et on essaie de deviner ce que son auteur avait en tête.
 
-Nous pouvons dire avec fierté que ce travail fondamental est achevé. Il est maintenant temps de passer au niveau supérieur : adopter un véritable entrepôt de données comme **Snowflake** ou **ClickHouse**. Cette migration nous permettra de faire évoluer nos capacités analytiques et de libérer tout le potentiel du patrimoine de données que nous avons construit, en alimentant notre plateforme de gestion avec une rapidité et une fiabilité sans précédent.
+## Orchestrer tout ça avec Dagster
 
-Être data engineer (ou backend engineer ayant enfilé une très grande casquette data) chez RockFi est une aventure passionnante. Cela demande un état d'esprit différent de celui du développement logiciel classique, mais l'impact sur l'ensemble de l'entreprise est indéniable.
+Mes journées tournent désormais autour de [Dagster](https://dagster.io/). Le choix vient de notre CTO : il voulait un outil plus récent, en misant sur le fait qu'il évoluerait plus vite que les alternatives installées.
+
+Nos pipelines suivent l'**architecture medallion** :
+
+- **Bronze** : la donnée telle que le partenaire l'a envoyée, extournes et réécritures comprises. On ne juge pas, on archive.
+- **Silver** : la donnée nettoyée, dédoublonnée et réconciliée.
+- **Gold** : ce que les équipes et le produit consomment vraiment.
+
+Pour que tout le monde parle des mêmes chiffres, nous construisons une couche sémantique avec **dbt**. Nous avons aussi regardé **Cube**, qui ne répondait pas à nos besoins : nous l'avons écarté.
+
+## La suite : un vrai entrepôt de données
+
+Les pipelines tournent et les premiers modèles de gouvernance sont en place. L'étape suivante, c'est un véritable entrepôt de données. **Snowflake** et **ClickHouse** sont sur la table.
+
+_Mise à jour (2026) : ce sera Snowflake. ClickHouse pourrait rejoindre la stack un jour, pour les cas où la latence compte vraiment (analytique temps réel). À suivre._
+
+Côté casquette, le constat est simple. La data demande un autre réflexe que le backend : on ne contrôle plus la source, on contrôle seulement ce qu'on en fait. Et quand dix partenaires ont chacun leur idée de ce que veut dire « corriger une ligne », ce réflexe s'acquiert assez vite.

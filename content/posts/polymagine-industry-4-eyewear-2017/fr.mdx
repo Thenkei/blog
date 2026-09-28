@@ -1,10 +1,10 @@
 ---
 title: "2017 : réinventer la lunetterie en moins d'une seconde"
-subtitle: "Vivre le rêve startup chez Polymagine, à la frontière de l'industrie 4.0."
+subtitle: "Premier CDI, cinq personnes, des lunettes générées en moins d'une seconde et quelques montures en roue libre."
 summary: "Retour d'expérience sur le scan biométrique, la génération 3D en temps réel et l'essayage en réalité augmentée appliqués à la lunetterie en 2017."
 visualId: "polymagine-industry-4-eyewear-2017"
 publishedAt: "2026-02-10"
-readTimeMinutes: 7
+readTimeMinutes: 5
 tags:
   - startup
   - industrie-4-0
@@ -19,15 +19,13 @@ import heroWebp960 from "../../../src/assets/images/posts/polymagine-2017-hero-9
 import heroWebp1600 from "../../../src/assets/images/posts/polymagine-2017-hero-1600.webp";
 import heroJpeg1600 from "../../../src/assets/images/posts/polymagine-2017-hero-1600.jpg";
 
-## Introduction : le grand plongeon
+## Premier CDI, cinq personnes, zéro filet
 
 <ArticleDiagram visualId="polymagine-industry-4-eyewear-2017" />
 
-À peine diplômé d'une école d'ingénieurs, je n'avais absolument aucune envie de gravir lentement les échelons confortables d'une grande entreprise ennuyeuse. Je cherchais la frontière technologique. Et je suis tombé la tête la première chez **Polymagine**.
+À peine sorti d'école d'ingénieurs, j'ai signé mon premier CDI chez **Polymagine**. Nous étions cinq. Autant dire qu'il n'y avait pas vraiment d'échelons à gravir : il y avait surtout des problèmes à résoudre, et pas grand monde d'autre pour s'en charger.
 
-Nous sommes en 2017. Pour remettre les choses dans leur contexte : c'était bien avant que la hype du « métavers » ne fatigue tout le monde, et avant que le scan facial en 3D ne devienne une fonctionnalité banale sur chaque smartphone. Chez Polymagine, on ne se contentait pas de faire des diapositives PowerPoint sur le futur. On le codait frénétiquement.
-
-Nous plongions directement dans **l'industrie 4.0 appliquée à la lunetterie**. L'énergie était électrique, les deadlines étaient terrifiantes et l'innovation était bien réelle.
+Nous sommes en 2017, bien avant que le « métavers » ne fatigue tout le monde et que le scan facial 3D ne devienne une fonctionnalité banale de smartphone. Le projet : **l'industrie 4.0 appliquée à la lunetterie**. On scanne un visage, on génère une monture adaptée à ce visage précis, on la fait essayer en réalité augmentée, puis on la fabrique.
 
 <ImageMotionFigure assetId="polymagine-pipeline" src={heroAvif960}>
   <picture>
@@ -57,45 +55,42 @@ Nous plongions directement dans **l'industrie 4.0 appliquée à la lunetterie**.
 </ImageMotionFigure>
 
 <div className="highlight">
-  Le défi performance central était simple à énoncer : générer un mesh 3D
-  personnalisé en moins d'une seconde.
+  Moins d'une seconde pour générer un mesh 3D personnalisé. Personne ne
+  m'avait imposé ce chiffre : je me l'étais fixé tout seul.
 </div>
 
-## La tech : à la limite du possible
+## La stack : Java, C++ et une lib dont j'ai oublié le nom
 
-Avec le recul, la stack était ambitieuse. L'objectif était clair mais complexe : produire des lunettes parfaitement adaptées à un visage unique, avec une latence imperceptible.
+Le scan se faisait sur iPad, mais aussi sur une tablette spécialisée. Derrière, le cœur géométrique tournait en Java et en C++, avec une bibliothèque de géométrie algorithmique dont j'ai totalement oublié le nom. Je lui ai pourtant consacré une part non négligeable de ma vingtaine. Ingratitude, quand tu nous tiens.
 
-Concrètement, au quotidien, cela voulait dire relier le physique et le numérique en temps réel :
+Côté infrastructure, l'architecture était distribuée sur Kubernetes, chez GCP, avec des instances dédiées à la génération des maillages 3D. Le calcul géométrique n'aime pas partager sa machine avec le reste.
 
-- **Biométrie en base de tout :** aucun dimensionnement approximatif. Nous capturions des mesures précises via scan facial.
-- **Le maillage en une seconde :** à partir de ces données biométriques, nous générions un mesh 3D en moins d'une seconde.
-- **Ajustement paramétrique :** nous adaptions les gabarits strictement à la morphologie du client final.
-- **Prévisualisation AR et VR :** avant toute découpe de matière, le client voyait virtuellement la monture sur sa tête, avec l'échelle et l'ajustement corrects.
+Le rendu temps réel, lui, passait par three.js, intégré dans une application React. Et pour les belles images, nous avions monté une machine avec Blender, dédiée au rendu PBR : elle produisait tous les modèles façon vitrine virtuelle, avec des reflets sur l'acétate que la vraie monture aurait pu nous envier.
 
-## Au-delà de l'effet waouh : une vraie industrie 4.0
+Fun fact : pour ces rendus, nous avions accès aux cartes graphiques les plus puissantes du moment (des Titan, si ma mémoire est bonne). On les louait en spot, quelques minutes, le temps d'un rendu. Le grand luxe, facturé à la minute.
 
-La couche visible côté client était spectaculaire, mais la valeur d'ingénierie allait bien au-delà.
+## Une seconde, parce que je l'avais décidé
 
-Nous pilotions un processus industriel de bout en bout.
+L'objectif d'une seconde ne venait d'aucun cahier des charges. C'est moi qui l'ai posé, puis j'ai poussé tous les curseurs de performance au maximum, avec une règle : ne rien lâcher sur la qualité.
 
-Du scan biométrique jusqu'à la production, la donnée circulait dans une boucle fermée. Le design numérique alimentait directement la fabrication physique, avec visibilité pour toutes les parties prenantes.
+C'était d'autant plus exigeant qu'à mon arrivée, nous avons aussi retravaillé les algorithmes de génération. Les lunettes proposées sont devenues nettement plus réalistes. Faire plus vite et plus beau en même temps, c'est le genre de défi qu'on accepte surtout quand on vient de sortir d'école.
 
-C'est là que le projet était vraiment Industrie 4.0 : pas une démo isolée, mais un système intégré, branché sur l'opérationnel.
+## La galerie des horreurs
 
-## L'expérience startup rêvée
+Qui dit génération procédurale dit ratés spectaculaires. J'ai vu passer des lunettes avec des parties manquantes. Très avant-gardiste, assez peu portable.
 
-On entend souvent parler de l'early stage : chaos, vitesse, camaraderie, règles à inventer en marchant. Polymagine, c'était exactement ça.
+Les premières versions du head tracking apportaient aussi leur lot de glitchs. Quand le suivi du visage décroche, la monture a vite fait de partir vivre sa vie. C'était quelque chose à voir.
 
-C'était l'environnement startup dont rêvent beaucoup d'étudiants ingénieurs : une équipe soudée, des contraintes fortes, de l'itération rapide, et des problèmes sans réponse toute faite.
+Je garde une tendresse particulière pour ces lunettes en roue libre.
 
-Nous ne faisions pas que coder. Nous voyions le code devenir un produit physique.
+## Du scan à la fabrication
 
-C'était intense, exigeant, et franchement une excellente période.
+La démo en réalité augmentée était la partie visible. Le projet visait plus loin : faire circuler la même donnée du scan biométrique jusqu'à la production, le design numérique alimentant directement la fabrication de la monture. C'est ce qui en faisait un vrai projet industrie 4.0, et pas seulement un filtre photo sophistiqué.
 
-## Conclusion
+## Et après ?
 
-Mon passage chez Polymagine a placé la barre très haut pour la suite de ma carrière.
+Polymagine n'a pas su vendre le produit. La technologie fonctionnait, la mise sur le marché, beaucoup moins.
 
-J'y ai appris qu'en ingénierie, il ne s'agit pas seulement de maintenir des systèmes existants, mais de les réimaginer.
+En 2024, en entrant dans un magasin, je suis tombé sur un écran d'essayage virtuel. Il proposait peu ou prou ce que nous avions développé sept ans plus tôt. J'ai souri, un peu comme on croise un ex qui a très bien réussi.
 
-En 2017, nous avons montré qu'avec les bonnes données et la bonne vision, on peut adapter le monde à la personne, plutôt que l'inverse.
+Avoir raison trop tôt, en startup, ressemble beaucoup à avoir tort. Mais je sais d'où me vient ce réflexe de pousser les curseurs de performance jusqu'au bout.

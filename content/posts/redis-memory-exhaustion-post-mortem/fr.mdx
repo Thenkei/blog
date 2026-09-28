@@ -1,6 +1,6 @@
 ---
 title: "Post-mortem : le jour où Redis a atteint ses limites"
-subtitle: "Pourquoi regrouper tous vos cas d'usage dans une seule base de données est une bombe à retardement."
+subtitle: "Pourquoi regrouper tous vos cas d'usage dans une seule base en mémoire, c'est les condamner à tomber ensemble."
 summary: "Une panne survenue un week-end chez Forest Admin à cause de l'épuisement de la mémoire Redis, et les leçons qu'elle apporte sur le cycle de vie des données."
 visualId: "redis-memory-exhaustion-post-mortem"
 publishedAt: "2021-10-15"
@@ -13,9 +13,9 @@ tags:
 
 _Note : Cet article a été écrit post-mortem, après mon départ de Forest Admin._
 
-Stocker des objets complexes et volumineux dans Redis pour obtenir un service ultra-rapide semble être une excellente idée, jusqu'à ce que cela ne le soit plus. Chez Forest Admin, nous avons appris à nos dépens que traiter une seule instance Redis comme une solution universelle pouvait entraîner des pannes en cascade catastrophiques.
+Stocker des objets complexes et volumineux dans Redis pour les servir en moins d'une milliseconde est une excellente idée, tant qu'ils tiennent en RAM. Chez Forest Admin, nous avons appris à nos dépens qu'une instance Redis à qui l'on confie tout peut aussi tout faire tomber en même temps.
 
-Voici l'histoire d'une panne survenue un week-end, causée par une erreur de mémoire insuffisante (OOM), et les leçons d'architecture et de cycle de vie des données que nous en avons tirées.
+Voici l'histoire d'une panne survenue un week-end, causée par une erreur de mémoire insuffisante (OOM), et ce qu'elle nous a appris sur l'architecture et le cycle de vie des données.
 
 ## Le contexte
 
@@ -25,7 +25,7 @@ Pour atteindre une latence inférieure à la milliseconde sur certaines données
 
 Cette fonctionnalité avait été implémentée 2 à 3 ans avant l'incident. À l'époque, nous avions moins de clients et les objets en question étaient minuscules. D'ailleurs, la majorité de l'équipe technique gérant l'incident (moi y compris) n'était même pas encore dans l'entreprise lors du développement initial.
 
-Parce que Redis est incroyablement rapide et fiable, il était devenu organiquement notre solution par défaut pour divers autres besoins au fil du temps :
+Redis étant rapide et fiable, il était devenu, au fil du temps, notre réponse par défaut à tout un tas d'autres besoins :
 
 - **BullMQ** : Gestion et exécution des jobs en arrière-plan.
 - **Authentification** : Gestion des sessions utilisateurs.
@@ -33,11 +33,11 @@ Parce que Redis est incroyablement rapide et fiable, il était devenu organiquem
 
 Tous ces processus distincts cohabitaient joyeusement au sein d'une **seule et unique instance Redis**.
 
-## Le syndrome de la grenouille dans l'eau chaude
+## Une courbe de mémoire que personne ne regardait
 
-À mesure que Forest Admin s'est développé, les cas d'usage de nos clients ont suivi le même chemin. Ce qui a commencé par de petits objets légers en cache s'est lentement transformé en structures de données massives. La croissance étant progressive, le problème s'est insidieusement installé.
+À mesure que Forest Admin s'est développé, les cas d'usage de nos clients ont suivi le même chemin. Ce qui a commencé par de petits objets légers en cache s'est lentement transformé en structures de données massives. La croissance étant progressive, aucune journée n'avait l'air anormale : la courbe de mémoire grimpait de quelques pixels par semaine.
 
-Puis, c'est arrivé un week-end. Un pic de volume de données inattendu a fait déborder le vase. Avant que quiconque ne s'en rende compte, notre instance Redis a atteint sa limite de mémoire et épuisé sa capacité.
+Puis, c'est arrivé un week-end. Un pic soudain de volume de données a fait le reste. Avant que quiconque ne s'en rende compte, notre instance Redis avait atteint sa limite de mémoire.
 
 Les conséquences ont été immédiates et généralisées. Comme tout dépendait de cette instance unique, le problème ne s'est pas limité à la couche de cache :
 
@@ -45,7 +45,7 @@ Les conséquences ont été immédiates et généralisées. Comme tout dépendai
 - **Authentification en panne** : Les utilisateurs ne pouvaient plus se connecter ni maintenir leurs sessions.
 - **Sécurité impactée** : Notre suivi anti-brute force est tombé hors ligne.
 
-La plateforme entière subissait de fait une dégradation massive, le tout découlant d'un seul pool de mémoire épuisé.
+Toute la plateforme était dégradée, à cause d'un cache qui n'avait jamais été censé être critique.
 
 <ArticleMedia mediaId="redis-memory-pressure" />
 
@@ -63,18 +63,16 @@ En couplant une mise en cache hautement volatile et gourmande en mémoire avec d
 
 ### 3. Des cycles de vie des données inefficaces
 
-Nous pensions avoir géré la rétention. Nous avions configuré un TTL (Time-To-Live), mais il n'était tout simplement pas assez agressif. De plus, nous nous sommes rendu compte que nous ne supprimions pas activement les données appartenant aux projets supprimés, laissant des objets obsolètes consommer de la RAM pour absolument rien.
+Nous pensions avoir géré la rétention. Nous avions configuré un TTL (Time-To-Live), mais il n'était tout simplement pas assez agressif. Pire : nous ne supprimions pas activement les données des projets supprimés. Des objets obsolètes occupaient de la RAM pour le compte de projets qui n'existaient plus.
 
 ## Les corrections et leçons à retenir
 
-Nous avons bien sûr séparé l'architecture pour que le cache, les files d'attente et les sessions vivent désormais dans des instances Redis isolées. Mais nous ne nous sommes pas arrêtés là.
-
-Pour résoudre les problèmes fondamentaux liés aux données, nous avons :
+Nous avons d'abord séparé l'architecture : le cache, les files d'attente et les sessions vivent désormais dans des instances Redis isolées. Restait le problème de fond, les données elles-mêmes. Nous avons :
 
 - **Raccourci les TTL** : Les rendre beaucoup plus agressifs pour garantir que la mémoire soit libérée plus rapidement.
 - **Nettoyé les données obsolètes** : Mis en place des routines pour supprimer immédiatement les éléments en cache appartenant aux projets supprimés.
-- **Compressé les payloads** : Un collègue ([Guillaume Gautreau](https://www.ghusse.com/redis/node/compress/does-it-worth-compressing-large-json-in-redis/)) a pris le temps d'étudier et d'implémenter une solution de compression des données _avant_ leur stockage dans Redis. Non seulement cela a réduit significativement notre consommation mémoire, mais cela s'est également traduit par des temps de transport HTTPS plus courts grâce à la taille réduite des payloads.
+- **Compressé les payloads** : Un collègue ([Guillaume Gautreau](https://www.ghusse.com/redis/node/compress/does-it-worth-compressing-large-json-in-redis/)) a pris le temps d'étudier et d'implémenter une solution de compression des données _avant_ leur stockage dans Redis. Cela a nettement réduit notre consommation mémoire et, payloads plus petits obligent, raccourci les temps de transport HTTPS.
 
 <MotionScene id="redis-cache-lifecycle-fixes" />
 
-Si vous utilisez une base de données en mémoire comme Redis en production, ce post-mortem sert de rappel : surveillez toujours votre mémoire, isolez vos domaines métier et ne supposez jamais qu'une stratégie de cache qui fonctionne pour un petit nombre de clients passera automatiquement à l'échelle lorsque la complexité de vos données augmentera.
+Si vous utilisez Redis en production, la leçon tient en une question : que deviennent vos sessions et vos jobs le jour où votre cache remplit la RAM ? Chez nous, la réponse était « ils tombent avec lui ». Et une stratégie de cache calibrée pour quelques clients ne se recalibre pas toute seule quand leurs données grossissent.

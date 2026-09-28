@@ -46,7 +46,6 @@ const editorialSystemTextBudgets = [
   { id: "ai-force-multiplier", inlineLabels: 3 },
   { id: "sse-outbound-channel", inlineLabels: 10 },
   { id: "backend-to-data-engineer-rockfi", inlineLabels: 3 },
-  { id: "claude-code-product-os", inlineLabels: 3 },
   { id: "trail-endurance-profile", inlineLabels: 3 },
   { id: "engineering-2026-ai-redefined-our-job", inlineLabels: 3 },
   { id: "forest-admin-activity-logs-elasticsearch", inlineLabels: 3 },
@@ -87,7 +86,6 @@ const localizedPrototypeLabels = [
     fr: "2 · Plan de contrôle → agent · événements SSE",
   },
   { id: "backend-to-data-engineer-rockfi", en: "Warehouse", fr: "Entrepôt" },
-  { id: "claude-code-product-os", en: "Release", fr: "Release" },
   {
     id: "trail-endurance-profile",
     en: "Sport · 15 h",
