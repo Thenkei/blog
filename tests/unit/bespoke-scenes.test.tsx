@@ -66,6 +66,23 @@ describe("bespoke article scenes", () => {
     }
   });
 
+  it("keeps the announcement in review before publication and leaves other tasks pending", async () => {
+    const scene = await loadBespokeScene("hat-switching-tax");
+    for (const compact of [false, true]) {
+      for (const locale of locales) {
+        const { Stage } = scene;
+        const props = { compact, locale, width: compact ? 540 : 960, height: compact ? 520 : 420 };
+        const reviewing = renderToStaticMarkup(<svg><Stage {...props} frame={360} /></svg>);
+        const published = renderToStaticMarkup(<svg><Stage {...props} frame={478} /></svg>);
+        const publication = locale === "fr" ? "✓ PUBLIÉE" : "✓ PUBLISHED";
+        expect(reviewing).not.toContain(publication);
+        expect(published).toContain(publication);
+        expect(published.match(new RegExp(locale === "fr" ? "en attente" : "pending", "g"))).toHaveLength(7);
+        expect(scene.durationInFrames - 446).toBeGreaterThanOrEqual(60);
+      }
+    }
+  });
+
   it("renders the poster with the narration as an ordered text alternative", async () => {
     const scene = await loadBespokeScene("postgresql-unique-nulls");
     render(<BespokePoster scene={scene} locale="fr" />);

@@ -19,6 +19,7 @@ const editorialSlugs = [
   "claude-code-product-os",
   "context-engineering-beyond-prompt-engineering",
   "coros-apex-4",
+  "engineer-life-late-2026",
   "engineering-2026-ai-redefined-our-job",
   "engineering-documents-age-poorly",
   "forest-admin-activity-logs-elasticsearch",

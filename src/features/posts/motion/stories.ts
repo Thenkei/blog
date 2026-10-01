@@ -64,8 +64,8 @@ export const MOTION_STORIES = {
   },
   "engineer-life-late-2026": {
     kind: "choice",
-    en: ["One terminal, five hats", "Boundaries get brittle", "Keep a human gate on each"],
-    fr: ["Un terminal, cinq casquettes", "Les frontières deviennent friables", "Garder un gate humain sur chacune"],
+    en: ["Eight jobs in one terminal", "Each task needs a different review", "Check before merging or publishing"],
+    fr: ["Huit métiers dans un terminal", "Chaque tâche demande une relecture adaptée", "Vérifier avant de merger ou publier"],
   },
   "engineering-2026-ai-redefined-our-job": {
     kind: "choice",

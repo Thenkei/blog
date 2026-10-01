@@ -5,10 +5,17 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
+<title>Your Back Office Is a Product. Build It Like One.</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-are-a-product</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-are-a-product</guid>
+<description>Internal tools usually grow screen by screen until every screen carries its own truth. Nexus is our attempt to move that truth into one engine, so consistency becomes a property of the system rather than a habit of each developer.</description>
+<pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>An Engineer&apos;s Life in Late 2026: The Terminal Is My Office, My Ad Agency, and My PM</title>
 <link>https://thenkei.github.io/blog/en/posts/engineer-life-late-2026</link>
 <guid>https://thenkei.github.io/blog/en/posts/engineer-life-late-2026</guid>
-<description>In 2026, the terminal is still the least sexy and most powerful tool in the job. It also blew up the boundaries of what an engineer&apos;s role even is: marketing, project management, communications. On keeping control while wearing every hat at once.</description>
+<description>I still work in a terminal. Now I also use it to draft release announcements, plan milestones, and answer feedback. The drafts come faster; deciding what deserves to ship still takes work.</description>
 <pubDate>Mon, 28 Sep 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
