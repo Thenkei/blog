@@ -89,6 +89,12 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
       fr: "Coureur de trail inspiré du manga sportif franchissant une route de montagne avec une montre robuste.",
     },
   },
+  "engineer-life-late-2026": {
+    alt: {
+      en: "Comic illustration of an engineer at a terminal surrounded by code, a release announcement, milestone cards, and feedback, with a neglected coffee mug on the desk.",
+      fr: "Illustration de bande dessinée montrant un ingénieur devant son terminal, entouré de code, d'une annonce de release, de jalons et de retours, avec une tasse de café oubliée sur le bureau.",
+    },
+  },
   "engineering-2026-ai-redefined-our-job": {
     alt: {
       en: "Comic illustration of an engineer redirecting many automated workstreams across a bounded construction site.",
