@@ -113,12 +113,6 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       caption: "Le passage vers la data engineering commence quand des données que l'on ne contrôle pas doivent devenir un actif fiable.",
       labels: { a: "Partenaires", b: "Orchestration", c: "Bronze · Silver · Gold", d: "Entrepôt", e: "Données fiables" },
     },
-    "claude-code-product-os": {
-      title: "De l'expérimentation au Product OS",
-      description: "Des pratiques individuelles deviennent un système partagé de décision, de livraison et de revue.",
-      caption: "Le Product OS rend le chemin vers une release relisible et reproductible.",
-      labels: { a: "Challenge", b: "Pratique", c: "Plugin", d: "Revue", e: "Release" },
-    },
     "internal-tools-as-product": {
       title: "Un moteur au centre des outils internes",
       description: "Des écrans épars, chacun avec ses requêtes, ses droits et ses comportements, se rattachent à un moteur commun qui porte données, droits, audit et composants.",
@@ -335,12 +329,6 @@ const VISUAL_COPY: Record<PostLocale, LocaleCopy> = {
       description: "Heterogeneous external formats cross orchestration and Bronze, Silver, and Gold layers before reaching a governed warehouse.",
       caption: "The shift into data engineering starts when data you do not control must become a reliable company asset.",
       labels: { a: "Partners", b: "Orchestration", c: "Bronze · Silver · Gold", d: "Warehouse", e: "Trusted data" },
-    },
-    "claude-code-product-os": {
-      title: "From experimentation to a Product OS",
-      description: "Individual practices become a shared system for decisions, delivery, and review.",
-      caption: "A Product OS makes the path to a release explicit and repeatable.",
-      labels: { a: "Challenge", b: "Practice", c: "Plugin", d: "Review", e: "Release" },
     },
     "internal-tools-as-product": {
       title: "One engine at the centre of internal tools",

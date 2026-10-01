@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HelmetProvider } from "react-helmet-async";
@@ -38,6 +38,14 @@ async function waitForPostHeading(name: string) {
   );
 }
 
+// PostPage is a lazy route with a heavy module graph (MDX, motion scenes).
+// Whichever test renders a post first would otherwise pay its cold transform
+// inside an assertion timeout, and React Router keeps the previous screen up
+// during the transition, so a slow CI runner times out on stale UI.
+beforeAll(async () => {
+  await import("../../src/features/posts/PostPage");
+}, 30_000);
+
 beforeEach(() => {
   localStorage.clear();
   document.documentElement.removeAttribute("data-theme");
@@ -64,10 +72,11 @@ describe("routing and UX", () => {
   it("redirects legacy ?post query to canonical post route", async () => {
     renderApp("/en?post=postgresql-unique-nulls");
     expect(
-      await screen.findByRole("heading", {
-        level: 1,
-        name: /ON CONFLICT DO UPDATE with nullable columns/i,
-      }),
+      await screen.findByRole(
+        "heading",
+        { level: 1, name: /ON CONFLICT DO UPDATE with nullable columns/i },
+        { timeout: lazyContentTimeout },
+      ),
     ).toBeInTheDocument();
     expect(await waitForPostHeading("The Plot Twist")).toBeInTheDocument();
   });

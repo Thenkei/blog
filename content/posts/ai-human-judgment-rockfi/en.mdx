@@ -1,10 +1,10 @@
 ---
 title: "From Zero to Hero: Building RockFi's Product OS"
-subtitle: "How internal challenges led to plugins connecting discovery, design, and delivery."
-summary: "At RockFi, AI adoption became a shared workflow: learn on real work, encode what works, and keep human gates."
+subtitle: "Twenty people, ten Claude Code challenges, and plugins that keep context alive on the trip from a workshop to a PR."
+summary: "How the Claude Code Challenges got good AI practices out of terminal histories, and how we then encoded them as plugins connecting discovery, design, and delivery, without ever handing the merge to an agent."
 visualId: "bounded-ai-loop"
 publishedAt: "2026-07-10"
-readTimeMinutes: 7
+readTimeMinutes: 9
 tags:
   - ai
   - engineering
@@ -13,47 +13,86 @@ tags:
   - rockfi
 ---
 
-## Context
+At RockFi, Claude Code already had its fans. A few people were getting very solid results from it, each with their own method, their own prompts, and their own small superstitions. The problem was that none of it travelled. A good AI practice that never leaves its author's terminal is like a family recipe nobody ever bothered to write down: excellent, and doomed.
 
-We already had strong individual uses of Claude Code at RockFi. The problem was no longer proving that an agent could write code. We needed to make good practices available to the whole team and connect AI to the way we actually build products.
+This is how we got from there to what we call, with only relative modesty, our **Product OS**: internal challenges to learn together, then Claude Code plugins that connect discovery, design, and delivery.
 
-We launched **Claude Code Challenges: From Zero to Hero**: asynchronous exercises on real code, each with a deliverable, a review, and—most importantly—a record of what failed. The sequence covered context, implementation from a spec, debugging with falsifiable hypotheses, parallel agents, hooks, and skills.
+## Writing code faster is pointless if the context was lost upstream
 
-<ArticleDiagram visualId="bounded-ai-loop" />
+Proving that an agent could write code was settled. The real issue sat further upstream. Between product discovery and a PR, context crosses several handoffs: workshop, document, issues, implementation, review. At every crossing, you can drop the original problem, a decision, a boundary, or the definition of “done”.
 
-## The problem
+The symptoms were always the same. The effective prompt slept in a terminal history. The important convention never showed up at the moment it mattered. The document was clean but had lost the intent of the workshop. The issue sliced the code without preserving the expected value. And a few weeks later, the explanation of *why* was scattered across conversations and pages.
 
-Individual usage is hard to reproduce. The effective prompt stays in a terminal history; an important convention does not appear when needed; a clean document loses the intent of the workshop; an issue slices code without preserving expected value.
+Under those conditions, speeding up implementation alone is like widening one lane of the motorway: the traffic jam simply re-forms at the next toll booth.
 
-Between product discovery and a PR, context crosses several handoffs. Each handoff can lose the original problem, a decision, a boundary, or the definition of done. Accelerating implementation alone moves the bottleneck without improving delivery.
+## Demos, guides, and mega-prompts: our placebos
 
-## Bad ideas
+One-off demos worked like a good movie trailer: plenty of excitement on the way out, no new habits the following Monday. Long guides were reread with the devotion people usually reserve for terms and conditions, which is to say never at the precise moment a rule became useful. The best workflows stayed personal.
+
+We also had our “mega-prompt” phase: one block carrying all the context at once, with facts, instructions, and stale decisions mixed together. The equivalent of a trail-running pack prepared by someone terrified of running out: heavy, painful to maintain, and with contradictions at the very bottom that nobody could find.
+
+Then we tried the straight line: PRD, design, tasks, code. It holds until the first false assumption discovered during implementation. With no way back to design, automation then does what it does best: accelerate, enthusiastically, in the wrong direction.
+
+For the record, the temptations we turned down:
 
 - Buy a tool and call it an adoption strategy.
-- Measure progress through generated code or content volume.
-- Search for one universal prompt across roles and repositories.
-- Automate an unstable workflow before clarifying owners and gates.
-- Let an agent publish a product decision or merge a PR because tests pass.
+- Measure progress by the volume of generated code or content. A great metric, if the goal is filling a disk.
+- Look for the universal prompt that works for every role and every repository. The Holy Grail, with worse documentation.
+- Automate an unstable workflow before knowing who owns it and where the gates are.
+- Let an agent publish a product decision or merge a PR because the tests pass. Tests that test nothing pass too.
 
-Speed creates value only while the output stays connected to verifiable intent.
+## Ten challenges, and the right to fail in public
 
-## What did not work
+So we launched **Claude Code Challenges: From Zero to Hero**. The whole team took part: twenty people, not just the developers. Which makes sense, since the context that gets lost between a workshop and a PR does not only get lost in the code.
 
-One-off demos created excitement but few habits. Long guides were rarely reopened at the precise moment a rule mattered. The best workflows remained personal.
+The format is deliberately down to earth: ten short challenges, bonus ones included, completed asynchronously on real code. Allow 60 to 90 minutes per challenge, with a concrete deliverable and a review at the end. No quiz: nobody learns to steer an agent by ticking answer B.
 
-We also tried sequences that were too linear: PRD, design, tasks, code. Real work is recursive. A false assumption discovered during implementation must be able to reopen design. Without feedback, automation accelerates a decision that is no longer true.
+The sequence follows real work:
 
-Large prompts carrying every piece of context also mixed facts, instructions, and old decisions. They were expensive to maintain and hid contradictions.
+- Establish a reliable baseline and learn to manage context.
+- Build from a specification, review the result, and deliver it through the normal workflow.
+- Debug with reproducible evidence and falsifiable hypotheses rather than incantations.
+- Work with subagents and parallel worktrees where parallelism is justified.
+- Build hooks and skills, then contribute useful workflows back to the team.
 
-## Alternatives
+The choice that mattered most: the programme lives in Slack, and what gets shared first is what went wrong. The prompt that worked, the approach that failed, a screenshot, the unexpected lesson from a session. No ranking. A leaderboard would have rewarded speed; we wanted to see the invisible part of working with AI, meaning how people frame the request, inspect the output, correct course, and decide that a result is good enough to move forward.
 
-We could maintain a prompt library, build a central platform, or let each team choose its own practices. We chose **composable plugins**: small enough to own a precise workflow, versioned with templates and guardrails, and connected through explicit contracts.
+That part matters far more than prompt recipes. Claude Code produces a plausible answer very quickly. It cannot know whether that answer preserves the right invariant in our domain unless we give it the context and check afterwards.
 
-The Value Engineering plugin helps facilitate a workshop or distil a conversation into a **DiveIn** document. Delivery capabilities turn a definition of done and slices into reviewable tasks. The engineering plugin governs branches, commits, tests, PRs, and review. Other capabilities cover discovery, QA plans, rollout, and blind-spot analysis.
+## From someone's terminal to everyone's marketplace
 
-## The solution
+The challenges acted as a detector: they surfaced the team's real practices before we tried to encode them. A failure shared in a thread became an edge case to handle. A workflow everyone kept redoing by hand became a skill. A rule we never wanted to see broken again became a hook.
 
-We call the system our **Product OS**. It is not an autonomous agent. It is a human-led loop equipped with reusable workflows:
+That left the question of the container. A prompt library? The graveyard of good intentions. A central platform? A whole roadmap before the first use. Let every team figure it out? The family recipe, season two. We chose **composable plugins**: small enough to belong to one precise workflow, versioned with their templates and guardrails, installable by whoever needs them, and connected to each other through explicit contracts.
+
+What separates a plugin from a shared prompt is what it carries: the procedure, the guardrails, the templates, and the edge cases that make a workflow reliable in the way we work. Our internal marketplace now holds technical plugins as well as broader ones for the company's recurring tasks. The technical side is where the Product OS is most visible. Here are two of them.
+
+## `rockfi-engineering`, or the polite bouncer of `main`
+
+The `rockfi-engineering` plugin brings the everyday engineering workflow into Claude Code, and it is opinionated without apologising for it. A fast workflow that bypasses review discipline only produces an unreadable history faster.
+
+Its PR creation skill does more than fill in a template. It analyses the change, scores its complexity, spots unrelated scopes, and warns when the PR should be split. In other words, it says out loud what the reviewer is thinking in silence. It then writes a structured description around the questions that same reviewer actually asks: objective, rationale, implementation, resources.
+
+The commit skill validates our conventional-commit rules. And a strict pre-tool hook blocks any commit or push from `main`. That hook has no sense of humour, but it does have manners: instead of slamming the door, it creates an appropriately named feature branch and carries on from there. A bouncer who walks you to the right entrance.
+
+We never ask an agent to “ship it”. We encode a path (feature branch, clear PR, review by the right people before anything is merged) and AI removes the mechanical friction from it. The review stays exactly where it is.
+
+## `rockfi-ve`: keeping the “why” attached to the PR
+
+Creating a clean PR is the easy part. The hard part is making sure it stays connected to the decision that justified it.
+
+The `rockfi-ve` plugin supports our Value Engineering process, from facilitating a workshop through to the final design document, the **DiveIn**, grounded in the official Notion templates. It has two modes:
+
+- **Facilitation:** when the thinking still needs to happen, it guides a workshop or a DiveIn section by section. The team explores the problem, compares solutions, documents the decision, and defines the expected outcome.
+- **Distillation:** when the discussion already happened and the main job is finding it again, it maps the existing content into the right structure, surfaces what is missing, flags assumptions, and prepares a draft for confirmation before publication.
+
+The DiveIn structure makes the handoff concrete: context, definition of done, functional solution, technical solution, slicing, and resources. What comes out is less a nice document than a contract between product and tech: which problem we are solving, what “done” means, what is deliberately out of scope, and how to deliver in increments that stand on their own.
+
+The plugin also knows the next move. A workshop leads to a DiveIn; a DiveIn leads to slices, a QA plan, a rollout plan, and issues. Other capabilities then take over: delivery turns the definition of done and the slices into reviewable tasks, and the rest covers discovery, QA planning, rollout, and hunting for blind spots.
+
+## A loop, because the straight line always ends up lying
+
+“Product OS” is the kind of name that calls for a keynote and a black background. The idea behind it is much more modest: each step must leave the next one with usable, reviewable context.
 
 ```text
 Problem discovery
@@ -72,16 +111,26 @@ Human review, release, and learning
         └───────────────────────↺
 ```
 
-Each step produces an artefact the next one can use. Plugins retrieve context from authorised sources, expose what is missing, and prepare output. Human gates remain on product decisions, architecture choices, sensitive changes, and merge.
+<ArticleMedia mediaId="product-os-loop" />
 
-The challenges made this possible by surfacing real practices before we encoded them. A shared failure became an edge case; a repeated workflow became a skill; a critical rule became a hook.
+Plugins retrieve context from authorised sources, expose what is missing, and prepare output the next step can consume. Each layer keeps its owner: product owns the problem and the intended outcome, engineering owns the technical design and implementation, reviewers own the scrutiny required before a change reaches production. AI moves the context between those layers so nobody has to run a door-to-door investigation at every handoff.
 
-The intended result is not “more deliverables”. It is less context reconstructed at each handoff and more attention available for decisions requiring knowledge of the product, customers, and system.
+The small return arrow at the bottom is the most important part of the diagram. A false assumption discovered during implementation must be able to reopen design. That is exactly what our straight line did not allow.
 
-## Limits
+## Where the agent stops and waits for someone
 
-A plugin can standardise a bad practice as effectively as a good one. Every workflow therefore needs an owner, evaluation, and an exit path when context is insufficient.
+<ArticleDiagram visualId="bounded-ai-loop" />
 
-The Product OS replaces neither product strategy, domain expertise, nor technical review. It also creates a surface to maintain: permissions, templates, connectors, tool compatibility, and observability. Not every piece of work should cross the whole chain; a small reversible change deserves a short path.
+We stay cautious with the word “automation”. The system speeds up preparation and makes the process more consistent, but human gates remain on product decisions, architecture choices, sensitive changes, and merge. An agent can prepare the whole file for a VE decision or a definition of done; it does not sign at the bottom. And a PR waits for a reviewer who can challenge the design and the code, not merely observe that CI is green.
 
-Final accountability remains human. AI transports and transforms context; it does not own the outcome.
+What we are trying to win back is the time spent rebuilding context at every handoff, and give it to the decisions that require knowing the product, the customers, and the system. Extra deliverables were never in short supply.
+
+## Industrialising a bad idea is also very efficient
+
+A plugin standardises a bad practice exactly as efficiently as a good one. It is arguably its main talent. Every workflow therefore needs an owner, an evaluation, and an exit path when the context is not enough.
+
+The Product OS replaces neither product strategy, nor domain expertise, nor technical review. It even adds a surface to maintain: permissions, templates, connectors, tool compatibility, observability. We traded a bit of chaos for maintenance, which, let's be honest, is a fairly good definition of engineering.
+
+Finally, not everything should cross the whole chain. Sending a typo through a VE workshop and a DiveIn is like taking a long-haul flight to buy bread: a small, reversible change deserves a short path.
+
+We are only at the beginning. The marketplace will grow, the workflows will improve, and the next useful plugin is probably already failing somewhere in a challenge thread.

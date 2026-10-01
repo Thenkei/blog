@@ -1,5 +1,5 @@
 ---
-title: "Reverse ETL : le mensonge du « presque temps réel »"
+title: "Reverse ETL : de quand date le chiffre à l'écran ?"
 subtitle: "Quand une donnée repart de l'entrepôt vers une application utilisée en direct, chaque minute de retard devient un problème produit."
 summary: "Deuxième épisode : pourquoi renvoyer des données calculées dans Snowflake vers une application vivante est la partie la plus délicate de la plateforme. Budget de fraîcheur, propriété des champs, écritures conditionnelles, runs atomiques, et l'heure affichée à côté de chaque chiffre."
 visualId: "backend-to-data-engineer-rockfi"
@@ -14,14 +14,15 @@ tags:
   - rockfi
 seriesId: "what-trustworthy-data-costs"
 seriesOrder: 2
-draft: true
 ---
 
 Deuxième épisode de **Ce que coûte une donnée fiable**. Le premier parlait de faire entrer les données dans l'entrepôt. Celui-ci parle de les en faire sortir, ce qui est nettement moins documenté et nettement plus dangereux.
 
 Le scénario est simple. Un conseiller ouvre un écran. Il y voit un chiffre calculé dans l'entrepôt : une consolidation, un indicateur, une donnée partenaire nettoyée. Il s'en sert pour parler à un client.
 
-La seule question qui compte : **ce chiffre date de quand ?**
+Nous utilisons ce chemin pour redescendre des résultats analytiques dans les applications, notamment les performances des portefeuilles clients et le rapprochement entre marchés et clients des advisors. Une valeur en retard ou incohérente devient donc un problème produit, pas seulement un problème d'entrepôt.
+
+La première question : **à date de quand ?**
 
 ## Le budget de fraîcheur (faites l'addition)
 
@@ -35,25 +36,28 @@ Prenons une chaîne typique, avec des intervalles raisonnables pris un par un (e
 | Transformation dbt | toutes les heures, horloge indépendante | 60 min + durée du run |
 | Reverse sync vers l'application | toutes les 15 min | 15 min + durée d'application |
 
-Pire cas : **plus de deux heures un quart**, avant même de compter les durées d'exécution. Médiane : environ une heure. Et chaque équipe qui a réglé son intervalle pense, à juste titre, avoir fait un choix raisonnable.
+Additionnez les trois attentes maximales : **deux heures et quinze minutes**, avant l'exécution, les reprises et les files d'attente. C'est une borne pour ces intervalles, pas un percentile mesuré. Le retard réel dépend du décalage entre les horloges. Des jobs planifiés ne deviennent pas du temps réel parce qu'on ajoute « quasi » devant.
 
-Le problème n'est pas un intervalle trop long. **C'est que chaque étape attend une horloge au lieu d'attendre l'étape précédente.**
+Deux attentes sont évitables : la transformation peut suivre une extraction terminée, et la publication une transformation validée.
 
 <ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
 
-Chaque flèche du schéma ci-dessus est une attente. Le reverse ETL en ajoute une dernière, entre l'entrepôt et l'écran.
+Le schéma montre le parcours dans la plateforme. Chaque frontière planifiée indépendamment peut ajouter une attente avant que l'écran reçoive la donnée.
 
 ## Enchaîner sur l'événement, pas sur l'horloge
 
-C'est la raison pour laquelle Dagster déclenche tout, y compris les syncs Airbyte. Chaque étape est un asset. Un asset en aval se matérialise quand ses dépendances ont été mises à jour, pas quand un cron se réveille :
+Dagster peut déclencher les syncs Airbyte et suivre leurs dépendances sous forme d'assets. Notre configuration combine des niveaux de SLA dbt planifiés et des chaînes réactives ; tous les modèles ne sont pas événementiels. Pour une publication réactive, voici un exemple de condition, pas une copie de notre implémentation :
 
 ```python
 from dagster import AssetExecutionContext, AssetKey, AutomationCondition, asset
 
 @asset(
     deps=[AssetKey(["gold", "account_metrics"])],
-    # Part dès que le modèle Gold a été rematérialisé, pas au prochain quart d'heure.
-    automation_condition=AutomationCondition.eager(),
+    # Demander une publication après une mise à jour, sous réserve des checks bloquants.
+    automation_condition=(
+        AutomationCondition.eager()
+        & AutomationCondition.all_deps_blocking_checks_passed()
+    ),
     group_name="reverse_etl",
 )
 def account_metrics_projection(context: AssetExecutionContext, projection_store: ProjectionStore) -> None:
@@ -64,7 +68,7 @@ def account_metrics_projection(context: AssetExecutionContext, projection_store:
     context.add_output_metadata({"rows": run.row_count, "as_of": run.as_of.isoformat()})
 ```
 
-Le pire cas devient : l'intervalle de la source, plus la somme des durées. On a supprimé deux attentes sur trois sans rien accélérer.
+Pour cette chaîne, les attentes planifiées se réduisent à l'intervalle d'extraction. Les durées, l'évaluation du sensor, les files et les reprises comptent encore. Le sensor d'automatisation doit être actif. `ProjectionStore` représente ici du code applicatif fourni comme ressource Dagster ; ce n'est pas une API de la bibliothèque.
 
 Il reste un plancher : la source elle-même. Si un partenaire publie une fois par jour, aucune orchestration ne rendra sa donnée fraîche à l'heure. **Le budget de fraîcheur se négocie avec le métier, source par source**, et il s'écrit quelque part.
 
@@ -72,10 +76,10 @@ Il reste un plancher : la source elle-même. Si un partenaire publie une fois pa
 
 L'application a sa propre base, et ses utilisateurs y écrivent. L'entrepôt en a une copie, plus ancienne. Le reverse ETL renvoie des valeurs calculées à partir de cette copie.
 
-Voici le bug que tout le monde écrit une fois :
+Prenons ce scénario d'échec :
 
-1. À 10:02, un utilisateur modifie un champ dans l'application.
-2. À 10:00, l'extraction avait déjà lu l'ancienne valeur.
+1. À 10:00, l'extraction lit l'ancienne valeur.
+2. À 10:02, un utilisateur modifie le champ dans l'application.
 3. À 10:40, le reverse ETL renvoie une ligne calculée à partir de l'ancienne valeur, et l'écrit dans la même table.
 4. La modification de 10:02 a disparu. Aucune erreur, aucun log. L'utilisateur jure qu'il avait enregistré. Il a raison.
 
@@ -83,7 +87,7 @@ Le reverse ETL vient de faire un **last-writer-wins avec une donnée périmée**
 
 La règle qui supprime cette classe de bugs : **un champ a un seul propriétaire**. Soit l'application l'écrit, soit l'entrepôt le calcule. Jamais les deux.
 
-Concrètement, le reverse ETL n'écrit **jamais dans une table que l'application écrit**. Il alimente un schéma de projections dédié, en lecture seule pour l'application, qui compose les deux à la lecture. Côté conception, ça force une discussion saine : pour chaque donnée affichée, qui en est la source de vérité ?
+Une façon d'imposer cette propriété est un schéma de projections dédié : le processus de publication y écrit, l'application le lit et le joint à ses propres données. Partager une table reste possible avec des droits stricts par colonne, mais une frontière de schéma se vérifie plus facilement. Les exemples suivants décrivent ce mécanisme de publication ; ce ne sont pas des extraits de notre reverse ETL déployé.
 
 ## Appliquer, pas écraser
 
@@ -104,7 +108,9 @@ on conflict (account_id) do update
     where current.computed_as_of < excluded.computed_as_of;
 ```
 
-Pour un instantané complet, il y a un piège de plus : **l'application ne doit jamais voir un run à moitié écrit**. Si la moitié des lignes date de 10:00 et l'autre de 11:00, les totaux affichés ne correspondent à aucun état réel. Nous écrivons chaque run à côté, puis nous basculons un pointeur, en une seule écriture :
+Ça demande des dates d'ordre non nulles, avec un sens défini : la couverture de la source, pas l'heure de fin du worker. Une égalité de dates n'est un no-op que si le contenu est identique. Deux contenus différents exigent une révision source ou une erreur ; l'ordre d'arrivée ne tranche pas. Une projection incrémentale demande aussi des marqueurs explicites de suppression.
+
+Pour un instantané complet, **l'application ne doit jamais voir un run à moitié écrit**. Si la moitié des lignes date de 10:00 et l'autre de 11:00, les totaux ne correspondent à aucun état réel. On écrit et valide d'abord un run immuable, puis on publie son pointeur :
 
 ```sql
 -- Publication, une fois toutes les lignes du run insérées.
@@ -121,44 +127,53 @@ select m.metric_value, r.as_of
  where m.account_id = $1;
 ```
 
-Les anciens runs sont purgés plus tard, après un délai qui permet de revenir en arrière. Les suppressions se règlent au passage : une ligne absente du nouveau run disparaît de la lecture, sans `DELETE` à orchestrer.
+La ligne du pointeur doit déjà exister, et le run référencé doit être entièrement commité avant cet update. On contrôle le nombre de lignes modifiées : zéro signifie que le run n'a pas été publié. La lecture joint le pointeur dans une seule requête ; la purge conserve le run courant et les candidats au rollback. Le rollback est une opération distincte et auditée : cet update qui avance seulement refuse volontairement une date antérieure. Seul un instantané complet et validé permet de traiter une absence comme une suppression. Une extraction tronquée ne doit pas être publiée.
 
 ## Montrer l'heure
 
 Une fois qu'on accepte qu'une donnée a un âge, il faut **le montrer**. Dans notre métier, un chiffre sans « à date du » n'est pas une information, c'est un risque.
 
-Chaque projection porte son `as_of`. L'application décide quoi en faire, avec un budget explicite par jeu de données :
+Chaque projection demande un `as_of` défini et un budget de fraîcheur explicite. Si un résultat combine plusieurs sources, leurs couvertures se conservent séparément : la date la plus récente ne doit pas cacher une dépendance ancienne. Pour une date de couverture, une petite fonction pure classe l'état affiché :
 
 ```ts
-export type Freshness = "fresh" | "stale" | "expired";
+export type Freshness = "fresh" | "stale" | "expired" | "unknown";
 
 export type FreshnessBudget = {
-  staleAfterMs: number;  // au-delà : afficher l'heure et un avertissement
-  expireAfterMs: number; // au-delà : ne plus afficher le chiffre
+  staleAfterMs: number;
+  expireAfterMs: number;
+  maxFutureSkewMs: number;
 };
 
 export function freshnessOf(asOf: Date, now: Date, budget: FreshnessBudget): Freshness {
+  const { staleAfterMs, expireAfterMs, maxFutureSkewMs } = budget;
   const ageMs = now.getTime() - asOf.getTime();
-  if (ageMs > budget.expireAfterMs) return "expired";
-  if (ageMs > budget.staleAfterMs) return "stale";
-  // Un âge négatif signifie une horloge en avance quelque part : on affiche, on log, on ne panique pas.
+  if (
+    ![ageMs, staleAfterMs, expireAfterMs, maxFutureSkewMs].every(Number.isFinite)
+    || staleAfterMs < 0
+    || expireAfterMs <= staleAfterMs
+    || maxFutureSkewMs < 0
+    || ageMs < -maxFutureSkewMs
+  ) return "unknown";
+
+  if (ageMs >= expireAfterMs) return "expired";
+  if (ageMs >= staleAfterMs) return "stale";
   return "fresh";
 }
 ```
 
-Le troisième état est le plus important. Quand la chaîne est cassée depuis trop longtemps, **un écran qui dit « donnée indisponible » vaut mieux qu'un écran qui affiche un chiffre d'hier avec l'aplomb d'un chiffre d'aujourd'hui**.
+`unknown` couvre les dates invalides, les budgets incohérents et les dates trop loin dans le futur. L'appelant doit tracer cette anomalie et afficher un état indisponible. `expired` fait de même pour une donnée connue mais trop ancienne. Les dates portent leur fuseau ; remplacer `as_of` par l'heure de publication ferait paraître neuve une donnée source ancienne.
 
-## « Et si l'application interrogeait directement Snowflake ? »
+## Pourquoi servir depuis un store opérationnel ?
 
-La question revient à chaque fois. La réponse est non, pour des raisons qui n'ont rien d'idéologique :
+Interroger directement l'entrepôt peut convenir à des écrans analytiques. Pour un écran opérationnel, ça ajoute des dépendances qui doivent tenir dans les budgets de latence et de disponibilité du produit :
 
-- **Latence.** Un entrepôt analytique est conçu pour scanner beaucoup de données, pas pour répondre à une recherche par clé en quelques millisecondes. Un écran qui attend une seconde par requête est un écran que personne n'aime.
-- **Coût.** Un warehouse qui reçoit une requête toutes les trente secondes ne se suspend jamais. Votre facture non plus.
+- **Latence.** La file, le démarrage de la requête et la reprise du warehouse comptent autant que le SQL. Mesurez la recherche réelle sous charge ; la catégorie de base de données ne suffit pas à trancher.
+- **Coût.** Des requêtes fréquentes peuvent maintenir un warehouse actif au lieu de le laisser se suspendre. Ce coût se compare à celui de la projection.
 - **Disponibilité.** L'application hérite de chaque maintenance, montée de version et incident de la plateforme data. Le blast radius d'un modèle dbt cassé inclut maintenant votre produit.
 
 L'entrepôt calcule. **Un store opérationnel sert.** Le reverse ETL est précisément le pont entre les deux, et c'est pour ça qu'il mérite autant de soin.
 
-## Ce que ça coûte (aka la chaîne est aussi forte que son maillon le plus lent)
+## Le coût d'exploitation d'un pipeline supplémentaire
 
 - **Un pipeline de plus à opérer.** Le reverse ETL a ses propres pannes, ses propres rejeux, ses propres alertes. Il ne se contente pas d'hériter de celles des étapes précédentes : il les additionne.
 - **La fraîcheur se surveille de bout en bout.** Une alerte par étape ne dit pas si la donnée affichée respecte son budget. Nous mesurons l'âge de ce que l'application sert réellement, pas seulement la santé de chaque job.
@@ -168,8 +183,12 @@ L'entrepôt calcule. **Un store opérationnel sert.** Le reverse ETL est précis
 
 Si le besoin se compte en secondes, le reverse ETL par lots n'est pas la bonne architecture, et aucun réglage d'intervalle ne le deviendra. Une donnée qui doit être à jour à la seconde appartient aux services et aux événements (un topic, un consommateur, une projection maintenue en continu), pas à un entrepôt qui recalcule toutes les heures.
 
-Deux questions à vous poser : pour chaque chiffre renvoyé vers vos applications, qui a décidé de son âge maximal acceptable ? Et que voit l'utilisateur quand cet âge est dépassé ?
+Avant de livrer une projection, convenez de son âge maximal et de l'état expiré à l'écran avec la personne qui utilise le chiffre. Ces deux décisions font partie des critères d'acceptation.
 
 ## La suite de la série
 
 Prochain épisode : les tests dbt et les asset checks Dagster. Ou comment faire en sorte qu'une donnée fausse s'arrête dans le pipeline, plutôt que dans un rendez-vous client.
+
+## Références techniques
+
+- [Dagster automation conditions](https://docs.dagster.io/api/dagster/assets#dagster.AutomationCondition.all_deps_blocking_checks_passed)

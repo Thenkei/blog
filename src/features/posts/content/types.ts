@@ -15,7 +15,6 @@ export const postVisualIds = [
   "ai-is-not-immaterial",
   "sse-outbound-channel",
   "backend-to-data-engineer-rockfi",
-  "claude-code-product-os",
   "context-engineering-beyond-prompt-engineering",
   "trail-endurance-profile",
   "engineering-2026-ai-redefined-our-job",

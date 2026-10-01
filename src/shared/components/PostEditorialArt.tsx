@@ -77,12 +77,6 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
       fr: "Scène de salle de contrôle éditoriale où plusieurs petits agents transmettent un dossier d'investigation lumineux à travers un point de revue humaine vers un ingénieur.",
     },
   },
-  "claude-code-product-os": {
-    alt: {
-      en: "Editorial relay scene showing humans and tools passing work through discovery, delivery, review, and release.",
-      fr: "Scène éditoriale de relais montrant des humains et des outils faisant passer le travail par la découverte, la livraison, la revue et la mise en production.",
-    },
-  },
   "context-engineering-beyond-prompt-engineering": {
     alt: {
       en: "Editorial control room where curated documents and authorised signals pass through a narrow aperture to an agent.",
@@ -93,6 +87,42 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
     alt: {
       en: "Sports-manga-inspired trail runner crossing a mountain route beside a rugged watch.",
       fr: "Coureur de trail inspiré du manga sportif franchissant une route de montagne avec une montre robuste.",
+    },
+  },
+  "data-platform-ingestion-drift": {
+    alt: {
+      en: "Painted architectural cutaway where varied records collect in a raw layer and a slotted gate stops a malformed tile before a refined terrace.",
+      fr: "Coupe architecturale peinte où des enregistrements variés s'accumulent dans une couche brute et une grille arrête un élément mal formé avant une terrasse raffinée.",
+    },
+  },
+  "data-platform-reverse-etl-freshness": {
+    alt: {
+      en: "Painted cutaway of a data route passing several clocks toward an application screen, with an older tile diverted into a separate branch.",
+      fr: "Vue en coupe peinte d'un flux de données traversant plusieurs horloges vers un écran applicatif, avec un élément ancien dévié vers une branche séparée.",
+    },
+  },
+  "data-platform-tests-as-contracts": {
+    alt: {
+      en: "Painted testing station where a lowered barrier stops a cracked record beneath a reconciliation balance while a complete set remains sheltered above.",
+      fr: "Station de contrôle peinte où une barrière abaissée arrête un enregistrement fissuré sous une balance de réconciliation tandis qu'un ensemble complet reste protégé en hauteur.",
+    },
+  },
+  "data-platform-terraform-access-and-flows": {
+    alt: {
+      en: "Painted architectural section connecting a declared role graph to physical access doors, with a closed coral branch and a protected key compartment.",
+      fr: "Coupe architecturale peinte reliant un graphe de rôles déclaré à des portes d'accès, avec une branche corail fermée et un compartiment à clé protégé.",
+    },
+  },
+  "data-platform-retrospective": {
+    alt: {
+      en: "An engineer studies five exposed platform modules joined by coral coupling plates, crossed by a teal flow beneath a separate control pavilion.",
+      fr: "Un ingénieur observe cinq modules de plateforme en coupe reliés par des plaques corail et traversés par un flux turquoise sous un pavillon de contrôle séparé.",
+    },
+  },
+  "engineer-life-late-2026": {
+    alt: {
+      en: "Comic illustration of an engineer at a terminal surrounded by code, a release announcement, milestone cards, and feedback, with a neglected coffee mug on the desk.",
+      fr: "Illustration de bande dessinée montrant un ingénieur devant son terminal, entouré de code, d'une annonce de release, de jalons et de retours, avec une tasse de café oubliée sur le bureau.",
     },
   },
   "engineering-2026-ai-redefined-our-job": {

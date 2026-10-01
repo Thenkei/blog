@@ -1,5 +1,5 @@
 ---
-title: "Reverse ETL: the \"near real-time\" lie"
+title: "Reverse ETL: how old is the number on screen?"
 subtitle: "When data flows from the warehouse back into an application people use live, every minute of delay becomes a product problem."
 summary: "Second episode: why sending data computed in Snowflake back into a live application is the most delicate part of the platform. Freshness budgets, field ownership, conditional writes, atomic runs, and the timestamp shown next to every number."
 visualId: "backend-to-data-engineer-rockfi"
@@ -14,14 +14,15 @@ tags:
   - rockfi
 seriesId: "what-trustworthy-data-costs"
 seriesOrder: 2
-draft: true
 ---
 
 Second episode of **What Trustworthy Data Costs**. The first was about getting data into the warehouse. This one is about getting it back out, which is far less documented and far more dangerous.
 
 The scenario is simple. An advisor opens a screen. On it is a number computed in the warehouse: a consolidation, an indicator, cleaned-up partner data. They use it to talk to a client.
 
-The only question that matters: **as of when?**
+We use this path for analytical results served back to applications, including client portfolio performance and market opportunities matched with advisors’ clients. A late or inconsistent value is therefore a product issue, not just a warehouse issue.
+
+The first question is: **as of when?**
 
 ## The freshness budget (do the math)
 
@@ -35,25 +36,28 @@ Take a typical chain, with intervals that are each reasonable on their own (illu
 | dbt transformation | every hour, independent clock | 60 min + run duration |
 | Reverse sync to the application | every 15 min | 15 min + apply duration |
 
-Worst case: **over two hours and a quarter**, before counting any execution time. Median: about an hour. And every team that set its interval rightly believes it made a reasonable choice.
+Add the three maximum waits: **two hours and fifteen minutes**, before execution time, retries and queueing. That is an upper bound for these intervals, not a measured percentile. The actual delay depends on the clocks’ relative phases. Scheduled jobs do not become real time because someone puts “near” in front of it.
 
-The problem is not an interval that is too long. **It is that every step waits for a clock instead of waiting for the step before it.**
+Two waits are avoidable: transformation can follow a completed extraction, and publication can follow a validated transformation.
 
 <ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
 
-Every arrow in the diagram above is a wait. Reverse ETL adds one last wait, between the warehouse and the screen.
+The diagram shows the route through the platform. Each independently scheduled boundary can add another wait before the screen receives the data.
 
 ## Chain on events, not on clocks
 
-This is why Dagster triggers everything, Airbyte syncs included. Each step is an asset. A downstream asset materializes when its dependencies have been updated, not when a cron wakes up:
+Dagster can trigger Airbyte syncs and track dependencies as assets. Our configuration combines scheduled dbt SLA tiers with reactive chains; not every model is event-driven. For a reactive publication step, this example illustrates the condition rather than reproducing our implementation:
 
 ```python
 from dagster import AssetExecutionContext, AssetKey, AutomationCondition, asset
 
 @asset(
     deps=[AssetKey(["gold", "account_metrics"])],
-    # Fires as soon as the Gold model is rematerialized, not at the next quarter hour.
-    automation_condition=AutomationCondition.eager(),
+    # Request publication after an update, subject to blocking checks.
+    automation_condition=(
+        AutomationCondition.eager()
+        & AutomationCondition.all_deps_blocking_checks_passed()
+    ),
     group_name="reverse_etl",
 )
 def account_metrics_projection(context: AssetExecutionContext, projection_store: ProjectionStore) -> None:
@@ -64,7 +68,7 @@ def account_metrics_projection(context: AssetExecutionContext, projection_store:
     context.add_output_metadata({"rows": run.row_count, "as_of": run.as_of.isoformat()})
 ```
 
-The worst case becomes: the source interval, plus the sum of durations. We removed two waits out of three without making anything faster.
+For that chain, the planned waits shrink to the extraction interval. Durations, sensor evaluation, queueing and retries still count. The automation sensor must be enabled. `ProjectionStore` represents application-specific code supplied as a Dagster resource; it is not a library API.
 
 There is still a floor: the source itself. If a partner publishes once a day, no orchestration will make its data hourly. **The freshness budget is negotiated with the business, source by source**, and it gets written down somewhere.
 
@@ -72,10 +76,10 @@ There is still a floor: the source itself. If a partner publishes once a day, no
 
 The application has its own database, and its users write to it. The warehouse has a copy, which is older. Reverse ETL sends back values computed from that copy.
 
-Here is the bug everyone writes once:
+Consider this failure:
 
-1. At 10:02, a user edits a field in the application.
-2. At 10:00, the extraction had already read the old value.
+1. At 10:00, extraction reads the old value.
+2. At 10:02, a user edits the field in the application.
 3. At 10:40, reverse ETL sends back a row computed from the old value, and writes it into the same table.
 4. The 10:02 edit is gone. No error, no log. The user swears they saved. They are right.
 
@@ -83,7 +87,7 @@ Reverse ETL just performed **last-writer-wins with stale data**.
 
 The rule that removes this whole class of bugs: **a field has exactly one owner**. Either the application writes it, or the warehouse computes it. Never both.
 
-In practice, reverse ETL **never writes into a table the application writes to**. It feeds a dedicated projection schema, read-only for the application, which composes both at read time. On the design side, it forces a healthy conversation: for every piece of data on screen, what is its source of truth?
+One way to enforce that ownership is a dedicated projection schema: the publication process writes it, the application reads it and joins it to its own data. Sharing a table is possible with strict column privileges, but a schema boundary is easier to inspect. The examples below describe this publication pattern; they are not extracts from our deployed reverse ETL.
 
 ## Apply, don't overwrite
 
@@ -104,7 +108,9 @@ on conflict (account_id) do update
     where current.computed_as_of < excluded.computed_as_of;
 ```
 
-For a full snapshot, there is one more trap: **the application must never see a half-written run**. If half the rows are from 10:00 and the other half from 11:00, the totals on screen match no real state. We write each run alongside the current one, then flip a pointer, in a single write:
+This requires non-null ordering timestamps with a defined meaning: source coverage, not the time the worker finished. A timestamp tie is a no-op only if the payload is the same. Conflicting payloads need a source revision or an error; arrival order cannot settle it. An incremental projection also needs explicit tombstones for deletions.
+
+For a full snapshot, **the application must never see a half-written run**. If half the rows are from 10:00 and half from 11:00, the totals match no real state. Write and validate an immutable run first, then publish its pointer:
 
 ```sql
 -- Publication, once every row of the run has been inserted.
@@ -121,44 +127,53 @@ select m.metric_value, r.as_of
  where m.account_id = $1;
 ```
 
-Old runs are purged later, after a delay that leaves room to roll back. Deletes come for free: a row missing from the new run disappears from reads, with no `DELETE` to orchestrate.
+The pointer row must already exist, and the referenced run must be fully committed before this update. Check the affected-row count: zero means the run was not published. Readers join through the pointer in one statement; cleanup must retain the current run and any rollback candidate. A rollback is a separate, audited operation: this forward-only update deliberately refuses an older timestamp. Only a validated, complete snapshot can make absence mean deletion. A truncated extraction must not publish.
 
 ## Show the time
 
 Once you accept that data has an age, you have to **show it**. In our line of work, a number without an "as of" is not information, it is a liability.
 
-Every projection carries its `as_of`. The application decides what to do with it, with an explicit budget per dataset:
+Each projection needs a defined `as_of` and an explicit freshness budget. If a result combines several sources, record their coverage separately; the freshest timestamp must not hide an older dependency. For one coverage timestamp, a small pure function can classify the display state:
 
 ```ts
-export type Freshness = "fresh" | "stale" | "expired";
+export type Freshness = "fresh" | "stale" | "expired" | "unknown";
 
 export type FreshnessBudget = {
-  staleAfterMs: number;  // beyond this: show the timestamp and a warning
-  expireAfterMs: number; // beyond this: stop showing the number
+  staleAfterMs: number;
+  expireAfterMs: number;
+  maxFutureSkewMs: number;
 };
 
 export function freshnessOf(asOf: Date, now: Date, budget: FreshnessBudget): Freshness {
+  const { staleAfterMs, expireAfterMs, maxFutureSkewMs } = budget;
   const ageMs = now.getTime() - asOf.getTime();
-  if (ageMs > budget.expireAfterMs) return "expired";
-  if (ageMs > budget.staleAfterMs) return "stale";
-  // A negative age means a clock running ahead somewhere: display, log, don't panic.
+  if (
+    ![ageMs, staleAfterMs, expireAfterMs, maxFutureSkewMs].every(Number.isFinite)
+    || staleAfterMs < 0
+    || expireAfterMs <= staleAfterMs
+    || maxFutureSkewMs < 0
+    || ageMs < -maxFutureSkewMs
+  ) return "unknown";
+
+  if (ageMs >= expireAfterMs) return "expired";
+  if (ageMs >= staleAfterMs) return "stale";
   return "fresh";
 }
 ```
 
-The third state is the most important one. When the chain has been broken for too long, **a screen that says "data unavailable" beats a screen that shows yesterday's number with the confidence of today's**.
+`unknown` covers invalid dates, inconsistent budgets and timestamps too far in the future. The caller should record that anomaly and show an unavailable state. `expired` does the same for known data that is too old. Use timezone-qualified timestamps; do not reset `as_of` to the publication time, which would make old source data look new.
 
-## "What if the application just queried Snowflake?"
+## Why serve from an operational store?
 
-The question comes up every time. The answer is no, for reasons that have nothing to do with ideology:
+Direct warehouse reads can work for analytical screens. For an operational screen, they add dependencies that need to fit the product's latency and availability budgets:
 
-- **Latency.** An analytical warehouse is built to scan a lot of data, not to answer a key lookup in a few milliseconds. A screen that waits a second per query is a screen nobody likes.
-- **Cost.** A warehouse that gets a query every thirty seconds never suspends. Neither does your bill.
+- **Latency.** Queueing, query startup and warehouse resume time count as well as SQL execution. Benchmark the actual lookup under load; the database category alone does not settle it.
+- **Cost.** Frequent queries can keep a warehouse active instead of letting it suspend. Compare that cost with maintaining the projection.
 - **Availability.** The application inherits every maintenance window, upgrade, and incident of the data platform. The blast radius of a broken dbt model now includes your product.
 
 The warehouse computes. **An operational store serves.** Reverse ETL is exactly the bridge between the two, which is why it deserves this much care.
 
-## What it costs (aka the chain is as fast as its slowest link)
+## The operating cost of another pipeline
 
 - **One more pipeline to operate.** Reverse ETL has its own failures, its own replays, its own alerts. It does not just inherit those of the previous steps: it adds them up.
 - **Freshness is monitored end to end.** One alert per step does not tell you whether the data on screen is within budget. We measure the age of what the application actually serves, not just the health of each job.
@@ -168,8 +183,12 @@ The warehouse computes. **An operational store serves.** Reverse ETL is exactly 
 
 If the requirement is measured in seconds, batch reverse ETL is the wrong architecture, and no interval tuning will fix that. Data that must be current to the second belongs to services and events (a topic, a consumer, a continuously maintained projection), not to a warehouse that recomputes every hour.
 
-Two questions worth asking yourself: for every number sent back to your applications, who decided its maximum acceptable age? And what does the user see once that age is exceeded?
+Before shipping a projection, agree its maximum age and the screen's expired state with the person who uses that number. Those two decisions belong in the acceptance criteria.
 
 ## Next in the series
 
 Next episode: dbt tests and Dagster asset checks. Or how to make bad data stop inside the pipeline, rather than in a client meeting.
+
+## Technical references
+
+- [Dagster automation conditions](https://docs.dagster.io/api/dagster/assets#dagster.AutomationCondition.all_deps_blocking_checks_passed)

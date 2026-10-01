@@ -11,6 +11,7 @@ export const articleMediaIds = [
   "ai-review-meme",
   "product-os-loop",
   "document-lifecycle-motion",
+  "hat-switching-tax",
 ] as const;
 
 export type ArticleMediaId = (typeof articleMediaIds)[number];
@@ -184,6 +185,22 @@ const MEDIA_COPY: Record<PostLocale, Record<ArticleMediaId, MediaCopy>> = {
         archive: "ARCHIVE",
       },
     },
+    "hat-switching-tax": {
+      title: "One terminal, several unfinished tasks",
+      description:
+        "A gauge rises across three stages: switching tasks, losing focus, and ending the day with work still open.",
+      caption:
+        "The window stays the same. Each task still needs its own review before I can close it.",
+      eyebrow: "SAME TERMINAL · EIGHT ROLES",
+      labels: {
+        switch: "SWITCH TASKS",
+        silent: "SAME WINDOW",
+        pressure: "LOSE FOCUS",
+        invisible: "MORE WORK OPEN",
+        invoice: "END THE DAY",
+        dayend: "REVIEW STILL PENDING",
+      },
+    },
   },
   fr: {
     "sse-polling-vs-stream": {
@@ -343,6 +360,22 @@ const MEDIA_COPY: Record<PostLocale, Record<ArticleMediaId, MediaCopy>> = {
         review: "REVUE",
         supersede: "REMPLACER",
         archive: "ARCHIVER",
+      },
+    },
+    "hat-switching-tax": {
+      title: "Un terminal, plusieurs tâches inachevées",
+      description:
+        "Une jauge monte en trois étapes : changer de tâche, perdre le fil et finir la journée avec du travail encore ouvert.",
+      caption:
+        "La fenêtre reste la même. Chaque tâche demande quand même sa propre relecture avant de pouvoir être fermée.",
+      eyebrow: "MÊME TERMINAL · HUIT RÔLES",
+      labels: {
+        switch: "CHANGER DE TÂCHE",
+        silent: "MÊME FENÊTRE",
+        pressure: "PERDRE LE FIL",
+        invisible: "PLUS DE TRAVAIL OUVERT",
+        invoice: "FINIR LA JOURNÉE",
+        dayend: "RELECTURE EN ATTENTE",
       },
     },
   },

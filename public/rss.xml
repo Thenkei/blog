@@ -5,6 +5,20 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
+<title>Your Back Office Is a Product. Build It Like One.</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-are-a-product</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-are-a-product</guid>
+<description>Internal tools usually grow screen by screen until every screen carries its own truth. Nexus is our attempt to move that truth into one engine, so consistency becomes a property of the system rather than a habit of each developer.</description>
+<pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>An Engineer&apos;s Life in Late 2026: The Terminal Is My Office, My Ad Agency, and My PM</title>
+<link>https://thenkei.github.io/blog/en/posts/engineer-life-late-2026</link>
+<guid>https://thenkei.github.io/blog/en/posts/engineer-life-late-2026</guid>
+<description>I still work in a terminal. Now I also use it to draft release announcements, plan milestones, and answer feedback. The drafts come faster; deciding what deserves to ship still takes work.</description>
+<pubDate>Mon, 28 Sep 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>Your Engineering Documents Have an Expiry Date</title>
 <link>https://thenkei.github.io/blog/en/posts/engineering-documents-age-poorly</link>
 <guid>https://thenkei.github.io/blog/en/posts/engineering-documents-age-poorly</guid>
@@ -29,7 +43,7 @@
 <title>Building Self-Service Analytics That Does Not Lie</title>
 <link>https://thenkei.github.io/blog/en/posts/self-service-analytics-that-doesnt-lie</link>
 <guid>https://thenkei.github.io/blog/en/posts/self-service-analytics-that-doesnt-lie</guid>
-<description>A practical model for giving teams analytical freedom without losing metric definitions, provenance, ownership, or control.</description>
+<description>How RockFi moved from Metabase queries written by whoever needed them to a dbt semantic layer on Snowflake, why the early chaos stayed manageable, and why a metric&apos;s date is the trickiest field in its contract.</description>
 <pubDate>Mon, 17 Aug 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
@@ -57,7 +71,7 @@
 <title>From Zero to Hero: Building RockFi&apos;s Product OS</title>
 <link>https://thenkei.github.io/blog/en/posts/ai-human-judgment-rockfi</link>
 <guid>https://thenkei.github.io/blog/en/posts/ai-human-judgment-rockfi</guid>
-<description>At RockFi, AI adoption became a shared workflow: learn on real work, encode what works, and keep human gates.</description>
+<description>How the Claude Code Challenges got good AI practices out of terminal histories, and how we then encoded them as plugins connecting discovery, design, and delivery, without ever handing the merge to an agent.</description>
 <pubDate>Fri, 10 Jul 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
@@ -71,7 +85,7 @@
 <title>Engineering in 2026: The Year AI Redefined Our Job</title>
 <link>https://thenkei.github.io/blog/en/posts/engineering-2026-ai-redefined-our-job</link>
 <guid>https://thenkei.github.io/blog/en/posts/engineering-2026-ai-redefined-our-job</guid>
-<description>How RockFi&apos;s move to Claude Code transformed the way our team ships: less hand-rolling syntax, more engineering thinking, and surviving working across multiple projects without burning out.</description>
+<description>What RockFi&apos;s tech team moving to Claude Code actually shifted: less code written by hand, more review, context and judgment, and 4 to 5 projects a day without losing my mind.</description>
 <pubDate>Fri, 27 Feb 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
@@ -113,21 +127,21 @@
 <title>Changing Hats: From Backend to Data Engineer at RockFi</title>
 <link>https://thenkei.github.io/blog/en/posts/backend-to-data-engineer-rockfi</link>
 <guid>https://thenkei.github.io/blog/en/posts/backend-to-data-engineer-rockfi</guid>
-<description>Why I transitioned towards Data Engineering at RockFi, diving into Dagster, medallion architecture, and our future with modern data warehouses.</description>
+<description>Why a backend engineer ended up doing data at RockFi: partner feeds, Dagster, medallion architecture, dbt, and the data warehouse question.</description>
 <pubDate>Wed, 15 Oct 2025 00:00:00 GMT</pubDate>
 </item>
 <item>
 <title>New Chapter: Joining RockFi as Staff Back-end Engineer</title>
 <link>https://thenkei.github.io/blog/en/posts/joining-rockfi</link>
 <guid>https://thenkei.github.io/blog/en/posts/joining-rockfi</guid>
-<description>Career update and technical mission context for building a scalable wealth-management platform.</description>
+<description>Why I joined RockFi, and the data project waiting for me on day one.</description>
 <pubDate>Sun, 01 Dec 2024 00:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Rebuilding Cloud Experience: The Trade-Offs of Serverless at Scale</title>
 <link>https://thenkei.github.io/blog/en/posts/rebuilding-cloud-experience-forest-admin</link>
 <guid>https://thenkei.github.io/blog/en/posts/rebuilding-cloud-experience-forest-admin</guid>
-<description>An incredibly deep dive into our journey transitioning from a self-hosted-only model to offering a Fully Hosted Cloud agent. We tackle Cold Starts, AWS Lambda Layers, VPC structuring, and why horizontal scaling is a database&apos;s worst enemy.</description>
+<description>How we went from a self-hosted-only model to a Fully Hosted Cloud agent: cold starts, AWS Lambda Layers, VPC structuring, and the limits of horizontal scaling against a database.</description>
 <pubDate>Wed, 20 Mar 2024 00:00:00 GMT</pubDate>
 </item>
 <item>

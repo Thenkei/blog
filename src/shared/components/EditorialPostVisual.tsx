@@ -25,7 +25,6 @@ export const editorialPostVisualIds = [
   "ai-force-multiplier",
   "sse-outbound-channel",
   "backend-to-data-engineer-rockfi",
-  "claude-code-product-os",
   "trail-endurance-profile",
   "engineering-2026-ai-redefined-our-job",
   "forest-admin-activity-logs-elasticsearch",
@@ -722,51 +721,6 @@ function DataFoundationVisual({ copy, markerId, variant }: StoryProps) {
           { x: 732, text: copy.labels.d ?? "" },
         ]} />
       </g>
-    </EditorialFrame>
-  );
-}
-
-function ProductOsVisual({ copy, markerId, variant }: StoryProps) {
-  const nodes = variant === "header"
-    ? [{ x: 450, y: 76 }, { x: 716, y: 176 }, { x: 650, y: 372 }, { x: 250, y: 372 }, { x: 184, y: 176 }]
-    : [{ x: 450, y: 100 }, { x: 680, y: 190 }, { x: 604, y: 342 }, { x: 296, y: 342 }, { x: 220, y: 190 }];
-
-  if (variant === "card") {
-    return (
-      <EditorialFrame markerId={markerId} variant={variant}>
-        <path d="M450 94C630 94 728 184 728 240S630 386 450 386S172 296 172 240S270 94 450 94Z" className="visual-editorial-loop" />
-        {[{ x: 450, y: 94 }, { x: 728, y: 240 }, { x: 450, y: 386 }, { x: 172, y: 240 }].map((node, index) => (
-          <circle key={`${node.x}-${node.y}`} cx={node.x} cy={node.y} r={index === 1 ? 34 : 22} className={index === 1 ? "visual-editorial-checkpoint" : "visual-editorial-source"} />
-        ))}
-        <circle cx="450" cy="240" r="72" className="visual-editorial-panel-hot" />
-        <CheckMark x={450} y={240} scale={0.7} />
-      </EditorialFrame>
-    );
-  }
-
-  return (
-    <EditorialFrame markerId={markerId} variant={variant}>
-      <path
-        d={`M${nodes.map((node) => `${node.x} ${node.y}`).join("L")}Z`}
-        className="visual-editorial-loop"
-      />
-      {nodes.map((node, index) => (
-        <g key={`${node.x}-${node.y}`}>
-          <circle cx={node.x} cy={node.y} r={variant === "header" ? 28 : 24} className={index === 3 ? "visual-editorial-checkpoint" : "visual-editorial-source"} />
-          {index < nodes.length - 1 ? (
-            <circle cx={(node.x + nodes[index + 1]!.x) / 2} cy={(node.y + nodes[index + 1]!.y) / 2} r="7" className="visual-editorial-pulse-dot" />
-          ) : null}
-        </g>
-      ))}
-      <circle cx="450" cy="232" r={variant === "header" ? 92 : 76} className="visual-editorial-panel-hot" />
-      <CheckMark x={450} y={232} scale={variant === "header" ? 0.86 : 0.7} />
-      {variant === "inline" ? (
-        <InlineLabels labels={[
-          { x: 220, text: copy.labels.a ?? "" },
-          { x: 450, text: copy.labels.c ?? "" },
-          { x: 680, text: copy.labels.e ?? "" },
-        ]} />
-      ) : null}
     </EditorialFrame>
   );
 }
@@ -1711,8 +1665,6 @@ export function EditorialPostVisual({
       return <SseChannelVisual copy={copy} markerId={markerId} slug={slug} variant={variant} />;
     case "backend-to-data-engineer-rockfi":
       return <DataFoundationVisual copy={copy} markerId={markerId} slug={slug} variant={variant} />;
-    case "claude-code-product-os":
-      return <ProductOsVisual copy={copy} markerId={markerId} slug={slug} variant={variant} />;
     case "engineering-2026-ai-redefined-our-job":
       return <EngineeringShiftVisual copy={copy} markerId={markerId} slug={slug} variant={variant} />;
     case "forest-admin-activity-logs-elasticsearch":

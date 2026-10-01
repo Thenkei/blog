@@ -15,21 +15,15 @@ tags:
 
 When people talk about AI agents, they often ask how far the system can act on its own. Working on an on-duty workflow led me to a different question: what does an agent pass on when it stops?
 
-An agent that investigates and leaves behind a pile of logs and an unexplained decision makes the next person start over. The hand-off matters as much as the investigation.
+An agent that investigates, then leaves behind a pile of logs and an unexplained decision, makes the next person start over. It is the software equivalent of a colleague leaving for holidays with a sticky note that says “it’s the cache”. The hand-off matters as much as the investigation.
 
-## We did not start with an autonomous platform
+## It started with on-duty chores
 
-On duty, you need to find useful data, understand what changed, check the repository and runbook, then decide what to do. Context is scattered across dashboards, tickets, and earlier investigations. It is an investigation under time pressure.
+On duty, you need to find useful data, understand what changed, check the repository and runbook, then decide what to do. Context is scattered across dashboards, tickets, and earlier investigations, and the clock is running.
 
-The person on duty asks questions such as:
+The questions barely change from one alert to the next. Is this a real incident or a noisy signal? Which system is actually responsible? What changed recently? What evidence would separate the likely causes? And is the safest next step a rollback, a patch, a configuration change, or simply watching a little longer?
 
-- Is this a real incident or a noisy signal?
-- Which system is actually responsible?
-- What changed recently?
-- What evidence would distinguish the likely causes?
-- Is the safest next step a rollback, a patch, a configuration change, or more observation?
-
-The first steps often repeat: compare current and expected state, look for recent changes, run known diagnostics. We assigned those steps to small, specialized agents.
+The first steps repeat too: compare current and expected state, look for recent changes, run known diagnostics. Those were the chores we handed to small, specialized agents.
 
 ## Small agents, close to the work
 
@@ -37,36 +31,31 @@ One agent collects evidence, another knows the relevant codebase, and a third te
 
 > We did not automate responsibility. We automated investigation.
 
-The human still owns the decision. They choose which agent to call, in what order, and when there is enough evidence. Agents inspect, compare, and propose; their output alone does not authorise a risky change.
+In practice, the person on duty still decides: which agent to call, in what order, and when there is enough evidence. Agents inspect, compare, and propose, and their output alone does not authorise a risky change.
 
 <MotionScene id="better-handoffs-relay" />
 
 ## What happens when the agents call one another?
 
-Once those agents exist, it is tempting to chain them: collect data, inspect the repository, prepare a patch, validate it. But the human was doing more than launching the next step.
+Once those agents exist, it is tempting to chain them: collect data, inspect the repository, prepare a patch, validate it. But the human in the middle was doing more than pressing “next”.
 
-They weighed evidence, noticed contradictions, abandoned disproven hypotheses, and decided when another opinion was needed. If agents call one another, that orchestration must become explicit.
+They weighed evidence, noticed contradictions, dropped disproven hypotheses, and decided when another opinion was needed. If agents call one another, that orchestration has to become explicit.
 
-An orchestrator may continue a well-supported, low-risk task or request a review. To choose, it needs the investigation state, not just the last answer:
+An orchestrator may continue a well-supported, low-risk task or ask for a review. To choose, it needs the investigation state rather than the last answer: the objective, the paths already ruled out, what has been tried, the evidence behind the current hypothesis and what is still missing, how confident we are, and what the next actions risk.
 
-- What was the objective, and which paths have been ruled out?
-- What evidence supports the current hypothesis, and what is missing?
-- What has already been tried?
-- How confident are we, and what are the risks of the next actions?
+Without that, the chain keeps moving and loses the thread.
 
-Without that, the chain moves forward while losing the thread.
+## 14:03, and then what?
 
-## Context is necessary, but it is not enough
+Retrieving the right documents and granting the right tools gets you halfway. The other half is passing on the reasoning built from them.
 
-Finding the right documents and granting the right tools is necessary. So is passing on the reasoning built from them.
-
-A hand-off should not merely say:
+Here is a hand-off that looks helpful:
 
 ```text
 The error rate increased at 14:03.
 ```
 
-That is an isolated fact. Here is a hand-off the next person can use:
+True, precise, and nearly useless on its own: whoever reads it has to redo the investigation to learn what it means. Here is one the next person can actually use:
 
 ```text
 Investigation: elevated error rate in the checkout service
@@ -92,13 +81,13 @@ Recommended next actions:
 3. Escalate before changing production configuration.
 ```
 
-It shows the hypothesis, the evidence, the discarded paths, and what remains uncertain. The next agent—or the human—can continue without starting over.
+The hypothesis, the evidence, the discarded paths, and the remaining uncertainty are all there. The next agent, or the human, can pick it up without starting from zero.
 
 ## A place to take over
 
 An event could trigger an automatic investigation, after which the orchestrator posts a structured hand-off in a Slack thread. The person on duty would see the evidence, hypotheses, confidence, and possible actions at the moment their judgment is needed.
 
-The same format could live in a ticket, pull request, or incident timeline. Between agents, too, a compact state is more useful than a raw transcript that each recipient must reinterpret.
+The same format could live in a ticket, pull request, or incident timeline. Between agents, too, a compact state beats a raw transcript that each recipient must reinterpret.
 
 ## Designing a good hand-off protocol
 
@@ -111,18 +100,16 @@ A hand-off should make six things explicit:
 5. **The next step**: investigate, review, approve, or escalate.
 6. **The cost of being wrong**, which determines whether a person must decide.
 
-Confidence alone is not enough. A low-risk diagnostic can run automatically; a production change may need review even when the hypothesis looks strong.
+Confidence alone does not settle it. A low-risk diagnostic can run automatically, while a production change may need review even when the hypothesis looks strong.
 
-Approving every tiny step recreates the bottleneck. Continuing without checkpoints can make errors costly. The system can run bounded diagnostics, then pause before an ambiguous or high-impact action. The person gets enough context to challenge the reasoning, choose an option, and add what the agents could not know.
+Asking for approval at every tiny step brings the bottleneck back, and skipping checkpoints altogether makes mistakes expensive. The middle ground is to let the system run bounded diagnostics, then pause before an ambiguous or high-impact action. At that point the person gets enough context to challenge the reasoning, choose an option, and add what the agents could not know.
 
 <MotionScene id="better-handoffs-checkpoints" />
 
-## Better hand-offs are a form of system reliability
+## Hand-offs are part of reliability
 
 The reliability of an agent workflow also depends on what the next participant understands. Can they tell observation from hypothesis, check the evidence, and know whether a recommendation is ready to execute or only worth investigating?
 
-Evaluation should examine that hand-off, not just each agent's answer. An unfinished investigation still helps if it narrows the possibilities and shows what remains uncertain.
+So evaluation should look at the hand-off, and not only at each agent's answer. An unfinished investigation still helps if it narrows the possibilities and says clearly what remains uncertain.
 
-Real work brings ambiguity, changing constraints, and decisions with unequal consequences. An agent needs to know when to proceed and when to ask for judgment. Our on-duty workflow showed that it must also preserve the investigation as work changes hands.
-
-The question is simple: when the agent stops, does the next person know what to check and which decision to make?
+Our on-duty workflow taught us that an agent needs to know when to proceed and when to ask for judgment, and that it must keep the thread of the investigation as the work changes hands. The test I now apply is short: when the agent stops, does the next person know what to check and which decision to make?

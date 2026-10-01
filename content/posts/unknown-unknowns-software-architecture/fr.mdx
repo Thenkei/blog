@@ -31,15 +31,11 @@ Une conception peut réussir tous les scénarios écrits et échouer lorsqu'une 
 
 Les tests n'ont pas menti : nous leur avons posé les questions prévues. Le danger est de confondre « tous les tests passent » avec « nous avons tout modélisé ».
 
-## Trois histoires confortables
+## Fausses assurances
 
-**Le diagramme total.** Ajouter des boîtes représente mal le temps, la concurrence et les opérations manuelles.
+Le premier réflexe est d'enrichir le diagramme. Mais ajouter des boîtes représente mal le temps, la concurrence et les opérations manuelles. La checklist, elle, mémorise les risques connus : par construction, elle ne contient pas les hypothèses absentes du modèle.
 
-**La checklist promue preuve.** Elle mémorise les risques connus, pas les hypothèses absentes du modèle.
-
-**L'agent omniscient.** Il peut inspecter plus de sources, mais ne découvre que ce qui y laisse une trace.
-
-Aucun ne peut certifier que la revue est complète.
+Reste la tentation de l'agent omniscient. Il peut inspecter plus de sources, mais ne découvre que ce qui y a laissé une trace. Aucun de ces outils ne certifie qu'une revue est complète.
 
 ## Poser des questions qui piquent
 
@@ -61,12 +57,9 @@ La décision reste humaine : on peut accepter un risque connu, pas un risque inv
 
 ## Installer les sorties de secours quand tout est calme
 
-On ne prédira pas chaque panne. On peut rendre la surprise visible, contenir son impact et revenir à un état sûr :
+On ne prédira pas chaque panne. On peut rendre la surprise visible, contenir son impact et revenir à un état sûr.
 
-1. **Réduire** la surface d'hypothèses avec des contrats explicites et des invariants exécutables.
-2. **Isoler** les composants et les permissions pour borner le blast radius.
-3. **Détecter** les divergences avec métriques, traces, rapprochements et alertes métier.
-4. **Récupérer** avec idempotence, replay contrôlé, kill switch, rollback ou compensation.
+Ça commence par réduire la surface d'hypothèses : des contrats explicites et des invariants exécutables laissent moins de place à l'implicite. Isoler les composants et les permissions borne ensuite le blast radius. Pour détecter les divergences, on s'appuie sur les métriques, les traces, les rapprochements et les alertes métier. Reste le chemin du retour — idempotence, replay contrôlé, kill switch, rollback ou compensation — à installer tant que tout est calme, justement.
 
 <InlineArticleDiagram assetId="unknowns-review">
   Une revue utile transforme une hypothèse en preuve, en signal ou en risque explicitement accepté.
@@ -74,7 +67,7 @@ On ne prédira pas chaque panne. On peut rendre la surprise visible, contenir so
 
 Question finale : si cette hypothèse devient fausse demain, saurons-nous le voir et réagir ?
 
-## La carte restera inachevée
+## Les limites de la méthode
 
 Cette méthode peut produire du bruit et ralentir des décisions faciles à annuler. L'effort doit suivre les conséquences possibles : plus de preuves pour un calcul financier ou une migration irréversible que pour une expérience isolée.
 

@@ -14,12 +14,11 @@ tags:
   - rockfi
 seriesId: "what-trustworthy-data-costs"
 seriesOrder: 5
-draft: true
 ---
 
-Last episode of **What Trustworthy Data Costs**. Four posts on how data gets in, gets back out, gets tested, and gets protected. What remains is the question we get asked most, usually right after someone sees the architecture diagram: **was all of this worth it?**
+The platform now executes roughly **3,000 distinct assets over a day**, with tables containing millions of rows synchronized across these systems. That is the scale behind the four previous posts. It also makes “was this worth it?” a question about the work we can sustain, not just the features of five tools.
 
-Short answer: yes. Honest answer: yes, for our constraints, and at a price we had underestimated.
+I would keep the overall direction. I would spend more time on the boundaries before expanding the number of flows. The longest processes now take about **an hour**, down from longer durations before. That is an observed processing duration, not a freshness SLA: our datasets have different requirements.
 
 ## Count the moving parts
 
@@ -32,40 +31,40 @@ Before judging, count. A platform like ours is:
 
 <ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
 
-None of these pieces is complicated on its own. **The complexity lives in the joints**, and the joints are ours.
+**The integration work is ours**: version compatibility, replay rules, asset selection, publication and investigation. Buying the tools does not buy someone to explain why yesterday’s value reached today’s screen.
 
 ## What really paid off
 
-**Snowflake, for separating storage from compute.** Every workload has its own warehouse: ingestion, transformation, analytics. A badly written exploratory query no longer slows down the morning transformation, and the cost of each workload reads straight off the invoice. Time Travel changed our relationship with mistakes: a table clobbered by a bad run can be read as it was an hour earlier, with no backup restore.
+**Snowflake, for separating storage from compute.** Separate warehouses let workloads use different compute capacity; they do not remove every shared dependency. Time Travel helps inspect earlier states while the table identity and retention permit it. A replacement or full refresh needs its own recovery procedure, as episode 3 explains.
 
 **dbt, for turning analytical SQL into code like any other.** Versioned, reviewed in PRs, tested, documented, with lineage nobody had to draw. Transformation is no longer a pile of hand-made views that only one person understands.
 
-**Dagster, for the asset as the unit of thought.** We no longer reason in jobs that run at certain times, but in data that exists, depends on other data, and carries its own checks. From the Airbyte sync to reverse ETL, everything sits in one graph. When a number looks wrong, we start from the number and walk upstream, instead of starting from logs and guessing.
+**Dagster, for following dependencies.** Schedules still drive some SLA tiers. The asset graph gives us a starting point for an investigation: which data was produced, from which inputs, with which checks? It helps locate the failed boundary; the run logs explain what happened there.
 
-**Terraform, for a question that now has an answer.** Who can read what, since when, approved by whom: it is in Git.
+**Terraform, for making access policy reviewable.** Git answers what we intended and who reviewed it. Apply records and effective-access history answer what actually happened. Keeping those together makes the investigation shorter.
 
 ## What costs more than expected
 
 - **Cascading upgrades.** A new connector version, a new dbt integration, a new Terraform provider: each one is reasonable, but they arrive without coordinating, and every combination has to be revalidated.
 - **Debugging crosses four interfaces.** Late data can come from the source, the sync, a blocking test, or reverse ETL. The asset graph helps a lot. It does not replace someone who knows the whole chain.
 - **Knowledge concentrates.** A platform this size quickly creates indispensable people. That is an operational risk to treat as such: living documentation, rotations, and integration code boring enough for someone else to pick up.
-- **Compute cost has to be watched from day one.** A warehouse left oversized, an auto-suspend set too long, a test that scans a whole table on every run: none of these mistakes is visible before the invoice.
+- **Compute cost needs attention early.** An oversized warehouse, a long auto-suspend delay or a repeatedly expensive test can all inflate the bill. Usage and query metrics can expose them before the invoice arrives, if someone is looking.
 
 ## Hybrid: why execution stays with us
 
-This is the decision we get challenged on the most, and fairly so. We could have taken everything as managed services: extraction, hosted transformation, orchestration. Less to operate, a faster start, and probably months saved early on.
+Hybrid orchestration keeps execution in our infrastructure while the vendor runs the control plane. It lets us choose the runtime, network and credentials. It also leaves us responsible for the agent and workers; managed orchestration is not the same as managed execution.
 
-We chose **hybrid** orchestration. Dagster's control plane is run by the vendor: UI, scheduling, run history. Execution runs inside our infrastructure: the agent, the pipeline code, the connections to databases and the warehouse.
+Dagster's managed control plane provides the UI and run history. Our agent runs the pipeline code and connects to the sources and warehouse from our infrastructure.
 
 What it gives us:
 
-- **Data and secrets stay inside our perimeter.** Pipelines connect to sources and to Snowflake from our side. The control plane sees execution metadata, not the data flowing through.
+- **Execution and runtime credentials stay under our control.** This does not put Snowflake storage inside our network. Logs, exceptions and asset metadata can still reach the managed control plane; they need their own filtering rules.
 - **Compute is ours.** We choose where runs execute, with which resources and which network, and we observe them with our own tooling.
 - **A single lineage**, from source to application, instead of three interfaces that each know a piece of it.
 
 What it costs us: **we operate the agent, the images, the network, and the compute**. An agent outage is our on-call. And "only metadata" takes discipline: metadata attached to an asset goes to the control plane. You don't put a sample of client data in a preview, not to debug, not "just this once."
 
-For a smaller team, or one without strong constraints on where data transits, fully managed was probably the right call. **The right stack is not the most controlled one: it is the one whose constraints justify its operating cost.**
+For a smaller team, operating that runtime can cost more than the control is worth. Compare the actual data-access constraints with the time spent on images, agents, networking and on-call. An architecture diagram does not include the person who has to upgrade it.
 
 ## If we had to do it again
 
@@ -81,14 +80,19 @@ For a smaller team, or one without strong constraints on where data transits, fu
 | --- | --- | --- |
 | Sources | Many, external, change without warning | A few databases you own |
 | Freshness | Hours, negotiated per dataset | Seconds (services and events) or days (a simple batch) |
-| Traceability | "Where does this number come from?" is asked in writing | Internal curiosity |
-| Consumers | Production applications | Internal dashboards |
+| Traceability | Auditable lineage and replay are required | A smaller scope with documented sources |
+| Consumers | Several applications need governed, reused datasets | A narrow set of internal reports |
 | Team | Able to run five tools and an on-call rotation | One person, part time |
 
-If most of your answers land in the right-hand column, a PostgreSQL instance, a few jobs, and a BI tool will take you very far. That is not an admission of weakness. It is engineering.
+If most answers fall on the right, PostgreSQL, a few jobs and a BI tool may cover the requirement. Add the larger stack when a concrete constraint justifies the next component.
 
 ## End of the series
 
 We started from one sentence, "adopting a real data warehouse," in [a post from a year ago](../posts/backend-to-data-engineer-rockfi). Five episodes later, here is what it translates to: bringing in data we don't control ([episode 1](../posts/data-platform-ingestion-drift)), sending it back to applications with an acknowledged age ([episode 2](../posts/data-platform-reverse-etl-freshness)), stopping bad data before it reaches a human ([episode 3](../posts/data-platform-tests-as-contracts)), and declaring who is allowed to touch all of it ([episode 4](../posts/data-platform-terraform-access-and-flows)).
 
-One last question worth asking yourself: in your own platform, which joint between two tools does nobody really own? That is where your next incident will be.
+My next priority would be an end-to-end recovery exercise on one flow: replay its source, fail a check, publish a complete result, then roll it back. If that works with someone other than its author at the keyboard, the platform is becoming maintainable.
+
+## Technical references
+
+- [Dagster hybrid deployment](https://docs.dagster.io/deployment/dagster-plus/hybrid)
+- [Snowflake Time Travel](https://docs.snowflake.com/en/user-guide/data-time-travel)

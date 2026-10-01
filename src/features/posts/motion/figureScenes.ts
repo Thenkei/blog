@@ -36,7 +36,6 @@ const DIAGRAM_PLANS: Record<PostDiagramVisualId, FigurePlan> = {
   "ai-force-multiplier": { story: "ai-force-multiplier", stages: [["a", "b", .18, .72], ["b", "c", .50, .46], ["c", "a", .80, .22]] },
   "sse-outbound-channel": { story: "architecture-sse-agent-communication", stages: [["agent", "outbound", .18, .50], ["channel", "stream", .50, .43], ["backoff", "reconnect", .80, .60]] },
   "backend-to-data-engineer-rockfi": { story: "backend-to-data-engineer-rockfi", stages: [["a", "b", .17, .52], ["c", "d", .50, .50], ["e", "d", .82, .50]] },
-  "claude-code-product-os": { story: "claude-code-product-os", stages: [["a", "b", .17, .54], ["c", "d", .53, .46], ["e", "a", .82, .53]] },
   "internal-tools-as-product": { story: "internal-tools-are-a-product", stages: [["a", "b", .17, .52], ["c", "d", .50, .46], ["e", "c", .82, .52]] },
   "context-engineering-beyond-prompt-engineering": { story: "context-engineering-beyond-prompt-engineering", stages: [["a", "c", .18, .53], ["b", "d", .50, .46], ["e", "a", .82, .53]] },
   "trail-endurance-profile": { story: "coros-apex-4", stages: [["objective", "horizon", .19, .37], ["smart", "four", .48, .63], ["sport", "fifteen", .81, .47]] },
@@ -72,12 +71,13 @@ const MEDIA_PLANS: Record<ArticleMediaId, readonly [readonly [string, string, nu
   "ai-review-meme": [["ai", "generated", .22, .50], ["human", "context", .60, .48], ["risk", "ship", .82, .52]],
   "product-os-loop": [["discover", "decide", .22, .40], ["design", "build", .52, .50], ["review", "learn", .78, .62]],
   "document-lifecycle-motion": [["decision", "active", .19, .50], ["trigger", "review", .52, .47], ["supersede", "archive", .82, .52]],
+  "hat-switching-tax": [["switch", "silent", .19, .52], ["pressure", "invisible", .52, .44], ["invoice", "dayend", .81, .56]],
 };
 
 const DIAGRAM_MOTIFS: Record<PostDiagramVisualId, FigureMotif> = {
   "agent-battle-2026": "comparison", "bounded-ai-loop": "branch", "ai-force-multiplier": "stack",
   "sse-outbound-channel": "exchange", "backend-to-data-engineer-rockfi": "pipeline",
-  "claude-code-product-os": "orbit", "context-engineering-beyond-prompt-engineering": "stack",
+  "context-engineering-beyond-prompt-engineering": "stack",
   "trail-endurance-profile": "gauge", "engineering-2026-ai-redefined-our-job": "orbit",
   "engineering-documents-age-poorly": "orbit", "forest-admin-activity-logs-elasticsearch": "network",
   "idempotency-debounce-jobify-bullmq": "queue", "internal-tools-as-product": "orbit", "jobify-workers-queues-nestjs": "queue",
@@ -96,7 +96,7 @@ const MEDIA_MOTIFS: Record<ArticleMediaId, FigureMotif> = {
   "redis-memory-pressure": "gauge", "backpressure-propagation": "exchange",
   "debounce-trigger-storm": "queue", "ci-reconciliation-meme": "queue",
   "ai-review-meme": "comparison", "product-os-loop": "orbit",
-  "document-lifecycle-motion": "orbit",
+  "document-lifecycle-motion": "orbit", "hat-switching-tax": "gauge",
 };
 
 export function getDiagramScene(id: PostDiagramVisualId, locale: PostLocale): FigureScene {
