@@ -1,0 +1,146 @@
+---
+title: "Ingestion, the \"solved\" problem"
+subtitle: "Plugging in a connector takes an afternoon. Trusting it takes the rest of the year."
+summary: "First episode of the series on our data platform: the map of the stack (Airbyte, Snowflake, dbt, Dagster, Terraform), then why ingesting from sources you don't control is mostly a problem of cursors, invisible deletes, and schema drift."
+visualId: "backend-to-data-engineer-rockfi"
+publishedAt: "2026-10-26"
+readTimeMinutes: 8
+tags:
+  - data-engineering
+  - airbyte
+  - snowflake
+  - architecture
+  - database
+  - rockfi
+seriesId: "what-trustworthy-data-costs"
+seriesOrder: 1
+---
+
+A year ago, [I ended a post](../posts/backend-to-data-engineer-rockfi) by proudly announcing the next step: "adopting a real data warehouse." One sentence. It was hiding roughly twelve months of work.
+
+This post opens **What Trustworthy Data Costs**, a series about that platform: what happens between connecting a source and trusting the number on screen. The connector demo usually ends before that part. Conveniently, so does the free trial.
+
+I'll start with ingestion: deleted rows that survive in the totals, late commits and columns that change type. We synchronize tables with millions of rows across the platform. At that size, a replay rule or an unnoticed omission has consequences well beyond the connector.
+
+## The map (short version)
+
+Five pieces, each with a precise job:
+
+- **Airbyte** extracts data from sources (internal databases, partner APIs and files) and lands it raw in Snowflake.
+- **Snowflake** stores and computes. The Bronze, Silver, and Gold layers live there.
+- **dbt** transforms, in SQL that is versioned, tested, and reviewed like code.
+- **Dagster** orchestrates everything, from syncs to models to sending data back to applications. It runs in hybrid mode: the control plane is managed, execution runs inside our own infrastructure.
+- **Terraform** declares Snowflake access and Airbyte configuration.
+
+At the end of the chain, **reverse ETL** sends some computed data back into live applications. Episode 2 looks at what happens when a delayed run reaches a screen used in a client meeting.
+
+<ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
+
+## Why we buy connectors
+
+Writing a client for a partner's paginated API is not a competitive advantage. Neither is handling its expiring tokens, its rate limits, and its pagination that skips a page whenever someone inserts a row mid-read. Airbyte gives us a connector catalog, a consistent output format in Snowflake, and one place to see what ran.
+
+But **buying a connector does not buy trust in what it brings back**. A connector promises to copy what the source exposes. It does not promise that what the source exposes is complete, stable, or even consistent from one day to the next.
+
+## Three ways to read a source
+
+Every stream has to pick a read mode. None of them is free.
+
+**Full refresh.** Read everything, every time. With an overwrite destination mode and a complete source snapshot, missing rows disappear from the destination. With append mode, they don't. The catch: cost grows with history, not with change. Fine for a reference table. Less fine for ten years of transactions. Pagination also needs a stable snapshot: reading every page does not guarantee they all describe the same moment.
+
+**Cursor-based incremental.** Read what changed since the last `updated_at` seen. It avoids rereading the whole source, but leaves two gaps:
+
+- **Hard deletes are invisible.** A deleted row no longer has an `updated_at`. It shows up in no incremental read. It lives forever in your warehouse, and in your totals.
+- **Late commits slip under the cursor.** A transaction starts at 10:00:00, writes `updated_at` = 10:00:00, and commits at 10:00:07. Meanwhile a sync read up to 10:00:05 and moved its cursor. The row is now "in the past." It will never be read again, unless it changes again.
+
+**CDC (Change Data Capture).** Read the database's replication log. The connector can capture inserts, updates and deletes in log order, provided the source is configured for replication. Delivery can still replay records; delete handling also has to survive the destination and transformation layers. The cost is operational: a PostgreSQL replication slot can retain WAL while the consumer is behind.
+
+> A paused CDC connector can keep its own status green while the source database fills its disk. Monitor retained WAL and consumer lag on the database side.
+
+The time before this becomes a problem depends on write volume, available disk and retention limits. A retention cap protects the disk, but can leave the consumer needing a new snapshot. It does not make the backlog disappear safely.
+
+## Deduplicate, because it will happen
+
+Whatever the mode, **assume you will receive duplicates**. A sync that fails halfway and resumes, a cursor deliberately moved back to catch late commits, a partner resending the same file: the same row arrives more than once.
+
+Airbyte can deduplicate on write for some streams. The dbt layer also needs an explicit rule. This simplified model illustrates batch deduplication, including the limit explained below; it is not a complete replay-safe merge:
+
+```sql
+-- models/silver/stg_partner_contracts.sql (simplified example)
+{{ config(
+    materialized='incremental',
+    unique_key='contract_id',
+    incremental_strategy='merge'
+) }}
+
+select
+    contract_id,
+    status,
+    amount,
+    source_updated_at,
+    _airbyte_extracted_at
+from {{ source('partner_feed', 'contracts') }}
+
+{% if is_incremental() %}
+  -- Three days of overlap: sources rewrite the past
+  -- more often than they admit.
+  where _airbyte_extracted_at >= coalesce(
+      (select dateadd(day, -3, max(_airbyte_extracted_at)) from {{ this }}),
+      '1970-01-01'::timestamp
+  )
+{% endif %}
+
+-- The latest version at the source wins, not the last one to arrive.
+qualify row_number() over (
+    partition by contract_id
+    order by source_updated_at desc, _airbyte_extracted_at desc
+) = 1
+```
+
+The `order by` picks the newest source version among the rows in this batch. Extraction time alone would let an old replayed file win. This assumes reliable, non-null source timestamps; conflicting payloads with identical timestamps need a source revision or an explicit rejection rule.
+
+There is still a trap: **the default `merge` does not compare source versions with the existing target row**. If that newer row isn't in this batch, `qualify` cannot protect it. An old record extracted again today passes the extraction-time filter too. Either compare versions during the target merge, or rebuild affected keys from retained history. A full refresh only helps if that history actually contains the newer version.
+
+## Where schema changes stop
+
+Sources change without warning. A column appears. Another is renamed. An amount goes from `number` to `string`, with a decimal comma and a space as thousands separator, because someone changed the locale of an export.
+
+Airbyte detects schema changes and lets you pick a policy per connection: propagate, ignore, or pause. The temptation is to propagate everything automatically, "so we don't miss anything." That conflates two questions:
+
+1. **Do we keep what the source sent?** Within the defined retention and access policy.
+2. **Do we let this change reach the models humans use?** Only after a human has looked at it.
+
+Keeping raw evidence and validating the usable model are separate steps. The Silver model can constrain its output types and keys, but a new source column ignored by an explicit SELECT will not break that contract. To detect every source schema change, compare the source schema as well. Episode 3 covers model contracts and their limits.
+
+## Keep enough raw history to investigate
+
+The raw layer is often treated as a staging area to clean up as soon as possible. We treat it the other way around: **Bronze is what the source told us, and when**.
+
+Keeping extraction timestamps and original payloads, where available, costs storage. It also makes replay and investigation possible. Define retention, deletion and access rules for that history; “raw” does not mean “keep personal data forever.” While the relevant history is retained, it lets us:
+
+- **replay** a fixed transformation over history without asking the source for the data again;
+- **answer** "what did this partner send us on March 3rd?" with a query, not a support ticket on their side;
+- **tell apart** a source error from an error in our models. In a regulated domain, that is the difference between fixing and explaining.
+
+## What remains after the first successful sync
+
+- **Connector upgrades can change the output.** A renamed column or differently typed nested field may leave a successful sync and a failed downstream model. Pin versions and compare outputs before promoting an upgrade.
+- **Source rate limits become your SLAs.** If an API accepts a hundred requests per minute, your freshness has a floor that nobody on your side decided.
+- **A green sync proves nothing.** "Zero rows extracted" is a technical success. Sometimes it is also proof that a partner stopped sending anything. Only a freshness and volume check sees it.
+- **A chain needs one scheduling owner.** For connections triggered by Dagster, disable Airbyte's own schedule. dbt models can still run on SLA schedules or reactive dependencies; what matters is that two schedulers do not independently launch the same sync. Episode 2 looks at the remaining waits.
+
+## When this is the wrong call
+
+With a few databases you own and modest analytical workloads, replication and materialized views may be enough. This stack becomes easier to justify when sources are numerous, external, and change without asking you.
+
+Before adding another connector, delete a test row at the source and follow it all the way to the totals. A successful sync is not evidence that the deletion arrived.
+
+## Next in the series
+
+Next episode: reverse ETL. When data computed in the warehouse flows back into an application people use live, every minute of delay becomes a product problem.
+
+## Technical references
+
+- [PostgreSQL replication retention](https://www.postgresql.org/docs/current/runtime-config-replication.html)
+- [Airbyte sync modes](https://docs.airbyte.com/platform/using-airbyte/core-concepts/sync-modes/)
+- [dbt incremental models](https://docs.getdbt.com/docs/build/incremental-models)

@@ -89,6 +89,36 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
       fr: "Coureur de trail inspiré du manga sportif franchissant une route de montagne avec une montre robuste.",
     },
   },
+  "data-platform-ingestion-drift": {
+    alt: {
+      en: "Painted architectural cutaway where varied records collect in a raw layer and a slotted gate stops a malformed tile before a refined terrace.",
+      fr: "Coupe architecturale peinte où des enregistrements variés s'accumulent dans une couche brute et une grille arrête un élément mal formé avant une terrasse raffinée.",
+    },
+  },
+  "data-platform-reverse-etl-freshness": {
+    alt: {
+      en: "Painted cutaway of a data route passing several clocks toward an application screen, with an older tile diverted into a separate branch.",
+      fr: "Vue en coupe peinte d'un flux de données traversant plusieurs horloges vers un écran applicatif, avec un élément ancien dévié vers une branche séparée.",
+    },
+  },
+  "data-platform-tests-as-contracts": {
+    alt: {
+      en: "Painted testing station where a lowered barrier stops a cracked record beneath a reconciliation balance while a complete set remains sheltered above.",
+      fr: "Station de contrôle peinte où une barrière abaissée arrête un enregistrement fissuré sous une balance de réconciliation tandis qu'un ensemble complet reste protégé en hauteur.",
+    },
+  },
+  "data-platform-terraform-access-and-flows": {
+    alt: {
+      en: "Painted architectural section connecting a declared role graph to physical access doors, with a closed coral branch and a protected key compartment.",
+      fr: "Coupe architecturale peinte reliant un graphe de rôles déclaré à des portes d'accès, avec une branche corail fermée et un compartiment à clé protégé.",
+    },
+  },
+  "data-platform-retrospective": {
+    alt: {
+      en: "An engineer studies five exposed platform modules joined by coral coupling plates, crossed by a teal flow beneath a separate control pavilion.",
+      fr: "Un ingénieur observe cinq modules de plateforme en coupe reliés par des plaques corail et traversés par un flux turquoise sous un pavillon de contrôle séparé.",
+    },
+  },
   "engineer-life-late-2026": {
     alt: {
       en: "Comic illustration of an engineer at a terminal surrounded by code, a release announcement, milestone cards, and feedback, with a neglected coffee mug on the desk.",

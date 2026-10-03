@@ -1,0 +1,207 @@
+---
+title: "Data quality: decide what blocks publication"
+subtitle: "Where dbt tests and Dagster checks stop a bad run—and where they still need a human."
+summary: "Provider data errors, dbt contracts and reconciliation, blocking Dagster checks, and how to distinguish an error from a new case the model does not yet handle."
+visualId: "backend-to-data-engineer-rockfi"
+publishedAt: "2026-11-02"
+readTimeMinutes: 9
+tags:
+  - data-engineering
+  - dbt
+  - dagster
+  - testing
+  - reliability
+  - rockfi
+seriesId: "what-trustworthy-data-costs"
+seriesOrder: 3
+---
+
+Third episode of **What Trustworthy Data Costs**. The previous one ended with a promise: bad data should stop inside the pipeline, not in a client meeting.
+
+We have detected and investigated many errors in data sent by providers. I cannot share the details of those incidents. I can describe the engineering problem they leave us with: distinguish a malformed row, an incomplete feed and a number that is structurally valid but means the wrong thing.
+
+## Stop the run before publication
+
+A quality job that runs after publication can detect an incident, but it cannot prevent the first reader from seeing the bad result. Checks on a publication path need to run before that result leaves the platform.
+
+For a protected publication path, a failed blocking check must prevent downstream work. The application can retain the last validated version only while it remains within its freshness budget. After that, the number should become unavailable, as discussed in episode 2.
+
+> A last validated number is useful only while its age remains acceptable. “Last known good” is not a lifetime warranty.
+
+## Where to put tests (at the boundaries, not everywhere)
+
+At millions of rows, a test can be a substantial query. Put checks where they answer a specific question, then decide whether a failure warrants stopping publication or opening an investigation.
+
+**At the entrance: is the source alive?** Freshness, and the keys that must exist. dbt can measure a source's freshness from a load timestamp column:
+
+```yaml
+# models/sources.yml (simplified example)
+sources:
+  - name: partner_feed
+    schema: raw_partner_feed
+    config:
+      loaded_at_field: _airbyte_extracted_at
+      freshness:
+        warn_after: {count: 6, period: hour}
+        # Example thresholds; use the source's publication calendar.
+        error_after: {count: 24, period: hour}
+    tables:
+      - name: contracts
+```
+
+This uses dbt Core 1.10+ configuration syntax. Run `dbt source freshness` separately from `dbt build` and wire its failure into the publication path. `_airbyte_extracted_at` measures recent extracted records, not the age of the business facts. An unchanged source can look old; a fresh extraction can contain old valuations. That distinction needs source-specific coverage metadata.
+
+**In the middle: is the shape respected?** The Silver layer carries **contracts**: columns, types, constraints. An enforced contract fails the model build if the SQL produces anything other than what is declared. That is where the schema drift from [episode 1](../posts/data-platform-ingestion-drift) breaks loudly:
+
+```yaml
+# models/silver/_silver.yml
+models:
+  - name: stg_partner_contracts
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: contract_id
+        data_type: varchar
+        constraints:
+          - type: not_null
+        data_tests:
+          - unique
+      - name: amount
+        # If the source sends "1 234,56", the cast fails here, not on a dashboard.
+        data_type: number(18, 2)
+      - name: status
+        data_type: varchar
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['active', 'suspended', 'closed']
+```
+
+On standard Snowflake tables, `NOT NULL` is enforced, while declared primary keys and uniqueness are not. Keep the `unique` test. A type contract also does not insert a cast into the SQL: the model must perform that conversion, and a failed conversion must not be quietly turned into NULL without a check.
+
+**At the exit: is the number consistent with the world?** Shape tests are no longer enough in Gold. There we check business invariants, and above all **reconciliations**: a total computed on our side must match, within a tolerance, the total reported by the source. A dbt singular test is a query that must return zero rows:
+
+```sql
+-- tests/assert_totals_reconcile_with_source.sql
+-- Every row returned is a gap someone will have to explain.
+select
+    entity_id,
+    computed_total,
+    reported_total,
+    abs(computed_total - reported_total) as gap
+from {{ ref('gold_entity_totals') }}
+where computed_total is null
+   or reported_total is null
+   or abs(computed_total - reported_total) > greatest(0.01, 0.005 * abs(reported_total))
+```
+
+The tolerance here is illustrative: both amounts must describe the same entities, currency and valuation date. A percentage alone misses discrepancies against zero, and SQL comparisons with NULL silently miss absent values. The source join must also retain missing entities, otherwise they never reach this test.
+
+## `dbt build`, not `dbt run`
+
+`dbt run` builds models; a separate `dbt test` checks them afterwards. **`dbt build` orders selected models and tests in the DAG**, skipping relevant downstream nodes when an error-level test fails. Selection matters: a test omitted by a selector cannot block anything. Our project uses `indirect_selection: buildable` to handle tests with several parents, so the tested slice needs review alongside the SQL.
+
+In Dagster, the dbt integration exposes each model as an asset, and dbt tests as **asset checks** attached to those assets:
+
+```python
+from dagster import AssetExecutionContext
+from dagster_dbt import DbtCliResource, dbt_assets
+
+@dbt_assets(manifest=DBT_MANIFEST_PATH)
+def warehouse_models(context: AssetExecutionContext, dbt: DbtCliResource):
+    # `build`, not `run`: tests run between models, not after the damage is done.
+    yield from dbt.cli(["build"], context=context).stream()
+```
+
+The result is visible directly in the asset graph: every model shows its checks, green or red, next to its latest materialization. When someone asks "why hasn't this number moved since this morning?", the answer is on the same page as the question.
+
+## Volume checks in Dagster
+
+A volume check is useful for incomplete feeds: every received row may be valid while many expected rows are missing. SQL can compute this too; Python is useful here for expressing the verdict as a Dagster asset check. The 10% threshold below is an example, not a platform-wide SLA.
+
+```python
+from dagster import AssetCheckResult, AssetCheckSeverity, AssetKey, asset_check
+from dagster_snowflake import SnowflakeResource
+
+@asset_check(
+    asset=AssetKey(["gold", "gold_entity_totals"]),
+    # Blocking: if the check fails at ERROR, downstream (reverse ETL included) does not run.
+    blocking=True,
+    description="Entity count does not drop by more than 10% within an hour.",
+)
+def entity_volume_did_not_collapse(snowflake: SnowflakeResource) -> AssetCheckResult:
+    with snowflake.get_connection() as conn:
+        current, previous = conn.cursor().execute(
+            """
+            select
+                count(*),
+                (select count(*) from gold.gold_entity_totals at(offset => -3600))
+            from gold.gold_entity_totals
+            """
+        ).fetchone()
+
+    if previous == 0:
+        return AssetCheckResult(
+            passed=False,
+            severity=AssetCheckSeverity.ERROR,
+            metadata={"reason": "empty_baseline", "current": current},
+        )
+    ratio = current / previous
+    return AssetCheckResult(
+        passed=ratio >= 0.9,
+        severity=AssetCheckSeverity.ERROR,
+        metadata={"current": current, "previous": previous, "ratio": round(ratio, 3)},
+    )
+```
+
+An empty baseline fails closed in this example; initializing it needs an explicit decision. A new or seasonal feed may need a different comparison window.
+
+`at(offset => -3600)` needs the same table object to have existed an hour earlier, with sufficient Time Travel retention. An incremental model without a replacement in that interval is one way to meet that requirement. A full refresh, table replacement or new table can break it. For those cases, compare counts persisted for validated runs rather than depending on this history.
+
+`blocking=True` prevents downstream materialization on an ERROR failure when the check is part of the run. It does not undo a table already materialized or protect a consumer that bypasses the graph. Separate reactive runs also need the upstream-check condition shown in episode 2. Register the check in `Definitions`, and test the actual publication path.
+
+<ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
+
+## Warn or error: the real decision
+
+Writing a test is easy. Choosing its severity is the decision that determines whether the system is still usable six months from now.
+
+- **Too many `error`s**, and the pipeline stops over trivia. The team learns to rerun without reading. The day the error is serious, it gets rerun too.
+- **Too many `warn`s**, and nobody reads warnings. A warning nobody handles is a disabled test with extra steps.
+
+Warnings do fire often in our platform, sometimes because a new provider case has not yet been handled. That is not automatically a reason to disable the test. We first need to distinguish an error in the feed from a valid case our model does not represent. For release-blocking errors, I want a named owner and a concrete action; warnings need a triage path too, without pretending every alert is a production outage.
+
+## When the shape is right and the meaning is wrong
+
+Tests check what you anticipated. The worst quality incident looks like nothing you anticipated.
+
+For example, a source could keep sending an `amount` column with the same type and volumes, but change from gross to net of fees. That is a hypothetical example, not a provider incident I am disclosing. Shape checks would still pass.
+
+Two useful ways to detect that change:
+
+1. **Reconciliation against an independent source**, when one exists. That is why the least elegant test is the most valuable.
+2. **A business owner for every Gold model**, who looks at the numbers and knows when they "look off." Data quality remains, in the end, a human responsibility with good tooling.
+
+## What it costs
+
+- **Tests consume compute.** Restricting a uniqueness test to recent rows can reduce scans, but also miss a duplicate against older history. Use a check that compares changed keys with the relevant history, and keep a full check at a cadence justified by the risk.
+- **Publication calendars matter.** A daily feed and a weekday-only feed need different rules. A repeated Monday alarm deserves a calendar correction, not a standing appointment in the on-call rota.
+- **A blocking check is an availability dependency.** If the check itself crashes (timeout, missing grant), it blocks downstream exactly like a real failure. Blocking checks must be as simple and as reliable as what they protect.
+
+## When this is the wrong call
+
+If your data feeds exploratory analysis nobody reuses, blocking checks and named owners are overkill. `warn` tests and some common sense will do.
+
+To verify a blocking path, deliberately fail a test in a development run and check that publication does not happen. Then check the screen after the freshness budget expires. A red check in the UI proves neither behavior by itself.
+
+## Next in the series
+
+Next episode: Terraform. Declaring Snowflake access and Airbyte configuration in the same repository means gaining a source of truth about who can read what. And a plan whose blast radius deserves a real review.
+
+## Technical references
+
+- [dbt build](https://docs.getdbt.com/reference/commands/build)
+- [dbt source freshness](https://docs.getdbt.com/reference/resource-configs/freshness)
+- [dbt constraints on Snowflake](https://docs.getdbt.com/reference/resource-properties/constraints)
+- [Dagster blocking asset checks](https://docs.dagster.io/guides/test/asset-checks)

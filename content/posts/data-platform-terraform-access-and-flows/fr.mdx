@@ -1,0 +1,188 @@
+---
+title: "Terraform pour les accès et les flux : relire le plan"
+subtitle: "Déclarer les droits Snowflake et les connexions Airbyte dans le même dépôt, c'est gagner une source de vérité. Et un blast radius."
+summary: "Quatrième épisode : gérer les accès Snowflake et la configuration Airbyte en Terraform. Rôles d'accès et rôles fonctionnels, future grants, un seul ordonnanceur, secrets dans le state, destructions bloquées en CI, et la dérive quand quelqu'un clique dans la console."
+visualId: "backend-to-data-engineer-rockfi"
+publishedAt: "2026-11-05"
+readTimeMinutes: 9
+tags:
+  - data-engineering
+  - terraform
+  - snowflake
+  - security
+  - devops
+  - rockfi
+seriesId: "what-trustworthy-data-costs"
+seriesOrder: 4
+---
+
+Quatrième épisode de **Ce que coûte une donnée fiable**. Les trois premiers parlaient de ce qui circule dans la plateforme. Celui-ci parle de qui a le droit d'y toucher, et de la façon dont nous le déclarons.
+
+Un droit accordé dans la console peut être légitime et difficile à expliquer six mois plus tard. Quel objet, quel rôle, quelle approbation, quel déploiement ? Déclarer ce droit en code donne un historique de revue à la politique souhaitée.
+
+Git enregistre l'intention et la revue. Il ne prouve pas qu'un droit a été appliqué, ni quel rôle hérité quelqu'un a utilisé hier. Il faut aussi les traces d'apply de la CI et l'historique d'accès et de requêtes Snowflake. La configuration et la piste d'audit ont des rôles différents.
+
+## Ce que nous déclarons, et ce que nous ne déclarons pas
+
+Terraform porte chez nous deux familles d'objets :
+
+- **Les accès Snowflake** : rôles, grants, warehouses et leurs limites de consommation.
+- **La configuration Airbyte** : sources, destinations, connexions, flux sélectionnés et politique de changement de schéma.
+
+La frontière est la suivante : **dbt possède les tables de modèles ; Terraform possède les accès et la configuration des connecteurs**. Une matérialisation `table` peut remplacer un objet, une matérialisation incrémentale le met généralement à jour. Si les deux outils possèdent sa définition, le prochain plan peut annuler le build précédent. Deux outils, une table : au moins, aucun ne peut accuser un troisième outil.
+
+<ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
+
+Sur ce schéma, Terraform ne transporte aucune donnée. Il décide qui entre à chaque étape, et par quelle porte.
+
+## Les droits Snowflake en deux couches
+
+Le modèle qui tient dans la durée sépare deux notions que la console mélange volontiers :
+
+- **Les rôles d'accès** portent des privilèges sur des objets : lire la couche Silver, écrire dans le schéma brut. Ils ne sont jamais donnés à une personne.
+- **Les rôles fonctionnels** représentent un usage : analyste, service de transformation, reverse ETL. Ils reçoivent des rôles d'accès, et ce sont eux que l'on attribue.
+
+Aucun privilège n'est accordé directement à un utilisateur. Répondre à « qui peut lire Silver ? » revient à suivre un graphe de rôles déclaré, pas à fouiller des grants individuels.
+
+```hcl
+# Exemple simplifié : noms et périmètre illustratifs.
+
+resource "snowflake_database_role" "silver_read" {
+  database = snowflake_database.analytics.name
+  name     = "SILVER_READ"
+  comment  = "Lecture de la couche Silver. Jamais attribué directement à un humain."
+}
+
+# Les future grants couvrent les tables que dbt créera demain,
+# y compris celles qu'il recrée à chaque run.
+resource "snowflake_grant_privileges_to_database_role" "silver_read_future_tables" {
+  database_role_name = snowflake_database_role.silver_read.fully_qualified_name
+  privileges         = ["SELECT"]
+
+  on_schema_object {
+    future {
+      object_type_plural = "TABLES"
+      in_schema          = snowflake_schema.silver.fully_qualified_name
+    }
+  }
+}
+
+resource "snowflake_grant_database_role" "analyst_reads_silver" {
+  database_role_name = snowflake_database_role.silver_read.fully_qualified_name
+  parent_role_name   = snowflake_account_role.analyst.name
+}
+```
+
+Deux détails valent le détour.
+
+**Les future grants couvrent les nouveaux objets**, remplacements compris. Ce n'est pas la seule option viable : dbt sait aussi gérer les grants ou préserver les droits existants avec `copy_grants`. Il faut choisir un propriétaire pour chaque privilège et coordonner ces mécanismes. Le rôle ci-dessus demande aussi `USAGE` sur la base et le schéma, et les tables existantes ont besoin de leurs propres grants : les future grants ne sont pas rétroactifs.
+
+**Les future grants de schéma prennent la priorité** sur ceux de base pour un même type d'objet, même si les rôles diffèrent. Une nouvelle règle de schéma peut changer les rôles qui recevront des droits sur les prochaines tables créées. Elle ne révoque pas les grants déjà présents sur les tables existantes. On choisit un niveau cohérent et on vérifie les droits effectifs après un remplacement.
+
+Des **politiques de masquage** peuvent aussi être nécessaires sur les colonnes sensibles. Il faut vérifier comment la matérialisation dbt préserve ou réapplique leur attachement quand elle remplace une table. Une politique déclarée en Terraform ne prouve pas que le build suivant l'utilise encore.
+
+## Les connexions aussi sont du code
+
+Côté Airbyte, une connexion déclarée ressemble à ceci :
+
+```hcl
+resource "airbyte_connection" "partner_feed_to_raw" {
+  name           = "partner-feed-to-raw"
+  source_id      = var.partner_feed_source_id
+  destination_id = airbyte_destination_snowflake.raw.destination_id
+
+  # Dagster décide quand ça tourne. Deux ordonnanceurs, c'est un de trop.
+  schedule = {
+    schedule_type = "manual"
+  }
+
+  # On garde ce qui change dans Bronze, les contrats Silver décident du reste.
+  non_breaking_schema_updates_behavior = "propagate_columns"
+
+  configurations = {
+    streams = [
+      { name = "contracts", sync_mode = "incremental_deduped_history" },
+      { name = "movements", sync_mode = "incremental_append" },
+    ]
+  }
+}
+```
+
+Le `schedule_type = "manual"` est la ligne la plus importante du fichier. Il matérialise la décision de l'[épisode 2](../posts/data-platform-reverse-etl-freshness) : **un seul ordonnanceur**, et c'est l'orchestrateur, pour que la transformation parte quand la donnée est arrivée.
+
+Le reste a une vertu moins visible : la liste des flux synchronisés devient relisible. Ajouter un flux partenaire passe par une PR, avec une personne qui se demande si ce flux contient des données sensibles avant qu'il ne soit copié dans l'entrepôt.
+
+## Les secrets, ou le state qui en sait trop
+
+**`sensitive` masque une valeur dans la sortie normale de la CLI ; il ne la chiffre pas et ne l'exclut pas du state.** Des attributs ordinaires peuvent conserver les identifiants même s'ils viennent d'un gestionnaire de secrets. Les versions récentes de Terraform proposent des valeurs éphémères et des arguments write-only, mais seulement dans les contextes et ressources compatibles. Le schéma du provider se vérifie avant de s'appuyer dessus.
+
+Pour une configuration qui conserve des identifiants, les contrôles doivent couvrir le state et le plan sauvegardé :
+
+- les secrets viennent d'un gestionnaire de secrets, jamais d'un fichier `.tfvars` commité ;
+- le state vit dans un backend distant chiffré, avec verrouillage et accès restreint à l'identité de la CI ;
+- l'accès courant au state est limité à l'identité CI, avec une procédure de récupération documentée et auditée ; les JSON de plan et les artefacts CI se protègent aussi.
+
+## Le blast radius d'un plan
+
+Un dépôt qui touche à la fois aux droits et aux flux a une propriété inconfortable : **un refactoring anodin peut être destructeur**.
+
+- Renommer l'adresse Terraform d'une ressource sans bloc `moved` peut produire un destroy/create. Changer son nom affiché est une autre opération ; le remplacement dépend du provider. On lit les actions dans le plan sauvegardé.
+- Recréer une connexion Airbyte, c'est perdre son état de synchronisation. La nouvelle connexion repart de zéro : resynchronisation complète de l'historique, doublons en Bronze, et une facture de calcul inattendue.
+
+Les parades sont connues. Il faut juste les rendre obligatoires :
+
+- des blocs `moved` pour chaque renommage, relus en PR ;
+- `prevent_destroy` sur les rôles, les bases et les connexions ;
+- **des states séparés** (accès, calcul, ingestion), pour que chaque plan reste lisible et que son pire cas reste borné ;
+- un apply uniquement depuis la CI, avec une identité dédiée ;
+- et un garde-fou qui fait échouer la CI dès qu'un plan contient une destruction :
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+terraform plan -input=false -out=plan.out
+terraform show -json plan.out > plan.json
+
+# Un "replace" est un delete suivi d'un create : il est attrapé aussi.
+deletes=$(jq '[.resource_changes[]? | select(.change.actions | index("delete"))] | length' plan.json)
+
+if [[ "$deletes" -gt 0 ]]; then
+  jq -r '.resource_changes[]? | select(.change.actions | index("delete")) | "  - \(.address)"' plan.json
+  echo "Le plan détruit ${deletes} ressource(s). Il faut une approbation explicite, pas un re-run." >&2
+  exit 1
+fi
+```
+
+On applique le plan sauvegardé exact qui a passé cette garde et la revue. `prevent_destroy` aide tant que le bloc de ressource reste dans la configuration ; supprimer ce bloc supprime aussi la protection. La garde du plan détecte le delete qui en résulte. Le plan et son JSON doivent être protégés et expirer : ils peuvent contenir les secrets masqués dans le terminal.
+
+## La dérive et les limites de la source de vérité
+
+Tôt ou tard, quelqu'un clique. Un grant « temporaire » pour débloquer une analyse, un intervalle de sync modifié à la main. Le prochain plan propose de l'annuler, et tout le monde se demande qui a raison.
+
+La configuration relue représente l'état souhaité ; on enquête ensuite sur l'écart. Une modification d'urgence dans la console peut être justifiée et devoir être intégrée, plutôt qu'annulée aveuglément. Un `plan -detailed-exitcode` planifié remonte les changements : 0 signifie aucun diff, 1 une erreur, 2 un diff. Le code 2 ne prouve pas, à lui seul, une dérive hors code : une modification de code non appliquée le produit aussi. Un plan refresh-only aide à isoler les changements distants. Le traitement de l'alerte doit distinguer ces cas.
+
+## Ce que ça coûte
+
+- **Les providers bougent vite.** Le passage à la version 1 du provider Snowflake a renommé ou refondu une bonne partie des ressources. Une montée de version majeure est un projet, avec ses `moved` et ses imports, pas un changement de numéro.
+- **Importer l'existant est fastidieux.** Chaque rôle créé à la main avant Terraform doit être importé, relu, puis nettoyé. C'est le prix des premiers mois passés dans la console.
+- **La revue demande des gens qui lisent un plan.** Un diff HCL de trois lignes peut produire un plan de quarante ressources. Relire le code sans relire le plan, c'est relire la moitié du changement.
+
+## Quand c'est le mauvais choix
+
+Trois personnes, un warehouse, aucune donnée sensible ? Un script SQL de grants versionné dans Git, relu en PR, fait l'essentiel du travail pour une fraction du coût. Terraform se justifie quand le graphe de rôles grandit plus vite que la mémoire de l'équipe, et quand la question « qui a accès à quoi ? » vient de quelqu'un qui attend une réponse écrite.
+
+Un exercice de récupération utile consiste à reconstruire un rôle et à comparer ses droits effectifs à la politique souhaitée. Le HCL dans Git est le point de départ ; une restauration réussie et relue fournit la preuve.
+
+## La suite de la série
+
+Dernier épisode : le bilan. Cinq outils, quatre langages et un orchestrateur hybride. Est-ce qu'on referait ce choix ?
+
+## Références techniques
+
+- [Snowflake future grants](https://docs.snowflake.com/en/sql-reference/sql/grant-privilege)
+- [dbt Snowflake grants](https://docs.getdbt.com/reference/resource-configs/snowflake-configs)
+- [Airbyte connection provider schema](https://registry.terraform.io/providers/airbytehq/airbyte/latest/docs/resources/connection)
+- [Terraform sensitive and ephemeral values](https://developer.hashicorp.com/terraform/language/manage-sensitive-data)
+- [Terraform lifecycle guards](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle)
+- [Terraform plan exit codes](https://developer.hashicorp.com/terraform/cli/commands/plan)
