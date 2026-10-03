@@ -162,7 +162,7 @@ function Stage({ frame, compact, locale }: SceneStageProps) {
 
     {/* Audit trail: one line per decision, never overwritten. */}
     <Box x={audit.x} y={audit.y} w={audit.w} h={audit.h} tone="line" radius={14} appear={easeOut(frame, 16, 36)}>
-      <Text x={audit.x + 18} y={audit.y + (compact ? 15 : 22)} size={11} font="mono" weight={600} tone="muted" caps>{tr(locale, "audit trail", "piste d’audit")}</Text>
+      <Text x={audit.x + 18} y={audit.y + (compact ? 15 : 22)} size={11} font="mono" weight={600} tone="muted" caps>{tr(locale, "audit trail", "audit logs")}</Text>
     </Box>
     {RUN_SPECS.map((spec, index) => {
       const landed = landOf(index);
@@ -187,7 +187,7 @@ export default defineScene({
   beats: [
     { at: 0, text: { en: "Forest mints a narrow token: iss, exact aud, sub, tenant_id, short iat/nbf/exp, jti, least-privilege scope.", fr: "Forest émet un token étroit : iss, aud exact, sub, tenant_id, iat/nbf/exp courts, jti, scope minimal." } },
     { at: RUNS[0], text: { en: "Sent as Authorization: Bearer over TLS, it walks down the agent’s checks, one explicit step at a time.", fr: "Envoyé en Authorization: Bearer sur TLS, il parcourt les contrôles de l’agent, un par un, explicitement." } },
-    { at: decideOf(0), text: { en: "Every check passes: the call is allowed, and the decision is written to the audit trail.", fr: "Tout passe : l’appel est autorisé, et la décision est écrite dans la piste d’audit." } },
+    { at: decideOf(0), text: { en: "Every check passes: the call is allowed, and the decision is written to the audit trail.", fr: "Tout passe : l’appel est autorisé, et la décision est enregistrée dans les audit logs." } },
     { at: RUNS[1], text: { en: "The same token again: its jti was already seen. Replay denied, with a reason code.", fr: "Le même token, rejoué : son jti est déjà connu. Rejeu refusé, avec un code de raison." } },
     { at: RUNS[2], text: { en: "A genuine Forest token minted for another agent: aud is not an exact match. Denied.", fr: "Un vrai token Forest, mais émis pour un autre agent : aud ne correspond pas exactement. Refusé." } },
     { at: landOf(2), text: { en: "Can this request call this agent in this tenant? Only if every check says yes, and the log says why.", fr: "Peut-elle appeler cet agent dans ce tenant ? Seulement si chaque contrôle dit oui ; le log dit pourquoi." } },

@@ -1,7 +1,7 @@
 ---
 title: "Vos documents d'ingénierie ont une date de péremption"
 subtitle: "Le document dangereux n'est pas celui qui paraît vieux. C'est celui qui continue à se présenter comme la vérité du jour."
-summary: "Responsable identifié, preuves, déclencheurs de révision et expiration : le contrat minimal qui permet à une documentation utile de vieillir honnêtement."
+summary: "Responsable identifié, preuves, déclencheurs de révision et expiration : les informations nécessaires pour savoir si une documentation est encore fiable."
 visualId: "engineering-documents-age-poorly"
 publishedAt: "2026-08-31"
 readTimeMinutes: 5
@@ -23,7 +23,7 @@ Un assistant IA peut même retrouver cette page, la traiter comme un contexte fi
 
 <ArticleDiagram visualId="engineering-documents-age-poorly" />
 
-## Le document qui a toujours l'air en poste
+## La page périmée qui fait encore autorité
 
 La plupart des wikis savent qui a créé une page et quand elle a été modifiée. Ils disent rarement quelle preuve la soutient, quel changement impose sa révision ou ce qui l'a remplacée.
 
@@ -41,7 +41,7 @@ La mention « mis à jour mardi » ne sauve pas le lecteur. Elle prouve que quel
 
 Un grand ménage apporte un répit, puis les commits, migrations et incidents rendent de nouveau certaines pages fausses. L'IA accélère leur rédaction, pas leur validation ; elle peut même lisser des sources contradictoires. Il faut relier la maintenance aux changements qui affectent la réalité décrite.
 
-## Tous les documents n'ont pas la même demi-vie
+## Tous les documents ne vieillissent pas de la même façon
 
 Rien n'oblige à maintenir chaque catégorie de la même manière :
 
@@ -66,7 +66,7 @@ Avant de demander à quelqu'un de lui faire confiance, un document actif devrait
 | Expiration | Date ou condition après laquelle il ne fait plus autorité |
 | Successeur | Document qui remplace cette version |
 
-Ces champs aident à repérer quand la page ne fait peut-être plus autorité.
+Ces champs permettent de savoir quand il faut revérifier la page avant de s'y fier.
 
 <ArticleMedia mediaId="document-lifecycle-motion" />
 
@@ -76,7 +76,7 @@ Une pull request qui modifie un contrat peut lister les documents concernés. Un
 
 L'IA peut retrouver les pages concernées et préparer un diff. Le responsable vérifie le sens avant publication.
 
-## Pas de clause d'immortalité
+## Il faut encore quelqu'un pour faire la révision
 
 Ces champs ne garantissent pas qu'une révision aura lieu : certaines dépendances entre code et prose restent invisibles. Concentrons cet effort sur les pages qui guident des décisions ou des actions répétées. Une note historique peut rester figée si son statut est clair.
 

@@ -19,7 +19,7 @@ Sixième épisode de **Outils internes à la pointe**. Les cinq premiers ont cou
 
 ## Nexus a été construit avec la méthode qu'il propose
 
-La première version fonctionnelle de Nexus a pris environ trois semaines. Pas parce que nous avons bâclé, ni parce que quelqu'un a enchaîné les nuits blanches. Nous sommes partis d'un socle standard (la même stack, les mêmes conventions et le même UI Kit que nos autres applications), et l'essentiel du code a été écrit par des agents de code, sous une revue serrée.
+La première version fonctionnelle de Nexus a pris environ trois semaines. Pas parce que nous avons bâclé, ni parce que quelqu'un a enchaîné les nuits blanches. Nous sommes partis d'un socle standard (la même stack, les mêmes conventions et le même UI Kit que nos autres applications), et l'essentiel du code a été écrit par des agents de code, avec une relecture attentive.
 
 Cette phrase provoque en général l'une de deux réactions : « trois semaines, bien sûr » ou « donc plus personne ne comprend vraiment le code ». Les deux passent à côté de ce qui a rendu la chose possible.
 
@@ -34,7 +34,7 @@ La connaissance qui a guidé le travail était écrite là où agents et humains
 
 Rien de tout cela ne vit dans la tête de quelqu'un. C'est ce qui rend le rythme tenable, pas le modèle derrière l'agent.
 
-## Les garde-fous sont structurels, pas relus
+## Les garde-fous sont dans le moteur
 
 Voici l'argument le plus important de toute la série.
 
@@ -44,7 +44,7 @@ Dans Nexus, ces règles ne sont tout simplement pas dans le diff. Chaque lecture
 
 <MotionScene id="agents-behind-the-engine" />
 
-Cela change le rôle de la revue. Nous ne dépensons plus d'attention à vérifier « a-t-il pensé à la règle de masquage ». Nous la dépensons sur les questions auxquelles seul quelqu'un qui connaît le métier peut répondre : est-ce le bon processus ? Cette action a-t-elle le bon nom, les bonnes préconditions, les bons effets de bord ? Ce champ calculé correspond-il vraiment à la définition métier ?
+Cela change le rôle de la revue. Nous n'avons plus à chercher la règle de masquage dans chaque nouvel écran. La review se concentre sur les questions qui demandent de connaître le métier : est-ce le bon processus ? Cette action a-t-elle le bon nom, les bonnes préconditions, les bons effets de bord ? Ce champ calculé correspond-il vraiment à la définition métier ?
 
 > Ne demandez pas aux agents de se souvenir des règles. Construisez un système où il est impossible de les oublier.
 
@@ -81,15 +81,15 @@ Au départ, l'objectif semblait modeste : remplacer un outil low-code qui ne nou
 
 **Le risque baisse et la vitesse augmente, en même temps.** D'habitude, on échange l'un contre l'autre. Ici, le moteur qui impose le contrôle d'accès et l'audit est aussi ce qui rend un nouvel écran bon marché. La gouvernance cesse d'être une taxe sur la livraison et devient la raison pour laquelle on livre vite.
 
-**Ensuite, les contributions de personnes qui ne sont pas ingénieurs.** Un collègue des opérations qui sait exactement ce qu'un écran doit afficher peut ouvrir une issue, mentionner `@claude` sur le dépôt et obtenir une pull request préparée pour lui. Cette pull request passe par la même revue, les mêmes tests et le même moteur que tout le reste. Nous n'en sommes pas encore là à grande échelle, mais le socle rend l'essai sûr : une contribution venue d'ailleurs que l'engineering rencontre exactement les mêmes garde-fous que les nôtres.
+**Ensuite, les contributions de personnes qui ne sont pas ingénieurs.** Un collègue des opérations qui sait exactement ce qu'un écran doit afficher peut ouvrir une issue, mentionner `@claude` sur le dépôt et obtenir une pull request préparée pour lui. Cette pull request passe par la même revue, les mêmes tests et le même moteur que tout le reste. Nous n'en sommes pas encore là à grande échelle, mais le socle rend l'essai sûr : une contribution proposée par une autre équipe passe par les mêmes garde-fous que les nôtres.
 
 **Puis, des cas d'usage agentiques sur le même moteur gouverné.** Un agent qui prépare un contrôle de conformité ou rapproche des opérations (par exemple sur Amazon Bedrock) n'est, du point de vue du moteur, qu'un appelant de plus. Il s'authentifie, reçoit un rôle, ses lectures sont masquées selon ce rôle, et chacune de ses actions entre dans le journal d'audit. Nous n'avons pas besoin d'un modèle de sécurité à part pour l'IA. Nous en avons déjà construit un pour tous les appelants.
 
-C'est ce qui a changé ma façon de voir les outils internes. Ce ne sont pas des centres de coût à minimiser. C'est la surface où s'encode la connaissance opérationnelle d'une entreprise, et quand cette surface est un produit, cette connaissance s'accumule au lieu de s'éparpiller.
+C'est ce qui a changé ma façon de voir les outils internes. Ce ne sont pas des centres de coût à minimiser. Ils contiennent une grande partie des règles utilisées par les équipes au quotidien. Traiter l'outil comme un produit permet de conserver et de faire évoluer ces règles ensemble.
 
 ## Ce qui peut mal tourner
 
-Je ne ferais pas confiance à ce billet s'il s'arrêtait là. Voici donc ce qui m'inquiète.
+Il reste plusieurs choses qui m'inquiètent.
 
 **Le moteur peut devenir un goulot d'étranglement.** Si une ou deux personnes seulement le comprennent, chaque nouveau besoin fait la queue derrière elles. Le remède est celui de toute plateforme : documentation, conventions suivies par les agents comme par les humains, et un effort délibéré pour répartir la maîtrise avant que cela ne fasse mal.
 
@@ -99,7 +99,7 @@ Je ne ferais pas confiance à ce billet s'il s'arrêtait là. Voici donc ce qui 
 
 **La tentation de reconstruire une plateforme low-code.** Une fois le moteur en place, il est tentant de le rendre générique : un builder visuel, un système de plugins, de la configuration à la place du code. Résistez. La valeur de Nexus vient de ce qu'il est spécifique à notre métier et écrit sous forme de code que les agents et les humains peuvent relire. Le jour où il devient une plateforme générique, nous aurons reconstruit ce que nous avons quitté, avec une équipe plus petite pour le maintenir.
 
-Une question à emporter, donc : si un agent de code écrivait votre prochain écran interne cette nuit, de quelles règles devrait-il *se souvenir* pour ne pas se tromper ? Chaque élément de cette liste est une règle qui devrait rejoindre le système.
+Une question pour votre propre outil : si un agent de code écrivait votre prochain écran interne cette nuit, de quelles règles devrait-il *se souvenir* pour ne pas se tromper ? Chaque élément de cette liste est une règle qui devrait rejoindre le système.
 
 ## La série, en six épisodes
 
@@ -110,6 +110,6 @@ Une question à emporter, donc : si un agent de code écrivait votre prochain é
 5. **La cohérence par défaut, pas par convention** : des primitives partagées et un UI Kit commun.
 6. **Construit avec des agents, maîtrisé par nous** (ce billet) : garde-fous structurels, maîtrise et déploiement processus par processus.
 
-Le fil rouge des six épisodes est simple. Sortir les règles des écrans pour les mettre dans un système que l'on maîtrise. Tout le reste en découle : cohérence, conformité, vitesse, et la possibilité de laisser agents et collègues contribuer sans retenir son souffle.
+Dans les six épisodes, nous avons cherché à sortir les règles communes des écrans pour les appliquer dans un système que nous maîtrisons. C'est ce qui nous permet de contrôler l'accès et l'audit, de garder des comportements cohérents et de relire plus facilement les contributions des agents comme des collègues.
 
 Épilogue : [Je crois toujours à cette voie](../posts/internal-tools-still-believe), sur la décision de RockFi de prendre une autre direction et la conviction que je garde.

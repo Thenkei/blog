@@ -25,7 +25,7 @@ Les questions changent peu d'une alerte à l'autre. S'agit-il d'un incident rée
 
 Les premières étapes se répètent aussi : comparer l'état actuel à l'état attendu, chercher les changements récents, lancer les diagnostics connus. Ce sont ces corvées que nous avons confiées à de petits agents spécialisés.
 
-## De petits agents proches du travail
+## Des agents pour chaque étape de l'enquête
 
 Un agent collecte les preuves, un autre connaît le dépôt concerné, un troisième vérifie une hypothèse ou prépare un patch. La personne d'astreinte passe ainsi moins de temps à rassembler le contexte et plus de temps à interpréter les résultats.
 
@@ -39,7 +39,7 @@ Concrètement, c'est toujours la personne d'astreinte qui décide : quel agent a
 
 Une fois ces agents en place, il est tentant de les enchaîner : collecte des données, lecture du dépôt, préparation du patch, validation. Mais l'humain au milieu faisait bien plus qu'appuyer sur « suivant ».
 
-Il pesait les preuves, repérait les contradictions, abandonnait les hypothèses réfutées et décidait quand demander un autre avis. Si les agents s'appellent entre eux, cette orchestration doit devenir explicite.
+Il évaluait les preuves, repérait les contradictions, abandonnait les hypothèses réfutées et décidait quand demander un autre avis. Si les agents s'appellent entre eux, cette orchestration doit devenir explicite.
 
 L'orchestrateur peut poursuivre une tâche bien étayée et peu risquée, ou demander une revue. Pour choisir, il lui faut l'état de l'investigation plutôt que la dernière réponse : l'objectif, les pistes déjà écartées, ce qui a été tenté, les preuves derrière l'hypothèse actuelle et ce qui manque encore, le niveau de confiance, et ce que risquent les prochaines actions.
 
@@ -55,7 +55,7 @@ Voici un relais qui a l'air utile :
 Le taux d'erreur a augmenté à 14 h 03.
 ```
 
-Exact, précis, et presque inutile tel quel : la personne qui le lit doit refaire l'enquête pour savoir ce qu'il signifie. Voici un relais que la suivante peut vraiment exploiter :
+Exact, précis, et presque inutile tel quel : la personne qui le lit doit refaire l'enquête pour savoir ce qu'il signifie. Voici ce qu'on peut lui transmettre pour qu'elle puisse reprendre :
 
 ```text
 Investigation : taux d'erreur élevé sur le service de checkout
@@ -100,7 +100,7 @@ Un relais doit rendre explicites six choses :
 5. **La prochaine étape** : enquêter, relire, approuver ou escalader.
 6. **Le coût d'une erreur**, qui détermine si une validation humaine est nécessaire.
 
-La confiance ne tranche pas tout. Un diagnostic peu risqué peut partir automatiquement, tandis qu'une modification de production exige parfois une revue même si l'hypothèse paraît solide.
+La confiance ne tranche pas tout. Une étape de diagnostic peu risquée peut être lancée automatiquement, tandis qu'une modification de production exige parfois une revue même si l'hypothèse paraît solide.
 
 Demander une validation à chaque micro-étape recrée le goulot d'étranglement, et supprimer tout point de contrôle rend les erreurs coûteuses. Le juste milieu : laisser le système avancer seul sur les diagnostics bornés, puis l'arrêter avant une action ambiguë ou à fort impact. À ce moment-là, l'humain reçoit assez de contexte pour contester le raisonnement, choisir une option et apporter ce que les agents ignorent.
 
@@ -112,4 +112,4 @@ La fiabilité d'un workflow d'agents dépend aussi de ce que comprend le partici
 
 L'évaluation doit donc regarder le relais, et pas uniquement la réponse de chaque agent. Une investigation inachevée reste utile si elle réduit les pistes possibles et dit clairement ce qui demeure incertain.
 
-Notre astreinte nous a appris qu'un agent doit savoir quand avancer et quand demander un jugement, et qu'il doit garder le fil de l'enquête au moment de passer la main. Le test que j'applique désormais tient en une phrase : lorsque l'agent s'arrête, la personne suivante sait-elle quoi vérifier et quelle décision prendre ?
+Notre astreinte nous a appris qu'un agent doit savoir quand avancer et quand demander un avis humain, et qu'il doit garder le fil de l'enquête au moment de passer la main. Le test que j'applique désormais tient en une phrase : lorsque l'agent s'arrête, la personne suivante sait-elle quoi vérifier et quelle décision prendre ?

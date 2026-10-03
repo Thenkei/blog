@@ -165,7 +165,7 @@ function Stage({ frame, compact, locale, width, height }: SceneStageProps) {
     hire: fr ? "nouvelle recrue" : "new hire",
     role: fr ? "rôle" : "role",
     source: "source",
-    audit: fr ? "piste d’audit" : "audit trail",
+    audit: fr ? "audit logs" : "audit trail",
     when: fr ? "quand · ms" : "when · ms",
     actor: fr ? "acteur" : "actor",
     diff: "diff",
@@ -289,14 +289,14 @@ export default defineScene({
   title: { en: "One change, three dialects", fr: "Un changement, trois dialectes" },
   caption: {
     en: "RFC 7644 defines the contract; each IdP implements the parts it likes. The normalizer turns every dialect into one canonical change, and the audit trail records which machine made it.",
-    fr: "La RFC 7644 définit le contrat ; chaque IdP n’en implémente que ce qui l’arrange. Le normaliseur ramène chaque dialecte à un seul changement canonique, et la piste d’audit enregistre quelle machine l’a fait.",
+    fr: "La RFC 7644 définit le contrat ; chaque IdP n’en implémente que ce qui l’arrange. Le normaliseur ramène chaque dialecte à un seul changement canonique, et les audit logs enregistrent quelle machine l’a fait.",
   },
   beats: [
     { at: 0, text: { en: "SCIM’s promise: change a user once in the IdP and Forest Admin follows, with the right role.", fr: "La promesse de SCIM : on modifie un utilisateur une fois dans l’IdP, Forest Admin suit avec le bon rôle." } },
     { at: T.okta, text: { en: "Okta sends the promotion close to RFC 7644. We still don’t trust it: safeOktaParse.", fr: "Okta envoie la promotion au plus près de la RFC 7644. On s’en méfie quand même : safeOktaParse." } },
     { at: T.azure, text: { en: "Azure AD nests the same change in an array of “values”: extractAzureAdCraziness. Same canonical result.", fr: "Azure AD imbrique le même changement dans des « values » : extractAzureAdCraziness. Même résultat." } },
     { at: T.google, text: { en: "Google only syncs the user; the role never arrives. standardParsing, and hope for the best.", fr: "Google ne synchronise que l’utilisateur ; le rôle n’arrive pas. standardParsing, et on croise les doigts." } },
-    { at: T.audit, text: { en: "Every SCIM operation lands in the audit trail: millisecond timestamp, which machine did it, the exact diff.", fr: "Chaque opération SCIM entre dans la piste d’audit : horodatage à la ms, quelle machine, le diff exact." } },
+    { at: T.audit, text: { en: "Every SCIM operation lands in the audit trail: millisecond timestamp, which machine did it, the exact diff.", fr: "Chaque opération SCIM est enregistrée dans les audit logs : horodatage à la ms, quelle machine, le diff exact." } },
   ],
   Stage,
 });

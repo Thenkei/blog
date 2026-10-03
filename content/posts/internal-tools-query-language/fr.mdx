@@ -21,7 +21,7 @@ Nous avons écrit le nôtre. Je sais ce que ça évoque. Alors commençons par c
 
 ## Pas un nouveau SQL
 
-L'objectif n'a jamais été la puissance d'expression. SQL l'a déjà, tout comme n'importe quel ORM. L'objectif était une **manière cohérente de construire une requête, quelle que soit la source**, pour qu'un filtre, une relation ou un comptage se ressemblent sur chaque écran et sous les doigts de chaque développeur.
+L'objectif n'a jamais été la puissance d'expression. SQL l'a déjà, tout comme n'importe quel ORM. L'objectif était une **manière cohérente de construire une requête, quelle que soit la source**, pour que chaque développeur utilise les mêmes règles pour filtrer, suivre une relation ou compter des lignes.
 
 Cette contrainte a tout façonné. Le langage est petit à dessein : une poignée de constructeurs de clauses, un `select` typé, un arbre `where`, quelques opérations. Si une fonctionnalité rend le langage plus puissant mais moins prévisible, elle n'entre pas.
 
@@ -34,9 +34,9 @@ db.collection("crm.contracts").list({
 
 Cette requête touche trois choses auxquelles un développeur ne devrait pas avoir à penser : un champ calculé (`status`), une relation dans la même base (`provider`), et une relation vers une tout autre base (`product`). La syntaxe est identique pour les trois. C'est le moteur qui décide comment exécuter chacune.
 
-Sous le capot, la requête est un AST, pas une chaîne de caractères. C'est ce qui permet au moteur de l'inspecter, de vérifier les permissions champ par champ, d'en réécrire une partie et de refuser le reste avant que quoi que ce soit n'atteigne une base. Pour la couche multi-bases, nous nous appuyons sur le toolkit open source de datasources de Forest Admin, que je connais bien de mon poste précédent, enveloppé sous notre propre AST pour que les écrans ne le voient jamais.
+Sous le capot, la requête est un AST, pas une chaîne de caractères. C'est ce qui permet au moteur de l'inspecter, de vérifier les permissions champ par champ, d'en réécrire une partie et de refuser le reste avant que quoi que ce soit n'atteigne une base. Pour la couche multi-bases, nous nous appuyons sur le toolkit open source de datasources de Forest Admin, que je connais bien de mon poste précédent, auquel notre AST donne accès sans exposer le toolkit aux écrans.
 
-## Les relations naturelles deviennent des JOIN
+## Les relations dans une même base deviennent des JOIN
 
 Première règle, la moins surprenante : quand deux tables vivent dans la même base et partagent une clé étrangère, la relation devient un `JOIN` natif.
 
@@ -95,7 +95,7 @@ C'est la base qui filtre, sur des colonnes stockées et indexées. Les valeurs c
 
 Et voici la règle que je défendrais le plus fermement : **un opérateur sans réécriture SQL est refusé.** Si quelqu'un demande un filtre sur un champ calculé que le moteur ne sait pas traduire, la requête échoue avec une erreur explicite. Elle n'est jamais évaluée en mémoire.
 
-> Filtrer en mémoire marche parfaitement sur votre laptop et échoue poliment en production. Nous préférons échouer bruyamment en développement.
+> Un filtre en mémoire peut fonctionner sur votre laptop et saturer le serveur en production. Nous préférons refuser la requête dès le développement.
 
 Le filtrage en mémoire est le raccourci le plus séduisant d'une couche de données. Il fonctionne toujours sur les données de seed. Puis quelqu'un filtre une table de deux cent mille lignes, et le moteur les charge toutes pour en garder douze. Refuser agace pendant une journée. C'est aussi la seule façon de garantir que « filtrable » veut dire la même chose sur chaque écran.
 
@@ -146,4 +146,4 @@ Alors, une question sur votre propre stack : quand un écran de votre back-offic
 
 ## La suite de la série
 
-Prochain épisode : la gouvernance. Des permissions jusqu'au champ, du masquage plutôt que de la dissimulation, et une piste d'audit que personne n'a besoin de penser à ajouter.
+Prochain épisode : la gouvernance. Des permissions jusqu'au champ, des valeurs masquées plutôt que des colonnes retirées, et des audit logs que personne n'a besoin de penser à ajouter.

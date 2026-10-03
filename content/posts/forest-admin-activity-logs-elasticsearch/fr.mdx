@@ -1,6 +1,6 @@
 ---
-title: "Quand PostgreSQL ne suffit plus : migrer les pistes d'audit vers Elasticsearch"
-subtitle: "Passer à l'échelle les pistes d'audit de Forest Admin au-delà de 100 millions d'enregistrements."
+title: "Quand PostgreSQL ne suffit plus : migrer les audit logs vers Elasticsearch"
+subtitle: "Faire évoluer les audit logs de Forest Admin au-delà de 100 millions d'enregistrements."
 summary: "Comment nous avons contourné les goulots d'étranglement de performance en migrant notre système massif de journaux d'activité de PostgreSQL vers Elasticsearch grâce à une architecture de recherche hybride."
 visualId: "forest-admin-activity-logs-elasticsearch"
 publishedAt: "2021-05-15"
@@ -14,7 +14,7 @@ tags:
 
 _Note : Cet article a été écrit post-mortem, après mon départ de Forest Admin._
 
-Toute plateforme SaaS se heurte inévitablement à un mur où un choix de base de données, pourtant robuste à l'origine, commence à montrer ses limites. Chez Forest Admin, ce mur s'est dressé devant notre système de journaux d'activité (les pistes d'audit utilisateurs), et la base de données concernée était PostgreSQL.
+Toute plateforme SaaS se heurte inévitablement à un mur où un choix de base de données, pourtant robuste à l'origine, commence à montrer ses limites. Chez Forest Admin, ce mur s'est dressé devant notre système de journaux d'activité (les audit logs des utilisateurs), et la base de données concernée était PostgreSQL.
 
 À mon arrivée dans l'équipe, ce système d'audit montrait déjà de graves signes de faiblesse. Avec la croissance de l'utilisation par nos clients, la table PostgreSQL de suivi avait gonflé pour dépasser les 100 millions d'enregistrements. De simples requêtes d'historique arrivaient à expiration et les performances globales se dégradaient. Nous devions optimiser, et vite.
 
@@ -71,4 +71,4 @@ Pour maintenir des garanties de performance strictes sous cette charge colossale
 
 Cette approche hybride nous a offert le meilleur des deux mondes. Nous avons conservé l'intégrité relationnelle stricte et les recherches rapides de métadonnées de PostgreSQL, tout en déléguant à Elasticsearch la lourde tâche de trier et d'explorer des charges utiles massives.
 
-Les timeouts ont disparu, le système s'est stabilisé et nos pistes d'audit ont pu encaisser des milliards d'événements — preuve que, parfois, la meilleure solution pour un besoin consiste en fait à utiliser deux bases de données.
+Les timeouts ont disparu, le système s'est stabilisé et nos audit logs ont pu encaisser des milliards d'événements — preuve que, parfois, la meilleure solution pour un besoin consiste en fait à utiliser deux bases de données.

@@ -53,7 +53,7 @@ const handleScimPatch = (payload, provider) => {
 
 Nous avons dû construire un _SCIM normalizer_ ultra robuste pour digérer cinq dialectes différents de payloads soi-disant « compatibles avec le standard ».
 
-## La piste d'audit : qui a fait quoi quand les bots prennent le contrôle ?
+## Les audit logs : qui a fait quoi quand les bots prennent le contrôle ?
 
 Avec SCIM, une automatisation crée, met à jour et gère toute votre base d'utilisateurs. Cela crée une nouvelle dynamique terrifiante : si quelque chose plante dans l'onboarding d'un utilisateur, à qui la faute ? À l'administrateur IT ? À l'IdP ? À notre backend ?
 
@@ -61,7 +61,7 @@ C'est là qu'intervient la nécessité absolue d'un **système d'Audit en béton
 
 En interne, nous avions déjà un gigantesque système d'Activity Logs (je raconterai cette histoire un autre jour). Mais pour ce cas d'usage (et pour tous les changements de paramètres admin d'ailleurs), nous voulions quelque chose de beaucoup plus affûté.
 
-Nous avons bâti une piste d'audit qui traite chaque opération SCIM comme une transaction vitale :
+Nous avons ajouté des audit logs détaillés pour chaque opération SCIM :
 
 - **Horodatage** (à la milliseconde près).
 - **Identification de l'acteur** (est-ce le bot Okta, un appel d'API Forest Admin ou Jean de l'IT ?).

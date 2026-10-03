@@ -1,6 +1,6 @@
 ---
 title: "Terraform pour les accès et les flux : relire le plan"
-subtitle: "Déclarer les droits Snowflake et les connexions Airbyte dans le même dépôt, c'est gagner une source de vérité. Et un blast radius."
+subtitle: "Déclarer les droits Snowflake et les connexions Airbyte dans le même dépôt, c'est pouvoir relire les changements ensemble, mais aussi risquer d'affecter les deux avec un seul plan."
 summary: "Quatrième épisode : gérer les accès Snowflake et la configuration Airbyte en Terraform. Rôles d'accès et rôles fonctionnels, future grants, un seul ordonnanceur, secrets dans le state, destructions bloquées en CI, et la dérive quand quelqu'un clique dans la console."
 visualId: "backend-to-data-engineer-rockfi"
 publishedAt: "2026-11-05"
@@ -18,9 +18,9 @@ seriesOrder: 4
 
 Quatrième épisode de **Ce que coûte une donnée fiable**. Les trois premiers parlaient de ce qui circule dans la plateforme. Celui-ci parle de qui a le droit d'y toucher, et de la façon dont nous le déclarons.
 
-Un droit accordé dans la console peut être légitime et difficile à expliquer six mois plus tard. Quel objet, quel rôle, quelle approbation, quel déploiement ? Déclarer ce droit en code donne un historique de revue à la politique souhaitée.
+Un droit accordé dans la console peut être légitime et difficile à expliquer six mois plus tard. Quel objet, quel rôle, quelle approbation, quel déploiement ? Déclarer ce droit en code permet de retrouver pourquoi il a été demandé et qui l'a relu.
 
-Git enregistre l'intention et la revue. Il ne prouve pas qu'un droit a été appliqué, ni quel rôle hérité quelqu'un a utilisé hier. Il faut aussi les traces d'apply de la CI et l'historique d'accès et de requêtes Snowflake. La configuration et la piste d'audit ont des rôles différents.
+Git enregistre l'intention et la revue. Il ne prouve pas qu'un droit a été appliqué, ni quel rôle hérité quelqu'un a utilisé hier. Il faut aussi les traces d'apply de la CI et l'historique d'accès et de requêtes Snowflake. La configuration décrit l'état souhaité ; les audit logs permettent de retrouver ce qui s'est passé.
 
 ## Ce que nous déclarons, et ce que nous ne déclarons pas
 
@@ -29,7 +29,7 @@ Terraform porte chez nous deux familles d'objets :
 - **Les accès Snowflake** : rôles, grants, warehouses et leurs limites de consommation.
 - **La configuration Airbyte** : sources, destinations, connexions, flux sélectionnés et politique de changement de schéma.
 
-La frontière est la suivante : **dbt possède les tables de modèles ; Terraform possède les accès et la configuration des connecteurs**. Une matérialisation `table` peut remplacer un objet, une matérialisation incrémentale le met généralement à jour. Si les deux outils possèdent sa définition, le prochain plan peut annuler le build précédent. Deux outils, une table : au moins, aucun ne peut accuser un troisième outil.
+La frontière est la suivante : **dbt possède les tables de modèles ; Terraform possède les accès et la configuration des connecteurs**. Une matérialisation `table` peut remplacer un objet, une matérialisation incrémentale le met généralement à jour. Si les deux outils possèdent sa définition, le prochain plan peut annuler le build précédent. Il faut donc que la définition de chaque objet soit gérée par un seul des deux outils.
 
 <ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
 
@@ -110,7 +110,7 @@ resource "airbyte_connection" "partner_feed_to_raw" {
 
 Le `schedule_type = "manual"` est la ligne la plus importante du fichier. Il matérialise la décision de l'[épisode 2](../posts/data-platform-reverse-etl-freshness) : **un seul ordonnanceur**, et c'est l'orchestrateur, pour que la transformation parte quand la donnée est arrivée.
 
-Le reste a une vertu moins visible : la liste des flux synchronisés devient relisible. Ajouter un flux partenaire passe par une PR, avec une personne qui se demande si ce flux contient des données sensibles avant qu'il ne soit copié dans l'entrepôt.
+Cela permet aussi de relire la liste des flux synchronisés dans une PR. Ajouter un flux partenaire passe par une PR, avec une personne qui se demande si ce flux contient des données sensibles avant qu'il ne soit copié dans l'entrepôt.
 
 ## Les secrets, ou le state qui en sait trop
 

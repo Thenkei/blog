@@ -1,5 +1,5 @@
 ---
-title: "Construire une analytique en libre-service qui ne ment pas"
+title: "Des analyses en libre-service, des chiffres fiables"
 subtitle: "De chacun ses requêtes Metabase à des métriques définies dans dbt : ce qu'on apprend quand une dizaine de partenaires corrigent leurs données chacun à leur façon."
 summary: "Comment RockFi est passé de requêtes Metabase écrites par chacun à une couche sémantique dbt sur Snowflake, pourquoi le premier chaos restait gérable, et pourquoi la date d'une métrique est le champ le plus piégeux de son contrat."
 visualId: "self-service-analytics-that-doesnt-lie"
@@ -17,7 +17,7 @@ seriesOrder: 2
 
 ## Au début, chacun avait son Metabase
 
-Chez RockFi, le libre-service analytique a commencé de la façon la plus naturelle du monde : un Metabase branché sur les données, et chacun qui écrivait ses propres requêtes. Personne n'a pensé, à ce moment-là, à se mettre d'accord sur une définition forte des métriques. On avait une question, on écrivait du SQL, on avait une réponse. Pas de ticket, pas d'attente, pas de comité.
+Chez RockFi, le libre-service analytique a commencé de la façon la plus naturelle du monde : un Metabase branché sur les données, et chacun qui écrivait ses propres requêtes. Personne n'a pensé, à ce moment-là, à se mettre d'accord sur une définition commune et précise des métriques. On avait une question, on écrivait du SQL, on avait une réponse. Pas de ticket, pas d'attente, pas de comité.
 
 Vous connaissez la suite si vous avez déjà ouvert une instance Metabase de plus de six mois : la question « Encours » côtoie « Encours (copie) », qui côtoie « Encours v2 NE PAS UTILISER », que quelqu'un utilise évidemment tous les lundis. Chaque copie part d'une bonne intention et dérive d'un `WHERE` à la fois.
 
@@ -88,9 +88,9 @@ Les deux dernières lectures sont défendables ; elles ne répondent simplement 
 
 ## Explorer, certifier, publier
 
-Le but n'était pas de supprimer le libre-service. Une question exploratoire n'a pas besoin de passeport : elle a besoin d'un accès borné aux modèles, de résultats temporaires et d'hypothèses visibles. C'est l'esprit de l'époque Metabase, qu'on voulait garder, avec des fondations moins meubles.
+Le but n'était pas de supprimer le libre-service. Une question exploratoire n'a pas besoin de passeport : elle a besoin d'un accès borné aux modèles, de résultats temporaires et d'hypothèses visibles. C'est l'esprit de l'époque Metabase, qu'on voulait garder, avec des modèles plus fiables.
 
-Une métrique partagée, en revanche, a une définition versionnée, un responsable, des tests et une politique de fraîcheur. Et un chiffre qui sert à décider ou qui quitte l'équipe affiche sa provenance, respecte les contrôles d'accès et passe une revue proportionnée à ce qu'il engage.
+Une métrique partagée, en revanche, a une définition versionnée, un responsable, des tests et une politique de fraîcheur. Et un chiffre qui sert à décider ou qui quitte l'équipe affiche sa provenance, respecte les contrôles d'accès et passe une revue adaptée à la décision qu'il doit éclairer.
 
 <InlineArticleDiagram assetId="self-service-lanes">
   Le libre-service commence après la modélisation et les contrôles, pas au niveau des tables brutes.
@@ -106,7 +106,7 @@ Nos assistants partent donc des modèles certifiés, montrent la requête et les
 
 Une définition impeccable ne corrige pas un fichier partenaire erroné : elle calcule proprement un chiffre faux. Les rapprochements avec les sources restent indispensables, et ils ne s'écrivent pas tout seuls.
 
-Les contrats demandent aussi de l'entretien. Un partenaire qui change sa façon de corriger ses données invalide silencieusement une hypothèse du modèle, et le badge « certifié » continue de briller pendant ce temps. Il ne vaut que par les tests et le responsable qui le soutiennent.
+Les contrats demandent aussi de l'entretien. Un partenaire qui change sa façon de corriger ses données invalide silencieusement une hypothèse du modèle, et la métrique reste étiquetée « certifiée » pendant ce temps. Cette certification ne vaut que par les tests et le responsable qui la soutiennent.
 
 Enfin, tout ne mérite pas ce traitement. Une analyse ponctuelle peut rester exploratoire, et c'est très bien. Une question « Encours (copie) » peut bien continuer d'exister ; elle a seulement perdu le droit de se présenter comme la référence.
 

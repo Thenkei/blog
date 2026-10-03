@@ -282,7 +282,7 @@ function Stage({ frame, compact, locale }: SceneStageProps) {
         return <Tag key={step.n} x={x} y={step.card.y + 26} anchor="start" size={11} tone={tone} appear={pop(frame, step.at)} text={`${step.n} · ${step.label}`} />;
       })}
       {frame >= T.done ? <>
-        <Tag x={compact ? c.x + c.w - 16 : c.x + 16} y={compact ? c.y + 20 : c.y + c.h - 16} anchor={compact ? "end" : "start"} size={11} tone="ok" appear={pop(frame, T.done)} text={fr ? "✓ piste d’audit" : "✓ audit trail"} />
+        <Tag x={compact ? c.x + c.w - 16 : c.x + 16} y={compact ? c.y + 20 : c.y + c.h - 16} anchor={compact ? "end" : "start"} size={11} tone="ok" appear={pop(frame, T.done)} text={fr ? "✓ audit logs" : "✓ audit trail"} />
       </> : null}
     </> : null}
 

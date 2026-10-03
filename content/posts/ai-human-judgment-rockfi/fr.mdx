@@ -13,7 +13,7 @@ tags:
   - rockfi
 ---
 
-Chez RockFi, Claude Code avait déjà ses adeptes. Quelques personnes en tiraient des choses très solides, chacune avec sa méthode, ses prompts et ses petites superstitions. Le problème, c'est que rien de tout cela ne se transmettait. Un bon usage de l'IA qui ne sort jamais du terminal de son auteur, c'est une recette de grand-mère que personne n'a pris la peine d'écrire : excellente, et condamnée.
+Chez RockFi, Claude Code avait déjà ses adeptes. Quelques personnes en tiraient des choses très solides, chacune avec sa méthode, ses prompts et ses petites superstitions. Le problème, c'est que rien de tout cela ne se transmettait. Les bonnes pratiques restaient dans le terminal de leur auteur. Les autres devaient les redécouvrir.
 
 Voici comment nous sommes passés de là à ce que nous appelons, avec une modestie toute relative, notre **Product OS** : des challenges internes pour apprendre ensemble, puis des plugins Claude Code qui relient discovery, conception et delivery.
 
@@ -23,13 +23,13 @@ Prouver qu'un agent sait écrire du code, c'était réglé. Le vrai sujet se sit
 
 Les symptômes étaient toujours les mêmes. Le prompt efficace dormait dans un historique de terminal. La convention importante n'arrivait jamais au moment où elle servait. Le document produit était propre, mais avait perdu l'intention du workshop. L'issue découpait le code sans préserver la valeur attendue. Et quelques semaines plus tard, l'explication du *pourquoi* était éparpillée entre des conversations et des pages.
 
-Accélérer uniquement l'implémentation, dans ces conditions, revient à élargir une seule voie de l'autoroute : le bouchon se reforme au péage suivant.
+Écrire le code plus vite ne nous aidait pas beaucoup si nous devions ensuite retrouver le problème initial ou reprendre une décision mal transmise.
 
-## Démos, guides et méga-prompts : nos placebos
+## Ce qui n'a pas suffi
 
 Les démonstrations ponctuelles ont eu l'effet d'une bonne bande-annonce : beaucoup d'enthousiasme à la sortie, aucune habitude nouvelle le lundi suivant. Les guides longs étaient relus avec la ferveur qu'on réserve aux CGU, c'est-à-dire jamais au moment précis où une règle devenait utile. Les meilleurs workflows restaient ceux de quelques personnes.
 
-Nous avons aussi eu notre période « méga-prompt » : un bloc qui transportait tout le contexte d'un coup, faits, instructions et décisions périmées mélangés. L'équivalent d'un sac de trail préparé par quelqu'un qui a peur de manquer : lourd, pénible à maintenir, et avec des contradictions tout au fond que personne ne retrouvait.
+Nous avons aussi eu notre période « méga-prompt » : un bloc qui transportait tout le contexte d'un coup, faits, instructions et décisions périmées mélangés. Le bloc grossissait, devenait pénible à maintenir, et personne ne retrouvait les contradictions qui s'y étaient accumulées.
 
 Puis nous avons essayé la ligne droite : PRD, conception, tâches, code. Elle tient jusqu'à la première hypothèse fausse découverte pendant l'implémentation. Sans chemin de retour vers la conception, l'automatisation fait alors ce qu'elle sait faire de mieux : accélérer, avec entrain, dans la mauvaise direction.
 
@@ -37,7 +37,7 @@ Pour mémoire, les tentations que nous avons écartées :
 
 - Acheter un outil et appeler ça une stratégie d'adoption.
 - Mesurer le progrès au volume de code ou de contenu généré. Excellent indicateur, si l'objectif est de remplir un disque.
-- Chercher le prompt universel, valable pour tous les rôles et tous les dépôts. Le Graal, en moins bien documenté.
+- Chercher le prompt universel, valable pour tous les rôles et tous les dépôts. Nous n'en avons pas trouvé.
 - Automatiser un workflow instable avant de savoir qui en est owner et où sont les gates.
 - Laisser un agent publier une décision produit ou merger une PR parce que les tests passent. Des tests qui ne testent rien passent aussi.
 
@@ -63,19 +63,19 @@ Cette partie-là compte bien plus que les recettes de prompts. Claude Code produ
 
 Les challenges ont servi de détecteur : ils ont fait remonter les pratiques réelles de l'équipe avant que nous essayions de les encoder. Un échec partagé dans un thread devenait un cas limite à gérer. Un workflow que tout le monde refaisait à la main devenait un skill. Une règle qu'on ne voulait plus jamais voir enfreinte devenait un hook.
 
-Restait à choisir le contenant. Une bibliothèque de prompts ? Le cimetière des bonnes intentions. Une plateforme centralisée ? Une roadmap entière avant le premier usage. Laisser chaque équipe se débrouiller ? La recette de grand-mère, saison 2. Nous avons choisi des **plugins composables** : assez petits pour appartenir à un workflow précis, versionnés avec leurs templates et leurs garde-fous, installables par qui en a besoin, et reliés entre eux par des contrats explicites.
+Restait à choisir comment partager ces pratiques. Une bibliothèque de prompts serait difficile à maintenir. Une plateforme centralisée demanderait trop de travail avant le premier usage. Et laisser chaque équipe se débrouiller nous ramènerait au point de départ. Nous avons choisi des **plugins composables** : assez petits pour appartenir à un workflow précis, versionnés avec leurs templates et leurs garde-fous, installables par qui en a besoin, et reliés entre eux par des contrats explicites.
 
 La différence avec un prompt partagé tient dans ce que le plugin embarque : la procédure, les garde-fous, les templates et les cas limites qui rendent un workflow fiable dans notre manière de travailler. Notre marketplace interne contient aujourd'hui des plugins techniques et d'autres plus transverses, pour les tâches récurrentes de l'entreprise. C'est côté technique que le Product OS se voit le mieux. En voici deux.
 
-## `rockfi-engineering`, ou le videur poli de `main`
+## `rockfi-engineering` : les règles du dépôt dans l'outil
 
-Le plugin `rockfi-engineering` amène le workflow quotidien d'ingénierie dans Claude Code, et il est prescriptif sans s'en excuser. Un workflow rapide qui contourne la discipline de review ne fait que produire plus vite un historique illisible.
+Le plugin `rockfi-engineering` amène le workflow quotidien d'ingénierie dans Claude Code, avec des règles explicites. Un workflow rapide qui contourne la discipline de review ne fait que produire plus vite un historique illisible.
 
 Son skill de création de PR ne se contente pas de remplir un template. Il analyse le changement, estime sa complexité, repère les scopes sans rapport et prévient quand la PR mériterait d'être découpée. Il dit donc à voix haute ce que le reviewer pense en silence. Il rédige ensuite une description structurée autour des questions que ce même reviewer se pose vraiment : objectif, raison, implémentation, ressources.
 
-Le skill de commit, lui, valide nos règles de conventional commits. Et un hook strict, déclenché avant l'exécution des outils, bloque tout commit ou push depuis `main`. Ce hook n'a aucun sens de l'humour, mais il a des manières : au lieu de claquer la porte, il crée une feature branch correctement nommée et reprend le travail depuis là. Un videur qui vous raccompagne jusqu'à la bonne entrée.
+Le skill de commit, lui, valide nos règles de conventional commits. Et un hook strict, déclenché avant l'exécution des outils, bloque tout commit ou push depuis `main`. Il crée alors une feature branch correctement nommée et reprend le travail depuis cette branche.
 
-Nous ne demandons jamais à un agent de « livrer ». Nous encodons un chemin (feature branch, PR claire, review par les bonnes personnes avant tout merge) et l'IA en retire la friction mécanique. La review, elle, reste à sa place.
+Nous ne demandons jamais à un agent de « livrer ». Nous encodons un chemin (feature branch, PR claire, review par les bonnes personnes avant tout merge) et l'IA prend en charge les étapes répétitives. La review, elle, reste à sa place.
 
 ## `rockfi-ve` : garder le « pourquoi » attaché à la PR
 
@@ -84,15 +84,15 @@ Créer une PR propre, c'est la partie facile. Le plus dur est de s'assurer qu'el
 Le plugin `rockfi-ve` accompagne notre processus de Value Engineering, de la facilitation d'un workshop jusqu'au document de conception final, le **DiveIn**, en s'appuyant sur les templates Notion officiels. Il a deux modes :
 
 - **Facilitation** : quand la réflexion reste à faire, il guide un workshop ou un DiveIn section par section. L'équipe explore le problème, compare les solutions, documente la décision et définit le résultat attendu.
-- **Distillation** : quand la discussion a déjà eu lieu et qu'il faut surtout la retrouver, il projette le contenu existant dans la bonne structure, fait remonter ce qui manque, signale les hypothèses et prépare un brouillon à confirmer avant publication.
+- **Distillation** : quand la discussion a déjà eu lieu et qu'il faut surtout la retrouver, il organise le contenu existant selon le template, fait remonter ce qui manque, signale les hypothèses et prépare un brouillon à confirmer avant publication.
 
-La structure du DiveIn rend le handoff concret : contexte, definition of done, solution fonctionnelle, solution technique, slicing et ressources. On obtient moins un joli document qu'un contrat entre produit et tech : quel problème on résout, ce que « terminé » veut dire, ce qui est volontairement hors périmètre, et comment livrer en incréments qui tiennent debout seuls.
+La structure du DiveIn rend le handoff concret : contexte, definition of done, solution fonctionnelle, solution technique, slicing et ressources. On obtient moins un joli document qu'un contrat entre produit et tech : quel problème on résout, ce que « terminé » veut dire, ce qui est volontairement hors périmètre, et comment découper le travail en étapes utiles et livrables séparément.
 
-Le plugin connaît aussi le coup suivant. Un workshop mène à un DiveIn, un DiveIn à des slices, un plan QA, un plan de rollout et des issues. D'autres capacités prennent alors le relais : la delivery transforme la definition of done et les slices en tâches reviewables, et le reste couvre la discovery, le plan QA, le rollout ou la chasse aux angles morts.
+Le plugin prépare aussi les étapes suivantes. Un workshop mène à un DiveIn, un DiveIn à des slices, un plan QA, un plan de rollout et des issues. D'autres capacités prennent alors le relais : la delivery transforme la definition of done et les slices en tâches reviewables, et le reste couvre la discovery, le plan QA, le rollout ou la chasse aux angles morts.
 
-## Une boucle, parce que la ligne droite finit toujours par mentir
+## Pouvoir revenir sur une décision
 
-« Product OS », c'est le genre de nom qui appelle une keynote et un fond noir. L'idée derrière est beaucoup plus modeste : chaque étape doit laisser à la suivante un contexte exploitable et reviewable.
+Nous appelons cet ensemble « Product OS ». Chaque étape doit laisser à la suivante un contexte qu'elle peut utiliser et vérifier.
 
 ```text
 Découverte du problème
@@ -129,8 +129,8 @@ Ce que nous cherchons à gagner, c'est le temps passé à reconstruire du contex
 
 Un plugin standardise une mauvaise pratique avec exactement la même efficacité qu'une bonne. C'est même son principal talent. Chaque workflow a donc besoin d'un owner, d'une évaluation, et d'une porte de sortie quand le contexte ne suffit pas.
 
-Le Product OS ne remplace ni une stratégie produit, ni l'expertise métier, ni la review technique. Il ajoute même une surface à maintenir : permissions, templates, connecteurs, compatibilité des outils, observabilité. Nous avons échangé un peu de chaos contre de la maintenance, ce qui reste, soyons honnêtes, une assez bonne définition de l'ingénierie.
+Le Product OS ne remplace ni une stratégie produit, ni l'expertise métier, ni la review technique. Il ajoute même des éléments à maintenir : permissions, templates, connecteurs, compatibilité des outils, observabilité. Nous avons échangé un peu de chaos contre de la maintenance, ce qui reste, soyons honnêtes, une assez bonne définition de l'ingénierie.
 
-Enfin, tout ne doit pas traverser la chaîne complète. Faire passer une typo par un workshop VE et un DiveIn, c'est prendre un long-courrier pour aller chercher le pain : un petit changement réversible mérite un chemin court.
+Enfin, tout ne doit pas traverser la chaîne complète. Une correction de typo n'a pas besoin d'un workshop VE et d'un DiveIn. Un petit changement réversible mérite un chemin court.
 
 Nous n'en sommes qu'au début. La marketplace va grandir, les workflows vont s'améliorer, et le prochain plugin utile est probablement déjà en train d'échouer quelque part dans un thread de challenge.

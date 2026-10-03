@@ -1,7 +1,7 @@
 ---
 title: "L'ingestion, ce problème « déjà résolu »"
-subtitle: "Brancher un connecteur prend une après-midi. Lui faire confiance prend le reste de l'année."
-summary: "Premier épisode de la série sur notre plateforme data : la carte du stack (Airbyte, Snowflake, dbt, Dagster, Terraform), puis pourquoi l'ingestion depuis des sources que l'on ne contrôle pas est d'abord un problème de curseurs, de suppressions invisibles et de dérive de schéma."
+subtitle: "Brancher un connecteur prend un après-midi. Lui faire confiance prend le reste de l'année."
+summary: "Premier épisode de la série sur notre plateforme data : une vue d'ensemble de la stack (Airbyte, Snowflake, dbt, Dagster, Terraform), puis pourquoi l'ingestion depuis des sources que l'on ne contrôle pas est d'abord un problème de curseurs, de suppressions invisibles et de dérive de schéma."
 visualId: "backend-to-data-engineer-rockfi"
 publishedAt: "2026-10-26"
 readTimeMinutes: 8
@@ -18,7 +18,7 @@ seriesOrder: 1
 
 Il y a un an, [je terminais un post](../posts/backend-to-data-engineer-rockfi) en annonçant fièrement l'étape suivante : « adopter un véritable entrepôt de données ». Une phrase. Elle cachait environ douze mois de travail.
 
-Ce post ouvre **Ce que coûte une donnée fiable**, une série sur cette plateforme : ce qui se passe entre brancher une source et faire confiance au chiffre affiché. La démo du connecteur s'arrête généralement avant. L'essai gratuit aussi, curieusement.
+Ce post ouvre **Ce que coûte une donnée fiable**, une série sur cette plateforme : ce qui se passe entre brancher une source et faire confiance au chiffre affiché. La démo du connecteur montre rarement ce travail-là.
 
 Je commence par l'ingestion : lignes supprimées qui restent dans les totaux, commits tardifs et colonnes qui changent de type. Nous synchronisons des tables de plusieurs millions de lignes à travers la plateforme. À cette échelle, une règle de rejeu ou une omission invisible a des conséquences bien au-delà du connecteur.
 
@@ -46,12 +46,12 @@ Mais **acheter un connecteur n'achète pas la confiance dans ce qu'il ramène**.
 
 Chaque flux doit choisir un mode de lecture. Aucun n'est gratuit.
 
-**Full refresh.** On relit tout, à chaque fois. Avec une destination en mode overwrite et un instantané complet de la source, les lignes absentes disparaissent de la destination. En mode append, non. Le coût grandit avec l'historique, pas avec le changement. Tenable pour une table de référentiel. Moins pour dix ans de mouvements. La pagination doit aussi fournir un instantané stable : lire toutes les pages ne garantit pas qu'elles décrivent le même moment.
+**Full refresh.** On relit tout, à chaque fois. Avec une destination en mode overwrite et un instantané complet de la source, les lignes absentes disparaissent de la destination. En mode append, non. Le coût dépend de la taille de l'historique, pas seulement du nombre de lignes modifiées. Tenable pour une table de référentiel. Moins pour dix ans de mouvements. La pagination doit aussi fournir un instantané stable : lire toutes les pages ne garantit pas qu'elles décrivent le même moment.
 
 **Incrémental sur curseur.** On relit ce qui a changé depuis le dernier `updated_at` vu. Ça évite de relire toute la source, mais laisse deux trous :
 
 - **Les suppressions physiques sont invisibles.** Une ligne supprimée n'a plus d'`updated_at`. Elle n'apparaît dans aucune lecture incrémentale. Elle vit pour toujours dans votre entrepôt, et elle apparaît dans vos totaux.
-- **Les commits tardifs passent sous le curseur.** Une transaction démarre à 10:00:00, écrit un `updated_at` à 10:00:00, et commit à 10:00:07. Entre-temps, une sync a lu jusqu'à 10:00:05 et avancé son curseur. La ligne est désormais « dans le passé ». Elle ne sera jamais relue, sauf si elle est de nouveau modifiée.
+- **Le curseur peut manquer les transactions validées tardivement.** Une transaction démarre à 10:00:00, écrit un `updated_at` à 10:00:00, et commit à 10:00:07. Entre-temps, une sync a lu jusqu'à 10:00:05 et avancé son curseur. La ligne est désormais « dans le passé ». Elle ne sera jamais relue, sauf si elle est de nouveau modifiée.
 
 **CDC (Change Data Capture).** On lit le journal de réplication de la base. Le connecteur peut capter les insertions, mises à jour et suppressions dans l'ordre du journal, si la source est configurée pour la réplication. La livraison peut encore rejouer des événements ; le traitement des suppressions doit aussi traverser la destination et les transformations. Le coût est opérationnel : un slot PostgreSQL peut retenir le WAL tant que le consommateur est en retard.
 
@@ -120,18 +120,18 @@ Conserver les dates d'extraction et les contenus d'origine, lorsqu'ils sont disp
 
 - **rejouer** une transformation corrigée sur l'historique, sans redemander les données à la source ;
 - **répondre** à la question « qu'est-ce que ce partenaire nous a envoyé le 3 mars ? » avec une requête, pas avec un ticket chez lui ;
-- **distinguer** une erreur de la source d'une erreur de nos modèles. Dans un domaine régulé, c'est la différence entre corriger et expliquer.
+- **distinguer** une erreur de la source d'une erreur de nos modèles. Nous devons pouvoir corriger le problème et expliquer son origine.
 
 ## Ce qui reste après la première sync réussie
 
 - **Les montées de version des connecteurs peuvent changer la sortie.** Une colonne renommée ou un champ imbriqué typé autrement peuvent laisser une sync réussie et un modèle aval en échec. On épingle les versions et on compare les sorties avant de promouvoir une mise à jour.
-- **Les limites de débit des sources deviennent vos SLA.** Si une API accepte cent requêtes par minute, votre fraîcheur a un plancher que personne chez vous n'a décidé.
+- **Les limites de débit des sources deviennent vos SLA.** Si une API accepte cent requêtes par minute, votre délai de mise à jour dépend aussi de cette limite, même si vous ne l'avez pas choisie.
 - **Une sync verte ne prouve rien.** « Zéro ligne extraite » est un succès technique. C'est parfois aussi la preuve qu'un partenaire a arrêté d'envoyer quoi que ce soit. Seul un contrôle de fraîcheur et de volume le voit.
 - **Une chaîne demande un responsable de l'ordonnancement.** Pour les connexions déclenchées par Dagster, on désactive le schedule Airbyte. Les modèles dbt peuvent encore suivre des schedules de SLA ou des dépendances réactives ; il faut surtout éviter que deux ordonnanceurs lancent indépendamment la même sync. L'épisode 2 regarde les attentes qui restent.
 
 ## Quand c'est le mauvais choix
 
-Avec quelques bases que vous possédez et des charges analytiques modestes, de la réplication et des vues matérialisées peuvent suffire. Ce stack se justifie plus facilement quand les sources sont nombreuses, externes, et changent sans vous consulter.
+Avec quelques bases que vous possédez et des charges analytiques modestes, de la réplication et des vues matérialisées peuvent suffire. Cette stack se justifie plus facilement quand les sources sont nombreuses, externes, et changent sans vous consulter.
 
 Avant d'ajouter un connecteur, supprimez une ligne de test à la source et suivez-la jusqu'aux totaux. Une sync réussie ne prouve pas que la suppression est arrivée.
 

@@ -15,11 +15,11 @@ seriesId: "internal-tools-at-the-edge"
 seriesOrder: 5
 ---
 
-Cinquième épisode de **Outils internes à la pointe**. Jusqu'ici, la série est restée sous la surface : le moteur, le langage de requête, la gouvernance. Celui-ci parle de la surface, parce que c'est là que les utilisateurs décident si un outil est bon.
+Cinquième épisode de **Outils internes à la pointe**. Jusqu'ici, nous avons parlé du moteur, du langage de requête et de la gouvernance. Passons à ce que les utilisateurs voient et font dans l'interface.
 
 Les personnes qui passent leur journée dans un back office ne raisonnent pas en architecture. Elles raisonnent en habitudes. « Je clique sur le nom du client, j'arrive sur le client. Je tape dans la recherche, le tableau se réduit. Je trie par date, le plus récent est en haut. » Quand ces habitudes tiennent partout, l'outil s'efface et il ne reste que le travail. Quand elles tiennent sur certaines pages et pas sur d'autres, chaque page devient une petite énigme.
 
-Les cas d'usage d'un back office sont réellement variés : un contrat, une opération, une fiche produit, une revue d'accès, une piste d'audit. L'expérience, elle, ne devrait pas l'être.
+Les cas d'usage d'un back office sont réellement variés : un contrat, une opération, une fiche produit, une revue d'accès, des audit logs. L'expérience, elle, ne devrait pas l'être.
 
 ## L'incohérence que personne n'a décidée
 
@@ -48,13 +48,13 @@ export const contractsPage = collectionPage("crm.contracts", {
 });
 ```
 
-`client` et `product` s'affichent comme des liens parce que ce sont des relations dans le modèle. `status` est le champ calculé du premier épisode, avec une seule définition pour toute l'entreprise. Chaque colonne filtre et trie, sauf si quelqu'un décide le contraire.
+`client` et `product` s'affichent comme des liens parce que ce sont des relations dans le modèle. `status` est le champ calculé du premier épisode, avec une seule définition pour toute l'entreprise. Chaque colonne permet de filtrer et de trier, sauf si quelqu'un décide le contraire.
 
 ## Retirer, jamais ajouter
 
 Cette dernière phrase résume toute la conception.
 
-Dans la plupart des outils internes, les capacités sont **opt-in** : un tableau trie si quelqu'un a activé le tri, une colonne filtre si quelqu'un a branché un filtre. Le défaut, c'est l'expérience la plus pauvre, et chaque amélioration dépend de la mémoire d'un développeur.
+Dans la plupart des outils internes, les capacités sont **opt-in** : un tableau trie si quelqu'un a activé le tri, une colonne filtre si quelqu'un a branché un filtre. Par défaut, le tableau n'offre que le minimum, et chaque amélioration dépend de la mémoire d'un développeur.
 
 Nous avons inversé la logique. Les capacités sont **actives par défaut**, et en retirer une est un acte explicite :
 
@@ -74,9 +74,9 @@ Cette inversion déplace la charge au bon endroit. En opt-in, un oubli coûte à
 
 ## Une recherche qui respecte les règles
 
-La recherche globale, à un raccourci de distance (`⌘K`), est l'endroit où cohérence et gouvernance se rencontrent. Elle interroge toutes les collections : clients, contrats, opérations, produits.
+La recherche globale, accessible avec le raccourci `⌘K`, est l'endroit où cohérence et gouvernance se rencontrent. Elle interroge toutes les collections : clients, contrats, opérations, produits.
 
-Elle ne renvoie que ce que l'utilisateur a le droit de voir. Cela paraît évident, mais un index de recherche est un canal auxiliaire classique. Si l'index renvoie un enregistrement que l'utilisateur ne peut pas ouvrir, ou classe les résultats à partir d'un champ masqué, il laisse fuiter exactement ce que le modèle de droits devait protéger. La recherche passe donc par le même moteur et les mêmes règles d'accès que toute autre lecture. Une personne du support qui cherche un client trouve le client ; elle ne trouve pas de résultats correspondant à son patrimoine.
+Elle ne renvoie que ce que l'utilisateur a le droit de voir. Cela paraît évident, mais un index de recherche peut révéler indirectement des informations protégées. Si l'index renvoie un enregistrement que l'utilisateur ne peut pas ouvrir, ou classe les résultats à partir d'un champ masqué, il laisse fuiter exactement ce que le modèle de droits devait protéger. La recherche passe donc par le même moteur et les mêmes règles d'accès que toute autre lecture. Une personne du support qui cherche un client trouve le client ; elle ne trouve pas de résultats correspondant à son patrimoine.
 
 Là encore, personne n'a eu besoin d'y penser. La recherche consomme le moteur comme n'importe quel autre écran.
 
@@ -88,22 +88,22 @@ Ce choix a des effets cumulatifs. Tous les composants existants sont disponibles
 
 Il supprime aussi une dette discrète. Beaucoup d'entreprises finissent avec deux design systems : le vrai, pour les clients, et un improvisé pour les outils internes, que personne ne maintient. Nous n'avons pas d'UI parallèle à construire ni à entretenir. Il y a un kit, et l'outil interne en est un consommateur parmi d'autres.
 
-## Quand les défauts résistent
+## Les limites des comportements par défaut
 
 Cette approche a ses limites, et elles apparaissent vite.
 
 **Des primitives génériques face à des workflows spécifiques.** Un tableau est parfait pour parcourir des contrats. Il n'a pas la bonne forme pour une revue en plusieurs étapes où l'on compare deux versions d'un document avant de valider. Pour ces cas, nous écrivons des composants sur mesure. La règle : ils lisent toujours via le moteur et utilisent les primitives à l'intérieur (liens, champs, valeurs masquées), pour que la porte de sortie ne devienne pas un contournement.
 
-**Un UI Kit pensé pour les clients n'est pas toujours assez dense.** Des composants conçus pour des clients privilégient l'air et la lisibilité. Un écran d'opérations doit afficher quarante lignes et dix colonnes sans défilement. Nous avons ajouté des variantes de densité au kit plutôt que de le forker. C'est du travail en plus, mais il est fait une fois, dans le kit, pour tout le monde.
+**Un UI Kit pensé pour les clients n'est pas toujours assez dense.** Les composants destinés aux clients laissent davantage d'espace entre les éléments pour faciliter la lecture. Un écran d'opérations doit afficher quarante lignes et dix colonnes sans défilement. Nous avons ajouté des variantes de densité au kit plutôt que de le forker. C'est du travail en plus, mais il est fait une fois, dans le kit, pour tout le monde.
 
-**« Tout est filtrable » a un prix.** Si chaque colonne peut être filtrée, quelqu'un filtrera sur la colonne sans index, sur la plus grosse table, un lundi matin. Des défauts généreux ont besoin de garde-fous : des index sur les colonnes réellement utilisées, des limites de pagination, et un refus clair quand une requête coûterait trop cher. Sans limites, des défauts généreux ne sont qu'une manière plus lente de provoquer un incident.
+**« Tout est filtrable » a un prix.** Si chaque colonne peut être filtrée, quelqu'un filtrera sur la colonne sans index, sur la plus grosse table, un lundi matin. Activer ces fonctionnalités par défaut demande des garde-fous : des index sur les colonnes réellement utilisées, des limites de pagination, et un refus clair quand une requête coûterait trop cher. Sans ces limites, un filtre disponible partout peut finir par provoquer un incident.
 
-**Les défauts se figent.** Quand un comportement est partout, le changer revient à le changer partout. C'est tout l'intérêt, mais cela signifie qu'une décision sur une primitive mérite plus de réflexion qu'une décision sur un écran.
+**Les comportements par défaut sont difficiles à changer.** Quand un comportement est partout, le changer revient à le changer partout. C'est tout l'intérêt, mais cela signifie qu'une décision sur une primitive mérite plus de réflexion qu'une décision sur un écran.
 
 ## Une question à poser à votre propre outil
 
 Ouvrez trois pages au hasard de votre back office. Sur chacune, cliquez sur une entité liée, triez une colonne, lancez une recherche.
 
-Si les trois pages ne se comportent pas de la même façon, demandez-vous qui l'a décidé. La plupart du temps, la réponse honnête est : personne. C'est toute la différence entre une convention et un défaut.
+Si les trois pages ne se comportent pas de la même façon, demandez-vous qui l'a décidé. La plupart du temps, la réponse honnête est : personne. Une convention demande à chaque développeur d'y penser. Un comportement par défaut s'applique dès qu'il utilise le composant.
 
 Prochain et dernier épisode : comment nous avons construit tout cela avec des agents de code, pourquoi le moteur rend sûrs les écrans écrits par une IA, et comment nous remplaçons l'ancien outil processus par processus plutôt que d'un seul coup.

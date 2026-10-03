@@ -1,7 +1,7 @@
 ---
 title: "Est-ce qu'on referait ce choix ?"
 subtitle: "Cinq outils, quatre langages et un orchestrateur hybride : le bilan honnête d'une plateforme data construite pour durer."
-summary: "Dernier épisode de la série : ce qui a vraiment payé (Snowflake, dbt, les assets Dagster), ce qui coûte plus que prévu, pourquoi l'exécution de l'orchestrateur reste dans notre infrastructure, ce que nous ferions différemment, et une grille pour décider si un stack comme le nôtre se justifie chez vous."
+summary: "Dernier épisode de la série : ce qui a vraiment payé (Snowflake, dbt, les assets Dagster), ce qui coûte plus que prévu, pourquoi l'exécution de l'orchestrateur reste dans notre infrastructure, ce que nous ferions différemment, et une grille pour décider si une stack comme la nôtre se justifie chez vous."
 visualId: "backend-to-data-engineer-rockfi"
 publishedAt: "2026-11-09"
 readTimeMinutes: 8
@@ -16,11 +16,11 @@ seriesId: "what-trustworthy-data-costs"
 seriesOrder: 5
 ---
 
-La plateforme exécute aujourd'hui environ **3 000 assets distincts sur une journée**, avec des tables de plusieurs millions de lignes synchronisées entre ces systèmes. C'est l'échelle derrière les quatre articles précédents. Elle fait aussi de « est-ce que ça valait le coup ? » une question sur le travail que nous pouvons tenir dans la durée, pas seulement sur les fonctionnalités de cinq outils.
+La plateforme exécute aujourd'hui environ **3 000 assets distincts sur une journée**, avec des tables de plusieurs millions de lignes synchronisées entre ces systèmes. C'est l'échelle derrière les quatre articles précédents. À cette échelle, je regarde surtout le travail nécessaire pour maintenir la plateforme, au-delà de ce que chaque outil sait faire.
 
 Je garderais la direction générale. Je passerais plus de temps sur les frontières avant de multiplier les flux. Les traitements les plus longs durent maintenant environ **une heure**, moins qu'auparavant. C'est une durée de traitement observée, pas un SLA de fraîcheur : les exigences diffèrent selon les jeux de données.
 
-## Compter les pièces mobiles
+## Ce qu'il faut maintenir
 
 Avant de juger, il faut compter. Une plateforme comme la nôtre, c'est :
 
@@ -47,7 +47,7 @@ Avant de juger, il faut compter. Une plateforme comme la nôtre, c'est :
 
 - **Les montées de version en cascade.** Une nouvelle version d'un connecteur, d'une intégration dbt, du provider Terraform : chacune est raisonnable, mais elles arrivent sans se concerter, et chaque combinaison doit être revalidée.
 - **Le débogage traverse quatre interfaces.** Une donnée en retard peut venir de la source, de la sync, d'un test bloquant ou du reverse ETL. Le graphe d'assets aide beaucoup. Il ne remplace pas quelqu'un qui connaît toute la chaîne.
-- **La connaissance se concentre.** Une plateforme de cette taille crée vite des personnes indispensables. C'est un risque opérationnel à traiter comme tel : documentation vivante, rotations, et du code d'intégration assez ennuyeux pour être repris par quelqu'un d'autre.
+- **La connaissance se concentre.** Une plateforme de cette taille crée vite des personnes indispensables. C'est un risque opérationnel à traiter comme tel : documentation vivante, rotations, et du code d'intégration assez simple pour être repris par quelqu'un d'autre.
 - **Le coût du calcul se surveille tôt.** Un warehouse surdimensionné, une suspension tardive ou un test coûteux répété peuvent gonfler la facture. Les métriques d'usage et de requêtes peuvent les révéler avant son arrivée, si quelqu'un les regarde.
 
 ## Hybride : pourquoi l'exécution reste chez nous
@@ -76,7 +76,7 @@ Pour une équipe plus petite, exploiter ce runtime peut coûter plus que le cont
 
 ## La grille pour décider
 
-| Signal | Un stack comme le nôtre se justifie | Plus simple suffit |
+| Signal | Une stack comme la nôtre se justifie | Plus simple suffit |
 | --- | --- | --- |
 | Sources | Nombreuses, externes, changent sans prévenir | Quelques bases que vous possédez |
 | Fraîcheur | Heures, négociée par jeu de données | Secondes (services et événements) ou jours (un batch simple) |
@@ -84,11 +84,11 @@ Pour une équipe plus petite, exploiter ce runtime peut coûter plus que le cont
 | Consommateurs | Plusieurs applications réutilisent des jeux de données gouvernés | Un périmètre restreint de rapports internes |
 | Équipe | Capable d'opérer cinq outils et une astreinte | Une personne, à temps partiel |
 
-Si la plupart des réponses tombent à droite, PostgreSQL, quelques jobs et un outil de BI peuvent couvrir le besoin. On ajoute le stack plus large lorsqu'une contrainte concrète justifie le composant suivant.
+Si la plupart des réponses tombent à droite, PostgreSQL, quelques jobs et un outil de BI peuvent couvrir le besoin. On adopte une stack plus complète lorsqu'une contrainte concrète justifie le composant suivant.
 
 ## Fin de la série
 
-Nous sommes partis d'une phrase, « adopter un véritable entrepôt de données », dans [un post d'il y a un an](../posts/backend-to-data-engineer-rockfi). Cinq épisodes plus tard, elle se traduit ainsi : faire entrer des données qu'on ne contrôle pas ([épisode 1](../posts/data-platform-ingestion-drift)), les renvoyer vers des applications avec un âge assumé ([épisode 2](../posts/data-platform-reverse-etl-freshness)), arrêter la donnée fausse avant qu'elle n'atteigne un humain ([épisode 3](../posts/data-platform-tests-as-contracts)), et déclarer qui a le droit de toucher à tout ça ([épisode 4](../posts/data-platform-terraform-access-and-flows)).
+Nous sommes partis d'une phrase, « adopter un véritable entrepôt de données », dans [un post d'il y a un an](../posts/backend-to-data-engineer-rockfi). Cinq épisodes plus tard, elle se traduit ainsi : faire entrer des données qu'on ne contrôle pas ([épisode 1](../posts/data-platform-ingestion-drift)), les renvoyer vers des applications en affichant leur date de référence ([épisode 2](../posts/data-platform-reverse-etl-freshness)), arrêter la donnée fausse avant qu'elle n'atteigne un humain ([épisode 3](../posts/data-platform-tests-as-contracts)), et déclarer qui a le droit de toucher à tout ça ([épisode 4](../posts/data-platform-terraform-access-and-flows)).
 
 Ma prochaine priorité serait un exercice de récupération de bout en bout sur un flux : rejouer sa source, faire échouer un check, publier un résultat complet, puis revenir en arrière. Si ça fonctionne avec quelqu'un d'autre que son auteur au clavier, la plateforme commence à être maintenable.
 

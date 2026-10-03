@@ -32,7 +32,7 @@ Sur un chemin de publication protégé, un check bloquant en échec doit empêch
 
 Sur des millions de lignes, un test peut être une requête coûteuse. On place les contrôles là où ils répondent à une question précise, puis on décide si un échec impose un arrêt de publication ou une investigation.
 
-**À l'entrée : la source est-elle vivante ?** Fraîcheur, et les clés qui doivent exister. dbt sait mesurer la fraîcheur d'une source à partir d'une colonne de chargement :
+**À l'entrée : la source nous envoie-t-elle encore des données ?** Fraîcheur, et les clés qui doivent exister. dbt sait mesurer la fraîcheur d'une source à partir d'une colonne de chargement :
 
 ```yaml
 # models/sources.yml (exemple simplifié)
@@ -80,7 +80,7 @@ models:
 
 Sur les tables Snowflake standard, `NOT NULL` est appliqué ; les clés primaires et l'unicité déclarées ne le sont pas. On garde donc le test `unique`. Un contrat de type n'insère pas non plus de cast dans le SQL : le modèle fait la conversion, et une erreur de conversion ne doit pas devenir un NULL silencieux sans contrôle.
 
-**À la sortie : le chiffre est-il cohérent avec le monde ?** Les tests de forme ne suffisent plus en Gold. On y vérifie des invariants métier, et surtout des **réconciliations** : un total calculé chez nous doit correspondre, à une tolérance près, au total déclaré par la source. Un test singulier dbt est une requête qui doit renvoyer zéro ligne :
+**À la sortie : le chiffre est-il cohérent avec les données de référence ?** Les tests de forme ne suffisent plus en Gold. On y vérifie des invariants métier, et surtout des **réconciliations** : un total calculé chez nous doit correspondre, à une tolérance près, au total déclaré par la source. Un test singulier dbt est une requête qui doit renvoyer zéro ligne :
 
 ```sql
 -- tests/assert_totals_reconcile_with_source.sql
@@ -167,21 +167,21 @@ Le `at(offset => -3600)` demande que le même objet table ait existé une heure 
 
 Écrire un test est facile. Choisir sa sévérité est la décision qui détermine si le système reste utilisable dans six mois.
 
-- **Trop d'`error`**, et le pipeline s'arrête pour des broutilles. L'équipe apprend à relancer sans lire. Le jour où l'erreur est grave, elle est relancée aussi.
+- **Trop d'`error`**, et le pipeline s'arrête pour des broutilles. L'équipe apprend à relancer sans lire. Le jour où l'erreur est grave, l'équipe risque de relancer le run sans la lire non plus.
 - **Trop de `warn`**, et personne ne lit les avertissements. Un warning que personne ne traite est un test désactivé avec des étapes en plus.
 
-Les warnings sonnent souvent sur notre plateforme, parfois parce qu'un nouveau cas provider n'est pas encore pris en compte. Ce n'est pas automatiquement une raison de supprimer le test. Il faut d'abord distinguer une erreur du flux d'un cas valide que notre modèle ne représente pas. Pour une erreur qui bloque la publication, je veux un propriétaire nommé et une action concrète. Les warnings ont aussi besoin d'un circuit de qualification, sans traiter chaque alerte comme une panne de production.
+Les warnings se déclenchent souvent sur notre plateforme, parfois parce qu'un nouveau cas provider n'est pas encore pris en compte. Ce n'est pas automatiquement une raison de supprimer le test. Il faut d'abord distinguer une erreur du flux d'un cas valide que notre modèle ne représente pas. Pour une erreur qui bloque la publication, je veux un propriétaire nommé et une action concrète. Les warnings ont aussi besoin d'un circuit de qualification, sans traiter chaque alerte comme une panne de production.
 
 ## Quand la forme est correcte et le sens est faux
 
-Les tests vérifient ce que vous avez anticipé. Le pire incident de qualité ne ressemble à rien de ce que vous avez anticipé.
+Les tests vérifient les cas que nous avons anticipés. Un changement de sens dans la source peut leur échapper, même si la structure reste identique.
 
 Une source pourrait, par exemple, continuer d'envoyer une colonne `amount` avec les mêmes types et volumes, mais passer du brut au net de frais. C'est un exemple hypothétique, pas un incident provider que je dévoile. Les tests de forme passeraient encore.
 
 Deux moyens utiles de détecter ce changement :
 
 1. **La réconciliation avec une source indépendante**, quand elle existe. C'est pour ça que le test le moins élégant est le plus précieux.
-2. **Un propriétaire métier par modèle Gold**, qui regarde les chiffres et sait quand ils ont « une drôle de tête ». La qualité de données reste, au bout du compte, une responsabilité humaine outillée.
+2. **Un propriétaire métier par modèle Gold**, qui regarde les chiffres et sait quand ils ont « une drôle de tête ». Les outils aident à détecter les écarts. Il faut toujours quelqu'un qui connaît les données pour les interpréter.
 
 ## Ce que ça coûte
 

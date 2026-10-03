@@ -1,7 +1,7 @@
 ---
 title: "Reverse ETL : de quand date le chiffre à l'écran ?"
 subtitle: "Quand une donnée repart de l'entrepôt vers une application utilisée en direct, chaque minute de retard devient un problème produit."
-summary: "Deuxième épisode : pourquoi renvoyer des données calculées dans Snowflake vers une application vivante est la partie la plus délicate de la plateforme. Budget de fraîcheur, propriété des champs, écritures conditionnelles, runs atomiques, et l'heure affichée à côté de chaque chiffre."
+summary: "Deuxième épisode : pourquoi renvoyer des données calculées dans Snowflake vers une application utilisée au quotidien est la partie la plus délicate de la plateforme. Budget de fraîcheur, propriété des champs, écritures conditionnelles, runs atomiques, et l'heure affichée à côté de chaque chiffre."
 visualId: "backend-to-data-engineer-rockfi"
 publishedAt: "2026-10-29"
 readTimeMinutes: 9
@@ -22,7 +22,7 @@ Le scénario est simple. Un conseiller ouvre un écran. Il y voit un chiffre cal
 
 Nous utilisons ce chemin pour redescendre des résultats analytiques dans les applications, notamment les performances des portefeuilles clients et le rapprochement entre marchés et clients des advisors. Une valeur en retard ou incohérente devient donc un problème produit, pas seulement un problème d'entrepôt.
 
-La première question : **à date de quand ?**
+La première question : **de quand date ce chiffre ?**
 
 ## Le budget de fraîcheur (faites l'addition)
 
@@ -42,7 +42,7 @@ Deux attentes sont évitables : la transformation peut suivre une extraction ter
 
 <ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
 
-Le schéma montre le parcours dans la plateforme. Chaque frontière planifiée indépendamment peut ajouter une attente avant que l'écran reçoive la donnée.
+Le schéma montre le parcours dans la plateforme. Chaque étape planifiée indépendamment peut ajouter une attente avant que l'écran reçoive la donnée.
 
 ## Enchaîner sur l'événement, pas sur l'horloge
 
@@ -108,7 +108,7 @@ on conflict (account_id) do update
     where current.computed_as_of < excluded.computed_as_of;
 ```
 
-Ça demande des dates d'ordre non nulles, avec un sens défini : la couverture de la source, pas l'heure de fin du worker. Une égalité de dates n'est un no-op que si le contenu est identique. Deux contenus différents exigent une révision source ou une erreur ; l'ordre d'arrivée ne tranche pas. Une projection incrémentale demande aussi des marqueurs explicites de suppression.
+Ça demande des dates d'ordre non nulles, avec un sens défini : la date jusqu'à laquelle les données de la source sont couvertes, pas l'heure de fin du worker. Une égalité de dates n'est un no-op que si le contenu est identique. Deux contenus différents exigent une révision source ou une erreur ; l'ordre d'arrivée ne tranche pas. Une projection incrémentale demande aussi des marqueurs explicites de suppression.
 
 Pour un instantané complet, **l'application ne doit jamais voir un run à moitié écrit**. Si la moitié des lignes date de 10:00 et l'autre de 11:00, les totaux ne correspondent à aucun état réel. On écrit et valide d'abord un run immuable, puis on publie son pointeur :
 
@@ -127,13 +127,13 @@ select m.metric_value, r.as_of
  where m.account_id = $1;
 ```
 
-La ligne du pointeur doit déjà exister, et le run référencé doit être entièrement commité avant cet update. On contrôle le nombre de lignes modifiées : zéro signifie que le run n'a pas été publié. La lecture joint le pointeur dans une seule requête ; la purge conserve le run courant et les candidats au rollback. Le rollback est une opération distincte et auditée : cet update qui avance seulement refuse volontairement une date antérieure. Seul un instantané complet et validé permet de traiter une absence comme une suppression. Une extraction tronquée ne doit pas être publiée.
+La ligne du pointeur doit déjà exister, et le run référencé doit être entièrement commité avant cet update. On contrôle le nombre de lignes modifiées : zéro signifie que le run n'a pas été publié. La lecture joint le pointeur dans une seule requête ; la purge conserve le run courant et les candidats au rollback. Le rollback est une opération distincte et auditée : cet update qui n'accepte que des dates plus récentes refuse volontairement une date antérieure. Seul un instantané complet et validé permet de traiter une absence comme une suppression. Une extraction tronquée ne doit pas être publiée.
 
 ## Montrer l'heure
 
-Une fois qu'on accepte qu'une donnée a un âge, il faut **le montrer**. Dans notre métier, un chiffre sans « à date du » n'est pas une information, c'est un risque.
+Une fois qu'on accepte qu'une donnée peut avoir du retard, il faut **afficher sa date de référence**. Dans notre métier, un chiffre sans date de référence n'est pas une information, c'est un risque.
 
-Chaque projection demande un `as_of` défini et un budget de fraîcheur explicite. Si un résultat combine plusieurs sources, leurs couvertures se conservent séparément : la date la plus récente ne doit pas cacher une dépendance ancienne. Pour une date de couverture, une petite fonction pure classe l'état affiché :
+Chaque projection demande un `as_of` défini et un budget de fraîcheur explicite. Si un résultat combine plusieurs sources, on conserve séparément la date de référence de chacune : la date la plus récente ne doit pas cacher une dépendance ancienne. Pour une date de couverture, une petite fonction pure classe l'état affiché :
 
 ```ts
 export type Freshness = "fresh" | "stale" | "expired" | "unknown";
@@ -171,17 +171,17 @@ Interroger directement l'entrepôt peut convenir à des écrans analytiques. Pou
 - **Coût.** Des requêtes fréquentes peuvent maintenir un warehouse actif au lieu de le laisser se suspendre. Ce coût se compare à celui de la projection.
 - **Disponibilité.** L'application hérite de chaque maintenance, montée de version et incident de la plateforme data. Le blast radius d'un modèle dbt cassé inclut maintenant votre produit.
 
-L'entrepôt calcule. **Un store opérationnel sert.** Le reverse ETL est précisément le pont entre les deux, et c'est pour ça qu'il mérite autant de soin.
+L'entrepôt calcule les résultats. **Une base opérationnelle les fournit à l'application.** Le reverse ETL est précisément le pont entre les deux, et c'est pour ça qu'il mérite autant de soin.
 
 ## Le coût d'exploitation d'un pipeline supplémentaire
 
 - **Un pipeline de plus à opérer.** Le reverse ETL a ses propres pannes, ses propres rejeux, ses propres alertes. Il ne se contente pas d'hériter de celles des étapes précédentes : il les additionne.
 - **La fraîcheur se surveille de bout en bout.** Une alerte par étape ne dit pas si la donnée affichée respecte son budget. Nous mesurons l'âge de ce que l'application sert réellement, pas seulement la santé de chaque job.
-- **Le produit doit accepter l'idée d'« à date du ».** C'est le coût le moins technique et le plus réel. Certaines fonctionnalités ne supportent pas une donnée qui a une heure. Celles-là n'ont rien à faire sur ce chemin.
+- **Le produit doit accepter l'idée d'« à date du ».** C'est le coût le moins technique et le plus réel. Certaines fonctionnalités ne supportent pas une donnée vieille d'une heure. Celles-là n'ont rien à faire sur ce chemin.
 
 ## Quand c'est le mauvais choix
 
-Si le besoin se compte en secondes, le reverse ETL par lots n'est pas la bonne architecture, et aucun réglage d'intervalle ne le deviendra. Une donnée qui doit être à jour à la seconde appartient aux services et aux événements (un topic, un consommateur, une projection maintenue en continu), pas à un entrepôt qui recalcule toutes les heures.
+Si le besoin se compte en secondes, le reverse ETL par lots ne convient pas. Réduire l'intervalle entre les runs ne suffit pas. Une donnée qui doit être à jour à la seconde appartient aux services et aux événements (un topic, un consommateur, une projection maintenue en continu), pas à un entrepôt qui recalcule toutes les heures.
 
 Avant de livrer une projection, convenez de son âge maximal et de l'état expiré à l'écran avec la personne qui utilise le chiffre. Ces deux décisions font partie des critères d'acceptation.
 

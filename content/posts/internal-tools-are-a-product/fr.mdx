@@ -1,7 +1,7 @@
 ---
 title: "Votre back office est un produit. Construisez-le comme tel."
 subtitle: "Pourquoi nous avons arrêté d'assembler des écrans internes pour construire un moteur, et ce que cela change au-delà de l'engineering."
-summary: "Les outils internes grandissent écran par écran, jusqu'à ce que chaque écran porte sa propre vérité. Nexus est notre tentative de déplacer cette vérité dans un seul moteur, pour que la cohérence devienne une propriété du système plutôt qu'une habitude de chaque développeur."
+summary: "Les outils internes grandissent écran par écran, jusqu'à ce que chaque écran applique ses propres définitions métier. Avec Nexus, nous les regroupons dans un seul moteur, pour que la cohérence devienne une propriété du système plutôt qu'une habitude de chaque développeur."
 visualId: "internal-tools-as-product"
 publishedAt: "2026-10-01"
 readTimeMinutes: 8
@@ -15,7 +15,7 @@ seriesId: "internal-tools-at-the-edge"
 seriesOrder: 1
 ---
 
-Personne ne conçoit un back office. Il s'accumule.
+Notre back office s'est construit écran par écran, sans plan d'ensemble.
 
 Une équipe a besoin de retrouver un client : quelqu'un écrit une requête et l'enveloppe dans un tableau. Les opérations doivent corriger un statut : un bouton apparaît à côté du tableau. La conformité demande qui a modifié quoi : une vue de logs surgit ailleurs. Chaque écran est raisonnable. Chaque écran a été rapide à construire. Et au bout de quelques années, l'entreprise tourne sur quelques dizaines d'entre eux.
 
@@ -54,9 +54,9 @@ On est tenté d'y voir un problème d'UX : des tableaux incohérents, des liens 
 
 En gestion de patrimoine, *qui peut voir les avoirs d'un client* n'est pas une préférence d'interface. *Quels contrats sont considérés comme actifs* finit dans des reportings qui comptent. *Qui a modifié une opération, et quand* est une question qu'un auditeur peut poser, et « ça dépend de l'écran utilisé » n'est pas une réponse acceptable.
 
-Quand chaque écran porte ses propres définitions, la justesse dépend de chaque développeur qui pense à faire la bonne chose au bon endroit, à chaque fois. Ce n'est pas un système. C'est une habitude, et les habitudes ne passent pas à l'échelle : ni avec la croissance de l'équipe, ni avec le turnover, ni avec des agents de code qui produisent des écrans à un rythme qu'aucun relecteur ne peut absorber entièrement.
+Quand chaque écran porte ses propres définitions, il faut que chaque développeur applique les bonnes règles à chaque ajout. Ce n'est pas un système. C'est une habitude, et les habitudes ne passent pas à l'échelle : ni avec la croissance de l'équipe, ni avec le turnover, ni avec des agents de code qui produisent des écrans à un rythme qu'aucun relecteur ne peut absorber entièrement.
 
-> Une cohérence qui repose sur la discipline n'est pas de la cohérence. C'est une coïncidence qui n'a pas encore échoué.
+> Si chaque écran doit réimplémenter la même règle, on finira par avoir des écarts.
 
 ## Traiter les outils internes comme un produit
 
@@ -64,11 +64,11 @@ Quand chaque écran porte ses propres définitions, la justesse dépend de chaqu
 
 **Il a des utilisateurs, et ils méritent le même niveau d'exigence que nos clients.** Les équipes opérations, conformité et support passent leur journée dans ces outils. Un tableau confus leur coûte du temps toutes les heures. Un lien manquant leur coûte un changement de contexte. Nous ne livrerions jamais ça à un client. Nous ne devrions pas le livrer à nos collègues non plus.
 
-**Il a une architecture, pas une collection de pages.** L'accès aux données, les droits, l'audit et les interactions ne sont pas réimplémentés écran par écran. Ils vivent à un seul endroit, et les écrans sont de fines déclarations par-dessus.
+**Il a une architecture, pas une collection de pages.** L'accès aux données, les droits, l'audit et les interactions ne sont pas réimplémentés écran par écran. Ces comportements sont définis dans le moteur. Les écrans déclarent ce dont ils ont besoin.
 
 **Il a une roadmap et un responsable.** L'outil interne n'est pas la colle que maintient celui qui a le temps. C'est un produit avec un backlog, des releases et un plan de déploiement, comme tout ce que nous construisons.
 
-Le mot qui revenait sans cesse était **systémique**. L'expérience doit être identique partout dans l'application, et cette identité ne doit reposer sur la vigilance de personne. Quand un développeur ajoute un écran, il doit être *impossible* d'oublier les droits ou l'audit, parce qu'ils ne font pas partie de l'écran.
+Nous voulions que ces comportements soient **communs à tous les écrans**, sans avoir à les vérifier à chaque ajout. Quand un développeur ajoute un écran, il doit être *impossible* d'oublier les droits ou l'audit, parce qu'ils ne font pas partie de l'écran.
 
 ## Nexus, en un paragraphe
 
@@ -79,7 +79,7 @@ En dessous, elle s'organise autour de quatre briques, et chacune aura son propre
 1. **Un Core Engine** qui porte chaque lecture et chaque écriture. Les lectures vont sur des read replicas PostgreSQL, en lecture seule. Les écritures ne touchent jamais une base directement : elles passent par les API de nos services internes.
 2. **Un petit langage de requête** identique quelle que soit la source, y compris pour des relations qui traversent plusieurs bases, sans tomber dans le N+1.
 3. **Une gouvernance intégrée au moteur** : rôles et permissions jusqu'au champ, masquage des valeurs sensibles, et un journal d'audit de chaque lecture et de chaque écriture qu'aucun écran ne peut contourner.
-4. **Une expérience partagée** : les mêmes primitives partout (liens entre entités, tableaux filtrables, triables et cherchables d'office), construites sur le même UI Kit que nos applications clients.
+4. **Une expérience partagée** : les mêmes primitives partout (liens entre entités, tableaux avec filtres, tri et recherche par défaut), construites sur le même UI Kit que nos applications clients.
 
 L'idée derrière les quatre est la même : déplacer la vérité des écrans vers le moteur.
 
@@ -102,7 +102,7 @@ Cet extrait est volontairement trivial. L'intérêt n'est pas la syntaxe. C'est 
 
 C'est la partie que je n'avais pas complètement anticipée en démarrant.
 
-Quand l'outil interne est un produit, **la connaissance opérationnelle trouve un domicile**. La définition d'un contrat actif, la règle qui masque les avoirs d'un client pour une équipe donnée, le fait que telle opération doive passer par tel service : tout cela n'est plus éparpillé entre des écrans et la mémoire des gens. C'est dans le moteur, versionné, relu et testé comme le reste de notre code.
+Quand l'outil interne est un produit, **les règles utilisées par les équipes sont écrites au même endroit**. La définition d'un contrat actif, la règle qui masque les avoirs d'un client pour une équipe donnée, le fait que telle opération doive passer par tel service : tout cela n'est plus éparpillé entre des écrans et la mémoire des gens. C'est dans le moteur, versionné, relu et testé comme le reste de notre code.
 
 **La conformité obtient des garanties plutôt que des promesses.** La question n'est plus « a-t-on pensé à mettre l'audit sur cet écran ? ». La réponse est structurelle : chaque lecture et chaque écriture passent par le moteur, et le moteur les trace. Il n'existe pas d'autre chemin.
 
@@ -112,13 +112,13 @@ Quand l'outil interne est un produit, **la connaissance opérationnelle trouve u
 
 ## Quand c'est le mauvais choix
 
-À un niveau staff, « on le construit nous-mêmes » devrait rendre nerveux. Ça nous a rendus nerveux aussi.
+Construire notre propre outil interne nous engage sur des années de maintenance. Nous avons beaucoup hésité avant de nous lancer.
 
 Maîtriser l'outil interne, c'est aussi assumer sa maintenance, ses incidents et son évolution. Le moteur devient un produit avec son propre backlog, et quelqu'un doit savoir refuser les fonctionnalités qui en feraient un deuxième ORM. Si vous avez cinq écrans et une seule équipe pour les utiliser, un outil low-code est presque certainement le meilleur compromis.
 
 L'équation change quand trois conditions sont réunies : beaucoup d'écrans qui partagent les mêmes notions métier, un besoin réglementaire de contrôle d'accès et d'audit qu'on ne peut pas laisser à la convention, et une équipe capable de traiter l'outil comme un produit pendant des années, pas des semaines. C'était notre situation. Ce n'est pas celle de tout le monde.
 
-Alors, avant l'architecture, une question à poser sur votre propre back office : combien de définitions de vos notions métier essentielles contient-il aujourd'hui ? Si personne ne sait répondre rapidement, vous avez déjà votre réponse.
+Alors, avant l'architecture, une question à poser sur votre propre back office : combien de définitions de vos notions métier essentielles contient-il aujourd'hui ? Si personne ne sait répondre rapidement, cela vaut la peine d'aller comparer les requêtes de quelques écrans.
 
 ## La suite de la série
 

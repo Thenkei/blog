@@ -1,7 +1,7 @@
 ---
 title: "Architecture logicielle : apprivoiser les inconnus inconnus"
 subtitle: "Une revue d'architecture ne nommera jamais toutes les surprises. Elle peut éviter qu'elles deviennent des catastrophes."
-summary: "Comment mettre à l'épreuve les hypothèses cachées, dépasser le chemin nominal et préparer le système à survivre lorsque la carte est fausse."
+summary: "Comment mettre à l'épreuve les hypothèses cachées, dépasser le chemin nominal et préparer le système à survivre lorsque nos hypothèses sont fausses."
 visualId: "unknown-unknowns-software-architecture"
 publishedAt: "2026-08-10"
 readTimeMinutes: 6
@@ -21,7 +21,7 @@ Une revue d'architecture traite bien les risques connus : charge, disponibilité
 
 Une hypothèse peut rester implicite, ou un mode de panne absent du diagramme. Ce sont les **inconnus inconnus** : les risques qui ne sont jamais entrés dans la liste.
 
-Dans [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386?lang=fr), Thariq Shihipar décrit l'écart entre la *map* fournie à un agent et le *territory* réel. En logiciel aussi, aucun document ne représente complètement les opérateurs, les données historiques et les usages de production.
+Dans [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386?lang=fr), Thariq Shihipar décrit l'écart entre la description fournie à un agent et la réalité du système. En logiciel aussi, aucun document ne représente complètement les opérateurs, les données historiques et les usages de production.
 
 <ArticleDiagram visualId="unknown-unknowns-software-architecture" />
 
@@ -48,18 +48,18 @@ Avant une décision importante, notre outil interne combine des **gates** sur le
 L'outil relie chaque question à une preuve, ou rend son absence visible :
 
 - Quel invariant financier ou métier pourrait être violé silencieusement ?
-- Quelle dépendance partage notre blast radius ?
+- Quelle dépendance serait aussi touchée par notre panne ?
 - Quelle opération manuelle contourne le chemin nominal ?
 - Quel signal montrerait le problème avant qu'un client ne le fasse ?
 - Quelle action reste possible lorsque l'hypothèse est fausse ?
 
-La décision reste humaine : on peut accepter un risque connu, pas un risque invisible.
+La décision reste humaine. Pour accepter un risque, il faut d'abord l'avoir identifié.
 
 ## Installer les sorties de secours quand tout est calme
 
 On ne prédira pas chaque panne. On peut rendre la surprise visible, contenir son impact et revenir à un état sûr.
 
-Ça commence par réduire la surface d'hypothèses : des contrats explicites et des invariants exécutables laissent moins de place à l'implicite. Isoler les composants et les permissions borne ensuite le blast radius. Pour détecter les divergences, on s'appuie sur les métriques, les traces, les rapprochements et les alertes métier. Reste le chemin du retour — idempotence, replay contrôlé, kill switch, rollback ou compensation — à installer tant que tout est calme, justement.
+Ça commence par réduire le nombre d'hypothèses implicites : des contrats explicites et des invariants exécutables laissent moins de place à l'implicite. Isoler les composants et les permissions borne ensuite le blast radius. Pour détecter les divergences, on s'appuie sur les métriques, les traces, les rapprochements et les alertes métier. Reste le chemin du retour — idempotence, replay contrôlé, kill switch, rollback ou compensation — à installer tant que tout est calme, justement.
 
 <InlineArticleDiagram assetId="unknowns-review">
   Une revue utile transforme une hypothèse en preuve, en signal ou en risque explicitement accepté.
@@ -71,6 +71,6 @@ Question finale : si cette hypothèse devient fausse demain, saurons-nous le voi
 
 Cette méthode peut produire du bruit et ralentir des décisions faciles à annuler. L'effort doit suivre les conséquences possibles : plus de preuves pour un calcul financier ou une migration irréversible que pour une expérience isolée.
 
-Les revues héritent aussi des angles morts de leurs sources. Les incidents, les opérateurs et les données de production restent irremplaçables. Le but est une incertitude observable et assumée.
+Les revues héritent aussi des angles morts de leurs sources. Les incidents, les opérateurs et les données de production restent irremplaçables. Nous cherchons à savoir ce qui reste incertain et comment nous le surveillerons.
 
-Suite de la série : [Construire une analytique en libre-service qui ne ment pas](../posts/self-service-analytics-that-doesnt-lie).
+Suite de la série : [Des analyses en libre-service, des chiffres fiables](../posts/self-service-analytics-that-doesnt-lie).

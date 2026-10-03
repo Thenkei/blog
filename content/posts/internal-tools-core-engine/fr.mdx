@@ -15,7 +15,7 @@ seriesId: "internal-tools-at-the-edge"
 seriesOrder: 2
 ---
 
-Deuxième épisode de **Outils internes à la pointe**. Le premier défendait l'idée qu'un back-office devient un produit quand la vérité quitte les écrans pour vivre dans un moteur. Celui-ci parle de ce moteur : ce qui se passe entre un clic dans Nexus et une ligne en base.
+Deuxième épisode de **Outils internes à la pointe**. Le premier défendait l'idée qu'un back-office devient un produit quand les règles communes sont appliquées par un moteur plutôt que réécrites dans chaque écran. Celui-ci parle de ce moteur : ce qui se passe entre un clic dans Nexus et une ligne en base.
 
 Version courte : il n'y a qu'un seul chemin, et il n'a pas de porte dérobée.
 
@@ -36,7 +36,7 @@ Nexus lit principalement dans PostgreSQL. Il lit sur des **read replicas**, avec
 
 Les replicas, c'est une question de charge. Un outil interne n'a pas du tout le profil de requêtes d'un produit : des listes larges, des filtres improvisés, des exports, des agrégats sur une table entière parce que quelqu'un aux opérations a besoin d'un chiffre avant une réunion. Rien de tout ça ne devrait entrer en concurrence avec le trafic client sur les bases primaires. Les replicas donnent au back-office sa propre capacité, et un export lent devient un problème de back-office, pas un incident de production.
 
-Le rôle en lecture seule, c'est de la défense en profondeur. Le moteur n'émet jamais d'écriture sur ces connexions, mais « le code ne le fait jamais » est une garantie plus faible que « la base le refuse ». Si un bug, un mauvais merge ou un écran un peu trop créatif tente un jour d'écrire par le chemin de lecture, PostgreSQL dit non. Nous n'avons eu à faire confiance à personne.
+Le rôle en lecture seule, c'est de la défense en profondeur. Le moteur n'émet jamais d'écriture sur ces connexions, mais « le code ne le fait jamais » est une garantie plus faible que « la base le refuse ». Si un bug, un mauvais merge ou un écran un peu trop créatif tente un jour d'écrire par le chemin de lecture, PostgreSQL dit non. La protection est aussi imposée par la base.
 
 ## Écrire : jamais de SQL, toujours un service
 
@@ -72,9 +72,9 @@ Le quatrième épisode de la série détaillera les permissions et le masquage. 
 
 ## « Aucun contournement », c'est ça la fonctionnalité
 
-On peut facilement décrire un moteur comme celui-ci comme un assemblage de composants : un pool de connexions, une couche d'autorisation, un écrivain d'audit. C'est passer à côté.
+On peut facilement décrire un moteur comme celui-ci comme un assemblage de composants : un pool de connexions, une couche d'autorisation, un composant qui écrit les événements d'audit. C'est passer à côté.
 
-La propriété qui nous intéresse est négative : **il n'y a pas d'autre chemin**. Un écran ne peut pas ouvrir sa propre connexion. Une action ne peut pas appeler un service sans passer le contrôle d'accès. Un développeur ne peut pas oublier l'audit, puisqu'il ne l'ajoute jamais : il est déjà là.
+Ce qui nous intéresse : **il n'y a pas d'autre chemin**. Un écran ne peut pas ouvrir sa propre connexion. Une action ne peut pas appeler un service sans passer le contrôle d'accès. Un développeur ne peut pas oublier l'audit, puisqu'il ne l'ajoute jamais : il est déjà là.
 
 C'est ce qui rend possible tout le reste de Nexus. Quand quelqu'un demande « est-ce que je dois mettre en place l'audit sur ce nouvel écran ? », la réponse est non. Pas parce qu'on lui fait confiance pour y penser, mais parce que ce n'est pas une décision qui lui appartient.
 
@@ -88,7 +88,7 @@ Ce design a de vrais coûts, et certains ne sont pas résolus.
 - Pour les rares écrans où la fraîcheur est critique, **relire via le service propriétaire**, qui lit sur sa primaire.
 - Afficher un **indicateur de fraîcheur** quand une action vient d'avoir lieu et que le replica peut être en retard, puis rafraîchir quand il a rattrapé.
 
-Nous utilisons la première par défaut, la deuxième avec parcimonie. Résumé honnête : les replicas échangent un peu de fraîcheur contre beaucoup d'isolation, et il faut concevoir explicitement les écrans pour qui la différence compte.
+Nous utilisons la première par défaut, la deuxième avec parcimonie. Résumé honnête : les replicas échangent un peu de fraîcheur contre beaucoup d'isolation, et il faut prévoir ce retard dans les écrans où il compte.
 
 **Passer par les services ajoute de la latence et du couplage.** Un `UPDATE` direct prend une milliseconde. Un appel d'API à travers le réseau, avec la validation du service, prend davantage. Pour un outil interne, c'est presque toujours acceptable. Ce qui l'est moins, c'est le couplage organisationnel : le back-office dépend désormais des APIs des équipes de service.
 
@@ -98,7 +98,7 @@ Nous ne le faisons pas. **On ajoute l'endpoint au service.** C'est plus long la 
 
 ## Quand c'est le mauvais choix
 
-Si votre outil interne repose sur une seule base sans couche de services, forcer les écritures à passer par des APIs qu'il faudrait inventer relève de la cérémonie, pas de l'architecture. Commencez par clarifier qui possède quelle donnée ; le reste suivra.
+Si votre outil interne repose sur une seule base sans couche de services, forcer les écritures à passer par des APIs qu'il faudrait inventer ajoute du travail sans forcément améliorer les garanties. Commencez par clarifier qui possède quelle donnée ; le reste suivra.
 
 Et si vos données sont modestes, votre équipe petite, et que personne ne demande qui a lu quoi, des replicas et un audit obligatoire sont probablement excessifs. Nous travaillons dans un domaine régulé, avec du patrimoine client et des audits. Le coût d'une trace manquante n'est pas un ticket de bug.
 

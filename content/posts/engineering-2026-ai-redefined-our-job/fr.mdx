@@ -12,7 +12,7 @@ tags:
   - reflexion
 ---
 
-Nouvelle année, nouveau paradigme. Pas la résolution « nouvelle année, nouveau moi » validée par les RH qui s'évapore dès février. Celle-ci a commencé avant même le réveillon, et elle tient toujours.
+Notre manière de travailler a beaucoup changé ces derniers mois. Ça a commencé avant le réveillon, et pour une fois, le changement a tenu après janvier.
 
 Chez **RockFi**, on a sauté le pas sans l'avoir vraiment planifié. Avec un peu de recul, autant le dire franchement : écrire du code n'est plus notre activité principale. On passe beaucoup moins de temps à se battre contre la syntaxe, et beaucoup plus à décider quoi construire et à vérifier que ce qui a été construit tient debout.
 
@@ -20,17 +20,17 @@ Chez **RockFi**, on a sauté le pas sans l'avoir vraiment planifié. Avec un peu
 
 <ArticleDiagram visualId="engineering-2026-ai-redefined-our-job" />
 
-Fin 2025, vers décembre, l'équipe tech (10 à 12 personnes à ce moment-là) est passée de Cursor à **Claude Code**. On aurait pu y voir un énième outil brillant pour oublier notre dette technique. En réalité, on pariait sur autre chose : une IA qui travaille dans le terminal et dans le dépôt, au milieu de la réalité crasseuse du projet, au lieu de compléter nos lignes de code.
+Fin 2025, vers décembre, l'équipe tech (10 à 12 personnes à ce moment-là) est passée de Cursor à **Claude Code**. L'intérêt n'était pas d'avoir un nouvel outil. Nous voulions une IA capable de travailler dans le terminal et dans le dépôt, avec les contraintes du projet, plutôt que de compléter nos lignes de code.
 
 Personne n'a eu besoin d'imposer la migration : les gens ont vu la différence entre batailler avec des limites de contexte et finir leurs tâches, et ils ont changé d'outil d'eux-mêmes.
 
-On ne tape pas plus vite pour autant. Ce qu'on a gagné, c'est du **levier** : Claude Code comprend assez bien notre architecture un peu spaghetti pour absorber la traduction épuisante entre « ce que je veux » et « ce que le compilateur m'oblige à taper ».
+On ne tape pas plus vite pour autant. Ce qu'on a gagné, c'est la possibilité de **déléguer une partie du travail** : Claude Code comprend assez bien notre architecture un peu spaghetti pour absorber la traduction épuisante entre « ce que je veux » et « ce que le compilateur m'oblige à taper ».
 
 > On écrit beaucoup moins de code à la main qu'avant. Et pourtant, on livre davantage. Dit à voix haute, ça sonne toujours comme une hérésie.
 
 ## Les outils maison qui font le sale boulot
 
-Une des meilleures décisions qu'on ait prises : construire nos propres **outils internes** par-dessus Claude Code. Rien de cosmétique. Ce sont des outils étroits, avec des partis pris assumés, chacun pensé contre une friction précise, celle qui donne envie de jeter son écran par la fenêtre :
+Une des meilleures décisions qu'on ait prises : construire nos propres **outils internes** par-dessus Claude Code. Rien de cosmétique. Chacun traite un problème précis qui nous faisait perdre du temps :
 
 - **Support aux workshops et au brainstorming** : des prompts structurés et des chargeurs de contexte pour explorer des idées sans tomber dans le trou noir des vieux tickets Jira.
 - **Générateur de Dive In** : notre outil de documentation technique approfondie. Ce genre de doc coûtait une demi-journée à un senior et était obsolète le jour de sa publication. Elle est maintenant générée en même temps que le code. `// Fini les docs qui mentent à la prod.`
@@ -38,11 +38,11 @@ Une des meilleures décisions qu'on ait prises : construire nos propres **outils
 
 Aucun de ces outils ne décide à notre place. Ils enlèvent les frictions idiotes qui usent les bons ingénieurs à petit feu, et c'est déjà beaucoup.
 
-## Codex et Claude Code (aka la polygamie d'outils, assumée)
+## Pourquoi je garde Codex et Claude Code
 
 En plus de la stack commune à l'équipe, j'ai fini par me bricoler une configuration personnelle plus pragmatique : j'utilise **Codex** et **Claude Code** en parallèle, et je n'ai aucune intention de choisir.
 
-Codex, c'est mon scalpel pour la génération de code pure. Très ciblé, parfait pour les boucles courtes, quand il faut juste que cette foutue fonction soit écrite. Claude Code sort l'artillerie lourde côté contexte : c'est lui que j'ouvre pour les allers-retours d'une décision d'architecture, ou pour débugger le problème distribué infernal qui ne se manifeste qu'à 3 h du matin.
+J'utilise surtout Codex pour des modifications ciblées, avec des allers-retours courts. Claude Code, c'est plutôt celui que j'ouvre pour discuter d'une décision d'architecture ou déboguer un problème distribué qui demande de garder beaucoup de contexte.
 
 Avec ce duo, je travaille sur **4 à 5 projets par jour** sans que mon cerveau fonde. Une régression d'observabilité à corriger dans un dépôt, une migration de base de données effrayante à relire dans un autre, et mon projet principal qui avance au milieu de tout ça. Le changement de contexte qui me mettait le moral à zéro avant midi est devenu supportable.
 
@@ -56,13 +56,13 @@ Résumer tout ça à « on code plus vite » passe à côté de ce qui a vraimen
 - **Les juniors apprennent autre chose.** Le boilerplate et la syntaxe, qui occupaient une bonne partie de leurs débuts, passent au LLM. Ce qui leur reste à apprendre, c'est l'intention, le métier et l'art de ne pas créer de dépendances circulaires.
 - **On fait enfin de l'ingénierie.** Décortiquer des systèmes complexes. Trancher des compromis douloureux. Concevoir pour la panne. Relire le code pour s'assurer qu'il ne va pas mettre le pool de connexions SQL à genoux. `// Ne mettez pas la concurrence à 100 sauf si vous détestez viscéralement votre base de données.` Les trucs difficiles sont devenus le cœur du boulot.
 
-## Les nouveaux goulets d'étranglement (aka comment tout ça va exploser)
+## Ce qui nous ralentit maintenant
 
-Écrire du code ne coûte presque plus rien, mais la physique s'applique toujours : le goulet d'étranglement s'est juste déplacé.
+Écrire du code ne coûte presque plus rien, mais il faut toujours décider, relire et vérifier. C'est là que nous passons notre temps maintenant.
 
-- **La paralysie des code reviews (et les IA relectrices) :** lire du code est plus difficile que l'écrire. Relire la PR d'une IA, c'est relire le travail d'un développeur « 10x » qui ne dort jamais, qui sait tout, et qui hallucine de temps en temps une librairie de cryptographie qui n'existe pas. Relire 500 lignes générées en traquant la race condition subtilement glissée au milieu, c'est un muscle qu'on n'avait pas. Notre seule défense viable : soigner le mal par le mal. Des « skills » de relecture dédiés dans Claude (et leurs équivalents dans Codex) font désormais la première passe. `// Laissez les bots s'engueuler sur la complexité cyclomatique avant que je ne m'en mêle.`
+- **La paralysie des code reviews (et les IA relectrices) :** lire du code est plus difficile que l'écrire. Relire la PR d'une IA, c'est relire le travail d'un développeur « 10x » qui ne dort jamais, qui sait tout, et qui hallucine de temps en temps une librairie de cryptographie qui n'existe pas. Relire 500 lignes générées en traquant la race condition subtilement glissée au milieu nous demande une attention à laquelle nous n'étions pas habitués. Pour nous aider, des « skills » de relecture dédiés dans Claude (et leurs équivalents dans Codex) font désormais la première passe. `// Laissez les bots s'engueuler sur la complexité cyclomatique avant que je ne m'en mêle.`
 - **Le contexte est la nouvelle syntaxe :** on a arrêté de lutter contre la syntaxe pour lutter contre les fenêtres de contexte. Lâchez un LLM sans filet dans un monolithe de cinq ans, et il réécrira votre logique de paiement avec une assurance absolue, en suivant un vieux paradigme d'architecture vu sur Reddit en 2021. Savoir « parler à l'IA » ne suffit plus : il faut choisir avec soin le contexte qu'on lui donne à manger. On est devenus des _ingénieurs de contexte_.
-- **La dépendance à l'API :** un peu d'autodérision s'impose. Le jour où l'API d'Anthropic ou d'OpenAI tombe, toute l'équipe s'arrête net. On fixera nos IDE d'un air hagard, parce que l'idée de taper à la main les 150 lignes d'une bête migration de schéma nous fera le même effet que si on nous demandait de baratter notre propre beurre. La dépendance est totale, et c'est un risque qu'on a accepté les yeux ouverts.
+- **La dépendance à l'API :** un peu d'autodérision s'impose. Le jour où l'API d'Anthropic ou d'OpenAI tombe, toute l'équipe s'arrête net. Il faudra reprendre à la main les tâches que nous avons pris l'habitude de déléguer, y compris les migrations de schéma les plus banales. La dépendance est totale, et c'est un risque qu'on a accepté les yeux ouverts.
 
 <ArticleMedia mediaId="ai-review-meme" />
 
@@ -70,7 +70,7 @@ Résumer tout ça à « on code plus vite » passe à côté de ce qui a vraimen
 
 Il faut le dire tout haut : **ce qui compte comme une contribution d'ingénieur a changé pour de bon.** Taper 120 mots par minute n'a jamais été le cœur du métier, mais c'était une planque parfaite pour masquer un manque d'esprit critique. Cette planque a disparu.
 
-Si vous ne travaillez pas votre jugement système, votre capacité à évaluer sans pitié ce que produit l'IA et votre instinct pour distinguer _ce qui est solide_ de _ce qui compile vaguement_, l'année 2026 va vous broyer. Plus les outils produisent, plus il faut quelqu'un capable de dire non à ce qu'ils produisent.
+Si vous ne travaillez pas votre compréhension des systèmes, votre capacité à évaluer sans pitié ce que produit l'IA et votre instinct pour distinguer _ce qui est solide_ de _ce qui compile vaguement_, vous allez surtout livrer des erreurs plus vite. Plus les outils produisent, plus il faut quelqu'un capable de dire non à ce qu'ils produisent.
 
 ## Retour au boulot
 

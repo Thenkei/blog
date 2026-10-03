@@ -37,11 +37,11 @@ Charger tout le dépôt « au cas où » rend les priorités moins visibles. Dan
 
 Les outils comptent aussi. Donner tous les accès dès le départ élargit les conséquences possibles d'une erreur ; une capacité technique n'est pas une autorisation métier.
 
-## Préparer le bon sac pour la bonne mission
+## Choisir le contexte selon la tâche
 
 Le contexte peut être **fourni** au démarrage, **récupéré** au besoin ou **produit** par une étape précédente. Le premier consomme de la place, le deuxième dépend de la recherche, le troisième peut propager une erreur.
 
-Une revue de PR demande le diff et les conventions de revue ; un incident demande une chronologie, des logs et l'état du déploiement. Le même paquet générique sert mal les deux.
+Une revue de PR demande le diff et les conventions de revue ; un incident demande une chronologie, des logs et l'état du déploiement. Donner exactement le même contexte aux deux ne suffit pas.
 
 ## Le contexte a besoin d'un ordre
 
@@ -57,7 +57,7 @@ Nous organisons le contexte de travail comme une pile :
   Chaque élément doit justifier sa présence, son autorité et sa durée de validité.
 </InlineArticleDiagram>
 
-Chaque source indique son responsable, sa provenance, son périmètre et sa durée de validité. Les instructions critiques ont une priorité explicite ; les outils sont accordés quand ils deviennent nécessaires. Si deux sources faisant autorité se contredisent, l'agent doit signaler le conflit.
+Chaque source indique son responsable, sa provenance, son périmètre et sa durée de validité. Les instructions critiques ont une priorité explicite ; l'accès aux outils est autorisé quand ils deviennent nécessaires. Si deux sources faisant autorité se contredisent, l'agent doit signaler le conflit.
 
 ## Tester le chemin, pas seulement la réponse
 
@@ -65,6 +65,6 @@ Testons aussi le chemin : une règle périmée, deux sources contradictoires ou 
 
 ## Parfois, un fichier suffit vraiment
 
-Cette discipline ne corrige ni une source fausse ni un objectif mal défini, et son infrastructure doit être maintenue. Une petite modification réversible peut se contenter d'un prompt et d'un fichier. Le travail supplémentaire se justifie quand le workflow se répète, traverse plusieurs systèmes ou peut déclencher une action à conséquences.
+Cette discipline ne corrige ni une source fausse ni un objectif mal défini, et son infrastructure doit être maintenue. Une petite modification réversible peut se contenter d'un prompt et d'un fichier. Le travail supplémentaire se justifie quand le workflow se répète, traverse plusieurs systèmes ou peut déclencher une action dont les conséquences sont importantes.
 
 Suite de la série : [Vos documents d'ingénierie ont une date de péremption](../posts/engineering-documents-age-poorly).
