@@ -161,6 +161,12 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
       fr: "Une route de requête traverse plusieurs îlots de données par lots avant d'atteindre un résultat unique.",
     },
   },
+  "internal-tools-still-believe": {
+    alt: {
+      en: "A workshop fades into dusk while a small amber light in its central engine still illuminates a route into the darkness.",
+      fr: "Un atelier s'efface dans le crépuscule tandis qu'une petite lumière ambrée dans son moteur central éclaire encore un chemin dans l'obscurité.",
+    },
+  },
   "jobify-workers-queues-nestjs": {
     alt: {
       en: "Editorial dispatch floor showing job packets moving through runner, worker, and export stations.",

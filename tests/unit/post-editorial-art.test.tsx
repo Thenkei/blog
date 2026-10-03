@@ -30,6 +30,7 @@ const editorialSlugs = [
   "internal-tools-core-engine",
   "internal-tools-governance-by-construction",
   "internal-tools-query-language",
+  "internal-tools-still-believe",
   "jobify-workers-queues-nestjs",
   "joining-rockfi",
   "nodejs-stream-backpressure-history-export",

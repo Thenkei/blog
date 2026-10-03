@@ -122,6 +122,11 @@ export const MOTION_STORIES = {
     en: ["Any agent writes a screen", "The engine enforces the rules", "Teams switch process by process"],
     fr: ["N’importe quel agent écrit un écran", "Le moteur impose les règles", "Bascule processus par processus"],
   },
+  "internal-tools-still-believe": {
+    kind: "choice",
+    en: ["A governed foundation proposed", "RockFi chose a different direction", "The engineering conviction remains"],
+    fr: ["Un socle gouverné proposé", "RockFi a choisi une autre direction", "La conviction d’ingénierie demeure"],
+  },
   "jobify-workers-queues-nestjs": {
     kind: "flow",
     en: ["Declare a job contract", "Queue and worker execute", "Track failures and retries"],
