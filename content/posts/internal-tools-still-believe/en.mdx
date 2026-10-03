@@ -1,0 +1,61 @@
+---
+title: "I Still Believe in This Path"
+subtitle: "RockFi chose a different direction. My conviction about Nexus remains."
+summary: "RockFi did not choose the path described in this series. This epilogue separates that decision from the engineering conviction I still hold: internal tools deserve product ownership, shared governance, and rules that outlast individual screens."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-20"
+readTimeMinutes: 4
+visibility: public
+tags:
+  - architecture
+  - product
+  - developer-tools
+  - rockfi
+  - reflection
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 7
+---
+
+There is one thing I need to say before closing **Internal Tools at the Edge**: **RockFi did not choose the path I have presented in this series.**
+
+The previous six posts describe Nexus, the work behind it, and the direction I advocated. Some of them speak in the present tense about replacing our old tools and rolling out process by process. Read those passages as the proposed approach, not as confirmation that RockFi adopted it or that the migration happened.
+
+I wanted this last post to make that distinction explicit. I also wanted to say something more personal: **I still deeply believe this is the right path.**
+
+## A decision, and a conviction
+
+It is disappointing to build something you believe in and see a different direction chosen. I do not want to dress that up as a lesson that makes the disappointment disappear. It matters to me.
+
+I am speaking here in my own name. I will not try to reconstruct the company's reasoning or assign motives to the people who made the decision. This series is my account of an engineering approach, and this closing post is my position on it.
+
+A company decision settles what the company will pursue. It does not, by itself, settle the technical argument. Equally, my conviction does not prove that the alternative will fail. Those are different claims, and I want to keep them separate.
+
+## What I still believe
+
+The conviction is quite concrete. An internal tool becomes harder to change when each screen defines its own access rules, its own interpretation of the data, and its own way of performing a business operation. The next screen adds another implementation to maintain. The next change asks us to find all the places where the old rule survives.
+
+I still believe we should move those shared responsibilities into a governed foundation. Authorisation and audit should be enforced along the data-access path. Business writes should go through the services that own their invariants. Screens should express a process using shared capabilities, with as little duplicated infrastructure logic as possible.
+
+<ArticleDiagram visualId="internal-tools-as-product" />
+
+That is the argument behind Nexus. It also explains why I care about owning the code and the knowledge around it: versioned definitions, explicit contracts, tests, and documentation that another engineer can inspect and change. A new contributor should inherit the rules that matter, instead of having to rediscover them.
+
+Coding agents make that argument more urgent in my view. We can produce screens faster. We still need to review business meaning, prove the controls work, and maintain the result. I would put that effort into a common foundation before multiplying the places where a rule can be forgotten.
+
+## Conviction still has to meet reality
+
+Owning that foundation creates responsibilities. Someone has to maintain it, respond to incidents, handle upgrades, explain its constraints, and keep it useful to the people doing the work. A working first version is not proof of successful adoption. A coherent architecture is not proof of a sustainable operating model.
+
+The approach I defend has to earn its place through real processes: users can complete their work, controls hold under failure, changes remain understandable, and ownership spreads beyond the person who started it. If it cannot do that, it needs to change.
+
+I also do not think every company should build its own back office. A purchased tool can be the right choice. My position concerns the situation described throughout this series: operational knowledge accumulating in screens, governance repeated by hand, and increasingly fast code generation. In that situation, I still believe a domain-specific product with shared, enforceable rules is the right direction.
+
+## Why leave the series here
+
+I do not want these posts to imply a company commitment that does not exist. I do want the reasoning to remain available: what we built, what I was trying to make possible, and which responsibilities that choice would bring.
+
+There is less certainty at the end of this series than I would have liked. The disappointment is real. So is the conviction.
+
+**RockFi chose a different path. I still believe in this one.**
+
+Previous episode: [Built With Agents, Owned by Us](../posts/internal-tools-built-with-agents).

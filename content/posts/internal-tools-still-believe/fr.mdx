@@ -1,0 +1,61 @@
+---
+title: "Je crois toujours à cette voie"
+subtitle: "RockFi a choisi une autre direction. Ma conviction autour de Nexus reste intacte."
+summary: "RockFi n'a pas choisi la voie décrite dans cette série. Cet épilogue distingue cette décision de la conviction d'ingénierie que je garde : les outils internes méritent une maîtrise produit, une gouvernance commune et des règles qui durent au-delà des écrans."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-20"
+readTimeMinutes: 4
+visibility: public
+tags:
+  - architecture
+  - product
+  - developer-tools
+  - rockfi
+  - reflection
+seriesId: "internal-tools-at-the-edge"
+seriesOrder: 7
+---
+
+Il me reste une chose à dire avant de refermer **Outils internes à la pointe** : **RockFi n'a pas choisi la voie que j'ai présentée dans cette série.**
+
+Les six épisodes précédents décrivent Nexus, le travail réalisé et la direction que je défendais. Certains parlent au présent du remplacement de nos anciens outils et d'un déploiement processus par processus. Il faut lire ces passages comme l'approche proposée, pas comme la confirmation que RockFi l'a adoptée ou que la migration a eu lieu.
+
+Je voulais que ce dernier billet rende cette distinction explicite. Je voulais aussi dire quelque chose de plus personnel : **je reste profondément convaincu que c'est la bonne voie.**
+
+## Une décision et une conviction
+
+Construire quelque chose auquel on croit, puis voir une autre direction retenue, c'est décevant. Je n'ai pas envie de transformer cela en une leçon qui ferait disparaître la déception. Cela compte pour moi.
+
+Je parle ici en mon nom. Je ne vais pas reconstruire le raisonnement de l'entreprise ni prêter des intentions aux personnes qui ont pris cette décision. Cette série est mon récit d'une approche d'ingénierie ; ce dernier billet exprime ma position à son sujet.
+
+Une décision d'entreprise tranche ce que l'entreprise va poursuivre. Elle ne tranche pas, à elle seule, l'argument technique. De la même manière, ma conviction ne prouve pas que l'autre choix échouera. Ce sont des affirmations différentes, et je tiens à les distinguer.
+
+## Ce à quoi je crois toujours
+
+Cette conviction est concrète. Un outil interne devient plus difficile à faire évoluer quand chaque écran définit ses propres droits, sa propre interprétation des données et sa propre façon d'exécuter une opération métier. L'écran suivant ajoute une implémentation à maintenir. Le changement suivant nous demande de retrouver tous les endroits où l'ancienne règle subsiste.
+
+Je crois toujours qu'il faut déplacer ces responsabilités communes dans un socle gouverné. L'autorisation et l'audit doivent être imposés sur le chemin d'accès aux données. Les écritures métier doivent passer par les services qui portent leurs invariants. Les écrans doivent exprimer un processus avec des capacités partagées, en dupliquant le moins possible la logique d'infrastructure.
+
+<ArticleDiagram visualId="internal-tools-as-product" />
+
+C'est l'argument derrière Nexus. C'est aussi pour cela que la maîtrise du code et de la connaissance qui l'entoure m'importe : des définitions versionnées, des contrats explicites, des tests et une documentation qu'un autre ingénieur peut examiner et faire évoluer. Une nouvelle personne doit hériter des règles importantes, au lieu d'avoir à les redécouvrir.
+
+Les agents de code rendent cet argument plus urgent à mes yeux. Nous pouvons produire des écrans plus vite. Nous devons toujours vérifier le sens métier, prouver que les contrôles fonctionnent et maintenir le résultat. Je préfère investir cet effort dans un socle commun avant de multiplier les endroits où une règle peut être oubliée.
+
+## La conviction doit encore rencontrer le réel
+
+Maîtriser ce socle crée des responsabilités. Il faut le maintenir, répondre aux incidents, gérer les montées de version, expliquer ses contraintes et le garder utile aux personnes qui font le travail. Une première version fonctionnelle ne prouve pas une adoption réussie. Une architecture cohérente ne prouve pas un modèle d'exploitation soutenable.
+
+L'approche que je défends doit gagner sa place à travers de vrais processus : les utilisateurs peuvent accomplir leur travail, les contrôles tiennent face aux défaillances, les changements restent compréhensibles et la maîtrise s'étend au-delà de la personne qui a démarré le projet. Si elle n'y arrive pas, elle doit évoluer.
+
+Je ne pense pas non plus que chaque entreprise doive construire son propre back office. Un outil acheté peut être le bon choix. Ma position concerne la situation décrite tout au long de cette série : la connaissance opérationnelle qui s'accumule dans les écrans, une gouvernance répétée à la main et une génération de code de plus en plus rapide. Dans cette situation, je reste convaincu qu'un produit spécifique au métier, avec des règles communes et effectivement imposées, est la bonne direction.
+
+## Pourquoi laisser cette série ici
+
+Je ne veux pas que ces billets laissent entendre un engagement de l'entreprise qui n'existe pas. Je veux que le raisonnement reste disponible : ce que nous avons construit, ce que je cherchais à rendre possible et les responsabilités que ce choix aurait entraînées.
+
+Il y a moins de certitude à la fin de cette série que je ne l'aurais souhaité. La déception est réelle. La conviction aussi.
+
+**RockFi a choisi une autre voie. Je crois toujours à celle-ci.**
+
+Épisode précédent : [Construit avec des agents, maîtrisé par nous](../posts/internal-tools-built-with-agents).
