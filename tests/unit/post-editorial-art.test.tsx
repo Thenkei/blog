@@ -8,6 +8,7 @@ import {
 import { postImageVisualIds } from "../../src/features/posts/content";
 
 const editorialSlugs = [
+  "websockets-games-to-30000-connections",
   "agent-battle-2026",
   "frontier-model-race-2026",
   "ai-force-multiplier",

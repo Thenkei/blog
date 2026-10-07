@@ -29,6 +29,12 @@ const jpegAssets = import.meta.glob<string>(
 );
 
 const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
+  "websockets-games-to-30000-connections": {
+    alt: {
+      en: "An illustrated home desk with a card game and dice, connected by luminous traces to a server room and many distant browser windows.",
+      fr: "Un bureau illustré avec un jeu de cartes et des dés, relié par des tracés lumineux à une salle de serveurs et de nombreuses fenêtres de navigateur au loin.",
+    },
+  },
   "agent-battle-2026": {
     alt: {
       en: "Manga-inspired scene of an engineer choosing between three distinct routes for AI-assisted work.",

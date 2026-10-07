@@ -5,6 +5,13 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
+<title>One Path to the Data</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-core-engine</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-core-engine</guid>
+<description>The Core Engine is the only way Nexus touches data. Reads go to read-only PostgreSQL replicas, writes go through the APIs of the services that own the data, and every request crosses authentication, access control, and audit in both directions.</description>
+<pubDate>Mon, 05 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>Your Back Office Is a Product. Build It Like One.</title>
 <link>https://thenkei.github.io/blog/en/posts/internal-tools-are-a-product</link>
 <guid>https://thenkei.github.io/blog/en/posts/internal-tools-are-a-product</guid>
