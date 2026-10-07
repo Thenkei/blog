@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import "../../src/i18n/config";
 import { bespokeSceneIds, hasBespokeScene, loadBespokeScene } from "../../src/features/posts/motion/bespoke/registry";
 import { SceneShell } from "../../src/features/posts/motion/bespoke/SceneShell";
@@ -89,6 +89,32 @@ describe("bespoke article scenes", () => {
     expect(screen.getByRole("figure", { name: /upsert insère deux fois/i })).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(scene.beats.length);
     expect(screen.getByText(/NULLS NOT DISTINCT \(PostgreSQL 15\+\)/)).toBeInTheDocument();
+  });
+
+  it("keeps the mobile explanation readable when reduced motion disables playback", async () => {
+    const originalMatchMedia = window.matchMedia.bind(window);
+    const media = vi.spyOn(window, "matchMedia").mockImplementation((query) => ({
+      ...originalMatchMedia(query),
+      matches: query === "(max-width: 650px)" || query === "(prefers-reduced-motion: reduce)",
+    }));
+    try {
+      const scene = await loadBespokeScene("websocket-reconnect-jitter");
+      const view = await act(async () => {
+        const rendered = render(<MotionScene id="websocket-reconnect-jitter" />);
+        await loadBespokeScene("websocket-reconnect-jitter");
+        return rendered;
+      });
+      try {
+        const figure = await screen.findByRole("figure", { name: scene.title.en });
+        expect(figure.querySelector("svg")).toHaveAttribute("viewBox", "0 0 540 520");
+        expect(figure.querySelectorAll("li")).toHaveLength(scene.beats.length);
+        expect(screen.queryByRole("button", { name: /play video/i })).not.toBeInTheDocument();
+      } finally {
+        view.unmount();
+      }
+    } finally {
+      media.mockRestore();
+    }
   });
 
   it("loads a MotionScene lazily into an accessible figure", async () => {

@@ -1,0 +1,154 @@
+---
+title: "WebSockets : d'Under the Limit aux 30 000 connexions chez Forest"
+subtitle: "Des cartes, des dés, GraphQL et un backend que tout le monde attend au redémarrage."
+summary: "Under the Limit en 2018, les jeux du confinement, et 25 à 30 000 personnes connectées chez Forest. Mon expérience des WebSockets, du premier jeu demandé par Sigmund aux reconnexions massives avec GraphQL et Apollo."
+visualId: "websockets-games-to-30000-connections"
+publishedAt: "2026-11-12"
+readTimeMinutes: 11
+tags:
+  - websockets
+  - networking
+  - architecture
+  - scaling
+  - graphql
+---
+
+Mon premier jeu avec des WebSockets remonte à 2018. Un collègue de mon époque Minecraft, connu sous le pseudo de **Sigmund**, m'avait demandé de créer un jeu en ligne dans l'esprit de Blanc-manger Coco. Il s'appelait **Under the Limit**.
+
+Les WebSockets se prêtaient très bien à l'exercice. Quelqu'un joue, les autres voient ce qui vient de se passer. On peut envoyer des actions et recevoir celles des autres sans recharger la page ni demander en permanence au serveur si quelque chose a changé.
+
+Deux ans plus tard, pendant le Covid, j'ai repris une partie du travail fait sur Under the Limit pour créer d'autres jeux. Des cartes, des dés, de quoi passer nos soirées de confinement à plusieurs en ligne. Le code écrit pour le jeu de Sigmund servait à nouveau, cette fois pour qu'on puisse continuer à jouer ensemble alors qu'on était chacun chez soi.
+
+J'en ai aussi utilisé chez Forest Admin, avec GraphQL et Apollo, notamment pour les notifications dans le front-end. Là, on avait de l'ordre de **25 à 30 000 personnes connectées simultanément**.
+
+Et je vous assure que le redémarrage du backend n'avait plus tout à fait la même allure.
+
+## Une connexion qui permet de parler dans les deux sens
+
+Avec une WebSocket, le navigateur ouvre une connexion vers un serveur. Une fois établie, chacun peut envoyer des messages sans attendre que l'autre lui pose une question. C'est ce qu'on appelle une communication *full-duplex*.
+
+Pour mes jeux, c'était exactement ce qu'il fallait : une action part du navigateur, les mises à jour reviennent vers les joueurs concernés. Dans mon souvenir, on avait une logique assez « peer-to-peer gaming », au sens où les joueurs échangeaient au sein d'une même partie. Il faut quand même préciser le terme : **l'API WebSocket du navigateur se connecte à un serveur ; elle n'établit pas directement une connexion entre deux navigateurs.** Pour du transport navigateur à navigateur, on regarderait plutôt du côté des DataChannels de WebRTC.
+
+Le choix du transport ne dit pas non plus qui décide qu'un coup est valide. On peut très bien avoir une connexion bidirectionnelle et garder toute l'autorité sur la partie côté serveur.
+
+### Ce qui se passe avant le premier message
+
+Prenons le cas classique sur HTTP/1.1. Avec une URL `wss://`, on établit d'abord la connexion TCP, puis TLS. Le navigateur envoie ensuite une requête HTTP demandant un changement de protocole. Voici les en-têtes utiles pour comprendre l'échange, avec les valeurs d'exemple de la [RFC 6455](https://www.rfc-editor.org/rfc/rfc6455#section-1.3) :
+
+```http
+GET /realtime HTTP/1.1
+Host: example.com
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
+Origin: https://example.com
+```
+
+Si le serveur accepte :
+
+```http
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+```
+
+Le serveur calcule `Sec-WebSocket-Accept` à partir de la clé reçue et d'une constante définie par le protocole. Ce mécanisme confirme le handshake WebSocket. Il n'authentifie pas l'utilisateur et ne chiffre rien : le chiffrement vient de TLS, l'authentification reste à prévoir.
+
+Après le `101`, on échange des trames WebSocket sur cette connexion. On ne renvoie pas une requête HTTP complète pour chaque carte jouée. HTTP/2 possède un autre mécanisme d'établissement, via *Extended CONNECT*, décrit dans la [RFC 8441](https://www.rfc-editor.org/rfc/rfc8441.html). Le `Upgrade` ci-dessus décrit bien le cas HTTP/1.1.
+
+### Et dans une trame ?
+
+TCP transporte des octets, sans préserver les limites des messages de l'application. WebSocket ajoute ce découpage. Une trame contient notamment un indicateur de fin de message, un opcode, une longueur et le contenu. Les opcodes distinguent texte, binaire, continuation, fermeture, Ping et Pong. Un message peut occuper plusieurs trames ; une trame ne correspond pas nécessairement à un paquet TCP.
+
+Les trames envoyées par le navigateur sont masquées avec une clé de quatre octets transmise dans la trame. **Ce masque n'est pas du chiffrement.** Il protège contre certaines interactions avec les intermédiaires réseau, pas contre quelqu'un qui lit le trafic. Le [guide MDN sur les serveurs WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers) détaille le format.
+
+Le JSON arrive encore au-dessus. WebSocket transporte du texte ou du binaire ; il ne connaît ni les cartes, ni les notifications, ni GraphQL.
+
+## Dans un jeu de cartes, le navigateur est chez le joueur
+
+Sur mes petits projets, la difficulté intéressante était surtout là : éviter qu'un joueur puisse connaître les informations des autres.
+
+Une carte face cachée à l'écran ne l'est plus vraiment si sa valeur est déjà dans le state JavaScript. Il suffit d'ouvrir les outils de développement. Pas besoin d'être particulièrement motivé, ce qui est déjà beaucoup demander à des gens capables de tricher à un jeu de soirée.
+
+La première règle est donc de ne pas envoyer à un joueur ce qu'il n'a pas le droit de connaître. Si un serveur de confiance distribue les cartes, il peut conserver le paquet et ne transmettre à chacun que sa propre main. Chiffrer la connexion avec `wss://` protège le trajet ; cela n'empêche pas son destinataire de lire ce qu'il reçoit.
+
+La cryptographie peut aussi aider quand on veut cacher un choix, puis prouver qu'il n'a pas été changé. Un exemple classique est l'engagement puis la révélation, ou *commit-reveal* : publier d'abord le hash d'un choix accompagné d'un secret aléatoire, puis révéler les deux une fois que tout le monde s'est engagé. Les autres peuvent vérifier le hash. Le secret doit être suffisamment imprévisible : le hash d'une carte seule se devine en essayant toutes les cartes.
+
+Ce n'est pas une description du protocole exact de mes jeux, mais un exemple du genre de problème que la crypto permet de traiter. Cela ne règle pas tout : un joueur peut encore refuser de révéler son choix, et distribuer des cartes sans aucun participant de confiance est un autre sujet.
+
+À notre échelle, ces questions restaient maîtrisables. On voulait jouer entre amis. Chez Forest, le problème qui m'a marqué était ailleurs.
+
+## Chez Forest : des abonnements GraphQL sur la connexion
+
+On utilisait GraphQL et Apollo pour gérer les notifications côté front-end. Le client pouvait préciser ce à quoi il souhaitait s'abonner, et recevoir les mises à jour correspondantes. C'était vraiment agréable à utiliser.
+
+Il y a plusieurs couches dans cette phrase. WebSocket transporte les messages. Un protocole applicatif gère le démarrage et l'arrêt des abonnements. GraphQL décrit les données demandées. Apollo fournit l'intégration côté application. La [documentation Apollo sur les subscriptions](https://www.apollographql.com/docs/react/data/subscriptions) distingue ces éléments ; GraphQL n'impose pas WebSocket comme transport.
+
+Une seule connexion peut porter plusieurs abonnements, distingués par leurs identifiants. Le navigateur peut en ouvrir ou en arrêter sans fermer la socket. Le [protocole de la bibliothèque `graphql-ws`](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md) en donne un exemple actuel. Je ne le cite pas comme la bibliothèque exacte que nous utilisions à l'époque.
+
+Cette distinction devient importante au redémarrage : rouvrir la connexion ne suffit pas. Il faut aussi rétablir les abonnements utiles à l'écran.
+
+## Puis le backend redémarre
+
+Un front-end qui plante concerne d'abord sa propre session. Un serveur qui redémarre peut couper toutes les connexions qu'il héberge. Les clients concernés détectent la coupure, puis essaient de revenir.
+
+Avec 25 à 30 000 personnes connectées, le nombre exact de sockets dépend aussi des onglets et de la manière dont le client les partage. Mais l'ordre de grandeur change complètement le problème. Il suffit qu'une part importante revienne en même temps pour créer un pic de charge.
+
+Chaque reconnexion demande du travail : établissement réseau, éventuellement TLS au point de terminaison, authentification, contrôle des droits, réinstallation des abonnements. Selon l'application, des lectures supplémentaires suivent pour remettre l'interface à jour.
+
+Un serveur capable de maintenir des milliers de connexions relativement calmes n'a pas forcément la capacité de les recréer toutes en quelques secondes. Et s'il échoue, les clients réessaient. Le backend vient à peine de redémarrer qu'il doit déjà absorber les tentatives suivantes.
+
+J'ai évoqué le même mécanisme dans [l'article sur les SSE et la communication avec l'agent](../posts/architecture-sse-agent-communication). Les connexions et les usages étaient différents, mais on retrouvait cette difficulté : le retour des clients peut coûter beaucoup plus cher que leur présence en régime normal.
+
+## Accepter que tout le monde ne revienne pas immédiatement
+
+Nous avions plusieurs stratégies pour limiter le problème. Celle dont je me souviens surtout consistait à **accepter un certain délai de reconnexion pour étaler les retours**.
+
+C'est un compromis très concret. L'utilisateur attend un peu avant de retrouver les mises à jour en direct. En échange, le serveur a une chance de traiter sa reconnexion correctement.
+
+Attention toutefois : demander à tous les clients d'attendre cinq secondes ne fait que déplacer le pic de cinq secondes. Le *jitter* introduit une part aléatoire dans cette attente. Le backoff augmente la fenêtre après des échecs successifs, jusqu'à un plafond. AWS illustre bien la différence entre [backoff seul et backoff avec jitter](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/).
+
+Une formule de *full jitter* peut s'écrire ainsi, avec `n = 0` pour la première tentative après la coupure :
+
+```text
+fenêtre(n) = min(plafond, délai_initial × 2^n)
+attente(n) = tirage uniforme entre 0 et fenêtre(n)
+```
+
+<MotionScene id="websocket-reconnect-jitter" />
+
+Pour donner un ordre de grandeur, 30 000 premières tentatives réparties uniformément sur 30 secondes représentent **1 000 tentatives par seconde en moyenne**. C'est un calcul illustratif, pas une mesure de Forest ni une recommandation de configuration. Il reste à vérifier que le système supporte ce débit et ses variations.
+
+Le délai initial compte donc autant que le plafond. Si tous les clients commencent par une tentative immédiate, le premier pic a déjà eu lieu avant que le backoff serve à quoi que ce soit.
+
+Il faut aussi décider quand arrêter les retries. Une session expirée demande de renouveler l'authentification ; une déconnexion volontaire ne doit pas relancer la connexion. Et remettre le compteur à zéro dès qu'une socket s'ouvre, alors qu'elle retombe immédiatement, peut maintenir une cadence de reconnexion trop élevée. Le retour à une session réellement stable mérite son propre critère.
+
+## Une socket ouverte ne signifie pas que l'écran est à jour
+
+Il reste une question après la reconnexion : qu'est-ce qui s'est passé pendant la coupure ?
+
+WebSocket ne rejoue pas tout seul les messages manqués. Si une notification a été produite pendant l'absence du client, recréer son abonnement ne garantit pas qu'il la recevra.
+
+Pour une interface qui affiche un état courant, relire cet état peut suffire. Si chaque événement doit être conservé, il faut prévoir un historique et un curseur de reprise, avec une gestion des doublons. Dans les deux cas, la transition entre lecture et abonnement doit être cohérente : lire l'état puis s'abonner laisse un intervalle dans lequel une mise à jour peut passer inaperçue. Versionner l'état ou organiser une reprise depuis un curseur permet de traiter cette course.
+
+Même chose dans l'autre sens. Si le joueur envoie son action juste avant la coupure, il ne sait pas forcément si elle a été appliquée. Réenvoyer aveuglément « jouer cette carte » peut produire une seconde action. Un identifiant de commande et une déduplication côté autorité de jeu règlent un problème que le transport, à lui seul, ne peut pas résoudre.
+
+Ce sont des choix à faire dans l'application. Je les distingue ici de notre retour d'expérience chez Forest : étaler les reconnexions résout la surcharge au retour, pas toute la sémantique de reprise.
+
+## Ce qu'il faut surveiller pendant que la connexion vit
+
+Le redémarrage rend le problème visible. Le fonctionnement normal demande aussi quelques précautions.
+
+Une connexion peut disparaître sans fermeture propre : changement de réseau, machine en veille, intermédiaire qui oublie une connexion inactive. Les Ping/Pong permettent de vérifier la présence de l'autre extrémité. Le JavaScript du navigateur ne pilote pas directement ces trames de contrôle ; un heartbeat applicatif est un mécanisme distinct. C'est précisé dans le [standard de l'API WebSocket](https://websockets.spec.whatwg.org/#ping-and-pong-frames).
+
+Un client lent pose une autre difficulté. TCP régule le transport, mais cela ne borne pas automatiquement les files de messages de votre application. L'API `WebSocket` classique du navigateur n'offre pas de backpressure en réception ; `bufferedAmount` indique les octets en attente d'envoi. La [documentation de l'API](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) est explicite sur cette limite. Il faut décider quoi faire quand le consommateur n'arrive plus à suivre : regrouper des mises à jour d'état, borner les buffers, voire déconnecter puis resynchroniser.
+
+Enfin, le nombre de connexions ouvertes ne suffit pas pour savoir si tout va bien. Je regarderais aussi les tentatives de reconnexion par seconde, les échecs d'authentification, le nombre d'abonnements, les buffers et le temps nécessaire pour retrouver un écran synchronisé. Une socket ouverte sur une interface périmée ne devrait pas compter comme une reprise réussie.
+
+J'aime toujours autant les WebSockets pour ce qu'elles permettent de construire. La demande de Sigmund en 2018 a donné Under the Limit, puis une partie de ce travail a resservi pour nos soirées du confinement. Chez Forest, les WebSockets nous donnaient une interface qui recevait directement les informations auxquelles elle était abonnée.
+
+Mais à cette échelle, accepter un peu d'attente à la reconnexion faisait partie du fonctionnement du temps réel. C'est probablement ce que j'en retiens le plus : nous avions aussi besoin que les clients sachent patienter.
+
+_Retour d'expérience écrit après mon départ de Forest Admin. L'ordre de grandeur de fréquentation vient de mon souvenir ; les exemples de protocole et les calculs servent à expliquer les mécanismes._
