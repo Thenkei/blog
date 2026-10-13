@@ -12,6 +12,11 @@ type LocalizedStory = Record<PostLocale, MotionStory["beats"]> & {
 // Each sequence is a compact explanation of the article's own argument.
 // Keep both locales in sync when adding or changing a published article.
 export const MOTION_STORIES = {
+  "building-video-factory": {
+    kind: "flow",
+    en: ["Give each specialist an owner", "Share one timeline for picture and sound", "Verify the take, then review the film"],
+    fr: ["Attribuer un périmètre à chaque spécialiste", "Partager le timing de l’image et du son", "Vérifier la prise, puis examiner le film"],
+  },
   "agent-battle-2026": {
     kind: "choice",
     en: ["Start with the task", "Match context and controls", "Choose the right agent"],

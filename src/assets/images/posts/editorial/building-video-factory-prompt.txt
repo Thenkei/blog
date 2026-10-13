@@ -1,0 +1,10 @@
+Generated with the built-in image_gen tool on 2026-10-13.
+
+Use case: illustration-story
+Asset type: wide editorial cover for a bilingual engineering blog post titled How I Built Video Factory.
+Primary request: An original editorial illustration of a compact video production workshop controlled by an engineer. Several distinct craft stations for storyboard cards, animated film frames, a microphone waveform, and music tracks converge onto ONE precise shared film timeline. The finished strip reaches a small illuminated viewing screen and a human review desk. Make the shared timeline the clear focal idea: coordinated story, picture, voice and sound.
+Style/medium: sophisticated hand-drawn technical comic illustration, clean ink contours, subtle print grain, architectural cutaway depth, carefully designed shapes. Original characters and machinery.
+Composition/framing: landscape 16:9, approximately 1800px wide, readable at thumbnail size, restrained scene density. Central luminous timeline travels left to right across the workshop, four visually distinct workstations connected to it, one engineer overseeing the result. No literal diagram labels.
+Lighting/mood: calm focused workshop, warm task lights against deep navy structure.
+Color palette: navy and paper ivory, teal signal lines, amber review light, small coral accents.
+Constraints: no words, no letters, no numbers, no logos, no watermarks, no brand assets, no recognizable franchise characters. Convey a small practical production studio, not a massive industrial facility.

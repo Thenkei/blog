@@ -1,0 +1,147 @@
+---
+title: "Comment j'ai construit Video Factory"
+subtitle: "Un outillage Remotion commun, un dossier par film et un même contrat pour le récit, l'image, la voix et le son."
+summary: "Comment j'ai transformé des expérimentations vidéo en projet de production réutilisable : agents spécialisés, timing en frames, assets isolés et exports vérifiables."
+visualId: "building-video-factory"
+publishedAt: "2026-10-22"
+readTimeMinutes: 8
+tags:
+  - engineering
+  - ai
+  - agents
+  - developer-tools
+  - product
+---
+
+Une vidéo produit réunit plusieurs métiers. Il faut un récit, une interface ou un diagramme pour l'étayer, de l'animation, une narration et du son. Chaque élément peut sembler correct séparément alors que le film assemblé fonctionne mal.
+
+C'est ce problème de coordination que j'ai voulu traiter avec [Video Factory](https://github.com/RockFi/videos-factory). J'ai organisé le projet autour d'une unité simple : **un dossier vidéo qui rassemble l'intention éditoriale, l'implémentation et les éléments nécessaires pour examiner le résultat**.
+
+Remotion fournit le socle de rendu. La factory ajoute la structure de production : comment démarrer un film, qui possède chaque partie, comment garder un timing cohérent et ce qu'un export permet réellement de vérifier.
+
+## Extraire le travail utile et lui donner une place
+
+Le projet vient d'expérimentations vidéo menées autour de notre Product OS chez RockFi. Une skill existante contenait des modèles d'explication interne et de film de release, ainsi que des exemples sur les portefeuilles modèles. J'ai extrait ces éléments dans un projet autonome en documentant leur origine.
+
+La distinction compte. Un environnement de production réutilisable a un cycle de vie différent d'une skill qui explique comment réaliser une vidéo. Il lui faut des dépendances, des fichiers source, une préparation des médias, un environnement de prévisualisation et des exports nommés que l'on pourra examiner plus tard.
+
+J'ai conservé un seul jeu de dépendances à la racine et donné à chaque film son propre dossier :
+
+```text
+videos/<slug>/
+  video.json          Format et configuration de la composition
+  brief.md            Public, promesse, sources et contraintes
+  storyboard.md       Scènes ordonnées et preuves visuelles
+  VOICEOVER.md        Texte parlé et notes d'interprétation
+  assets.json         Origine, droits et attribution des assets
+  src/                Composition, scènes, timeline et voix
+  public/             Médias propres à la vidéo
+  out/<take>/         Exports et résultats de vérification
+```
+
+Un nouveau film commence par une commande à la racine :
+
+```sh
+npm run new -- my-next-video release
+npm run studio -- my-next-video
+```
+
+Le générateur refuse d'écraser un dossier existant, même vide. Chaque composition possède son propre point d'entrée ; la CLI le sélectionne à partir du slug. Ajouter un film ne demande donc pas de modifier un registre global de compositions.
+
+Les templates `internal` et `release` fournissent des kits visuels de départ. Les scènes spécifiques restent dans le dossier du film. Une primitive rejoint `shared/` lorsqu'un autre film en a besoin. Le socle commun reste ainsi réduit, sans imposer une direction visuelle unique.
+
+## Donner un périmètre concret aux spécialistes
+
+La production vidéo offre des frontières utiles pour le travail des agents. J'ai défini six rôles :
+
+- **Story producer :** public, message, preuves et texte exact.
+- **Storyboard director :** ordre des scènes, direction visuelle, timing et plan de capture.
+- **Remotion engineer :** composition, animation et rendu.
+- **Voice director :** interprétation, prononciation, enregistrements et rythme mesuré.
+- **Sound designer :** musique, effets, repères et direction du mix.
+- **Video reviewer :** regard neuf sur le résultat rendu.
+
+L'agent principal coordonne ces rôles dans le client de développement existant. Le projet n'a pas besoin d'un service d'orchestration distinct.
+
+Le point essentiel est la propriété du travail. Une mission précise la vidéo, les sources, le résultat attendu, les chemins modifiables et le responsable actuel de la timeline. Le récit et le storyboard viennent d'abord. Les scènes, la voix et le son peuvent ensuite avancer en parallèle dans ces limites, tandis qu'un seul responsable intègre les changements de composition et de timing.
+
+Sans cette règle, deux modifications utiles peuvent entrer en conflit : le responsable voix allonge une scène pendant que l'ingénieur ajuste sa transition et que le responsable son déplace son repère musical. Chaque changement est cohérent localement. Leur combinaison peut casser la séquence.
+
+Les prompts des rôles ont eux aussi une source unique. Les fichiers Markdown canoniques dans `agents/` génèrent les définitions natives pour Codex et Claude Code. Un contrôle de synchronisation détecte les divergences entre formats. Maintenir deux fois la même instruction recréerait un problème de coordination dans l'outil censé le résoudre.
+
+## Choisir la promesse avant d'animer les clics
+
+Le workflow éditorial mérite autant d'attention que le rendu.
+
+Pour une présentation de fonctionnalité, l'agent propose plusieurs angles distincts appuyés sur des sources, en recommande un et présente le texte parlé complet pour validation ou délégation explicite. Le brief et le document de narration conservent cette décision. Une approbation déjà donnée reste valable ; un changement substantiel de promesse ou d'affirmation demande une nouvelle lecture.
+
+C'est à ce moment que le film prend une direction. L'interface peut montrer une action pendant que la voix explique l'intérêt de son résultat. Un tutoriel peut avoir besoin de nommer les contrôles et les étapes. Un film de release a généralement besoin d'un bénéfice clair pour son public et de suffisamment de silence pour lire la preuve.
+
+Le [guide de narration](https://github.com/RockFi/videos-factory/blob/main/docs/narration.md) explicite cette différence. Il borne aussi les affirmations possibles. Montrer un écran de revue peut étayer une phrase sur la visibilité des changements avant publication. Cela ne démontre ni une réduction des erreurs ni un gain de temps.
+
+Les exemples migrés restent des références historiques avec une interface reconstruite. Ils servent à étudier les compositions ; une démonstration du produit actuel exige des preuves à jour et une véritable capture. Une reconstruction soignée ne prouve pas qu'un comportement est livré.
+
+## Faire du temps un contrat commun
+
+Le point d'intégration le plus concret est `src/timeline.json`. Il définit les FPS, la durée des scènes, le chevauchement des transitions, les sections musicales, le repère de l'accord final et les paramètres de timing de la narration. La composition et le code audio consomment ces données.
+
+Les durées des scènes sont exprimées en frames. Avec un chevauchement commun entre scènes consécutives :
+
+```text
+frames totales = somme des durées des scènes
+               − transitionFrames × (nombre de scènes − 1)
+```
+
+Ignorer le chevauchement donnerait à la bande-son et au vérificateur d'export une autre idée de la fin du film.
+
+<MotionScene id="video-factory-timeline" />
+
+La narration ajoute une contrainte. Les clips sont préparés scène par scène, normalisés à −18 LUFS et mesurés avec FFprobe. Leurs durées alimentent une table de voix. Avant de l'accepter, l'outillage contrôle les identifiants de scènes, les doublons, la durée disponible et le chevauchement avec la réplique suivante.
+
+Le calcul utile est simple :
+
+```text
+décalage de départ + frames de voix mesurées + marge finale
+  ≤ durée de la scène
+```
+
+Lorsqu'une réplique ne tient pas, l'erreur demande une prise plus courte ou une scène plus longue. La décision revient ainsi à l'écriture et au rythme du storyboard, au lieu de se cacher dans une vitesse de lecture arbitraire.
+
+Le même planning pilote le ducking : baisser la musique autour d'un clip de voix, puis la remonter après la réplique. La génération procédurale de musique et d'effets fournit un point de départ local ; on peut importer de l'audio en désactivant cette génération automatique. La narration cloud existe comme étape explicite et facultative. Le parcours d'enregistrement local et de rendu n'en dépend pas.
+
+## Isoler les assets et préserver les prises
+
+La CLI prépare un répertoire d'assets publics isolé pour la vidéo sélectionnée. Les assets communs sont copiés d'abord ; les médias locaux remplacent les chemins correspondants. Plusieurs films peuvent donc employer le même nom de fichier local sans partager un répertoire de médias mutable.
+
+Cet instantané a une conséquence pratique : Studio doit redémarrer après l'import ou le remplacement de médias, alors que les modifications de code bénéficient toujours du hot reload. Expliciter ce comportement évite une prévisualisation qui montre discrètement l'ancien enregistrement.
+
+Les exports suivent une logique similaire. Une prise nommée ne peut pas déjà exister :
+
+```sh
+npm run render -- my-next-video review-v1
+npm run verify -- my-next-video review-v1
+```
+
+Chaque prise contient un rendu brut, une vidéo masterisée et un instantané des métadonnées de production. La vérification lit le timing enregistré avec cette prise. Une modification ultérieure du storyboard ne change donc pas la durée attendue d'un ancien export. Une prise échouée reste disponible pour le diagnostic ; une nouvelle tentative reçoit un autre nom.
+
+Cela préserve une question utile pour la revue : **quel état de production a produit ce fichier ?** Il s'agit d'un instantané de métadonnées, pas d'une archive complète de tous les assets source. Mais il apporte bien plus d'informations qu'un `final.mp4` remplacé à chaque tentative.
+
+## Vérifier l'export, puis examiner le film
+
+Les contrôles couvrent des erreurs différentes. TypeScript et la validation des métadonnées détectent les problèmes de structure. La vérification des médias contrôle le H.264 en 1920×1080, les FPS, le nombre exact de frames vidéo, l'audio AAC, la durée, le niveau sonore intégré et le true peak. Des planches-contact échantillonnent le milieu et le temps de lecture de chaque scène.
+
+Un problème documenté illustre l'intérêt de ces contrôles : l'audio mixé pouvait dépasser la dernière frame vidéo. Le mastering coupe désormais la sortie à la durée de la timeline, et la vérification contrôle le nombre de frames attendu. Un rendu terminé n'aurait pas suffi à détecter cet écart.
+
+Ces contrôles ne peuvent toutefois pas décider si le film fonctionne. Une planche-contact ne révèle pas un mouvement maladroit. Le niveau sonore ne prouve pas l'intelligibilité. Une timeline valide ne prouve pas que l'argument convainc.
+
+Le rapport laisse donc la revue visuelle et l'écoute en attente. Les [notes de validation](https://github.com/RockFi/videos-factory/blob/main/docs/validation.md) distinguent les contrôles techniques et l'inspection statique effectués du visionnage et de l'écoute restant à faire. Elles précisent aussi que la découverte des spécialistes natifs n'a pas été exercée dans une nouvelle session client.
+
+Je veux garder ces limites visibles. Sinon, un outil de production peut transformer un contrôle au vert en affirmation plus forte que les preuves disponibles.
+
+## Ce que je voulais rendre reproductible
+
+Video Factory donne au prochain film un point de départ et un chemin vers un export que l'on peut examiner. Le projet garde le message près de ses sources, attribue un périmètre aux spécialistes, rassemble le timing dans un contrat commun et conserve l'état utilisé pour vérifier une prise.
+
+Chaque film demande encore du travail éditorial et audiovisuel. Le résultat utile, c'est que ce travail a une place, un responsable et un livrable qu'une autre personne peut inspecter.
+
+Références d'implémentation : [workflow de production](https://github.com/RockFi/videos-factory/blob/main/docs/workflow.md), [validation du timing et des assets](https://github.com/RockFi/videos-factory/blob/main/scripts/lib.mjs), [rendu et vérification](https://github.com/RockFi/videos-factory/blob/main/scripts/video.mjs) et [provenance des sources](https://github.com/RockFi/videos-factory/blob/main/docs/provenance.md). L'accès au dépôt peut être nécessaire.

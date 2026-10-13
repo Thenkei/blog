@@ -1,0 +1,146 @@
+---
+title: "How I Built Video Factory"
+subtitle: "One Remotion toolchain, a folder per film, and a shared contract for story, picture, voice and sound."
+summary: "How I turned earlier video experiments into a reusable production project: specialist agents, frame-based timing, isolated assets and reviewable exports."
+visualId: "building-video-factory"
+publishedAt: "2026-10-22"
+readTimeMinutes: 7
+tags:
+  - engineering
+  - ai
+  - agents
+  - developer-tools
+  - product
+---
+
+A product video brings several kinds of work together. There is the story, the interface or diagram that proves it, the animation, the narration, and the sound. Each can look reasonable on its own while the assembled film feels wrong.
+
+That coordination problem is what I wanted to address with [Video Factory](https://github.com/RockFi/videos-factory). I built it around a small unit: **one video folder containing the editorial intent, the implementation, and the evidence needed to review the result**.
+
+Remotion supplies the rendering foundation. The factory adds the production structure around it: how a film starts, who owns each part, how timing stays consistent, and what an export actually proves.
+
+## Extract the useful work, then give it a home
+
+The project grew out of earlier video experiments in our Product OS work at RockFi. An existing video skill contained internal-explanation and release-film templates, along with model-portfolio examples. I extracted that material into a standalone project, keeping its origin documented.
+
+The distinction matters. A reusable production environment has a different lifecycle from a skill that explains how to make a video. It needs dependencies, source files, media preparation, a preview environment, and named exports that can be inspected later.
+
+I kept one dependency set at the root and gave every film its own folder:
+
+```text
+videos/<slug>/
+  video.json          Format and composition configuration
+  brief.md            Audience, promise, sources and constraints
+  storyboard.md       Ordered scenes and visual proof
+  VOICEOVER.md        Spoken script and delivery notes
+  assets.json         Asset origins, rights and attribution
+  src/                Composition, scenes, timeline and voice map
+  public/             Video-local media
+  out/<take>/         Exports and verification results
+```
+
+A new film starts with a root command:
+
+```sh
+npm run new -- my-next-video release
+npm run studio -- my-next-video
+```
+
+The scaffold refuses to overwrite an existing folder, including an empty one. Each composition has its own entry point; the CLI selects it by slug. There is no global composition registry to update when adding a film.
+
+The `internal` and `release` templates provide starting visual kits. Video-specific scenes stay with the video. A primitive moves into `shared/` when another film needs it. This keeps the common setup small while leaving room for different visual directions.
+
+## Give specialists concrete ownership
+
+Video production offers useful boundaries for agent work. I defined six roles:
+
+- **Story producer:** audience, message, evidence and exact copy.
+- **Storyboard director:** scene order, visual direction, timing and capture plan.
+- **Remotion engineer:** composition, animation and rendering.
+- **Voice director:** delivery, pronunciation, recordings and measured pacing.
+- **Sound designer:** music, effects, cues and mix direction.
+- **Video reviewer:** a fresh look at the rendered result.
+
+The main agent coordinates those roles in the existing coding client. The project does not need a separate orchestration service.
+
+The important part is ownership. An assignment names the video, source material, expected output, writable paths, and current timeline owner. Story and storyboard come first. Scene, voice and sound work can then proceed in parallel within those boundaries, while one owner integrates changes to the composition and timing.
+
+Without that rule, two useful edits can conflict: the voice director lengthens a scene while the engineer adjusts its transition and the sound designer moves its musical cue. Each change is locally sensible. Together, they can break the sequence.
+
+The role prompts also have a single source. Canonical Markdown files in `agents/` generate the native Codex and Claude Code definitions. A synchronization check catches drift between formats. Maintaining the same instruction twice would create another coordination problem inside the tool built to solve one.
+
+## Choose the promise before animating the clicks
+
+The editorial workflow deserves as much attention as the rendering workflow.
+
+For a feature presentation, the agent proposes distinct messaging angles backed by sources, recommends one, and presents the complete spoken script for validation or explicit delegation. The brief and voice-over document record that decision. Existing approval carries forward; a material change to the promise or claims needs another look.
+
+This is where the film acquires a purpose. The interface can show an action while the narration explains why its result matters. A tutorial may need to name controls and steps. A release film usually needs a clear audience benefit and enough silence to read the proof.
+
+The [narration guide](https://github.com/RockFi/videos-factory/blob/main/docs/narration.md) makes that distinction explicit. It also limits what a demonstration can claim. Showing a review screen can support a statement about seeing changes before publication. It does not establish fewer errors or time saved.
+
+The migrated examples remain historical references with reconstructed UI. They are useful for studying compositions, but a current product demonstration needs current evidence and real capture. An attractive reconstruction cannot establish shipped behavior.
+
+## Make time a shared contract
+
+The most concrete integration point is `src/timeline.json`. It defines FPS, scene durations, transition overlap, music sections, the final chord cue, and narration timing settings. Composition and audio code consume that timing.
+
+Scene durations are frames. With a common overlap between consecutive scenes:
+
+```text
+total frames = sum(scene durations)
+             − transitionFrames × (scene count − 1)
+```
+
+Ignoring overlap would give the soundtrack and the export checker a different idea of when the film ends.
+
+<MotionScene id="video-factory-timeline" />
+
+Narration introduces another constraint. Clips are prepared per scene, normalized to −18 LUFS, and measured with FFprobe. Their durations become a voice map. Before accepting it, the tooling checks scene IDs, duplicate clips, available duration, and overlap with the next line.
+
+The useful calculation is straightforward:
+
+```text
+start offset + measured voice frames + tail ≤ scene duration
+```
+
+When a line does not fit, the error asks for a shorter take or a longer scene. That forces the writing and pacing decision back into the storyboard instead of hiding it inside an arbitrary playback speed.
+
+The same schedule drives music ducking: lower the music around a voice clip, then bring it back after the line. Procedural music and effects provide a local starting point; imported audio can be used by disabling automatic generation. Cloud narration exists as an explicit, optional step. It is not required by the local recording and rendering path.
+
+## Isolate assets and preserve takes
+
+The CLI prepares an isolated public asset directory for the selected video. Shared assets are copied first; video-local media overrides matching paths. This lets films use the same local filename without sharing a mutable media directory.
+
+That snapshot has a practical consequence: Studio needs a restart after media is imported or replaced, although source-code edits still use hot reload. Making that behavior explicit avoids a preview that silently shows the previous recording.
+
+Exports use a similar boundary. A named take cannot already exist:
+
+```sh
+npm run render -- my-next-video review-v1
+npm run verify -- my-next-video review-v1
+```
+
+Each take contains a raw render, a mastered video, and a production metadata snapshot. Verification reads that take's saved timing. Later storyboard edits therefore do not change the expected duration of an earlier export. A failed take remains available for diagnosis; a retry gets another name.
+
+This preserves a useful review question: **which production state produced this file?** It is a metadata snapshot, not a complete archive of every source asset, but it is much more useful than repeatedly replacing `final.mp4`.
+
+## Verify the export, then review the film
+
+The checks cover different failure modes. TypeScript and metadata validation catch structural problems. Media verification checks H.264 at 1920×1080, FPS, exact video frame count, AAC audio, duration, integrated loudness and true peak. Contact sheets sample each scene's middle and reading hold.
+
+One documented issue illustrates why these checks matter: the mixed audio could extend beyond the final video frame. Mastering now trims the output to the timeline, and verification checks the expected frame count. A completed render alone would not have caught the discrepancy.
+
+But those checks cannot decide whether the film works. A contact sheet misses awkward motion. Loudness does not prove intelligibility. A valid timeline does not prove that the argument is convincing.
+
+The verification report therefore leaves visual and listening review pending. The project's [validation notes](https://github.com/RockFi/videos-factory/blob/main/docs/validation.md) distinguish completed technical checks and static inspection from remaining playback and listening work. They also record that native specialist discovery was not exercised in a fresh client session.
+
+I want those limits visible. Otherwise, a production tool can turn a green check into a stronger claim than the evidence supports.
+
+## What I wanted to make repeatable
+
+Video Factory gives the next film a place to start and a path to a reviewable export. It keeps the message near its sources, gives specialists bounded ownership, puts timing in one shared contract, and preserves the state used to verify a take.
+
+There is still editorial and audiovisual work to do for every film. The useful outcome is that this work has a home, an owner, and a result someone else can inspect.
+
+Implementation references: [production workflow](https://github.com/RockFi/videos-factory/blob/main/docs/workflow.md), [timing and asset validation](https://github.com/RockFi/videos-factory/blob/main/scripts/lib.mjs), [rendering and verification](https://github.com/RockFi/videos-factory/blob/main/scripts/video.mjs), and [source provenance](https://github.com/RockFi/videos-factory/blob/main/docs/provenance.md). Repository access may be required.

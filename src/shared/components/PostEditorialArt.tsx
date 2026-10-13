@@ -29,6 +29,12 @@ const jpegAssets = import.meta.glob<string>(
 );
 
 const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
+  "building-video-factory": {
+    alt: {
+      en: "Illustrated video workshop where storyboards, animation, narration and music converge on one shared timeline under an engineer's review.",
+      fr: "Atelier vidéo illustré où storyboard, animation, narration et musique convergent vers une timeline commune sous le regard d'un ingénieur.",
+    },
+  },
   "agent-battle-2026": {
     alt: {
       en: "Manga-inspired scene of an engineer choosing between three distinct routes for AI-assisted work.",

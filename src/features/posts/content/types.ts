@@ -7,6 +7,7 @@ export type PostVisibility = (typeof postVisibilities)[number];
 export type PostAccessScope = PostVisibility;
 
 export const postVisualIds = [
+  "building-video-factory",
   "agent-battle-2026",
   "frontier-model-race-2026",
   "bounded-ai-loop",
@@ -47,6 +48,7 @@ export type PostVisualId = (typeof postVisualIds)[number];
 // rendered by PostVisual; they have no diagram fallback of their own.
 export const postImageVisualIds = [
   "jokarikara-first-ai-project",
+  "building-video-factory",
   "ai-is-not-immaterial",
   "better-handoffs-ai-engineering",
   "frontier-model-race-2026",
