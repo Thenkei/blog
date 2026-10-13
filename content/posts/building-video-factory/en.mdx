@@ -13,7 +13,7 @@ tags:
   - product
 ---
 
-The starting point for [Video Factory](https://github.com/RockFi/videos-factory) is simple: **give instructions and get a video through a uniform, reproducible production workflow**. I want to describe the audience, topic, message and format, then produce a coherent result without rebuilding the production setup for every film.
+The starting point for Video Factory is simple: **give instructions and get a video through a uniform, reproducible production workflow**. I want to describe the audience, topic, message and format, then produce a coherent result without rebuilding the production setup for every film.
 
 At RockFi, we use it internally to produce release videos. A common structure for story, picture, voice and sound lets the content change while the production conventions stay consistent.
 
@@ -81,7 +81,7 @@ For a feature presentation, the agent proposes distinct messaging angles backed 
 
 This is where the film acquires a purpose. The interface can show an action while the narration explains why its result matters. A tutorial may need to name controls and steps. A release film usually needs a clear audience benefit and enough silence to read the proof.
 
-The [narration guide](https://github.com/RockFi/videos-factory/blob/main/docs/narration.md) makes that distinction explicit. It also limits what a demonstration can claim. Showing a review screen can support a statement about seeing changes before publication. It does not establish fewer errors or time saved.
+The narration guidelines make that distinction explicit. They also limit what a demonstration can claim. Showing a review screen can support a statement about seeing changes before publication. It does not establish fewer errors or time saved.
 
 The migrated examples remain historical references with reconstructed UI. They are useful for studying compositions, but a current product demonstration needs current evidence and real capture. An attractive reconstruction cannot establish shipped behavior.
 
@@ -135,7 +135,7 @@ One documented issue illustrates why these checks matter: the mixed audio could 
 
 But those checks cannot decide whether the film works. A contact sheet misses awkward motion. Loudness does not prove intelligibility. A valid timeline does not prove that the argument is convincing.
 
-The verification report therefore leaves visual and listening review pending. The project's [validation notes](https://github.com/RockFi/videos-factory/blob/main/docs/validation.md) distinguish completed technical checks and static inspection from remaining playback and listening work. They also record that native specialist discovery was not exercised in a fresh client session.
+The verification report therefore leaves visual and listening review pending. I keep completed technical checks and static inspection separate from remaining playback and listening work. Native specialist discovery was also not exercised in a fresh client session.
 
 I want those limits visible. Otherwise, a production tool can turn a green check into a stronger claim than the evidence supports.
 
@@ -144,5 +144,3 @@ I want those limits visible. Otherwise, a production tool can turn a green check
 The core of Video Factory is the path from instructions to a simple, uniform video through a reproducible workflow. Keeping the message near its sources, assigning specialists, sharing timing and preserving takes makes that path usable again for the next film.
 
 RockFi release videos are the current use. YouTube explainers are a possibility this automation makes worth exploring. Both need editorial judgment; the factory gives that work a repeatable production structure.
-
-Implementation references: [production workflow](https://github.com/RockFi/videos-factory/blob/main/docs/workflow.md), [timing and asset validation](https://github.com/RockFi/videos-factory/blob/main/scripts/lib.mjs), [rendering and verification](https://github.com/RockFi/videos-factory/blob/main/scripts/video.mjs), and [source provenance](https://github.com/RockFi/videos-factory/blob/main/docs/provenance.md). Repository access may be required.

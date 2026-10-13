@@ -13,7 +13,7 @@ tags:
   - product
 ---
 
-Le point de départ de [Video Factory](https://github.com/RockFi/videos-factory) est simple : **donner des consignes et obtenir une vidéo grâce à un workflow de production uniforme et reproductible**. Je veux décrire le public, le sujet, le message et le format, puis produire un résultat cohérent sans reconstruire l'outillage à chaque film.
+Le point de départ de Video Factory est simple : **donner des consignes et obtenir une vidéo grâce à un workflow de production uniforme et reproductible**. Je veux décrire le public, le sujet, le message et le format, puis produire un résultat cohérent sans reconstruire l'outillage à chaque film.
 
 Chez RockFi, nous l'utilisons en interne pour produire les vidéos de release. Une structure commune pour le récit, l'image, la voix et le son permet de changer le contenu tout en gardant les mêmes conventions de production.
 
@@ -81,7 +81,7 @@ Pour une présentation de fonctionnalité, l'agent propose plusieurs angles dist
 
 C'est à ce moment que le film prend une direction. L'interface peut montrer une action pendant que la voix explique l'intérêt de son résultat. Un tutoriel peut avoir besoin de nommer les contrôles et les étapes. Un film de release a généralement besoin d'un bénéfice clair pour son public et de suffisamment de silence pour lire la preuve.
 
-Le [guide de narration](https://github.com/RockFi/videos-factory/blob/main/docs/narration.md) explicite cette différence. Il borne aussi les affirmations possibles. Montrer un écran de revue peut étayer une phrase sur la visibilité des changements avant publication. Cela ne démontre ni une réduction des erreurs ni un gain de temps.
+Les consignes de narration explicitent cette différence. Elles bornent aussi les affirmations possibles. Montrer un écran de revue peut étayer une phrase sur la visibilité des changements avant publication. Cela ne démontre ni une réduction des erreurs ni un gain de temps.
 
 Les exemples migrés restent des références historiques avec une interface reconstruite. Ils servent à étudier les compositions ; une démonstration du produit actuel exige des preuves à jour et une véritable capture. Une reconstruction soignée ne prouve pas qu'un comportement est livré.
 
@@ -136,7 +136,7 @@ Un problème documenté illustre l'intérêt de ces contrôles : l'audio mixé p
 
 Ces contrôles ne peuvent toutefois pas décider si le film fonctionne. Une planche-contact ne révèle pas un mouvement maladroit. Le niveau sonore ne prouve pas l'intelligibilité. Une timeline valide ne prouve pas que l'argument convainc.
 
-Le rapport laisse donc la revue visuelle et l'écoute en attente. Les [notes de validation](https://github.com/RockFi/videos-factory/blob/main/docs/validation.md) distinguent les contrôles techniques et l'inspection statique effectués du visionnage et de l'écoute restant à faire. Elles précisent aussi que la découverte des spécialistes natifs n'a pas été exercée dans une nouvelle session client.
+Le rapport laisse donc la revue visuelle et l'écoute en attente. Je distingue les contrôles techniques et l'inspection statique effectués du visionnage et de l'écoute restant à faire. La découverte des spécialistes natifs n'a pas non plus été exercée dans une nouvelle session client.
 
 Je veux garder ces limites visibles. Sinon, un outil de production peut transformer un contrôle au vert en affirmation plus forte que les preuves disponibles.
 
@@ -145,5 +145,3 @@ Je veux garder ces limites visibles. Sinon, un outil de production peut transfor
 Le cœur de Video Factory est ce chemin entre les consignes et une vidéo simple et uniforme, grâce à un workflow reproductible. Garder le message près de ses sources, attribuer les rôles, partager le timing et préserver les prises permet de réutiliser ce chemin pour le film suivant.
 
 Les vidéos de release RockFi sont l'usage actuel. Les chaînes YouTube de vulgarisation sont une piste que cette automatisation me donne envie d'explorer. Les deux demandent du jugement éditorial ; la factory donne à ce travail une structure de production reproductible.
-
-Références d'implémentation : [workflow de production](https://github.com/RockFi/videos-factory/blob/main/docs/workflow.md), [validation du timing et des assets](https://github.com/RockFi/videos-factory/blob/main/scripts/lib.mjs), [rendu et vérification](https://github.com/RockFi/videos-factory/blob/main/scripts/video.mjs) et [provenance des sources](https://github.com/RockFi/videos-factory/blob/main/docs/provenance.md). L'accès au dépôt peut être nécessaire.
