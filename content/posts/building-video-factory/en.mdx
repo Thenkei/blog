@@ -1,7 +1,7 @@
 ---
 title: "How I Built Video Factory"
-subtitle: "One Remotion toolchain, a folder per film, and a shared contract for story, picture, voice and sound."
-summary: "How I turned earlier video experiments into a reusable production project: specialist agents, frame-based timing, isolated assets and reviewable exports."
+subtitle: "Give instructions. Produce simple, uniform videos through a reproducible workflow."
+summary: "A factory for turning instructions into consistent videos: used for RockFi releases today, with possibilities for YouTube explainer channels."
 visualId: "building-video-factory"
 publishedAt: "2026-10-22"
 readTimeMinutes: 7
@@ -13,11 +13,15 @@ tags:
   - product
 ---
 
-A product video brings several kinds of work together. There is the story, the interface or diagram that proves it, the animation, the narration, and the sound. Each can look reasonable on its own while the assembled film feels wrong.
+The starting point for [Video Factory](https://github.com/RockFi/videos-factory) is simple: **give instructions and get a video through a uniform, reproducible production workflow**. I want to describe the audience, topic, message and format, then produce a coherent result without rebuilding the production setup for every film.
 
-That coordination problem is what I wanted to address with [Video Factory](https://github.com/RockFi/videos-factory). I built it around a small unit: **one video folder containing the editorial intent, the implementation, and the evidence needed to review the result**.
+At RockFi, we use it internally to produce release videos. A common structure for story, picture, voice and sound lets the content change while the production conventions stay consistent.
 
-Remotion supplies the rendering foundation. The factory adds the production structure around it: how a film starts, who owns each part, how timing stays consistent, and what an export actually proves.
+Those automations also open another possibility for me: YouTube channels where I could make complex subjects accessible. That is a direction I want to explore.
+
+<MotionScene id="video-factory-workflow" />
+
+Remotion supplies the rendering foundation. The factory adds the instructions, shared production rules and review steps around it. Each video folder keeps its editorial intent, implementation and evidence together. The engineering choices below serve that goal: a simple output, a uniform format, and a process I can run again for the next subject.
 
 ## Extract the useful work, then give it a home
 
@@ -94,8 +98,6 @@ total frames = sum(scene durations)
 
 Ignoring overlap would give the soundtrack and the export checker a different idea of when the film ends.
 
-<MotionScene id="video-factory-timeline" />
-
 Narration introduces another constraint. Clips are prepared per scene, normalized to −18 LUFS, and measured with FFprobe. Their durations become a voice map. Before accepting it, the tooling checks scene IDs, duplicate clips, available duration, and overlap with the next line.
 
 The useful calculation is straightforward:
@@ -139,8 +141,8 @@ I want those limits visible. Otherwise, a production tool can turn a green check
 
 ## What I wanted to make repeatable
 
-Video Factory gives the next film a place to start and a path to a reviewable export. It keeps the message near its sources, gives specialists bounded ownership, puts timing in one shared contract, and preserves the state used to verify a take.
+The core of Video Factory is the path from instructions to a simple, uniform video through a reproducible workflow. Keeping the message near its sources, assigning specialists, sharing timing and preserving takes makes that path usable again for the next film.
 
-There is still editorial and audiovisual work to do for every film. The useful outcome is that this work has a home, an owner, and a result someone else can inspect.
+RockFi release videos are the current use. YouTube explainers are a possibility this automation makes worth exploring. Both need editorial judgment; the factory gives that work a repeatable production structure.
 
 Implementation references: [production workflow](https://github.com/RockFi/videos-factory/blob/main/docs/workflow.md), [timing and asset validation](https://github.com/RockFi/videos-factory/blob/main/scripts/lib.mjs), [rendering and verification](https://github.com/RockFi/videos-factory/blob/main/scripts/video.mjs), and [source provenance](https://github.com/RockFi/videos-factory/blob/main/docs/provenance.md). Repository access may be required.

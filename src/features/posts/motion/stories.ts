@@ -14,8 +14,8 @@ type LocalizedStory = Record<PostLocale, MotionStory["beats"]> & {
 export const MOTION_STORIES = {
   "building-video-factory": {
     kind: "flow",
-    en: ["Give each specialist an owner", "Share one timeline for picture and sound", "Verify the take, then review the film"],
-    fr: ["Attribuer un périmètre à chaque spécialiste", "Partager le timing de l’image et du son", "Vérifier la prise, puis examiner le film"],
+    en: ["Give instructions", "Produce consistent, reproducible videos", "RockFi today, YouTube as a next step"],
+    fr: ["Donner des consignes", "Produire des vidéos uniformes et reproductibles", "RockFi aujourd’hui, YouTube à explorer"],
   },
   "agent-battle-2026": {
     kind: "choice",

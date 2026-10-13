@@ -1,7 +1,7 @@
 ---
 title: "Comment j'ai construit Video Factory"
-subtitle: "Un outillage Remotion commun, un dossier par film et un même contrat pour le récit, l'image, la voix et le son."
-summary: "Comment j'ai transformé des expérimentations vidéo en projet de production réutilisable : agents spécialisés, timing en frames, assets isolés et exports vérifiables."
+subtitle: "Donner des consignes. Produire des vidéos simples et uniformes avec un workflow reproductible."
+summary: "Une factory pour transformer des consignes en vidéos cohérentes : les releases RockFi aujourd'hui, et des pistes pour des chaînes YouTube de vulgarisation."
 visualId: "building-video-factory"
 publishedAt: "2026-10-22"
 readTimeMinutes: 8
@@ -13,11 +13,15 @@ tags:
   - product
 ---
 
-Une vidéo produit réunit plusieurs métiers. Il faut un récit, une interface ou un diagramme pour l'étayer, de l'animation, une narration et du son. Chaque élément peut sembler correct séparément alors que le film assemblé fonctionne mal.
+Le point de départ de [Video Factory](https://github.com/RockFi/videos-factory) est simple : **donner des consignes et obtenir une vidéo grâce à un workflow de production uniforme et reproductible**. Je veux décrire le public, le sujet, le message et le format, puis produire un résultat cohérent sans reconstruire l'outillage à chaque film.
 
-C'est ce problème de coordination que j'ai voulu traiter avec [Video Factory](https://github.com/RockFi/videos-factory). J'ai organisé le projet autour d'une unité simple : **un dossier vidéo qui rassemble l'intention éditoriale, l'implémentation et les éléments nécessaires pour examiner le résultat**.
+Chez RockFi, nous l'utilisons en interne pour produire les vidéos de release. Une structure commune pour le récit, l'image, la voix et le son permet de changer le contenu tout en gardant les mêmes conventions de production.
 
-Remotion fournit le socle de rendu. La factory ajoute la structure de production : comment démarrer un film, qui possède chaque partie, comment garder un timing cohérent et ce qu'un export permet réellement de vérifier.
+Ces automatisations ouvrent aussi une autre piste pour moi : des chaînes YouTube où je pourrais faire de la vulgarisation et rendre des sujets complexes accessibles. C'est une direction que j'ai envie d'explorer.
+
+<MotionScene id="video-factory-workflow" />
+
+Remotion fournit le socle de rendu. La factory ajoute les consignes, les règles de production communes et les étapes de revue. Chaque dossier vidéo rassemble son intention éditoriale, son implémentation et ses preuves. Les choix d'ingénierie qui suivent servent cet objectif : une sortie simple, un format uniforme et un processus que je peux relancer pour le sujet suivant.
 
 ## Extraire le travail utile et lui donner une place
 
@@ -94,8 +98,6 @@ frames totales = somme des durées des scènes
 
 Ignorer le chevauchement donnerait à la bande-son et au vérificateur d'export une autre idée de la fin du film.
 
-<MotionScene id="video-factory-timeline" />
-
 La narration ajoute une contrainte. Les clips sont préparés scène par scène, normalisés à −18 LUFS et mesurés avec FFprobe. Leurs durées alimentent une table de voix. Avant de l'accepter, l'outillage contrôle les identifiants de scènes, les doublons, la durée disponible et le chevauchement avec la réplique suivante.
 
 Le calcul utile est simple :
@@ -140,8 +142,8 @@ Je veux garder ces limites visibles. Sinon, un outil de production peut transfor
 
 ## Ce que je voulais rendre reproductible
 
-Video Factory donne au prochain film un point de départ et un chemin vers un export que l'on peut examiner. Le projet garde le message près de ses sources, attribue un périmètre aux spécialistes, rassemble le timing dans un contrat commun et conserve l'état utilisé pour vérifier une prise.
+Le cœur de Video Factory est ce chemin entre les consignes et une vidéo simple et uniforme, grâce à un workflow reproductible. Garder le message près de ses sources, attribuer les rôles, partager le timing et préserver les prises permet de réutiliser ce chemin pour le film suivant.
 
-Chaque film demande encore du travail éditorial et audiovisuel. Le résultat utile, c'est que ce travail a une place, un responsable et un livrable qu'une autre personne peut inspecter.
+Les vidéos de release RockFi sont l'usage actuel. Les chaînes YouTube de vulgarisation sont une piste que cette automatisation me donne envie d'explorer. Les deux demandent du jugement éditorial ; la factory donne à ce travail une structure de production reproductible.
 
 Références d'implémentation : [workflow de production](https://github.com/RockFi/videos-factory/blob/main/docs/workflow.md), [validation du timing et des assets](https://github.com/RockFi/videos-factory/blob/main/scripts/lib.mjs), [rendu et vérification](https://github.com/RockFi/videos-factory/blob/main/scripts/video.mjs) et [provenance des sources](https://github.com/RockFi/videos-factory/blob/main/docs/provenance.md). L'accès au dépôt peut être nécessaire.
