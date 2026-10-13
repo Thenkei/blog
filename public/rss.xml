@@ -5,6 +5,27 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
+<title>Governance You Cannot Forget</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-governance-by-construction</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-governance-by-construction</guid>
+<description>In a regulated back office, access control and audit cannot be features a developer remembers to add. In Nexus they live in the engine, so every read and every write is checked, masked, and logged whether the screen asked for it or not.</description>
+<pubDate>Mon, 12 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>A Deliberately Boring Query Language</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-query-language</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-query-language</guid>
+<description>Nexus has its own small query language. It is not clever, and that is the point: every screen builds queries the same way, relations across databases resolve in a fixed number of batched queries, and computed fields are rewritten to SQL or refused.</description>
+<pubDate>Thu, 08 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>One Path to the Data</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-core-engine</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-core-engine</guid>
+<description>The Core Engine is the only way Nexus touches data. Reads go to read-only PostgreSQL replicas, writes go through the APIs of the services that own the data, and every request crosses authentication, access control, and audit in both directions.</description>
+<pubDate>Mon, 05 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>Your Back Office Is a Product. Build It Like One.</title>
 <link>https://thenkei.github.io/blog/en/posts/internal-tools-are-a-product</link>
 <guid>https://thenkei.github.io/blog/en/posts/internal-tools-are-a-product</guid>

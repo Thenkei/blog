@@ -162,6 +162,11 @@ export const MOTION_STORIES = {
     en: ["Experience in platform work", "Join RockFi", "Build for wealth management"],
     fr: ["Une expérience de plateforme", "Rejoindre RockFi", "Construire pour la gestion de patrimoine"],
   },
+  "jokarikara-first-ai-project": {
+    kind: "threshold",
+    en: ["A shape grows and rotates", "Tap while it fits inside", "Check geometry and the playing experience"],
+    fr: ["Une forme grandit et tourne", "Toucher tant qu’elle tient dedans", "Vérifier géométrie et expérience de jeu"],
+  },
   "nodejs-stream-backpressure-history-export": {
     kind: "flow",
     en: ["Read records in chunks", "Bound every buffer", "Let S3 pace the producer"],
