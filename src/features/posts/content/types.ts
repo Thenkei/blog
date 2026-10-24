@@ -23,6 +23,7 @@ export const postVisualIds = [
   "idempotency-debounce-jobify-bullmq",
   "internal-tools-as-product",
   "jobify-workers-queues-nestjs",
+  "jokarikara-first-ai-project",
   "joining-rockfi",
   "nodejs-stream-backpressure-history-export",
   "polymagine-industry-4-eyewear-2017",
@@ -45,6 +46,7 @@ export type PostVisualId = (typeof postVisualIds)[number];
 // Some article visuals are raster editorial artwork rather than SVG diagrams
 // rendered by PostVisual; they have no diagram fallback of their own.
 export const postImageVisualIds = [
+  "jokarikara-first-ai-project",
   "ai-is-not-immaterial",
   "better-handoffs-ai-engineering",
   "frontier-model-race-2026",
