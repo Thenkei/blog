@@ -5,6 +5,34 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
+<title>Jokarikara: My First Personal Project with AI</title>
+<link>https://thenkei.github.io/blog/en/posts/jokarikara-first-ai-project</link>
+<guid>https://thenkei.github.io/blog/en/posts/jokarikara-first-ai-project</guid>
+<description>Jokarikara was my first time using AI in a personal project. A small game with concrete questions about geometry, rhythm, and judgment.</description>
+<pubDate>Thu, 22 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>I Still Believe in This Path</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-still-believe</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-still-believe</guid>
+<description>RockFi uses a different technical solution from Nexus, but the vision behind this series is being put into practice: treating internal tools as a product, improving operations, and strengthening data consistency. With a concrete result: development has gone from two weeks to a single morning.</description>
+<pubDate>Tue, 20 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Built With Agents, Owned by Us</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-built-with-agents</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-built-with-agents</guid>
+<description>We built the first version of Nexus in about three weeks with coding agents. That only works because the rules live in the engine, not in the screens. Part six covers ownership, agents, and a proposed rollout that runs one process at a time.</description>
+<pubDate>Mon, 19 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Consistency Is a Default, Not a Convention</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-consistency-by-default</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-consistency-by-default</guid>
+<description>Users judge an internal tool by how predictable it feels from one page to the next. Nexus gets that predictability by making every capability available by default and asking developers to justify removing one, not adding it.</description>
+<pubDate>Thu, 15 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>Governance You Cannot Forget</title>
 <link>https://thenkei.github.io/blog/en/posts/internal-tools-governance-by-construction</link>
 <guid>https://thenkei.github.io/blog/en/posts/internal-tools-governance-by-construction</guid>
