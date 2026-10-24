@@ -149,8 +149,8 @@ export const MOTION_STORIES = {
   },
   "internal-tools-still-believe": {
     kind: "choice",
-    en: ["A governed foundation proposed", "RockFi chose a different direction", "The engineering conviction remains"],
-    fr: ["Un socle gouverné proposé", "RockFi a choisi une autre direction", "La conviction d’ingénierie demeure"],
+    en: ["A shared vision for internal tools", "A different technical solution", "From two weeks to a single morning"],
+    fr: ["Une vision partagée des outils internes", "Une autre solution technique", "De deux semaines à une matinée"],
   },
   "jobify-workers-queues-nestjs": {
     kind: "flow",

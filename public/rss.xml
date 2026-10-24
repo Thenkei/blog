@@ -5,6 +5,48 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
+<title>I Still Believe in This Path</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-still-believe</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-still-believe</guid>
+<description>RockFi uses a different technical solution from Nexus, but the vision behind this series is being put into practice: treating internal tools as a product, improving operations, and strengthening data consistency. With a concrete result: development has gone from two weeks to a single morning.</description>
+<pubDate>Tue, 20 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Built With Agents, Owned by Us</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-built-with-agents</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-built-with-agents</guid>
+<description>We built the first version of Nexus in about three weeks with coding agents. That only works because the rules live in the engine, not in the screens. Part six covers ownership, agents, and a proposed rollout that runs one process at a time.</description>
+<pubDate>Mon, 19 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Consistency Is a Default, Not a Convention</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-consistency-by-default</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-consistency-by-default</guid>
+<description>Users judge an internal tool by how predictable it feels from one page to the next. Nexus gets that predictability by making every capability available by default and asking developers to justify removing one, not adding it.</description>
+<pubDate>Thu, 15 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Governance You Cannot Forget</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-governance-by-construction</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-governance-by-construction</guid>
+<description>In a regulated back office, access control and audit cannot be features a developer remembers to add. In Nexus they live in the engine, so every read and every write is checked, masked, and logged whether the screen asked for it or not.</description>
+<pubDate>Mon, 12 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>A Deliberately Boring Query Language</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-query-language</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-query-language</guid>
+<description>Nexus has its own small query language. It is not clever, and that is the point: every screen builds queries the same way, relations across databases resolve in a fixed number of batched queries, and computed fields are rewritten to SQL or refused.</description>
+<pubDate>Thu, 08 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>One Path to the Data</title>
+<link>https://thenkei.github.io/blog/en/posts/internal-tools-core-engine</link>
+<guid>https://thenkei.github.io/blog/en/posts/internal-tools-core-engine</guid>
+<description>The Core Engine is the only way Nexus touches data. Reads go to read-only PostgreSQL replicas, writes go through the APIs of the services that own the data, and every request crosses authentication, access control, and audit in both directions.</description>
+<pubDate>Mon, 05 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>Your Back Office Is a Product. Build It Like One.</title>
 <link>https://thenkei.github.io/blog/en/posts/internal-tools-are-a-product</link>
 <guid>https://thenkei.github.io/blog/en/posts/internal-tools-are-a-product</guid>
