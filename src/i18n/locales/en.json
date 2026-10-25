@@ -5,6 +5,9 @@
   },
   "ui": {
     "latestPosts": "Latest Posts",
+    "featuredPost": "Featured",
+    "browseCategories": "Browse by category",
+    "allCategories": "All posts",
     "discovery": "Post discovery controls",
     "backToHome": "Back to home",
     "readTime": "{{count}} min read",

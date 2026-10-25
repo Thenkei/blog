@@ -174,6 +174,36 @@ describe("routing and UX", () => {
     expect(screen.getByDisplayValue("Oldest first")).toBeInTheDocument();
   });
 
+  it("features the latest post once and returns to a regular grid when filtering", async () => {
+    const view = renderApp("/en");
+    const featured = await screen.findByText("Featured");
+    const featuredCard = featured.closest("a");
+    expect(featuredCard).toHaveClass("post-card-featured");
+    expect(view.container.querySelectorAll(`a[href="${featuredCard?.getAttribute("href")}"]`)).toHaveLength(1);
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Trail running" }));
+    expect(screen.queryByText("Featured")).not.toBeInTheDocument();
+    expect(screen.getByText(/From Smart to Sport: Why I Traded My Apple Watch/i)).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Your Back Office Is a Product.*Read post/i })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "All posts" }));
+    expect(screen.getByText("Featured")).toBeInTheDocument();
+  });
+
+  it("keeps category filters across languages and groups localized tag aliases", async () => {
+    renderApp("/fr?category=running&tag=course");
+    expect(await screen.findByRole("button", { name: "Trail", pressed: true })).toBeInTheDocument();
+    expect(screen.getByDisplayValue("running")).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "course" })).not.toBeInTheDocument();
+    expect(screen.getByText(/Pourquoi j'ai remplacé mon Apple Watch/i)).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "EN" }));
+    expect(await screen.findByRole("button", { name: "Trail running", pressed: true })).toBeInTheDocument();
+    expect(screen.getByText(/From Smart to Sport: Why I Traded My Apple Watch/i)).toBeInTheDocument();
+  });
+
   it("renders durable topic and about pages", async () => {
     const topicView = renderApp("/en/topics/architecture");
     expect(

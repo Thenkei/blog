@@ -1,6 +1,7 @@
 import { buildPostManifest } from "./manifest";
 import { isPublished as isPublishedOn, utcToday } from "./publication";
 import { getTopic } from "./topics";
+import { canonicalPostTag } from "./discovery";
 import type { ComponentType } from "react";
 import type {
   PostDocument,
@@ -145,7 +146,7 @@ export function getAvailableTags(
   const tags = new Set<string>();
   for (const post of accessiblePosts(manifest.byLocale[locale], access)) {
     for (const tag of post.tags) {
-      tags.add(tag);
+      tags.add(canonicalPostTag(tag));
     }
   }
 
@@ -297,4 +298,5 @@ export {
 export { buildPostManifest };
 export { postFrontmatterSchema } from "./schema";
 export { getTopic, topics } from "./topics";
+export { canonicalPostTag, postCategories, matchesPostCategory, matchesPostTag } from "./discovery";
 export type { TopicDefinition } from "./topics";

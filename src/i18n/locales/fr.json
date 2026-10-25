@@ -4,7 +4,10 @@
     "subtitle": "Ingénierie / Course à pied / Évolution"
   },
   "ui": {
-    "latestPosts": "Derniers Articles",
+    "latestPosts": "Derniers articles",
+    "featuredPost": "À la une",
+    "browseCategories": "Explorer par catégorie",
+    "allCategories": "Tous les articles",
     "discovery": "Commandes de découverte des articles",
     "backToHome": "Retour à l'accueil",
     "readTime": "{{count}} min de lecture",

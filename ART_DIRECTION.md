@@ -402,6 +402,18 @@ Le titre reste le point focal. Les scènes Montagne et Rocket enrichissent l’a
 
 La recherche reste visible en permanence. Sur mobile, tag et tri sont placés dans un panneau repliable.
 
+Les catégories Ingénierie, Data, IA, Trail et Parcours restent visibles sur
+desktop et mobile. Elles filtrent la liste publique, se combinent à la recherche
+et au tri, et sont conservées dans l'URL lors d'un changement de langue. Changer
+de catégorie réinitialise le tag précis. Les variantes EN/FR des tags sont
+regroupées dans le filtre détaillé sans modifier les tags des articles.
+
+Sans filtre et avec le tri par date décroissante, le dernier article public est
+présenté une seule fois dans une carte « À la une » : image et texte côte à côte
+sur desktop, empilés sur mobile. Les autres cartes forment une grille compacte
+de trois, deux ou une colonne selon la largeur. Une liste filtrée ou triée par
+date croissante conserve des cartes de même importance.
+
 Une carte affiche :
 
 1. le bandeau cartographique ;

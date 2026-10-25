@@ -41,6 +41,10 @@
     grid-template-columns: 1fr;
   }
 
+  .post-list-editorial {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .rocket-logbook-grid {
     grid-template-columns: 1fr;
   }
@@ -80,6 +84,40 @@
 }
 
 @media (max-width: 720px) {
+  .post-list-editorial {
+    grid-template-columns: 1fr;
+  }
+
+  .post-list-editorial .post-card-featured {
+    grid-template-columns: 1fr;
+  }
+
+  .post-card-featured .post-editorial-art-card,
+  .post-card-featured .post-system-visual-card {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+    border-right: 0;
+    border-bottom: 1px solid var(--divider);
+  }
+
+  .post-card-featured .post-card-body {
+    padding: 1.4rem;
+  }
+
+  .post-card-featured h3 {
+    font-size: 1.6rem;
+  }
+
+  .post-categories {
+    gap: 0.4rem;
+  }
+
+  .post-category {
+    padding-inline: 0.8rem;
+    font-size: 0.82rem;
+  }
+
   .rocket-logbook-header {
     grid-template-columns: 1fr;
   }
