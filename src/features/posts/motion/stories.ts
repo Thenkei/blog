@@ -19,8 +19,8 @@ export const MOTION_STORIES = {
   },
   "ai-force-multiplier": {
     kind: "flow",
-    en: ["AI accelerates execution", "Engineers direct the work", "Judgment verifies the result"],
-    fr: ["L’IA accélère l’exécution", "Les ingénieurs orientent le travail", "Le jugement vérifie le résultat"],
+    en: ["State the constraints", "Compare AI proposals", "Check code and contracts"],
+    fr: ["Préciser les contraintes", "Comparer les propositions de l’IA", "Vérifier le code et les contrats"],
   },
   "ai-human-judgment-rockfi": {
     kind: "cycle",
@@ -45,7 +45,7 @@ export const MOTION_STORIES = {
   "better-handoffs-ai-engineering": {
     kind: "flow",
     en: ["Small agents investigate", "Evidence crosses the hand-off", "An engineer takes over"],
-    fr: ["De petits agents enquêtent", "Les preuves passent le relais", "Un ingénieur reprend la main"],
+    fr: ["De petits agents enquêtent", "Le handoff transmet les preuves", "Un ingénieur reprend la main"],
   },
   "context-engineering-beyond-prompt-engineering": {
     kind: "flow",
@@ -83,9 +83,9 @@ export const MOTION_STORIES = {
     fr: ["dbt build teste entre les modèles", "Un check bloquant arrête l’aval", "Mieux vaut daté que faux"],
   },
   "engineer-life-late-2026": {
-    kind: "choice",
-    en: ["Eight jobs in one terminal", "Each task needs a different review", "Check before merging or publishing"],
-    fr: ["Huit métiers dans un terminal", "Chaque tâche demande une relecture adaptée", "Vérifier avant de merger ou publier"],
+    kind: "flow",
+    en: ["An already broad staff role", "Data, BI, SRE-ish work and design", "A video factory for release communication"],
+    fr: ["Un rôle de staff engineer déjà transverse", "Data, BI, SRE-ish et design", "Vidéo factory et communication de release"],
   },
   "engineering-2026-ai-redefined-our-job": {
     kind: "choice",

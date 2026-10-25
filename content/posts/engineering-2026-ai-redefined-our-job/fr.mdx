@@ -1,10 +1,10 @@
 ---
-title: "L'ingénierie en 2026 : l'année où l'IA a changé notre métier"
-subtitle: "De Cursor à Claude Code : de la syntaxe tapée à la main à l'orchestration."
-summary: "Ce que le passage de l'équipe tech de RockFi à Claude Code a déplacé : moins de code écrit à la main, plus de revue, de contexte et de jugement, et 4 à 5 projets par jour sans y laisser sa santé mentale."
+title: "L'ingénierie en 2026 : ce que l'IA a changé dans notre travail"
+subtitle: "Le passage de Cursor à Claude Code chez RockFi, nos outils internes et le temps passé en review."
+summary: "Le passage de l'équipe tech de RockFi à Claude Code : moins de code écrit à la main, des outils pour les tâches répétitives et davantage de propositions à vérifier."
 visualId: "engineering-2026-ai-redefined-our-job"
 publishedAt: "2026-02-27"
-readTimeMinutes: 6
+readTimeMinutes: 4
 tags:
   - ia
   - ingenierie
@@ -12,68 +12,52 @@ tags:
   - reflexion
 ---
 
-Notre manière de travailler a beaucoup changé ces derniers mois. Ça a commencé avant le réveillon, et pour une fois, le changement a tenu après janvier.
-
-Chez **RockFi**, on a sauté le pas sans l'avoir vraiment planifié. Avec un peu de recul, autant le dire franchement : écrire du code n'est plus notre activité principale. On passe beaucoup moins de temps à se battre contre la syntaxe, et beaucoup plus à décider quoi construire et à vérifier que ce qui a été construit tient debout.
+Notre manière de travailler a beaucoup changé ces derniers mois. Chez **RockFi**, on écrit moins de code à la main et on passe davantage de temps à cadrer les demandes et à vérifier les changements proposés par les agents.
 
 ## Décembre : on quitte Cursor pour Claude Code
 
 <ArticleDiagram visualId="engineering-2026-ai-redefined-our-job" />
 
-Fin 2025, vers décembre, l'équipe tech (10 à 12 personnes à ce moment-là) est passée de Cursor à **Claude Code**. L'intérêt n'était pas d'avoir un nouvel outil. Nous voulions une IA capable de travailler dans le terminal et dans le dépôt, avec les contraintes du projet, plutôt que de compléter nos lignes de code.
+Fin 2025, vers décembre, l'équipe tech (10 à 12 personnes à ce moment-là) est passée de Cursor à **Claude Code**. Nous voulions un agent capable de travailler dans le terminal et dans le repo, avec les contraintes du projet, plutôt que de compléter nos lignes de code.
 
-Personne n'a eu besoin d'imposer la migration : les gens ont vu la différence entre batailler avec des limites de contexte et finir leurs tâches, et ils ont changé d'outil d'eux-mêmes.
+Personne n'a eu besoin d'imposer la migration : les gens ont essayé l'outil sur leurs tâches, puis ont changé d'eux-mêmes.
 
-On ne tape pas plus vite pour autant. Ce qu'on a gagné, c'est la possibilité de **déléguer une partie du travail** : Claude Code comprend assez bien notre architecture un peu spaghetti pour absorber la traduction épuisante entre « ce que je veux » et « ce que le compilateur m'oblige à taper ».
+Je peux lui confier une partie de l'implémentation avec les fichiers et les conventions du repo. Je dois ensuite vérifier comment il les a interprétés, notamment lorsqu'un changement touche plusieurs services.
 
-> On écrit beaucoup moins de code à la main qu'avant. Et pourtant, on livre davantage. Dit à voix haute, ça sonne toujours comme une hérésie.
+## Les outils maison pour les tâches répétitives
 
-## Les outils maison qui font le sale boulot
+Nous avons construit des outils autour de Claude Code pour les tâches qui revenaient souvent :
 
-Une des meilleures décisions qu'on ait prises : construire nos propres **outils internes** par-dessus Claude Code. Rien de cosmétique. Chacun traite un problème précis qui nous faisait perdre du temps :
+- **Workshops et brainstorming** : rassembler le contexte utile et structurer la discussion.
+- **Préparation des DiveIn** : reprendre les décisions et les questions ouvertes dans notre template de conception.
+- **Préparation des PR** : créer la branche, récupérer le contexte, préparer la description et lier les documents.
 
-- **Support aux workshops et au brainstorming** : des prompts structurés et des chargeurs de contexte pour explorer des idées sans tomber dans le trou noir des vieux tickets Jira.
-- **Générateur de Dive In** : notre outil de documentation technique approfondie. Ce genre de doc coûtait une demi-journée à un senior et était obsolète le jour de sa publication. Elle est maintenant générée en même temps que le code. `// Fini les docs qui mentent à la prod.`
-- **Pipelines story-vers-PR** : on écrit la user story, l'outil fait le reste. Il crée la branche, rassemble le contexte, rédige le brouillon et lie les artefacts. L'impôt administratif qu'on payait sur chaque feature a disparu.
-
-Aucun de ces outils ne décide à notre place. Ils enlèvent les frictions idiotes qui usent les bons ingénieurs à petit feu, et c'est déjà beaucoup.
+Ces outils nous évitent une partie du travail répétitif. Il reste à vérifier que le document reprend correctement la décision et que la PR correspond au besoin.
 
 ## Pourquoi je garde Codex et Claude Code
 
-En plus de la stack commune à l'équipe, j'ai fini par me bricoler une configuration personnelle plus pragmatique : j'utilise **Codex** et **Claude Code** en parallèle, et je n'ai aucune intention de choisir.
+En plus de la stack commune à l'équipe, j'utilise **Codex** et **Claude Code** en parallèle.
 
-J'utilise surtout Codex pour des modifications ciblées, avec des allers-retours courts. Claude Code, c'est plutôt celui que j'ouvre pour discuter d'une décision d'architecture ou déboguer un problème distribué qui demande de garder beaucoup de contexte.
+J'utilise surtout Codex pour des modifications ciblées, avec des allers-retours courts. Claude Code, c'est plutôt celui que j'ouvre pour discuter d'une décision d'architecture ou déboguer un problème distribué qui demande de garder beaucoup de contexte. C'est ma répartition des tâches à ce moment-là, pas une limite de ce que chaque outil sait faire.
 
-Avec ce duo, je travaille sur **4 à 5 projets par jour** sans que mon cerveau fonde. Une régression d'observabilité à corriger dans un dépôt, une migration de base de données effrayante à relire dans un autre, et mon projet principal qui avance au milieu de tout ça. Le changement de contexte qui me mettait le moral à zéro avant midi est devenu supportable.
+Avec ce duo, je travaille sur **4 à 5 projets par jour**. Une régression d'observabilité à corriger dans un repo, une migration de base de données à relire dans un autre, et mon projet principal qui avance au milieu de tout ça.
 
-Je ne suis pas devenu multitâche pour autant, mon cerveau reste mono-thread. Simplement, l'outil garde le fil de chaque dépôt, et reprendre un sujet laissé deux heures plus tôt ne me coûte presque plus rien.
+Je ne suis pas devenu multitâche pour autant, mon cerveau reste mono-thread. L'outil garde le fil de chaque repo, ce qui m'aide à reprendre un sujet laissé deux heures plus tôt. Le context switching reste là ; j'ai moins de contexte à reconstruire à chaque fois.
 
-## Au-delà de « l'IA nous rend plus rapides »
+## Le temps passé en review
 
-Résumer tout ça à « on code plus vite » passe à côté de ce qui a vraiment bougé :
+La génération d'une première version prend moins de temps. La review en prend toujours : vérifier un comportement métier, comprendre une migration, examiner les accès à la base. Nous faisions déjà ce travail avant l'IA. Il devient plus difficile de le suivre quand les diffs arrivent plus vite.
 
-- **L'unité de mesure a changé.** On jugeait l'avancement au volume de lignes poussées sur `main`. On le juge maintenant aux problèmes résolus, aux choix d'architecture qu'on sait défendre et à la tenue du système sous la charge. `// Votre facture AWS vous remerciera.`
-- **Les juniors apprennent autre chose.** Le boilerplate et la syntaxe, qui occupaient une bonne partie de leurs débuts, passent au LLM. Ce qui leur reste à apprendre, c'est l'intention, le métier et l'art de ne pas créer de dépendances circulaires.
-- **On fait enfin de l'ingénierie.** Décortiquer des systèmes complexes. Trancher des compromis douloureux. Concevoir pour la panne. Relire le code pour s'assurer qu'il ne va pas mettre le pool de connexions SQL à genoux. `// Ne mettez pas la concurrence à 100 sauf si vous détestez viscéralement votre base de données.` Les trucs difficiles sont devenus le cœur du boulot.
-
-## Ce qui nous ralentit maintenant
-
-Écrire du code ne coûte presque plus rien, mais il faut toujours décider, relire et vérifier. C'est là que nous passons notre temps maintenant.
-
-- **La paralysie des code reviews (et les IA relectrices) :** lire du code est plus difficile que l'écrire. Relire la PR d'une IA, c'est relire le travail d'un développeur « 10x » qui ne dort jamais, qui sait tout, et qui hallucine de temps en temps une librairie de cryptographie qui n'existe pas. Relire 500 lignes générées en traquant la race condition subtilement glissée au milieu nous demande une attention à laquelle nous n'étions pas habitués. Pour nous aider, des « skills » de relecture dédiés dans Claude (et leurs équivalents dans Codex) font désormais la première passe. `// Laissez les bots s'engueuler sur la complexité cyclomatique avant que je ne m'en mêle.`
-- **Le contexte est la nouvelle syntaxe :** on a arrêté de lutter contre la syntaxe pour lutter contre les fenêtres de contexte. Lâchez un LLM sans filet dans un monolithe de cinq ans, et il réécrira votre logique de paiement avec une assurance absolue, en suivant un vieux paradigme d'architecture vu sur Reddit en 2021. Savoir « parler à l'IA » ne suffit plus : il faut choisir avec soin le contexte qu'on lui donne à manger. On est devenus des _ingénieurs de contexte_.
-- **La dépendance à l'API :** un peu d'autodérision s'impose. Le jour où l'API d'Anthropic ou d'OpenAI tombe, toute l'équipe s'arrête net. Il faudra reprendre à la main les tâches que nous avons pris l'habitude de déléguer, y compris les migrations de schéma les plus banales. La dépendance est totale, et c'est un risque qu'on a accepté les yeux ouverts.
+Des skills de code review dans Claude Code et Codex font une première passe. Ils peuvent signaler un problème ou proposer une vérification supplémentaire. Il faut ensuite examiner ces remarques et le diff, avec les contraintes du système en tête.
 
 <ArticleMedia mediaId="ai-review-meme" />
 
-## La vitesse de frappe ne cache plus rien
+## Le contexte à fournir
 
-Il faut le dire tout haut : **ce qui compte comme une contribution d'ingénieur a changé pour de bon.** Taper 120 mots par minute n'a jamais été le cœur du métier, mais c'était une planque parfaite pour masquer un manque d'esprit critique. Cette planque a disparu.
+L'agent doit savoir quelles conventions s'appliquent, quels contrats préserver et quelles parties du système sont concernées. Dans un repo ancien, il peut trouver plusieurs patterns et suivre celui que nous n'utilisons plus.
 
-Si vous ne travaillez pas votre compréhension des systèmes, votre capacité à évaluer sans pitié ce que produit l'IA et votre instinct pour distinguer _ce qui est solide_ de _ce qui compile vaguement_, vous allez surtout livrer des erreurs plus vite. Plus les outils produisent, plus il faut quelqu'un capable de dire non à ce qu'ils produisent.
+Choisir les fichiers et les décisions à lui donner fait donc partie du travail. Le résultat peut être cohérent avec le contexte fourni et incompatible avec une contrainte oubliée.
 
-## Retour au boulot
+## Une dépendance supplémentaire aux API
 
-Il y a huit mois, je n'aurais pas parié sur une équipe qui livre plus, sans casser la prod, tout en écrivant moins de code à la main. C'est pourtant là qu'on en est, et la frontière entre « concevoir » et « écrire » le code est devenue franchement floue.
-
-Reste à faire monter le niveau des humains aussi vite que celui des outils. Et à garder quelqu'un dans l'équipe capable d'écrire une migration à la main, pour le jour où l'API tombe.
+Une indisponibilité d'Anthropic ou d'OpenAI ralentirait les tâches que nous avons pris l'habitude de déléguer. C'est une dépendance supplémentaire dans notre workflow. Il faut pouvoir reprendre ces tâches sans l'agent, même si cela prend plus de temps.

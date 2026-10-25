@@ -1,10 +1,10 @@
 ---
-title: "La vie d'un ingénieur fin 2026 : le terminal, mon bureau, mon agence de com et mon chef de projet"
-subtitle: "Un écran noir. Huit métiers. Le même café."
-summary: "Je travaille toujours dans un terminal. J'y prépare aussi les annonces de release, les jalons et les réponses aux retours. Les brouillons arrivent plus vite ; décider de ce qui peut sortir demande toujours du travail."
+title: "Mon terminal fin 2026 : staff engineer, option vidéo factory"
+subtitle: "Data engineering, BI, SRE-ish, design et communication : des frontières de plus en plus poreuses."
+summary: "Je fais du data engineering, de la BI, de l'analyse, je prépare des designs et j'ai monté une vidéo factory pour promouvoir nos releases. Comment les agents élargissent ce que je peux prendre en charge depuis mon terminal."
 visualId: "bounded-ai-loop"
 publishedAt: "2026-09-28"
-readTimeMinutes: 4
+readTimeMinutes: 5
 tags:
   - ia
   - developer-tools
@@ -12,57 +12,60 @@ tags:
   - reflexion
 ---
 
-Mon terminal a récupéré quelques responsabilités ces derniers temps. Git, tests, déploiements : terrain connu. Annonces de release, préparation des jalons, brouillons de communication : un peu moins. Je prépare tout ça dans la même fenêtre.
+J'ai monté une vidéo factory pour promouvoir nos releases, avec une vraie communication autour de ce qu'on livre. Elle a son repo, ses conventions, ses scripts. Jusque-là, je reste en terrain connu. Puis j'ouvre un storyboard, je travaille la narration et je me retrouve à discuter du rythme d'une scène.
 
-On nous avait promis la fin du clavier. J'ai surtout trouvé de nouvelles raisons de me servir du mien.
+Staff engineer, option montage vidéo. Je n'avais pas prévu cette spécialisation.
 
-## Même terminal, fiche de poste plus longue
+Je fais aussi du data engineering, de la BI, de l'analyse, un peu de SRE-ish et je prépare des designs. Ces activités ont déjà beaucoup de liens avec l'engineering. Avec les agents, je peux en prendre davantage en charge et lancer des initiatives qui dépassent le périmètre habituel de mon métier.
 
-Ce qui est étrange, c'est à quel point l'écran change peu. Je demande à un agent d'investiguer une race condition, puis de rendre une annonce de release moins gênante. Les deux demandes se ressemblent. Les réponses attendues, beaucoup moins.
+Le terminal est devenu un endroit depuis lequel je prépare une bonne partie de ce travail, du pipeline data au storyboard. L'interface change peu ; les questions auxquelles je dois répondre changent beaucoup.
 
-Je passais déjà une bonne partie de ma journée dans le terminal. Les agents l'ont rendu utile pour du travail que je faisais ailleurs, ou que je laissais à quelqu'un d'autre. Je peux rester dans la même fenêtre pour préparer du code, un changelog et un plan de communication. Est-ce que je dois être responsable des trois ? Le prompt ne pose pas la question.
+## Staff engineer, c'est déjà un rôle transverse
 
-Au moins, la barre de progression reste cohérente. Elle avance, je me détends. Elle bloque, je vérifie si j'ai cassé quelque chose. Parfois, elle attend juste que j'approuve une commande. Ah non, il y a le mode auto pour ça aussi. Même mon clic sur « approuver » avait besoin d'être automatisé.
+Réduire mon rôle à relire des PR et vérifier un design ne décrit pas ce que je fais. Il y a aussi le cadrage du problème, les arbitrages, les dépendances entre équipes et le suivi jusqu'à la delivery. Le suivi de projet fait partie de ce scope. Je ne suis pas devenu chef de projet le jour où un agent a su générer un planning.
 
-## Huit métiers, une seule chaise
+La porosité était donc déjà forte dans le métier. Une décision technique demande de comprendre ce que l'on veut obtenir, qui utilisera le résultat et ce que les équipes peuvent maintenir. Les discussions dépassent depuis longtemps le code du service sur lequel on travaille.
 
-En plus de livrer du code, je participe maintenant à la communication des releases : ce qu'on lance, ce que le premier jalon apporte, ce que les gens peuvent réellement utiliser à la sortie. Le travail commence bien avant l'annonce finale.
+Ce qui change, c'est la quantité de travail que je peux entreprendre moi-même autour de ces décisions, et les domaines dans lesquels je peux essayer quelque chose.
 
-Un agent peut aider à préparer tout ça. C'est pratique, parce que le métier d'origine n'a pas rétréci :
+## Data engineering, BI, analyse : des travaux différents
 
-- **Staff engineer.** Vérifier le design, relire le code, examiner les modes de panne. Toujours le métier sur le CV.
-- **Marketeur improvisé.** Expliquer pourquoi la release mérite qu'on s'y intéresse. Un changelog techniquement exact peut très bien ne donner aucune envie de le lire.
-- **Chef de projet.** Tenir les jalons et les risques à jour. Générer un plan va vite. Apprendre qu'une dépendance a pris du retard demande une conversation.
-- **Data analyst à la demande.** Sortir les chiffres du warehouse pour « une petite question rapide ». Trois jointures plus tard, me voilà en train d'expliquer pourquoi les deux dashboards n'affichent pas le même chiffre.
-- **Community manager de la release.** Lire les retours et répondre aux questions. Découvrir parfois que la phrase que tout le monde a mal comprise est celle que je trouvais la plus claire.
-- **Designer entre deux builds.** Déplacer un bouton de huit pixels, demander trois variantes à l'agent, puis choisir la première. Le build est toujours en cours.
-- **Rédacteur technique.** Mettre à jour le README pour expliquer comment lancer le projet. Découvrir en suivant mes propres instructions qu'il manque la moitié des variables d'environnement. Au moins, j'ai trouvé mon lecteur.
-- **Monteur vidéo de la release.** Préparer une démo de trente secondes. Passer vingt minutes à couper les trois secondes où je cherche le bon onglet.
+Je fais réellement ces activités. Les regrouper sous « sortir un chiffre du warehouse » efface une bonne partie du travail.
 
-À ce stade, je fais un peu tout et n'importe quoi. Mon intitulé de poste tient encore sur une ligne ; ma journée, beaucoup moins. Ça ne fait pas de moi huit spécialistes. Je reste un ingénieur consciencieux : je vérifie les chiffres, je teste ce que je livre, et je demande une relecture quand je sors de mon domaine. Même si, juste avant, j'ai passé dix minutes à choisir la miniature de la démo.
+En **data engineering**, il faut construire les pipelines et comprendre ce qu'ils transportent : le grain, les doublons, la fraîcheur, la reprise après un échec. Un pipeline qui tourne ne garantit pas que la donnée produite convient à son usage.
 
-Je peux préparer davantage de choses moi-même qu'avant. Mais huit brouillons prêts avant midi, ça reste huit brouillons à relire. Et la pause déjeuner reste une pause déjeuner. J'aimerais conserver cette fonctionnalité.
+En **BI**, le travail porte aussi sur la définition des indicateurs et sur la manière de les rendre utilisables. Quelle population est comptée ? À quelle date ? Quels filtres changent le résultat ? Un dashboard peut être propre et présenter un indicateur dont personne ne partage la définition.
 
-## Ce qui coûte, c'est de passer de l'un à l'autre
+En **data analysis**, il faut partir d'une question, choisir ce que l'on compare, examiner les écarts et déterminer ce que les données permettent de conclure. Écrire la requête ne règle pas ces questions.
 
-Il n'y a aucune frontière visible entre ces tâches. Un bug en production et une retouche d'annonce arrivent dans la même conversation, parfois avec des suggestions tout aussi assurées de l'agent.
+Les agents peuvent aider à préparer le SQL, explorer le code d'un pipeline ou proposer une visualisation. Il faut encore comprendre la donnée et ses limites pour juger le résultat. Changer de domaine demande d'apprendre ce qui compte dans ce domaine.
 
-C'est facile de passer vingt minutes à peaufiner une accroche pendant qu'une décision de design attend. L'annonce est presque terminée ; le design demande une nouvelle discussion inconfortable. Devinez lequel est le plus tentant.
+## SRE-ish et préparation de designs
 
-Relire ce travail demande aussi de changer de critères. Pour le code, je regarde le comportement, les tests, les permissions, les cas d'échec. Pour une annonce, je dois vérifier ce qui est disponible, qui peut s'en servir et si le texte promet plus que ce qu'on a livré. Des tests au vert ne répondent pas à ces questions.
+Je garde le « ish » : je ne vais pas m'attribuer toute une spécialité parce que j'ai ouvert un dashboard de prod. Mais la fiabilité, l'observabilité, le diagnostic et les conditions d'exploitation occupent une vraie place dans mon travail. La question dépasse « est-ce que le code marche ? » : comment saura-t-on qu'il ne marche plus, et comment pourra-t-on intervenir ?
+
+Côté **design**, je prépare des propositions. Il faut réfléchir au parcours, à l'information présentée et aux états de l'interface : chargement, absence de résultat, erreur, action disponible ou interdite.
+
+Pouvoir préparer un design rend aussi la discussion plus concrète. On peut examiner un parcours et ses choix avec les personnes concernées, puis le reprendre. Cela demande d'autres critères qu'une code review.
+
+## La vidéo factory dépasse ce périmètre
+
+C'est l'exemple qui rend l'évolution la plus visible pour moi. J'ai mis en place un outil pour produire des vidéos et promouvoir les releases. Il y a de l'engineering dans sa construction, puis tout le travail de communication à préparer avec lui.
+
+La factory organise le brief, le storyboard, les scènes, la narration et le son. Elle permet de travailler ces éléments ensemble. Il faut choisir ce que l'on veut raconter, pour qui, ce qu'il faut montrer et ce qui mérite d'être gardé dans la vidéo.
+
+Le changelog fournit des informations utiles. Pour communiquer sur une release, il faut aussi expliquer ce qu'elle apporte aux personnes qui vont l'utiliser et préparer une présentation qui leur parle. C'est un travail éditorial, avec des choix de fond et de forme.
+
+Les agents rendent cette initiative plus accessible depuis mon environnement de travail habituel. Je peux préparer une narration, construire les scènes et itérer sur le résultat. Il reste à regarder la vidéo, écouter ce qu'elle raconte et décider si elle présente correctement ce que l'on a livré. Un export qui réussit ne répond pas à ces questions. Malheureusement, le bon goût n'a toujours pas de code de sortie.
 
 <ArticleMedia mediaId="hat-switching-tax" />
 
-L'outil rend le changement de tâche assez facile pour que je cesse de compter les allers-retours. Je m'en rends compte plus tard, quand l'après-midi est passé et que le sujet difficile est toujours ouvert.
+## Plus de possibilités, d'autres compétences à acquérir
 
-## Avant d'appuyer sur envoyer
+Le context switching reste un sujet. Passer d'une définition d'indicateur à un design, puis à une narration, demande de changer de critères. Le fait de rester dans le même terminal ne supprime pas cet effort.
 
-Je n'ai pas besoin d'un nouveau framework pour ça. J'ai besoin de garder du temps pour la relecture et de faire intervenir les personnes qui savent ce que je ne sais pas.
+Mais je ne retiens pas seulement les changements de tâche. Je peux aussi entreprendre des choses que je n'aurais pas forcément lancées auparavant. La vidéo factory existe parce que j'ai pu travailler à la fois sur l'outil et sur ce que nous voulions en faire.
 
-Avant de merger du code, vérifier le diff et les preuves. Avant de publier une annonce, confronter ses affirmations à la fonctionnalité réellement utilisable. Avant de s'engager sur un jalon, vérifier les dépendances et la capacité avec l'équipe. Un agent peut préparer les éléments de chaque décision. Il ne peut pas rendre l'équipe disponible mardi prochain.
+Cette porosité me plaît. Elle me donne des raisons d'apprendre, de préparer des propositions et de travailler avec d'autres compétences que les miennes. Elle demande aussi de savoir quand faire appel à quelqu'un qui connaît mieux le sujet.
 
-La même personne n'a pas à tout valider. Si j'ai rédigé un message sur une fonctionnalité, quelqu'un qui va l'utiliser repérera peut-être une phrase trompeuse bien plus vite que moi. Être l'auteur du brouillon ne fait pas de moi le meilleur relecteur final.
-
-J'aime pouvoir faire davantage depuis le terminal. J'aime nettement moins quand ça devient l'attente que je prenne en charge toutes les tâches qu'il peut produire.
-
-Pour l'instant, je garde les nouvelles possibilités. Et j'essaie de fermer une tâche avant d'en ouvrir une autre. Le terminal sait faire plusieurs choses à la fois. Mon attention reste obstinément mono-thread. <small><em>Ou presque. Je suis un robot moi aussi, après tout.</em></small>
+Mon intitulé de poste n'a pas changé. J'ai quand même ajouté une vidéo factory à mes projets. Il faudra prévoir une ligne un peu plus longue sur le CV.

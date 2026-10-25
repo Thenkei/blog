@@ -2,11 +2,11 @@ import { useId } from "react";
 import { Box, ease, easeOut, enter, hash, lerp, pop, Pulse, stagger, Tag, Text, tint, TONE, type Tone } from "../primitives";
 import { defineScene, type SceneStageProps } from "../types";
 
-// Rhythm break. Two counters tell the joke: the AI writes 0 → 500 lines in a
+// Illustrative review sequence. Two counters compare the work: the AI writes 0 → 500 lines in a
 // second; the human, reading, crawls from line 1. Meanwhile the reviewer bots
 // argue with each other, catch the hallucinated crypto library, and leave the
 // subtle race condition to the human. Then the API goes down: the bots go
-// quiet, the writer panel asks for a 150-line migration by hand, and the human
+// quiet, the writer panel shows a migration to resume by hand, and the human
 // counter keeps crawling.
 const T = {
   write: [12, 40] as const,
@@ -14,7 +14,6 @@ const T = {
   read: 54,
   comments: [84, 110, 134, 174, 214] as const,
   outage: 272,
-  butter: 304,
   end: 400,
 } as const;
 
@@ -27,9 +26,9 @@ const FLAG_ROW = 7;
 
 type Comment = { author: { en: string; fr: string }; text: { en: string; fr: string }; tone: Tone; bot: boolean };
 const COMMENTS: readonly Comment[] = [
-  { author: { en: "reviewer skill · Claude", fr: "skill de relecture · Claude" }, text: { en: "cyclomatic complexity too high", fr: "trop de complexité cyclomatique" }, tone: "line", bot: true },
+  { author: { en: "reviewer skill · Claude", fr: "skill de review · Claude" }, text: { en: "cyclomatic complexity too high", fr: "trop de complexité cyclomatique" }, tone: "line", bot: true },
   { author: { en: "Codex", fr: "Codex" }, text: { en: "disagree.", fr: "pas d'accord." }, tone: "line", bot: true },
-  { author: { en: "reviewer skill · Claude", fr: "skill de relecture · Claude" }, text: { en: "disagree with your disagreement.", fr: "pas d'accord avec ton désaccord." }, tone: "line", bot: true },
+  { author: { en: "reviewer skill · Claude", fr: "skill de review · Claude" }, text: { en: "check the retry path too.", fr: "vérifier aussi les retries." }, tone: "line", bot: true },
   { author: { en: "Codex", fr: "Codex" }, text: { en: "✗ that crypto library doesn't exist", fr: "✗ cette lib crypto n'existe pas" }, tone: "danger", bot: true },
   { author: { en: "you", fr: "vous" }, text: { en: "race condition here?", fr: "race condition ici ?" }, tone: "hot", bot: false },
 ];
@@ -92,21 +91,12 @@ function Stage({ frame, compact, locale }: SceneStageProps) {
           <Text x={W.x + 20} y={W.y + (compact ? 104 : 124)} size={11} font="mono" weight={600} tone="muted" caps>{fr ? "lignes générées" : "lines generated"}</Text>
           <CodeRows x={compact ? W.x + 200 : W.x + 20} y={compact ? W.y + 40 : W.y + 146} w={compact ? 280 : W.w - 40} h={compact ? 72 : 150} rowH={compact ? 9 : 15} scroll={writeScroll} visible={frame < T.write[0] ? 0 : ROWS.length} />
         </g>
-        {/* Outage: the writer panel asks the unthinkable. */}
+        {/* If the API is unavailable, work needs to continue without the agent. */}
         <g opacity={outage}>
           <Tag x={W.x + 18} y={W.y + (compact ? 56 : 72)} anchor="start" text={fr ? "panne d'API" : "API outage"} tone="danger" size={13} appear={outage} />
           <Text x={W.x + 18} y={W.y + (compact ? 88 : 122)} size={compact ? 16 : 19} weight={650}>{fr ? "Migration de 150 lignes" : "150-line schema migration"}</Text>
-          <Text x={W.x + 18} y={W.y + (compact ? 108 : 148)} size={compact ? 14 : 16} font="mono" weight={600} tone="danger">{fr ? "…à la main ?" : "…by hand?"}</Text>
-          <Tag x={compact ? W.x + W.w - 14 : W.x + 18} y={compact ? W.y + 98 : W.y + 204} anchor={compact ? "end" : "start"} text={fr ? "≈ baratter son beurre" : "≈ churning your own butter"} tone="hot" size={compact ? 12 : 12.5} appear={frame >= T.butter ? pop(frame, T.butter) : 0} />
-          {!compact ? <g opacity={ease(frame, T.butter + 10, T.butter + 30)}>
-            {/* A butter churn, drawn in hairlines: the only illustration in the scene. */}
-            <g transform={`translate(${W.x + W.w / 2} ${W.y + 272})`}>
-              <path d="M-26 -20L-20 26H20L26 -20Z" fill="none" style={{ stroke: TONE.hot }} strokeWidth={1.25} strokeLinejoin="round" />
-              <line x1={-28} x2={28} y1={-20} y2={-20} style={{ stroke: TONE.hot }} strokeWidth={1.25} />
-              <line x1={0} x2={0} y1={-48 + 8 * Math.sin(frame * .25)} y2={10 + 8 * Math.sin(frame * .25)} style={{ stroke: TONE.hot }} strokeWidth={1.5} strokeLinecap="round" />
-              <line x1={-9} x2={9} y1={10 + 8 * Math.sin(frame * .25)} y2={10 + 8 * Math.sin(frame * .25)} style={{ stroke: TONE.hot }} strokeWidth={1.5} strokeLinecap="round" />
-            </g>
-          </g> : null}
+          <Text x={W.x + 18} y={W.y + (compact ? 108 : 148)} size={compact ? 14 : 16} font="mono" weight={600} tone="danger">{fr ? "à reprendre à la main" : "resume by hand"}</Text>
+
         </g>
       </Box>
     </g>
@@ -157,17 +147,17 @@ function Stage({ frame, compact, locale }: SceneStageProps) {
 export default defineScene({
   durationInFrames: T.end,
   posterFrame: 250,
-  title: { en: "Writing is instant. Reading isn't.", fr: "Écrire est instantané. Relire, non." },
+  title: { en: "Reviewing generated code", fr: "La code review du code généré" },
   caption: {
-    en: "AI made producing code cheap; it did not make deciding whether the code should ship any cheaper. Reviewer bots clear the first pass, the subtle question stays human, and the whole setup still depends on the API being up.",
-    fr: "L'IA a rendu la production de code bon marché, pas la décision de la livrer. Les bots relecteurs font la première passe, la question subtile reste humaine, et tout le dispositif dépend encore de l'API.",
+    en: "An illustrative diff arrives faster than it can be reviewed. Review skills provide a first pass; the engineer still checks the comments and behaviour. An API outage means resuming work without the agent.",
+    fr: "Cet exemple illustre un diff produit plus vite qu'il ne peut être relu. Les skills de review font une première passe ; l'ingénieur vérifie les remarques et le comportement. Une panne d'API oblige à reprendre le travail sans l'agent.",
   },
   beats: [
-    { at: 0, text: { en: "Writing: the AI drops 500 lines. Done.", fr: "Écrire : l'IA pose 500 lignes. Fini." } },
-    { at: T.read, text: { en: "Reviewing: the same 500 lines, line by line. Reading code is harder than writing it.", fr: "Relire : les mêmes 500 lignes, ligne par ligne. Lire du code est plus dur que l'écrire." } },
-    { at: T.comments[0], text: { en: "Fight fire with fire: let the bots argue about cyclomatic complexity before you look.", fr: "Soigner le mal par le mal : laisser les bots s'engueuler sur la complexité cyclomatique." } },
-    { at: T.comments[3], text: { en: "They catch the crypto library that doesn't exist. The subtle race condition is still yours to find.", fr: "Ils repèrent la librairie crypto qui n'existe pas. La race condition subtile reste à vous." } },
-    { at: T.outage, text: { en: "Then the API goes down, and a 150-line migration by hand feels like churning your own butter.", fr: "Puis l'API tombe, et une migration de 150 lignes à la main, c'est baratter son propre beurre." } },
+    { at: 0, text: { en: "In this example, the agent proposes a 500-line diff.", fr: "Dans cet exemple, l'agent propose un diff de 500 lignes." } },
+    { at: T.read, text: { en: "The diff still needs review against the system's constraints.", fr: "Le diff reste à vérifier avec les contraintes du système." } },
+    { at: T.comments[0], text: { en: "Review skills suggest checks. Their comments need to be examined too.", fr: "Les skills de review proposent des vérifications. Leurs remarques sont aussi à examiner." } },
+    { at: T.comments[3], text: { en: "A missing library and a possible race condition require different checks.", fr: "Une lib inexistante et une race condition possible demandent des vérifications différentes." } },
+    { at: T.outage, text: { en: "If the API is unavailable, the migration needs to be resumed without the agent.", fr: "Si l'API est indisponible, il faut reprendre la migration sans l'agent." } },
   ],
   Stage,
 });

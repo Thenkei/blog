@@ -304,7 +304,7 @@ export default defineScene({
     { at: 0, text: { en: "Three agents write three screens. None contains a permission check or an audit call.", fr: "Trois agents écrivent trois écrans. Aucun ne contient de contrôle d'accès ni d'appel d'audit." } },
     { at: T.read, text: { en: "Every request crosses the same gates: identity, field-level access, audit. Reads hit a replica.", fr: "Chaque requête franchit les mêmes portes : identité, accès au champ, audit. Les lectures vont sur une replica." } },
     { at: T.write, text: { en: "Writes go through named actions and service APIs, whoever wrote the screen.", fr: "Les écritures passent par des actions nommées et les APIs des services, quel que soit l'auteur de l'écran." } },
-    { at: T.direct, text: { en: "A direct SQL write has no route: the engine is the only path, so nobody can forget it.", fr: "Une écriture SQL directe n'a aucun chemin : le moteur est le seul passage, impossible de l'oublier." } },
+    { at: T.direct, text: { en: "Writes go through the engine, which applies the configured controls.", fr: "Les écritures passent par le moteur, qui applique les contrôles configurés." } },
     { at: T.rollout, text: { en: "Rollout runs one process at a time: a cohort tests, reports gaps, the team fixes them.", fr: "Le déploiement avance processus par processus : une cohorte teste, remonte les écarts, l'équipe corrige." } },
     { at: T.steps[3], text: { en: "Only after validation does the old tool retire, and only for that process.", fr: "L'ancien outil n'est retiré qu'après validation, et uniquement pour ce processus." } },
   ],

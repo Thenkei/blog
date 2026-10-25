@@ -4,7 +4,7 @@ subtitle: "Un jeu de timing, des formes géométriques et mes premiers essais av
 summary: "Avec Jokarikara, j’ai utilisé l’IA pour la première fois dans un projet personnel. Un petit jeu qui pose des questions très concrètes de géométrie, de rythme et de jugement."
 visualId: "jokarikara-first-ai-project"
 publishedAt: "2026-10-22"
-readTimeMinutes: 4
+readTimeMinutes: 3
 tags:
   - ai
   - developer-tools
@@ -16,15 +16,13 @@ tags:
 
 Jokarikara a une place particulière dans mes projets : c’est la première fois que j’ai utilisé l’IA dans un projet personnel. J’y ai utilisé plusieurs outils — **Claude Code, Antigravity et Codex** — autour d’un objet très concret : un petit jeu de timing.
 
-Le [dépôt est public sur GitHub](https://github.com/Thenkei/jokarikara). Derrière ce nom, il y a des formes qui grandissent, qui tournent, et un doigt qui doit choisir le bon moment.
+Le [repo est public sur GitHub](https://github.com/Thenkei/jokarikara). Derrière ce nom, il y a des formes qui grandissent, qui tournent, et un doigt qui doit choisir le bon moment.
 
 ## Un seul geste, beaucoup de tension
 
 Le principe de base est facile à expliquer. Une forme apparaît au centre de l’écran et grandit automatiquement. Il faut toucher l’écran pour la placer à l’intérieur de la précédente. Chaque placement réussi ajoute une couche ; en mode classique, dépasser le contour fait perdre.
 
 La difficulté vient de ce que l’on voit bouger : la taille, l’orientation, puis les effets qui s’ajoutent au fil de la progression. Le zoom accompagne le rétrécissement des formes pour garder l’action lisible. Le [guide de jeu](https://github.com/Thenkei/jokarikara/blob/main/GAMEPLAY.md) décrit cette boucle et ses variations.
-
-Le geste reste le même. Le contexte dans lequel on le fait change.
 
 Cette simplicité rend le projet intéressant à regarder sous l’angle du développement. Avec une seule interaction principale, chaque détail compte : la vitesse de croissance, la lisibilité du contour, le moment où la forme est acceptée, le retour que reçoit le joueur.
 
@@ -40,28 +38,16 @@ Ce sont des choix d’implémentation que l’on peut examiner et discuter. Le m
 
 <MotionScene id="jokarikara-containment" />
 
-## Trois outils, un même projet
+## Vérifier le résultat dans le jeu
 
-Claude Code, Antigravity et Codex font tous partie de cette première expérience. Je ne vais pas en tirer un classement : avoir utilisé plusieurs outils sur un projet ne constitue pas un comparatif contrôlé.
+J’ai utilisé Claude Code, Antigravity et Codex sur ce projet. Pour examiner le résultat, je peux partir du comportement du jeu : un placement accepté correspond-il au contour affiché ? La rotation change-t-elle correctement le test de containment ? Les effets ajoutés rendent-ils encore le jeu lisible ?
 
-Ce qui m’intéresse ici, c’est de relier l’usage de l’IA à un résultat que l’on peut inspecter. Dans un jeu, le code produit doit finir par répondre à des questions très simples : comprend-on ce qui se passe ? Le placement paraît-il cohérent avec le contour affiché ? La difficulté laisse-t-elle une chance au joueur ?
-
-Ces questions donnent un point d’appui concret pour juger une proposition technique. Un changement peut compiler tout en rendant le jeu moins lisible. Une nouvelle mécanique peut fonctionner isolément tout en se combinant mal avec les précédentes.
-
-L’IA prend donc place dans un travail qui garde besoin d’une intention et de critères. Le jeu fournit un terrain particulièrement direct pour les confronter à ce qui apparaît à l’écran.
+Le module de géométrie permet d’examiner une partie de ces questions dans le code. Pour le rythme et la difficulté, il faut aussi jouer.
 
 ## Faire évoluer la difficulté sans perdre la règle
 
 La [configuration du gameplay](https://github.com/Thenkei/jokarikara/blob/main/src/gameplay/config.ts) rassemble notamment la progression, les formes disponibles, les seuils de qualité et les effets des mondes. On y trouve des pulsations, des vagues, une dérive verticale ou encore des inversions de rotation.
 
 Cette organisation rend les réglages visibles. Elle permet de distinguer une modification de difficulté d’une modification de la logique géométrique. Elle montre aussi comment une règle de départ très courte peut produire un système de variations bien plus riche.
-
-Pour un projet personnel avec l’IA, c’est une distinction utile : ajouter des possibilités et comprendre leurs interactions sont deux travaux qui doivent avancer ensemble.
-
-## Un premier repère
-
-Je garde surtout Jokarikara comme un premier repère dans mon usage personnel de l’IA. Un projet à taille humaine, avec une règle que l’on peut expliquer en quelques secondes et une implémentation qui mérite d’être regardée de près.
-
-Il y a quelque chose que j’aime dans ce contraste : quelques formes à l’écran, un seul geste, et déjà suffisamment de matière pour parler de géométrie, de conception et de la manière dont je veux construire avec ces outils.
 
 Le code de [Jokarikara](https://github.com/Thenkei/jokarikara) est ouvert à qui veut regarder sous les contours.
