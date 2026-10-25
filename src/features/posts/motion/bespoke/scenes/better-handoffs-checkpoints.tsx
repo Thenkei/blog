@@ -24,7 +24,7 @@ const HIGH_COST = [false, false, false, true] as const;
 type Lane = { key: "all" | "none" | "bounded"; gates: readonly boolean[]; label: { en: string; fr: string }; verdict: { en: string; fr: string }; tone: Tone };
 const LANES: readonly Lane[] = [
   { key: "all", gates: [true, true, true, true], label: { en: "Approve every step", fr: "Tout approuver" }, verdict: { en: "bottleneck", fr: "goulot" }, tone: "hot" },
-  { key: "none", gates: [false, false, false, false], label: { en: "No checkpoints", fr: "Aucun contrôle" }, verdict: { en: "unreviewed", fr: "sans revue" }, tone: "danger" },
+  { key: "none", gates: [false, false, false, false], label: { en: "No checkpoints", fr: "Aucun contrôle" }, verdict: { en: "unreviewed", fr: "sans review" }, tone: "danger" },
   { key: "bounded", gates: [false, false, false, true], label: { en: "Bounded", fr: "Borné" }, verdict: { en: "one pause", fr: "une pause" }, tone: "ok" },
 ];
 
@@ -128,7 +128,7 @@ function Stage({ frame, compact, locale }: SceneStageProps) {
       })}
 
       {!done ? <Dot x={tokenX} y={y} r={5.5} tone={waiting >= 0 ? "hot" : "line"} /> : null}
-      {waiting >= 0 ? <Tag x={gateX(waiting) - 14} y={compact ? y + 26 : y - 26} anchor={compact && waiting === 3 ? "end" : "start"} text={fr ? "attend l'astreinte" : "waits for on duty"} tone="hot" size={11.5} appear={easeOut(frame, plan[waiting]!.gate!.at + APPROACH, plan[waiting]!.gate!.at + APPROACH + 8)} /> : null}
+      {waiting >= 0 ? <Tag x={gateX(waiting) - 14} y={compact ? y + 26 : y - 26} anchor={compact && waiting === 3 ? "end" : "start"} text={fr ? "attend on-duty" : "waits for on duty"} tone="hot" size={11.5} appear={easeOut(frame, plan[waiting]!.gate!.at + APPROACH, plan[waiting]!.gate!.at + APPROACH + 8)} /> : null}
 
       <Tag x={compact ? 520 : 920} y={compact ? y - 36 : y} anchor="end" text={lane.verdict[locale]} tone={lane.tone} appear={frame >= finish(plan) + 4 ? pop(frame, finish(plan) + 4) : 0} size={13} />
     </g>;
@@ -174,10 +174,10 @@ export default defineScene({
   },
   beats: [
     { at: 0, text: { en: "The same four next actions, three ways to run them. Only the production change is costly if wrong.", fr: "Quatre actions, trois façons de les enchaîner. Seule la modification de production coûte cher." } },
-    { at: B.all, text: { en: "Approve every step: each diagnostic waits for the person on duty before it runs.", fr: "Tout approuver : chaque diagnostic attend la personne d'astreinte avant de partir." } },
-    { at: B.none, text: { en: "No checkpoints: the chain is fast, and the production change runs unreviewed.", fr: "Aucun contrôle : la chaîne va vite, et la modification de production part sans revue." } },
+    { at: B.all, text: { en: "Approve every step: each diagnostic waits for the person on duty before it runs.", fr: "Tout approuver : chaque diagnostic attend la personne on-duty avant de partir." } },
+    { at: B.none, text: { en: "No checkpoints: the chain is fast, and the production change runs unreviewed.", fr: "Aucun contrôle : la chaîne va vite, et la modification de production part sans review." } },
     { at: B.bounded, text: { en: "Bounded: diagnostics run on their own, then one pause before the high-impact action.", fr: "Borné : les diagnostics avancent seuls, puis une seule pause avant l'action à fort impact." } },
-    { at: B.bottleneck, text: { en: "Approving every tiny step keeps the person on duty as the queue: it finishes last.", fr: "Tout approuver fait de la personne d'astreinte la file d'attente : la chaîne finit en dernier." } },
+    { at: B.bottleneck, text: { en: "Approving every tiny step keeps the person on duty as the queue: it finishes last.", fr: "Tout approuver fait de la personne on-duty la file d'attente : la chaîne finit en dernier." } },
     { at: B.close, text: { en: "Confidence alone is not enough: the cost of being wrong decides where a person must decide.", fr: "La confiance ne suffit pas : le coût d'une erreur détermine où une personne doit trancher." } },
   ],
   Stage,

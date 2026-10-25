@@ -1,0 +1,53 @@
+---
+title: "Jokarikara: My First Personal Project with AI"
+subtitle: "A timing game, geometric shapes, and my first experiments with Claude Code, Antigravity, and Codex."
+summary: "Jokarikara was my first time using AI in a personal project. A small game with concrete questions about geometry, rhythm, and judgment."
+visualId: "jokarikara-first-ai-project"
+publishedAt: "2026-10-22"
+readTimeMinutes: 3
+tags:
+  - ai
+  - developer-tools
+  - personal
+  - games
+  - react
+  - typescript
+---
+
+Jokarikara has a particular place among my projects: it was my first time using AI in a personal project. I used several tools — **Claude Code, Antigravity, and Codex** — around something very tangible: a small timing game.
+
+The [repository is public on GitHub](https://github.com/Thenkei/jokarikara). Behind the name are shapes that grow and rotate, and a finger that has to choose the right moment.
+
+## One gesture, plenty of tension
+
+The basic idea is easy to explain. A shape appears at the center of the screen and grows automatically. Tap to place it inside the previous shape. Each successful placement adds a layer; in classic mode, crossing the boundary ends the run.
+
+The difficulty comes from what moves: size, orientation, and then the effects introduced as the game progresses. The camera zooms as the shapes get smaller to keep the action readable. The [gameplay guide](https://github.com/Thenkei/jokarikara/blob/main/GAMEPLAY.md) describes this loop and its variations.
+
+That simplicity makes the project interesting from a development perspective. With one main interaction, every detail matters: growth speed, the clarity of a boundary, the moment a shape is accepted, and the feedback the player receives.
+
+## A geometry problem beneath the shapes
+
+The technical foundation combines React, TypeScript, Canvas, and the Web Audio API. React handles the interface; Canvas renders the game. But the part that best illustrates the project's constraints is a question: **how do you determine whether one shape fits inside another?**
+
+Comparing two sizes is insufficient. A rotated square can poke out at a corner. A triangle introduces different angles. Rotation changes the answer without changing a shape's nominal size.
+
+The [geometry module](https://github.com/Thenkei/jokarikara/blob/main/src/utils/geometry.ts) computes vertices, transforms points into the containing shape's coordinate system, and runs point containment checks. Circle boundaries are sampled, and several checks include tolerances.
+
+These are implementation choices that can be examined and discussed. The word “collision” does little to explain them, and a convincing animation alone cannot prove that every combination is handled correctly.
+
+<MotionScene id="jokarikara-containment" />
+
+## Checking the result in the game
+
+I used Claude Code, Antigravity, and Codex on this project. To examine the result, I can start with the game's behaviour: does an accepted placement match the visible boundary? Does rotation affect the containment check correctly? Do the added effects keep the game readable?
+
+The geometry module lets me examine some of those questions in code. For rhythm and difficulty, I also need to play.
+
+## Evolving the difficulty while keeping the rule
+
+The [gameplay configuration](https://github.com/Thenkei/jokarikara/blob/main/src/gameplay/config.ts) brings together progression, available shapes, quality thresholds, and world effects. These include pulsing, waves, vertical drift, and rotation inversions.
+
+This structure makes the settings visible. It separates a difficulty adjustment from a change to the geometry logic. It also shows how a very short starting rule can support a much richer system of variations.
+
+The [Jokarikara source code](https://github.com/Thenkei/jokarikara) is open to anyone who wants to look beneath the outlines.

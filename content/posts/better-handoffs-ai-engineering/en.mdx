@@ -1,7 +1,7 @@
 ---
-title: "The Future of AI Engineering Isn't Better Agents. It's Better Hand-offs."
-subtitle: "What an on-duty workflow taught us about building AI systems that actually work."
-summary: "As agents move from isolated tools to connected workflows, the hard problem is preserving investigation state and human judgment across every hand-off."
+title: "What Our Agents Need to Pass On During an Investigation"
+subtitle: "Hypotheses, logs, and remaining checks: preparing a handoff the person on duty can pick up."
+summary: "Our on-duty workflow, the investigation state agents need to pass on, and the decisions that still need review."
 visualId: "better-handoffs-ai-engineering"
 publishedAt: "2026-08-22"
 readTimeMinutes: 7
@@ -15,7 +15,7 @@ tags:
 
 When people talk about AI agents, they often ask how far the system can act on its own. Working on an on-duty workflow led me to a different question: what does an agent pass on when it stops?
 
-An agent that investigates, then leaves behind a pile of logs and an unexplained decision, makes the next person start over. It is the software equivalent of a colleague leaving for holidays with a sticky note that says “it’s the cache”. The hand-off matters as much as the investigation.
+An agent that investigates, then leaves behind a pile of logs and an unexplained decision, makes the next person start over. It is the software equivalent of a colleague leaving for holidays with a sticky note that says “it’s the cache”. The handoff matters as much as the investigation.
 
 ## It started with on-duty chores
 
@@ -49,7 +49,7 @@ Without that, the chain keeps moving and loses the thread.
 
 Retrieving the right documents and granting the right tools gets you halfway. The other half is passing on the reasoning built from them.
 
-Here is a hand-off that looks helpful:
+Here is an example of a handoff that looks helpful:
 
 ```text
 The error rate increased at 14:03.
@@ -85,13 +85,13 @@ The hypothesis, the evidence, the discarded paths, and the remaining uncertainty
 
 ## A place to take over
 
-An event could trigger an automatic investigation, after which the orchestrator posts a structured hand-off in a Slack thread. The person on duty would see the evidence, hypotheses, confidence, and possible actions at the moment their judgment is needed.
+An event could trigger an automatic investigation, after which the orchestrator posts a structured handoff in a Slack thread. The person on duty would see the evidence, hypotheses, confidence, and possible actions at the moment their judgment is needed.
 
 The same format could live in a ticket, pull request, or incident timeline. Between agents, too, a compact state beats a raw transcript that each recipient must reinterpret.
 
-## Designing a good hand-off protocol
+## Designing a good handoff protocol
 
-A hand-off should make six things explicit:
+A handoff should make six things explicit:
 
 1. **The original objective**, so the chain does not drift.
 2. **The current hypothesis** and confidence level.
@@ -106,10 +106,10 @@ Asking for approval at every tiny step brings the bottleneck back, and skipping 
 
 <MotionScene id="better-handoffs-checkpoints" />
 
-## Hand-offs are part of reliability
+## Handoffs are part of reliability
 
 The reliability of an agent workflow also depends on what the next participant understands. Can they tell observation from hypothesis, check the evidence, and know whether a recommendation is ready to execute or only worth investigating?
 
-So evaluation should look at the hand-off, and not only at each agent's answer. An unfinished investigation still helps if it narrows the possibilities and says clearly what remains uncertain.
+So evaluation should look at the handoff, and not only at each agent's answer. An unfinished investigation still helps if it narrows the possibilities and says clearly what remains uncertain.
 
 Our on-duty workflow taught us that an agent needs to know when to proceed and when to ask for judgment, and that it must keep the thread of the investigation as the work changes hands. The test I now apply is short: when the agent stops, does the next person know what to check and which decision to make?

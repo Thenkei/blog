@@ -1,42 +1,32 @@
 ---
-title: "L'IA comme levier : le rôle de l'ingénieur évolue"
-subtitle: "De l'exécution à l'orchestration."
-summary: "Pourquoi le rôle d'un staff engineer évolue vers l'orchestration lorsque l'IA rend l'exécution presque instantanée."
+title: "L'IA dans mon workflow de staff engineer"
+subtitle: "Préparer une première version, comparer les approches et vérifier ce que je garde."
+summary: "Comment j'utilise l'IA pour préparer des RFC et explorer des refactorings, et ce que je vérifie avant de garder une proposition."
 visualId: "ai-force-multiplier"
 publishedAt: "2026-01-10"
-readTimeMinutes: 8
+readTimeMinutes: 2
 tags:
   - ia
   - ingenierie
   - leadership
 ---
 
-En tant que coureur, je sais que le terrain dicte toujours l'allure. Sur un sentier technique, on se concentre sur la racine qui essaie de nous tordre la cheville. Sur un bitume bien plat, on trouve tranquillement son rythme. En ingénierie logicielle, le terrain a changé du jour au lendemain — et le sol est désormais composé à 100 % de caféine. L'IA n'est pas un simple outil : elle modifie les règles du métier.
+J'utilise de plus en plus l'IA pour préparer une RFC, explorer une approche ou avancer sur un refactoring. Ça change la répartition de mon travail : je passe moins de temps à écrire une première version, davantage à la relire et à décider ce que je garde.
 
-Pour un staff engineer, la valeur ajoutée a toujours reposé sur le **jugement** plutôt que sur la vitesse de frappe. Mais quand la vitesse de production brute augmente brutalement grâce aux modèles de langage, la valeur du jugement dépasse largement la capacité d'exécution. J'ai passé ces derniers mois à intégrer l'IA dans chaque étape de mon flux de travail — du simple brouillon de RFC jusqu'à la refonte qui tache — et, très franchement, le changement donne le vertige.
+Pour un staff engineer, une bonne partie du travail consistait déjà à comprendre les contraintes et à prendre des décisions. Avec l'IA, je peux examiner davantage de propositions. Il faut encore comprendre pourquoi l'une convient et pourquoi les autres poseraient problème.
 
-## De l'exécutant au chef d'orchestre
+## Comparer plusieurs approches
 
 <ArticleDiagram visualId="ai-force-multiplier" />
 
-Le changement le plus visible concerne la façon dont j'utilise mon temps. Dans le « monde d'avant », une part absurde de mon énergie mentale se consumait dans la _mécanique_ : se battre avec la syntaxe, le code répétitif ou chercher ce fichu paramètre dans la documentation. Aujourd'hui, je passe environ 20 % de mon temps à exécuter et 80 % à **orchestrer**.
+Quand j'explore une architecture événementielle, je peux demander plusieurs approches et comparer leurs implications : où passe la transaction, comment gérer les retries, ce qui se produit lorsqu'un consommateur prend du retard.
 
-> Considérez l'IA comme un ingénieur junior incroyablement fougueux, qui tape à la vitesse de l'éclair, a lu tout GitHub, mais n'a absolument aucun contexte métier.
+Les propositions me donnent un point de départ. Pour choisir, je dois revenir aux contraintes du système et vérifier les hypothèses sur lesquelles elles reposent. Un exemple qui fonctionne isolément peut laisser de côté les garanties de livraison ou les contraintes d'un service existant.
 
-J'utilise massivement l'IA pour du « prototypage exploratoire ». Si j'envisage une nouvelle architecture pour nos systèmes événementiels, je lui demande d'ébaucher trois approches radicalement différentes. Mon but n'est pas d'utiliser ce code en production (pitié, ne faites pas ça) : c'est de **réduire l'espace des possibles**. Je peux « voir » trois univers parallèles en quelques secondes, puis utiliser mes propres traumatismes de production passés pour choisir la solution qui ne m'obligera pas à me lever à 3 heures du matin dans 18 mois.
+## Ce que je vérifie avant de garder le code
 
-## La fin du vrai savoir-faire ?
+Je veux pouvoir expliquer le changement, comprendre ses effets de bord et savoir ce qui le valide. Demander au modèle de justifier un choix peut faire apparaître une hypothèse ; sa réponse ne suffit pas à la confirmer. Je retourne au code, aux contrats et aux tests concernés.
 
-C'est une crainte totalement légitime. Si vous ne savez plus analyser une trace d'erreur complexe parce que la machine la résout pour vous en trois secondes, êtes-vous toujours un ingénieur ?
+Si je ne comprends pas une ligne, je cherche pourquoi elle est là avant de modifier le code. La supprimer au seul motif que je ne sais pas l'expliquer pourrait retirer un comportement nécessaire.
 
-Je pense que c'est la définition même des « fondamentaux » qui évolue. Écrire du code relève de moins en moins de la mémorisation de la syntaxe, et de plus en plus de la **clarté de l'intention** et de la **vérification paranoïaque**. Si vous formulez mal votre problème, l'IA produira fièrement un désastre parfaitement typé. Le vrai super-pouvoir aujourd'hui est la capacité d'auditer l'IA avec le même niveau de scepticisme que s'il s'agissait de la pull request d'un inconnu sur Internet.
-
-## Règles de survie dans l'ère de l'IA
-
-Comment s'adapter sans devenir obsolète ? Voici mes garde-fous personnels :
-
-- `Vérifiez, puis faites confiance :` Ne poussez JAMAIS du code que vous n'avez pas lu ligne par ligne. Si vous ne savez pas justifier une ligne, supprimez-la.
-- `Interrogez la machine :` Demandez à l'IA _pourquoi_ elle a choisi une approche précise. La forcer à peser le pour et le contre met très souvent en lumière ses angles morts (et les vôtres).
-- `Protégez votre "modèle mental" :` Utilisez l'IA pour poser les fondations, mais vous restez l'architecte. Le jour où vous ne comprenez plus comment les briques de votre propre système s'emboîtent, vous devenez virtuellement remplaçable.
-
-Courir un ultra-trail demande une explosivité ponctuelle et une endurance à toute épreuve. Il faut de la vitesse pour avaler les portions techniques, mais de sacrés poumons pour survivre aux 50 km. L'IA nous offre la vitesse, mais nous devons toujours apporter le coffre — la vision lointaine, les cicatrices du terrain, et ce bon vieux jugement humain qui permet au système de ronronner kilomètre après kilomètre.
+La même exigence vaut pour un bug que l'agent semble avoir corrigé. Je dois pouvoir relier le symptôme à sa cause et vérifier que le changement traite cette cause. Sans cette vérification, je ne sais pas si le problème a été corrigé ou simplement déplacé.

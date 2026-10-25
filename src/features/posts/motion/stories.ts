@@ -24,8 +24,8 @@ export const MOTION_STORIES = {
   },
   "ai-force-multiplier": {
     kind: "flow",
-    en: ["AI accelerates execution", "Engineers direct the work", "Judgment verifies the result"],
-    fr: ["L’IA accélère l’exécution", "Les ingénieurs orientent le travail", "Le jugement vérifie le résultat"],
+    en: ["State the constraints", "Compare AI proposals", "Check code and contracts"],
+    fr: ["Préciser les contraintes", "Comparer les propositions de l’IA", "Vérifier le code et les contrats"],
   },
   "ai-human-judgment-rockfi": {
     kind: "cycle",
@@ -50,7 +50,7 @@ export const MOTION_STORIES = {
   "better-handoffs-ai-engineering": {
     kind: "flow",
     en: ["Small agents investigate", "Evidence crosses the hand-off", "An engineer takes over"],
-    fr: ["De petits agents enquêtent", "Les preuves passent le relais", "Un ingénieur reprend la main"],
+    fr: ["De petits agents enquêtent", "Le handoff transmet les preuves", "Un ingénieur reprend la main"],
   },
   "context-engineering-beyond-prompt-engineering": {
     kind: "flow",
@@ -88,9 +88,9 @@ export const MOTION_STORIES = {
     fr: ["dbt build teste entre les modèles", "Un check bloquant arrête l’aval", "Mieux vaut daté que faux"],
   },
   "engineer-life-late-2026": {
-    kind: "choice",
-    en: ["Eight jobs in one terminal", "Each task needs a different review", "Check before merging or publishing"],
-    fr: ["Huit métiers dans un terminal", "Chaque tâche demande une relecture adaptée", "Vérifier avant de merger ou publier"],
+    kind: "flow",
+    en: ["An already broad staff role", "Data, BI, SRE-ish work and design", "A video factory for release communication"],
+    fr: ["Un rôle de staff engineer déjà transverse", "Data, BI, SRE-ish et design", "Vidéo factory et communication de release"],
   },
   "engineering-2026-ai-redefined-our-job": {
     kind: "choice",
@@ -154,8 +154,8 @@ export const MOTION_STORIES = {
   },
   "internal-tools-still-believe": {
     kind: "choice",
-    en: ["A governed foundation proposed", "RockFi chose a different direction", "The engineering conviction remains"],
-    fr: ["Un socle gouverné proposé", "RockFi a choisi une autre direction", "La conviction d’ingénierie demeure"],
+    en: ["A shared vision for internal tools", "A different technical solution", "From two weeks to a single morning"],
+    fr: ["Une vision partagée des outils internes", "Une autre solution technique", "De deux semaines à une matinée"],
   },
   "jobify-workers-queues-nestjs": {
     kind: "flow",
@@ -166,6 +166,11 @@ export const MOTION_STORIES = {
     kind: "flow",
     en: ["Experience in platform work", "Join RockFi", "Build for wealth management"],
     fr: ["Une expérience de plateforme", "Rejoindre RockFi", "Construire pour la gestion de patrimoine"],
+  },
+  "jokarikara-first-ai-project": {
+    kind: "threshold",
+    en: ["A shape grows and rotates", "Tap while it fits inside", "Check geometry and the playing experience"],
+    fr: ["Une forme grandit et tourne", "Toucher tant qu’elle tient dedans", "Vérifier géométrie et expérience de jeu"],
   },
   "nodejs-stream-backpressure-history-export": {
     kind: "flow",

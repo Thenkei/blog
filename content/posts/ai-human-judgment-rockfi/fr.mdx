@@ -27,31 +27,31 @@ Les symptômes étaient toujours les mêmes. Le prompt efficace dormait dans un 
 
 ## Ce qui n'a pas suffi
 
-Les démonstrations ponctuelles ont eu l'effet d'une bonne bande-annonce : beaucoup d'enthousiasme à la sortie, aucune habitude nouvelle le lundi suivant. Les guides longs étaient relus avec la ferveur qu'on réserve aux CGU, c'est-à-dire jamais au moment précis où une règle devenait utile. Les meilleurs workflows restaient ceux de quelques personnes.
+Les démos ponctuelles suscitaient de l'intérêt, mais ne suffisaient pas à changer les habitudes. Les guides existaient ; encore fallait-il retrouver la bonne instruction pendant le travail. Les workflows les plus efficaces restaient ceux de quelques personnes.
 
 Nous avons aussi eu notre période « méga-prompt » : un bloc qui transportait tout le contexte d'un coup, faits, instructions et décisions périmées mélangés. Le bloc grossissait, devenait pénible à maintenir, et personne ne retrouvait les contradictions qui s'y étaient accumulées.
 
-Puis nous avons essayé la ligne droite : PRD, conception, tâches, code. Elle tient jusqu'à la première hypothèse fausse découverte pendant l'implémentation. Sans chemin de retour vers la conception, l'automatisation fait alors ce qu'elle sait faire de mieux : accélérer, avec entrain, dans la mauvaise direction.
+Puis nous avons essayé la ligne droite : PRD, conception, tâches, code. Elle tient jusqu'à la première hypothèse fausse découverte pendant l'implémentation. Sans retour vers la conception, l'agent poursuit l'implémentation sur une hypothèse que nous savons fausse.
 
 Pour mémoire, les tentations que nous avons écartées :
 
 - Acheter un outil et appeler ça une stratégie d'adoption.
-- Mesurer le progrès au volume de code ou de contenu généré. Excellent indicateur, si l'objectif est de remplir un disque.
+- Mesurer le progrès au volume de code ou de contenu généré.
 - Chercher le prompt universel, valable pour tous les rôles et tous les dépôts. Nous n'en avons pas trouvé.
 - Automatiser un workflow instable avant de savoir qui en est owner et où sont les gates.
-- Laisser un agent publier une décision produit ou merger une PR parce que les tests passent. Des tests qui ne testent rien passent aussi.
+- Laisser un agent publier une décision produit ou merger une PR sur la seule base de tests qui passent.
 
 ## Dix challenges, et le droit d'échouer en public
 
 Nous avons donc lancé les **Claude Code Challenges: From Zero to Hero**. Toute l'équipe y a participé : vingt personnes, pas uniquement les développeurs. Logique, puisque le contexte qui se perd entre un workshop et une PR ne se perd pas seulement dans le code.
 
-Le format est volontairement terre à terre : dix challenges courts, bonus compris, réalisés en asynchrone sur du vrai code. Comptez 60 à 90 minutes par challenge, avec un livrable concret à la sortie et une review. Pas de quiz : on n'apprend pas à piloter un agent en cochant la réponse B.
+Le format est volontairement terre à terre : dix challenges courts, bonus compris, réalisés en asynchrone sur du vrai code. Comptez 60 à 90 minutes par challenge, avec un livrable concret à la sortie et une review.
 
 La progression suit le travail réel :
 
-- Poser une base de référence fiable et apprendre à gérer le contexte.
+- Établir une baseline fiable et apprendre à gérer le contexte.
 - Partir d'une spécification, reviewer le résultat et le livrer par le workflow normal.
-- Déboguer avec des preuves reproductibles et des hypothèses falsifiables, plutôt qu'avec des incantations.
+- Déboguer avec des preuves reproductibles et des hypothèses que l'on peut vérifier ou écarter.
 - Travailler avec des subagents et des worktrees parallèles, quand le parallélisme se justifie.
 - Construire des hooks et des skills, puis reverser les workflows utiles à l'équipe.
 
@@ -71,7 +71,7 @@ La différence avec un prompt partagé tient dans ce que le plugin embarque : la
 
 Le plugin `rockfi-engineering` amène le workflow quotidien d'ingénierie dans Claude Code, avec des règles explicites. Un workflow rapide qui contourne la discipline de review ne fait que produire plus vite un historique illisible.
 
-Son skill de création de PR ne se contente pas de remplir un template. Il analyse le changement, estime sa complexité, repère les scopes sans rapport et prévient quand la PR mériterait d'être découpée. Il dit donc à voix haute ce que le reviewer pense en silence. Il rédige ensuite une description structurée autour des questions que ce même reviewer se pose vraiment : objectif, raison, implémentation, ressources.
+Son skill de création de PR ne se contente pas de remplir un template. Il analyse le changement, estime sa complexité, repère les scopes sans rapport et prévient quand la PR mériterait d'être découpée. Il rédige ensuite une description structurée autour des questions que ce même reviewer se pose vraiment : objectif, raison, implémentation, ressources.
 
 Le skill de commit, lui, valide nos règles de conventional commits. Et un hook strict, déclenché avant l'exécution des outils, bloque tout commit ou push depuis `main`. Il crée alors une feature branch correctement nommée et reprend le travail depuis cette branche.
 
@@ -113,24 +113,22 @@ Review humaine, release et apprentissage
 
 <ArticleMedia mediaId="product-os-loop" />
 
-Les plugins vont chercher le contexte dans les sources autorisées, signalent ce qui manque et préparent une sortie que l'étape suivante peut consommer. Chaque couche garde son owner : le produit porte le problème et le résultat visé, l'engineering la conception technique et l'implémentation, les reviewers la rigueur nécessaire avant qu'un changement arrive en production. L'IA fait circuler le contexte entre ces couches, pour que personne n'ait à mener une enquête de voisinage à chaque handoff.
+Les plugins récupèrent le contexte et préparent les documents nécessaires à l'étape suivante. Le produit reste responsable du problème et du résultat attendu ; l'engineering, du design et de l'implémentation. La PR passe ensuite par une review.
 
-La petite flèche de retour, en bas, est la partie la plus importante du schéma. Une hypothèse fausse découverte pendant l'implémentation doit pouvoir rouvrir la conception. C'est précisément ce que notre ligne droite interdisait.
+Si l'implémentation révèle une hypothèse fausse, nous devons pouvoir revenir sur le design et mettre à jour le DiveIn avant de poursuivre.
 
 ## Là où l'agent s'arrête et attend quelqu'un
 
 <ArticleDiagram visualId="bounded-ai-loop" />
 
-Nous restons prudents avec le mot « automatisation ». Le système accélère la préparation et rend le processus plus cohérent, mais des gates humaines restent posées sur les décisions produit, les choix d'architecture, les changements sensibles et le merge. Un agent peut préparer tout le dossier d'une décision VE ou d'une definition of done ; il ne signe pas en bas. Et une PR attend un reviewer capable de challenger le design et le code, pas seulement de constater que la CI est verte.
+Nous restons prudents avec le mot « automatisation ». Le système accélère la préparation et rend le processus plus cohérent, mais des gates humaines restent posées sur les décisions produit, les choix d'architecture, les changements sensibles et le merge. Un agent peut préparer le dossier d'une décision VE ou une definition of done ; la décision reste à confirmer par les personnes responsables. Et une PR attend un reviewer capable de challenger le design et le code, pas seulement de constater que la CI est verte.
 
-Ce que nous cherchons à gagner, c'est le temps passé à reconstruire du contexte à chaque handoff, pour le rendre aux décisions qui demandent de connaître le produit, les clients et le système. Des livrables en plus, on n'en manquait pas.
+Ce que nous cherchons à gagner, c'est le temps passé à reconstruire du contexte à chaque handoff, pour le rendre aux décisions qui demandent de connaître le produit, les clients et le système. Produire davantage de documents ne suffit pas à réduire ce travail.
 
-## Industrialiser une mauvaise idée, c'est aussi très efficace
+## Les workflows restent à maintenir
 
-Un plugin standardise une mauvaise pratique avec exactement la même efficacité qu'une bonne. C'est même son principal talent. Chaque workflow a donc besoin d'un owner, d'une évaluation, et d'une porte de sortie quand le contexte ne suffit pas.
+Un plugin peut aussi propager une mauvaise pratique. Chaque workflow a donc besoin d'un owner, d'une évaluation et de conditions d'arrêt lorsque le contexte ne suffit pas.
 
-Le Product OS ne remplace ni une stratégie produit, ni l'expertise métier, ni la review technique. Il ajoute même des éléments à maintenir : permissions, templates, connecteurs, compatibilité des outils, observabilité. Nous avons échangé un peu de chaos contre de la maintenance, ce qui reste, soyons honnêtes, une assez bonne définition de l'ingénierie.
+Le Product OS ne remplace ni une stratégie produit, ni l'expertise métier, ni la review technique. Il ajoute même des éléments à maintenir : permissions, templates, connecteurs, compatibilité des outils, observabilité.
 
 Enfin, tout ne doit pas traverser la chaîne complète. Une correction de typo n'a pas besoin d'un workshop VE et d'un DiveIn. Un petit changement réversible mérite un chemin court.
-
-Nous n'en sommes qu'au début. La marketplace va grandir, les workflows vont s'améliorer, et le prochain plugin utile est probablement déjà en train d'échouer quelque part dans un thread de challenge.

@@ -1,5 +1,5 @@
 ---
-title: "WebSockets : d'Under the Limit aux 30 000 connexions chez Forest"
+title: "WebSockets : d'Under the Limit aux 30 000 utilisateurs chez Forest"
 subtitle: "Des cartes, des dés, GraphQL et un backend que tout le monde attend au redémarrage."
 summary: "Under the Limit en 2018, les jeux du confinement, et 25 à 30 000 personnes connectées chez Forest. Mon expérience des WebSockets, du premier jeu demandé par Sigmund aux reconnexions massives avec GraphQL et Apollo."
 visualId: "websockets-games-to-30000-connections"
@@ -62,6 +62,31 @@ Après le `101`, on échange des trames WebSocket sur cette connexion. On ne ren
 
 TCP transporte des octets, sans préserver les limites des messages de l'application. WebSocket ajoute ce découpage. Une trame contient notamment un indicateur de fin de message, un opcode, une longueur et le contenu. Les opcodes distinguent texte, binaire, continuation, fermeture, Ping et Pong. Un message peut occuper plusieurs trames ; une trame ne correspond pas nécessairement à un paquet TCP.
 
+Voici les champs dans leur ordre de transmission. L'en-tête commence par deux octets ; les largeurs dessinées ne sont pas proportionnelles au nombre de bits.
+
+```text
+Octet 0
+┌─────┬─────┬────────┐
+│ FIN │ RSV │ opcode │
+│ 1 b │ 3 b │ 4 b    │
+└─────┴─────┴────────┘
+Octet 1
+┌──────┬──────────┐
+│ MASK │ longueur │
+│ 1 b  │ 7 b      │
+└──────┴──────────┘
+Puis, dans cet ordre :
+┌─────────────────────────────────┐
+│ Longueur étendue : 0/2/8 octets │
+├─────────────────────────────────┤
+│ Clé de masque : 0 ou 4 octets   │
+├─────────────────────────────────┤
+│ Payload : longueur variable     │
+└─────────────────────────────────┘
+```
+
+`FIN` indique la dernière trame du message. Les trois bits `RSV` valent zéro sans extension négociée qui les utilise. Le champ de longueur code directement de 0 à 125 octets ; `126` annonce une longueur sur les 16 bits suivants, `127` sur les 64 bits suivants, dont le bit de poids fort doit être nul. `MASK` indique la présence de la clé de masque de 32 bits, obligatoire du client vers le serveur et absente dans l'autre sens. C'est le format défini dans la [RFC 6455, section 5.2](https://www.rfc-editor.org/rfc/rfc6455#section-5.2).
+
 Les trames envoyées par le navigateur sont masquées avec une clé de quatre octets transmise dans la trame. **Ce masque n'est pas du chiffrement.** Il protège contre certaines interactions avec les intermédiaires réseau, pas contre quelqu'un qui lit le trafic. Le [guide MDN sur les serveurs WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers) détaille le format.
 
 Le JSON arrive encore au-dessus. WebSocket transporte du texte ou du binaire ; il ne connaît ni les cartes, ni les notifications, ni GraphQL.
@@ -76,7 +101,7 @@ La première règle est donc de ne pas envoyer à un joueur ce qu'il n'a pas le 
 
 La cryptographie peut aussi aider quand on veut cacher un choix, puis prouver qu'il n'a pas été changé. Un exemple classique est l'engagement puis la révélation, ou *commit-reveal* : publier d'abord le hash d'un choix accompagné d'un secret aléatoire, puis révéler les deux une fois que tout le monde s'est engagé. Les autres peuvent vérifier le hash. Le secret doit être suffisamment imprévisible : le hash d'une carte seule se devine en essayant toutes les cartes.
 
-Ce n'est pas une description du protocole exact de mes jeux, mais un exemple du genre de problème que la crypto permet de traiter. Cela ne règle pas tout : un joueur peut encore refuser de révéler son choix, et distribuer des cartes sans aucun participant de confiance est un autre sujet.
+Cet exemple a ses limites : un joueur peut encore refuser de révéler son choix, et distribuer des cartes sans aucun participant de confiance est un autre sujet.
 
 À notre échelle, ces questions restaient maîtrisables. On voulait jouer entre amis. Chez Forest, le problème qui m'a marqué était ailleurs.
 
@@ -86,7 +111,7 @@ On utilisait GraphQL et Apollo pour gérer les notifications côté front-end. L
 
 Il y a plusieurs couches dans cette phrase. WebSocket transporte les messages. Un protocole applicatif gère le démarrage et l'arrêt des abonnements. GraphQL décrit les données demandées. Apollo fournit l'intégration côté application. La [documentation Apollo sur les subscriptions](https://www.apollographql.com/docs/react/data/subscriptions) distingue ces éléments ; GraphQL n'impose pas WebSocket comme transport.
 
-Une seule connexion peut porter plusieurs abonnements, distingués par leurs identifiants. Le navigateur peut en ouvrir ou en arrêter sans fermer la socket. Le [protocole de la bibliothèque `graphql-ws`](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md) en donne un exemple actuel. Je ne le cite pas comme la bibliothèque exacte que nous utilisions à l'époque.
+Une seule connexion peut porter plusieurs abonnements, distingués par leurs identifiants. Le navigateur peut en ouvrir ou en arrêter sans fermer la socket. Pour voir comment cette couche fonctionne, le [protocole actuel de la bibliothèque `graphql-ws`](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md) fournit un exemple concret.
 
 Cette distinction devient importante au redémarrage : rouvrir la connexion ne suffit pas. Il faut aussi rétablir les abonnements utiles à l'écran.
 
@@ -110,6 +135,8 @@ C'est un compromis très concret. L'utilisateur attend un peu avant de retrouver
 
 Attention toutefois : demander à tous les clients d'attendre cinq secondes ne fait que déplacer le pic de cinq secondes. Le *jitter* introduit une part aléatoire dans cette attente. Le backoff augmente la fenêtre après des échecs successifs, jusqu'à un plafond. AWS illustre bien la différence entre [backoff seul et backoff avec jitter](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/).
 
+La [RFC 6455, section 7.2.3](https://www.rfc-editor.org/rfc/rfc6455#section-7.2.3) recommande déjà une attente aléatoire avant la première reconnexion après une fermeture anormale, puis des délais croissants si les tentatives échouent. Elle décrit précisément le risque : des clients qui se reconnectent tous immédiatement peuvent empêcher le service de se rétablir.
+
 Une formule de *full jitter* peut s'écrire ainsi, avec `n = 0` pour la première tentative après la coupure :
 
 ```text
@@ -119,7 +146,7 @@ attente(n) = tirage uniforme entre 0 et fenêtre(n)
 
 <MotionScene id="websocket-reconnect-jitter" />
 
-Pour donner un ordre de grandeur, 30 000 premières tentatives réparties uniformément sur 30 secondes représentent **1 000 tentatives par seconde en moyenne**. C'est un calcul illustratif, pas une mesure de Forest ni une recommandation de configuration. Il reste à vérifier que le système supporte ce débit et ses variations.
+Pour donner un ordre de grandeur, 30 000 premières tentatives réparties uniformément sur 30 secondes représentent **1 000 tentatives par seconde en moyenne**. Cette fenêtre illustrative doit être dimensionnée selon le débit que le système supporte et ses variations.
 
 Le délai initial compte donc autant que le plafond. Si tous les clients commencent par une tentative immédiate, le premier pic a déjà eu lieu avant que le backoff serve à quoi que ce soit.
 
@@ -135,7 +162,7 @@ Pour une interface qui affiche un état courant, relire cet état peut suffire. 
 
 Même chose dans l'autre sens. Si le joueur envoie son action juste avant la coupure, il ne sait pas forcément si elle a été appliquée. Réenvoyer aveuglément « jouer cette carte » peut produire une seconde action. Un identifiant de commande et une déduplication côté autorité de jeu règlent un problème que le transport, à lui seul, ne peut pas résoudre.
 
-Ce sont des choix à faire dans l'application. Je les distingue ici de notre retour d'expérience chez Forest : étaler les reconnexions résout la surcharge au retour, pas toute la sémantique de reprise.
+Étaler les reconnexions limite la surcharge au retour. La reprise des données et des actions reste à organiser dans l'application.
 
 ## Ce qu'il faut surveiller pendant que la connexion vit
 
@@ -151,4 +178,4 @@ J'aime toujours autant les WebSockets pour ce qu'elles permettent de construire.
 
 Mais à cette échelle, accepter un peu d'attente à la reconnexion faisait partie du fonctionnement du temps réel. C'est probablement ce que j'en retiens le plus : nous avions aussi besoin que les clients sachent patienter.
 
-_Retour d'expérience écrit après mon départ de Forest Admin. L'ordre de grandeur de fréquentation vient de mon souvenir ; les exemples de protocole et les calculs servent à expliquer les mécanismes._
+_Retour d'expérience écrit après mon départ de Forest Admin. L'ordre de grandeur de fréquentation vient de mon souvenir. Le commit-reveal, les protocoles cités, les calculs et les mécanismes de reprise sont des exemples explicatifs, pas une reconstitution des implémentations de mes jeux ou de Forest._

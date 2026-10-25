@@ -8,6 +8,11 @@ const SPREAD = [1, 3, 2, 1, 2, 4, 1, 3, 2, 1, 2, 2];
 const START = 60;
 const END = 300;
 
+// Reveal a whole bucket as the time cursor reaches its centre. The bar and
+// counter must represent the same arrivals, including at the first frame.
+const hasArrived = (frame: number, index: number) =>
+  frame >= START + (index + 0.5) / BURST.length * (END - START);
+
 function Stage({ frame, compact, locale, width }: SceneStageProps) {
   const fr = locale === "fr";
   const panelWidth = compact ? 500 : 430;
@@ -24,7 +29,7 @@ function Stage({ frame, compact, locale, width }: SceneStageProps) {
       const unit = compact ? 3.9 : 6.6;
       const tone = panel === 0 ? "danger" : "ok";
       const arrived = counts.reduce((sum, count, index) =>
-        sum + (progress >= (index + 0.5) / counts.length ? count : 0), 0);
+        sum + (hasArrived(frame, index) ? count : 0), 0);
 
       return <g key={panel}>
         <Box x={x} y={y} w={panelWidth} h={panelHeight} tone={tone} />
@@ -45,13 +50,12 @@ function Stage({ frame, compact, locale, width }: SceneStageProps) {
           <Text x={left - 7} y={bottom - count * unit + 4} size={14} anchor="end" tone="muted">{count}</Text>
         </g>)}
         {counts.map((count, index) => {
+          if (!count || !hasArrived(frame, index)) return null;
           const barX = left + index * chartWidth / counts.length + 4;
           const barWidth = chartWidth / counts.length - 8;
-          const arrivalFrame = START + (index + 0.5) / counts.length * (END - START);
-          const reveal = ease(frame, arrivalFrame, arrivalFrame + 8);
           return <rect key={index} x={barX} y={bottom - count * unit}
             width={barWidth} height={count * unit} rx={2}
-            fill={TONE[tone]} opacity={0.22 + reveal * 0.68} />;
+            fill={TONE[tone]} opacity={0.9} />;
         })}
         <line x1={left + progress * chartWidth} x2={left + progress * chartWidth}
           y1={y + 68} y2={bottom} stroke={TONE.ink} strokeWidth={1.5} strokeDasharray="3 4" />

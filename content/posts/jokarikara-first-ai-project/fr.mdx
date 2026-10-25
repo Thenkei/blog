@@ -1,0 +1,53 @@
+---
+title: "Jokarikara : mon premier projet personnel avec l’IA"
+subtitle: "Un jeu de timing, des formes géométriques et mes premiers essais avec Claude Code, Antigravity et Codex."
+summary: "Avec Jokarikara, j’ai utilisé l’IA pour la première fois dans un projet personnel. Un petit jeu qui pose des questions très concrètes de géométrie, de rythme et de jugement."
+visualId: "jokarikara-first-ai-project"
+publishedAt: "2026-10-22"
+readTimeMinutes: 3
+tags:
+  - ai
+  - developer-tools
+  - personnel
+  - jeux-video
+  - react
+  - typescript
+---
+
+Jokarikara a une place particulière dans mes projets : c’est la première fois que j’ai utilisé l’IA dans un projet personnel. J’y ai utilisé plusieurs outils — **Claude Code, Antigravity et Codex** — autour d’un objet très concret : un petit jeu de timing.
+
+Le [repo est public sur GitHub](https://github.com/Thenkei/jokarikara). Derrière ce nom, il y a des formes qui grandissent, qui tournent, et un doigt qui doit choisir le bon moment.
+
+## Un seul geste, beaucoup de tension
+
+Le principe de base est facile à expliquer. Une forme apparaît au centre de l’écran et grandit automatiquement. Il faut toucher l’écran pour la placer à l’intérieur de la précédente. Chaque placement réussi ajoute une couche ; en mode classique, dépasser le contour fait perdre.
+
+La difficulté vient de ce que l’on voit bouger : la taille, l’orientation, puis les effets qui s’ajoutent au fil de la progression. Le zoom accompagne le rétrécissement des formes pour garder l’action lisible. Le [guide de jeu](https://github.com/Thenkei/jokarikara/blob/main/GAMEPLAY.md) décrit cette boucle et ses variations.
+
+Cette simplicité rend le projet intéressant à regarder sous l’angle du développement. Avec une seule interaction principale, chaque détail compte : la vitesse de croissance, la lisibilité du contour, le moment où la forme est acceptée, le retour que reçoit le joueur.
+
+## Sous les formes, un vrai problème de géométrie
+
+La base technique associe React, TypeScript, Canvas et la Web Audio API. React porte l’interface ; Canvas sert au rendu du jeu. Mais la partie qui illustre le mieux les contraintes du projet tient dans une question : **comment déterminer qu’une forme tient dans une autre ?**
+
+Comparer deux tailles ne suffit pas. Un carré tourné peut dépasser par un coin. Un triangle introduit d’autres angles. La rotation change le résultat sans changer la taille annoncée de la forme.
+
+Dans le [module de géométrie](https://github.com/Thenkei/jokarikara/blob/main/src/utils/geometry.ts), le code calcule les sommets, ramène les points dans le repère de la forme qui les contient, puis effectue des tests d’appartenance. Pour les cercles, le contour est échantillonné ; des tolérances sont présentes dans plusieurs tests.
+
+Ce sont des choix d’implémentation que l’on peut examiner et discuter. Le mot « collision » ne les résume pas, et une animation convaincante ne prouve pas à elle seule que toutes les combinaisons sont correctement traitées.
+
+<MotionScene id="jokarikara-containment" />
+
+## Vérifier le résultat dans le jeu
+
+J’ai utilisé Claude Code, Antigravity et Codex sur ce projet. Pour examiner le résultat, je peux partir du comportement du jeu : un placement accepté correspond-il au contour affiché ? La rotation change-t-elle correctement le test de containment ? Les effets ajoutés rendent-ils encore le jeu lisible ?
+
+Le module de géométrie permet d’examiner une partie de ces questions dans le code. Pour le rythme et la difficulté, il faut aussi jouer.
+
+## Faire évoluer la difficulté sans perdre la règle
+
+La [configuration du gameplay](https://github.com/Thenkei/jokarikara/blob/main/src/gameplay/config.ts) rassemble notamment la progression, les formes disponibles, les seuils de qualité et les effets des mondes. On y trouve des pulsations, des vagues, une dérive verticale ou encore des inversions de rotation.
+
+Cette organisation rend les réglages visibles. Elle permet de distinguer une modification de difficulté d’une modification de la logique géométrique. Elle montre aussi comment une règle de départ très courte peut produire un système de variations bien plus riche.
+
+Le code de [Jokarikara](https://github.com/Thenkei/jokarikara) est ouvert à qui veut regarder sous les contours.

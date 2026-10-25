@@ -1,160 +1,157 @@
-import { Box, Comet, ease, easeOut, enter, lerp, pop, Tag, Text, TONE } from "../primitives";
+import { Box, Comet, ease, easeOut, enter, Tag, Text, TONE, type Tone } from "../primitives";
 import { defineScene, type SceneStageProps } from "../types";
 
-// Act 1 accelerates the interruptions. Act 2 follows one draft through review.
-// Counts describe the article's roles, not measured productivity.
-const ROLES = [
-  { en: "Engineer", fr: "Ingénieur", task: { en: "Fix the bug", fr: "Corriger le bug" }, mark: "</>" },
-  { en: "Marketing", fr: "Marketing", task: { en: "Draft the release", fr: "Rédiger l'annonce" }, mark: "↗" },
-  { en: "PM", fr: "PM", task: { en: "Plan the milestone", fr: "Préparer le jalon" }, mark: "→" },
-  { en: "Data analyst", fr: "Data analyst", task: { en: "Query the warehouse", fr: "Interroger le warehouse" }, mark: "Σ" },
-  { en: "Community", fr: "Communauté", task: { en: "Answer feedback", fr: "Répondre aux retours" }, mark: "…" },
-  { en: "Designer", fr: "Designer", task: { en: "Move the button", fr: "Déplacer le bouton" }, mark: "↔" },
-  { en: "Tech writer", fr: "Docs", task: { en: "Update the README", fr: "Mettre à jour le README" }, mark: "¶" },
-  { en: "Video editor", fr: "Vidéo", task: { en: "Cut the demo", fr: "Monter la démo" }, mark: "▷" },
+// The same terminal connects an already broad staff role to adjacent practices,
+// then to a concrete initiative beyond it. Reveals indicate scope, not workload.
+const T = { practices: 104, design: 190, factory: 266, communication: 390, end: 510 } as const;
+const PRACTICES = ["Data engineering", "BI", "Data analyst", "SRE-ish", "Design"] as const;
+const SCOPE = {
+  en: ["Frame the problem", "Make design tradeoffs", "Coordinate delivery"],
+  fr: ["Cadrer le problème", "Arbitrer le design", "Coordonner la delivery"],
+} as const;
+const FACTORY = {
+  en: ["Brief & storyboard", "Narration & scenes", "Release communication"],
+  fr: ["Brief et storyboard", "Narration et scènes", "Communication de release"],
+} as const;
+const PROMPTS = [
+  { at: 0, en: "Frame the project", fr: "Cadrer le projet" },
+  { at: T.practices, en: "Prepare a data pipeline", fr: "Préparer un pipeline data" },
+  { at: T.design, en: "Prepare a design", fr: "Préparer un design" },
+  { at: T.factory, en: "Prepare the release video", fr: "Préparer la vidéo de release" },
+  { at: T.communication, en: "Prepare release communication", fr: "Préparer la communication" },
 ] as const;
-const ARRIVALS = [12, 54, 90, 120, 146, 168, 186, 202] as const;
-const T = { pause: 250, select: 290, review: 340, check: 400, publish: 446, end: 540 } as const;
+
+type Point = readonly [number, number];
 
 function Stage({ frame, compact, locale }: SceneStageProps) {
   const fr = locale === "fr";
-  const L = compact
-    ? { cardW: 116, cardH: 60, stepX: 128, stepY: 72, cols: 4, gridX: 20, gridY: 62,
-      terminalX: 20, terminalY: 230, terminalW: 244, terminalH: 198,
-      reviewX: 286, reviewY: 230, reviewW: 234, reviewH: 198, bottomY: 477 }
-    : { cardW: 156, cardH: 60, stepX: 172, stepY: 72, cols: 2, gridX: 40, gridY: 72,
-      terminalX: 402, terminalY: 116, terminalW: 228, terminalH: 194,
-      reviewX: 672, reviewY: 116, reviewW: 248, reviewH: 194, bottomY: 377 };
-  const arrived = ARRIVALS.filter(at => frame >= at).length;
-  const activeIndex = Math.max(0, arrived - 1);
-  const paused = frame >= T.pause;
-  const selected = frame >= T.select;
-  const checked = frame >= T.check;
-  const published = frame >= T.publish;
-  const role = ROLES[selected ? 1 : activeIndex]!;
-  const tx = L.terminalX;
-  const ty = L.terminalY;
-  const cx = tx + L.terminalW / 2;
-  const cy = ty + L.terminalH / 2;
-  const terminalTone = selected ? "hot" : "line";
-  const taskText = role.task[locale];
-  const taskAt = selected ? T.select : ARRIVALS[activeIndex]!;
-  const typed = Math.floor(taskText.length * easeOut(frame, taskAt + 5, taskAt + 30));
-  const attention = ease(frame, T.pause, T.pause + 18);
+  const panels = compact
+    ? {
+      scope: { x: 20, y: 132, w: 500, h: 76 },
+      practices: { x: 20, y: 224, w: 500, h: 104 },
+      factory: { x: 20, y: 344, w: 500, h: 132 },
+    }
+    : {
+      scope: { x: 40, y: 152, w: 240, h: 192 },
+      practices: { x: 304, y: 152, w: 264, h: 192 },
+      factory: { x: 592, y: 152, w: 328, h: 192 },
+    };
+  const terminal = { x: compact ? 20 : 40, y: 60, w: compact ? 500 : 880, h: 48 };
+  const { scope, practices, factory } = panels;
+  const active = frame >= T.factory ? 2 : frame >= T.practices ? 1 : 0;
+  const prompt = PROMPTS.filter(item => frame >= item.at).at(-1)!;
+  const typed = Math.floor(prompt[locale].length * easeOut(frame, prompt.at + 4, prompt.at + 28));
+  const reveal = (at: number) => easeOut(frame, at, at + 24);
+  const anchor = (panel: typeof scope): Point => [panel.x + panel.w / 2, panel.y - 6];
+  const terminalOut: Point = compact
+    ? [terminal.x + terminal.w - 12, terminal.y + terminal.h / 2]
+    : [terminal.x + terminal.w / 2, terminal.y + terminal.h];
+  const path = (panel: typeof scope): readonly Point[] => compact
+    ? [terminalOut, [530, terminalOut[1]], [530, panel.y + panel.h / 2], [panel.x + panel.w, panel.y + panel.h / 2]]
+    : [terminalOut, [terminalOut[0], 126], [anchor(panel)[0], 126], anchor(panel)];
+  const panelTone = (index: number): Tone => active === index ? "hot" : "line";
+  const factoryProgress = [T.factory + 18, T.factory + 58, T.communication] as const;
 
   return <>
-    {/* Task cards fly out of the same terminal, then hold as unfinished work. */}
-    {ROLES.map((item, index) => {
-      const x = L.gridX + (index % L.cols) * L.stepX;
-      const y = L.gridY + Math.floor(index / L.cols) * L.stepY;
-      const travel = easeOut(frame, ARRIVALS[index]!, ARRIVALS[index]! + 23);
-      const focus = selected ? index === 1 : !paused && index === activeIndex;
-      const settling = selected && index !== 1 ? .6 : 1;
-      return <g key={item.en} opacity={travel * settling}
-        transform={`translate(${lerp(cx - x - L.cardW / 2, 0, travel)} ${lerp(cy - y - L.cardH / 2, 0, travel)})`}>
-        <Box x={x} y={y} w={L.cardW} h={L.cardH} tone={focus ? terminalTone : "muted"} focus={focus ? 1 : 0} radius={12}>
-          <Text x={x + 12} y={y + 20} size={15} weight={650}>{item[locale]}</Text>
-          <Text x={x + 12} y={y + 43} size={13} font="mono" tone={focus ? terminalTone : "muted"}>
-            {focus ? (published ? (fr ? "✓ publiée" : "✓ published") : selected ? (fr ? "en relecture" : "in review") : item.mark) : (fr ? "en attente" : "pending")}
-          </Text>
-          {!compact && focus ? <Text x={x + L.cardW - 14} y={y + 22} anchor="end" size={18} tone={terminalTone}>{item.mark}</Text> : null}
-        </Box>
-      </g>;
-    })}
-
-    {/* Each interruption visibly pulls the same attention token to a new card. */}
-    {!paused ? ROLES.map((item, index) => {
-      const x = L.gridX + (index % L.cols) * L.stepX + L.cardW / 2;
-      const y = L.gridY + Math.floor(index / L.cols) * L.stepY + L.cardH / 2;
-      return <Comet key={item.en} points={[[cx, cy], [x, y]]}
-        t={ease(frame, ARRIVALS[index]!, ARRIVALS[index]! + 22)} tone="line" tail={.32} r={5} />;
-    }) : null}
-
-    <g>
-      <Box x={tx} y={ty} w={L.terminalW} h={L.terminalH} tone={terminalTone} focus={1} radius={18}>
-        <Text x={tx + 18} y={ty + 23} size={13} font="mono" tone="muted">terminal</Text>
-        <Tag x={tx + L.terminalW - 14} y={ty + 23} anchor="end" size={13}
-          text={checked ? (fr ? "VÉRIFIÉ" : "CHECKED") : selected ? (fr ? "RELECTURE" : "REVIEW") : "AUTO"} tone={terminalTone} />
-        <line x1={tx + 14} x2={tx + L.terminalW - 14} y1={ty + 44} y2={ty + 44} stroke="var(--scene-hairline)" />
-        <Text x={tx + 18} y={ty + 73} size={23} weight={700} tone={terminalTone}>{role[locale]}</Text>
-        <Text x={tx + 18} y={ty + 110} size={13.5} font="mono" weight={500}>
-          {taskText.slice(0, typed)}{Math.floor(frame / 12) % 2 === 0 ? "▌" : ""}
-        </Text>
-        <Text x={tx + 18} y={ty + 151} size={13} font="mono" tone="muted">
-          {selected ? (fr ? "Vérifier avant d'envoyer" : "Check before sending") : (fr ? "Encore une tâche…" : "One more task…")}
-        </Text>
-        <rect x={tx + 18} y={ty + L.terminalH - 20} width={L.terminalW - 36} height={3} rx={1.5} fill="var(--scene-hairline)" />
-        <rect x={tx + 18} y={ty + L.terminalH - 20}
-          width={(L.terminalW - 36) * (selected ? ease(frame, T.select, T.check) : ease(frame, taskAt, taskAt + 36))}
-          height={3} rx={1.5} fill={TONE[terminalTone]} />
-      </Box>
-    </g>
-
-    <g {...enter(frame, 18)}>
-      <Box x={L.reviewX} y={L.reviewY} w={L.reviewW} h={L.reviewH} tone={checked ? "ok" : "muted"}
-        focus={checked ? 1 : 0} radius={18}>
-        <Text x={L.reviewX + 18} y={L.reviewY + 25} size={13} font="mono" tone="muted">
-          {fr ? "AVANT PUBLICATION" : "BEFORE PUBLISHING"}
-        </Text>
-        {frame < T.review ? <>
-          <Text x={L.reviewX + L.reviewW / 2} y={L.reviewY + 84} size={62} anchor="middle" weight={700}
-            tone={paused ? "hot" : "muted"}>{arrived}</Text>
-          <Text x={L.reviewX + L.reviewW / 2} y={L.reviewY + 134} size={17} anchor="middle">
-            {fr ? "tâches ouvertes" : "open tasks"}
-          </Text>
-          <Text x={L.reviewX + L.reviewW / 2} y={L.reviewY + 164} size={14} anchor="middle" tone="muted">
-            {fr ? "Aucune vérification" : "Nothing checked yet"}
-          </Text>
-        </> : <g {...enter(frame, T.review, { distance: 12 })}>
-          <Text x={L.reviewX + 18} y={L.reviewY + 67} size={21} weight={700}>{fr ? "L'annonce" : "The announcement"}</Text>
-          <Text x={L.reviewX + 18} y={L.reviewY + 105} size={15} tone={checked ? "ok" : "hot"}>
-            {checked ? "✓" : "□"} {fr ? "Promesses vérifiées" : "Claims checked"}
-          </Text>
-          <Text x={L.reviewX + 18} y={L.reviewY + 133} size={15} tone={checked ? "ok" : "hot"}>
-            {checked ? "✓" : "□"} {fr ? "Fonctionnalité utilisable" : "Feature available"}
-          </Text>
-          <Tag x={L.reviewX + 18} y={L.reviewY + 171} size={14} anchor="start"
-            text={published ? (fr ? "✓ PUBLIÉE" : "✓ PUBLISHED") : (fr ? "EN RELECTURE" : "IN REVIEW")}
-            tone={published ? "ok" : "hot"} appear={published ? pop(frame, T.publish) : 1} />
-        </g>}
-      </Box>
-    </g>
-
-    {/* A draft must actually travel through review before it can be published. */}
-    {frame >= T.select && frame < T.review ? <Comet
-      points={[[L.gridX + L.stepX + L.cardW / 2, L.gridY + L.cardH / 2], [cx, cy], [L.reviewX + 22, L.reviewY + 67]]}
-      t={ease(frame, T.select, T.review)} tone="hot" r={7} tail={.24} /> : null}
-
-    <g {...enter(frame, 16)}>
-      <Text x={compact ? 270 : 480} y={L.bottomY - 7} size={compact ? 29 : 33} anchor="middle" weight={750}
-        tone={paused ? "hot" : "ink"}>
-        {fr ? "8 casquettes. 1 attention." : "8 hats. 1 attention span."}
+    {/* A shared working surface remains as the range of work grows. */}
+    <Box {...terminal} tone="line" radius={12}>
+      <Text x={terminal.x + 16} y={terminal.y + 26} size={13} font="mono" tone="muted">terminal</Text>
+      <Text x={terminal.x + 112} y={terminal.y + 26} size={compact ? 14 : 16} font="mono" weight={600}>
+        {prompt[locale].slice(0, typed)}{frame < prompt.at + 36 ? "▌" : ""}
       </Text>
-      <g opacity={attention}>
-        <Text x={compact ? 270 : 480} y={L.bottomY + 25} size={compact ? 17 : 19} anchor="middle" tone={published ? "ok" : "hot"}>
-          {published ? (fr ? "Ingénieur consciencieux, quand même." : "Still a conscientious engineer.")
-            : (fr ? "Un brouillon ≠ un travail terminé." : "A draft ≠ a finished task.")}
+    </Box>
+
+    {/* The boundaries are permeable; no role is a queued interruption. */}
+    {!compact ? [292, 580].map((x, index) => <line key={x}
+      x1={x} x2={x} y1={140} y2={356} stroke="var(--scene-hairline)" strokeWidth={1}
+      strokeDasharray="3 8" opacity={reveal(index === 0 ? T.practices : T.factory)} />) : null}
+    {[scope, practices, factory].map((panel, index) => <Comet key={index}
+      points={path(panel)} t={ease(frame, index === 0 ? 12 : index === 1 ? T.practices : T.factory,
+        (index === 0 ? 12 : index === 1 ? T.practices : T.factory) + 28)}
+      tone={panelTone(index)} r={4.5} tail={.28} />)}
+
+    {/* Staff engineering already includes framing, tradeoffs and coordination. */}
+    <Box {...scope} tone={panelTone(0)} focus={active === 0 ? .7 : 0} radius={16}>
+      <Text x={scope.x + 16} y={scope.y + 25} size={18} weight={650}>Staff engineer</Text>
+      {compact ? <Text x={scope.x + 16} y={scope.y + 54} size={15} tone="muted">
+        {fr ? "Cadrer · arbitrer · coordonner la delivery" : "Frame · make tradeoffs · coordinate delivery"}
+      </Text> : SCOPE[locale].map((line, index) => <Text key={line}
+        x={scope.x + 16} y={scope.y + 72 + index * 32} size={15.5} tone="muted">{line}</Text>)}
+    </Box>
+
+    {/* Additional practices require their own skills and judgment. */}
+    <g {...enter(frame, T.practices, { distance: compact ? 12 : 18 })}>
+      <Box {...practices} tone={panelTone(1)} focus={active === 1 ? .7 : 0} radius={16}>
+        <Text x={practices.x + 16} y={practices.y + 25} size={compact ? 16 : 18} weight={650}>
+          {fr ? "Compétences voisines" : "Adjacent practices"}
         </Text>
-      </g>
+        {PRACTICES.map((name, index) => {
+          const at = name === "Design" ? T.design : T.practices + 10 + index * 10;
+          const x = compact ? practices.x + 16 + (index % 3) * 158 : practices.x + 16;
+          const y = compact ? practices.y + 50 + Math.floor(index / 3) * 30 : practices.y + 56 + index * 28;
+          const highlighted = name === "Design" && frame >= T.design && frame < T.factory;
+          return <g key={name} opacity={reveal(at)}>
+            {compact ? <Tag x={x} y={y} text={name} anchor="start" size={13}
+              tone={highlighted ? "hot" : "line"} />
+              : <Text x={x} y={y} size={16} weight={highlighted ? 650 : 500}
+                tone={highlighted ? "hot" : "ink"}>{name}</Text>}
+          </g>;
+        })}
+      </Box>
+    </g>
+
+    {/* The factory is an initiative, with editorial work as well as engineering. */}
+    <g {...enter(frame, T.factory, { distance: compact ? 12 : 18 })}>
+      <Box {...factory} tone={panelTone(2)} focus={active === 2 ? .7 : 0} radius={16}>
+        <Text x={factory.x + 16} y={factory.y + 25} size={18} weight={650}>
+          {fr ? "Vidéo factory" : "Video factory"}
+        </Text>
+        {FACTORY[locale].map((label, index) => {
+          const x = factory.x + (compact ? 24 + index * 158 : 30);
+          const y = factory.y + (compact ? 67 : 70 + index * 34);
+          const at = factoryProgress[index]!;
+          const visible = reveal(at);
+          return <g key={label} opacity={visible}>
+            {!compact ? <>
+              {index > 0 ? <line x1={x - 12} x2={x - 12} y1={y - 27} y2={y - 9}
+                stroke="var(--scene-hairline)" strokeWidth={1.25} /> : null}
+              <circle cx={x - 12} cy={y - 3} r={3} fill={TONE.line} />
+              <Text x={x} y={y} size={15.5}>{label}</Text>
+            </> : <>
+              <Text x={x} y={y} size={15} weight={600}>{index === 0 ? "Brief" : index === 1 ? "Narration" : "Release"}</Text>
+              <Text x={x} y={y + 24} size={13} font="mono" tone="muted">
+                {index === 0 ? "storyboard" : index === 1 ? (fr ? "scènes" : "scenes") : "communication"}
+              </Text>
+              {index < 2 ? <Text x={x + 116} y={y + 2} size={16} tone="line">→</Text> : null}
+            </>}
+          </g>;
+        })}
+      </Box>
+    </g>
+
+    <g opacity={reveal(T.communication)}>
+      <Text x={compact ? 270 : 480} y={compact ? 501 : 386} size={compact ? 15 : 19}
+        anchor="middle" weight={600} tone="hot">
+        {fr ? "Staff engineer, option vidéo factory." : "Staff engineer, video factory included."}
+      </Text>
     </g>
   </>;
 }
 
 export default defineScene({
   durationInFrames: T.end,
-  posterFrame: 478,
-  title: { en: "The terminal can multitask. I can't.", fr: "Le terminal est multitâche. Pas moi." },
+  posterFrame: 460,
+  title: { en: "A broader scope from one terminal", fr: "Un périmètre qui s'élargit" },
   caption: {
-    en: "Eight roles, one attention span. The agent prepares the work; I still check what I send.",
-    fr: "Huit casquettes, une seule attention. L'agent prépare le travail ; je vérifie toujours ce que j'envoie.",
+    en: "The staff role already spans several concerns. Agents make adjacent work and initiatives such as release videos more accessible, with new skills to learn.",
+    fr: "Le rôle de staff engineer est déjà transverse. Les agents facilitent les pratiques voisines et des initiatives comme la vidéo de release, avec d'autres compétences à acquérir.",
   },
   beats: [
-    { at: 0, text: { en: "First, fix the bug. Familiar territory.", fr: "D'abord, corriger le bug. Terrain connu." } },
-    { at: 90, text: { en: "An announcement, a milestone, warehouse numbers: the requests speed up.", fr: "Une annonce, un jalon, les chiffres du warehouse : les demandes accélèrent." } },
-    { at: 186, text: { en: "Now the README and the demo too. Each switch interrupts the previous task.", fr: "Le README et la démo aussi. Chaque changement interrompt la tâche précédente." } },
-    { at: T.pause, text: { en: "Eight roles share one terminal. The unfinished work is still there.", fr: "Huit rôles partagent un terminal. Le travail inachevé est toujours là." } },
-    { at: T.select, text: { en: "Follow one announcement through review: check its claims against the available feature.", fr: "Relire une annonce : confronter ses promesses à la fonctionnalité disponible." } },
-    { at: T.publish, text: { en: "Publish after checking. The other tasks wait their turn.", fr: "Publier après vérification. Les autres tâches attendent leur tour." } },
+    { at: 0, text: { en: "Staff engineering: framing, tradeoffs and delivery.", fr: "Staff engineer : cadrer, arbitrer, coordonner." } },
+    { at: T.practices, text: { en: "Data, BI, analysis and SRE-ish work need other skills.", fr: "Data engineering, BI, analyse, SRE-ish : d'autres savoir-faire." } },
+    { at: T.design, text: { en: "Prepare designs: user journeys and interface states.", fr: "Préparer des designs : parcours et états de l'interface." } },
+    { at: T.factory, text: { en: "Video factory: brief, storyboard, narration and scenes.", fr: "Vidéo factory : brief, storyboard, narration et scènes." } },
+    { at: T.communication, text: { en: "Another initiative: communicating our releases.", fr: "Une initiative en plus : communiquer sur nos releases." } },
   ],
   Stage,
 });

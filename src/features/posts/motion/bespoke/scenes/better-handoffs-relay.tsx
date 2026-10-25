@@ -1,7 +1,7 @@
 import { Box, Camera, Checkpoint, Comet, ease, easeOut, enter, lerp, pop, Pulse, stagger, Tag, Text, tint, TONE, type Tone } from "../primitives";
 import { defineScene, type SceneStageProps } from "../types";
 
-// One hand-off card, relayed twice to the next agent. Act 1 carries only the
+// One handoff card, relayed twice to the next agent. Act 1 carries only the
 // last answer: the other fields of the card are empty, so the receiver's log
 // re-checks what was already ruled out and starts over. Act 2 replays the same
 // relay with the investigation state filled in: each log line now comes from a
@@ -29,7 +29,7 @@ const FACT = {
   fr: "Le taux d'erreur a augmenté à 14 h 03.",
 } as const;
 
-// The article's structured hand-off, condensed to one line per field.
+// The article's structured handoff, condensed to one line per field.
 const FIELDS = {
   en: [
     ["objective", "error rate ↑ · checkout"],
@@ -205,7 +205,7 @@ function Stage({ frame, compact, locale, width, height }: SceneStageProps) {
     </g>;
   });
 
-  // Act 2: each log line is fed by a field of the hand-off (wide: a packet travels).
+  // Act 2: each log line is fed by a field of the handoff (wide: a packet travels).
   const comets = actB && !compact ? T.links.map((at, i) => {
     const from: Pt = [card.x + card.w - 6, fieldY(SOURCE[i]!)];
     const to: Pt = [log.x + 2, rowMid(i)];
@@ -215,7 +215,7 @@ function Stage({ frame, compact, locale, width, height }: SceneStageProps) {
   const restartIn = pop(frame, T.restart) * rowsOutA;
   const decideIn = frame >= T.decide ? pop(frame, T.decide) : 0;
   const decideAt: Pt = compact ? [log.x + log.w - 12, rowMid(3)] : [log.x + log.w / 2, rowTop(3) + log.h + 26];
-  const decideText = fr ? (compact ? "l'astreinte décide" : "la personne d'astreinte décide") : compact ? "on duty decides" : "the person on duty decides";
+  const decideText = fr ? (compact ? "on-duty décide" : "la personne on-duty décide") : compact ? "on duty decides" : "the person on duty decides";
 
   const lean = (point: Pt, k = .22): Pt => [lerp(width / 2, point[0], k), lerp(height / 2, point[1], k)];
   const camera = compact ? [{ at: 0 }] : [
@@ -241,7 +241,7 @@ function Stage({ frame, compact, locale, width, height }: SceneStageProps) {
 
     <g {...enter(frame, 6, { distance: 16 })}>
       <Box x={card.x} y={card.y} w={card.w} h={cardH} tone={actB ? "ok" : "line"} radius={16} focus={during(frame, packet[0] - 10, packet[0] + 14) * .6}>
-        <Text x={card.x + 18} y={card.y + 24} size={11} font="mono" weight={600} tone="muted" caps>{fr ? "relais" : "hand-off"}</Text>
+        <Text x={card.x + 18} y={card.y + 24} size={11} font="mono" weight={600} tone="muted" caps>{fr ? "handoff" : "handoff"}</Text>
         <Tag x={card.x + card.w - 14} y={card.y + 24} anchor="end" size={11.5} text={fr ? "dernière réponse" : "last answer"} tone="danger" appear={headerTagA * enter(frame, 10).opacity} />
         <Tag x={card.x + card.w - 14} y={card.y + 24} anchor="end" size={11.5} text={fr ? "état de l'investigation" : "investigation state"} tone="ok" appear={headerTagB} />
         <line x1={card.x + 16} x2={card.x + card.w - 16} y1={card.y + 40} y2={card.y + 40} style={{ stroke: "var(--scene-hairline)" }} strokeWidth={1} opacity={.7} />
@@ -267,18 +267,18 @@ function during(frame: number, start: number, end: number) {
 export default defineScene({
   durationInFrames: T.end,
   posterFrame: 490,
-  title: { en: "What crosses the hand-off", fr: "Ce que transmet le relais" },
+  title: { en: "What crosses the handoff", fr: "Ce que contient le handoff" },
   caption: {
-    en: "A hand-off that carries only the last answer makes the next participant start over. Passing the investigation state lets them skip ruled-out paths, run the bounded diagnostic and stop where a human decision is needed.",
-    fr: "Un relais qui ne transmet que la dernière réponse fait tout recommencer au participant suivant. Transmettre l'état de l'investigation lui permet de sauter les pistes écartées, de lancer le diagnostic borné et de s'arrêter là où une décision humaine est nécessaire.",
+    en: "A handoff that carries only the last answer makes the next participant start over. Passing the investigation state lets them skip ruled-out paths, run the bounded diagnostic and stop where a human decision is needed.",
+    fr: "Un handoff qui ne transmet que la dernière réponse fait tout recommencer au participant suivant. Transmettre l'état de l'investigation lui permet de sauter les pistes écartées, de lancer le diagnostic borné et de s'arrêter là où une décision humaine est nécessaire.",
   },
   beats: [
-    { at: 0, text: { en: "Agent to agent, the hand-off carries only the last answer: “The error rate increased at 14:03.”", fr: "Le relais ne transmet que la dernière réponse : « Le taux d'erreur a augmenté à 14 h 03. »" } },
+    { at: 0, text: { en: "Agent to agent, the handoff carries only the last answer: “The error rate increased at 14:03.”", fr: "Le handoff ne transmet que la dernière réponse : « Le taux d'erreur a augmenté à 14 h 03. »" } },
     { at: T.redo[0], text: { en: "Nothing says which paths were ruled out, so the next agent checks the provider and the database again.", fr: "Rien ne dit quelles pistes sont écartées : l'agent suivant revérifie le fournisseur et la base." } },
     { at: T.restart, text: { en: "An isolated fact makes the next participant start over. The chain moves forward and loses the thread.", fr: "Un fait isolé fait tout recommencer au participant suivant. La chaîne avance en perdant le fil." } },
-    { at: T.wipe, text: { en: "Same relay, but the hand-off carries its state: objective, hypothesis, evidence, ruled-out paths.", fr: "Même relais, mais il transmet son état : objectif, hypothèse, preuves, pistes écartées." } },
+    { at: T.wipe, text: { en: "Same relay, but the handoff carries its state: objective, hypothesis, evidence, ruled-out paths.", fr: "Le handoff transmet maintenant l’état de l’investigation : objectif, hypothèse, preuves, pistes écartées." } },
     { at: T.rowsB[0], text: { en: "Ruled-out paths are skipped. The low-risk diagnostic, comparing regions, runs on its own.", fr: "Les pistes écartées sont sautées. Le diagnostic peu risqué, comparer les régions, part seul." } },
-    { at: T.rowsB[3], text: { en: "Changing production config is costly if wrong: the chain pauses and the person on duty decides.", fr: "Modifier la config de production coûte cher en cas d'erreur : la chaîne s'arrête, l'astreinte décide." } },
+    { at: T.rowsB[3], text: { en: "Changing production config is costly if wrong: the chain pauses and the person on duty decides.", fr: "Modifier la config de production coûte cher en cas d'erreur : la chaîne s'arrête, on-duty décide." } },
   ],
   Stage,
 });

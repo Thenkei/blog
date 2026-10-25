@@ -215,6 +215,12 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
       fr: "Scène éditoriale de seuil montrant un nouvel ingénieur entrant dans une ville de systèmes et de fondations connectés.",
     },
   },
+  "jokarikara-first-ai-project": {
+    alt: {
+      en: "Editorial illustration of a hand about to tap a phone displaying nested geometric shapes, beside a coding workspace.",
+      fr: "Illustration éditoriale d’une main sur le point de toucher un téléphone affichant des formes géométriques imbriquées, à côté d’un espace de programmation.",
+    },
+  },
   "nodejs-stream-backpressure-history-export": {
     alt: {
       en: "Technical comic showing a pressured data river passing through bounded gates into a multipart upload pipeline.",

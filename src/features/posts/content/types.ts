@@ -24,6 +24,7 @@ export const postVisualIds = [
   "idempotency-debounce-jobify-bullmq",
   "internal-tools-as-product",
   "jobify-workers-queues-nestjs",
+  "jokarikara-first-ai-project",
   "joining-rockfi",
   "nodejs-stream-backpressure-history-export",
   "polymagine-industry-4-eyewear-2017",
@@ -47,6 +48,7 @@ export type PostVisualId = (typeof postVisualIds)[number];
 // rendered by PostVisual; they have no diagram fallback of their own.
 export const postImageVisualIds = [
   "websockets-games-to-30000-connections",
+  "jokarikara-first-ai-project",
   "ai-is-not-immaterial",
   "better-handoffs-ai-engineering",
   "frontier-model-race-2026",

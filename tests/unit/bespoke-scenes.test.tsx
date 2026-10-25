@@ -66,19 +66,25 @@ describe("bespoke article scenes", () => {
     }
   });
 
-  it("keeps the announcement in review before publication and leaves other tasks pending", async () => {
+  it("keeps the staff role broad and includes adjacent practices and release communication", async () => {
     const scene = await loadBespokeScene("hat-switching-tax");
     for (const compact of [false, true]) {
       for (const locale of locales) {
         const { Stage } = scene;
         const props = { compact, locale, width: compact ? 540 : 960, height: compact ? 520 : 420 };
-        const reviewing = renderToStaticMarkup(<svg><Stage {...props} frame={360} /></svg>);
-        const published = renderToStaticMarkup(<svg><Stage {...props} frame={478} /></svg>);
-        const publication = locale === "fr" ? "✓ PUBLIÉE" : "✓ PUBLISHED";
-        expect(reviewing).not.toContain(publication);
-        expect(published).toContain(publication);
-        expect(published.match(new RegExp(locale === "fr" ? "en attente" : "pending", "g"))).toHaveLength(7);
-        expect(scene.durationInFrames - 446).toBeGreaterThanOrEqual(60);
+        const initial = renderToStaticMarkup(<svg><Stage {...props} frame={0} /></svg>);
+        const poster = renderToStaticMarkup(<svg><Stage {...props} frame={scene.posterFrame} /></svg>);
+        expect(initial).toContain("Staff engineer");
+        expect(initial).toContain(locale === "fr" ? "Cadrer" : "Frame");
+        expect(initial).toMatch(locale === "fr" ? /arbitrer/i : /tradeoffs/i);
+        expect(initial).toMatch(/delivery/i);
+        for (const practice of ["Data engineering", "BI", "Data analyst", "SRE-ish", "Design"]) {
+          expect(poster).toContain(practice);
+        }
+        expect(poster).toContain(locale === "fr" ? "Vidéo factory" : "Video factory");
+        expect(poster).toMatch(/[Cc]ommunication/);
+        expect(poster).not.toMatch(/8 hats|8 casquettes|en attente|pending|PUBLIÉE|PUBLISHED/);
+        expect(scene.durationInFrames - scene.beats.at(-1)!.at).toBeGreaterThanOrEqual(60);
       }
     }
   });
@@ -89,6 +95,26 @@ describe("bespoke article scenes", () => {
     expect(screen.getByRole("figure", { name: /upsert insère deux fois/i })).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(scene.beats.length);
     expect(screen.getByText(/NULLS NOT DISTINCT \(PostgreSQL 15\+\)/)).toBeInTheDocument();
+  });
+
+  it("shows only arrived reconnect attempts and keeps the counters consistent with the bars", async () => {
+    const scene = await loadBespokeScene("websocket-reconnect-jitter");
+    const samples = [[0, 0, 0], [69, 0, 0], [70, 24, 1], [160, 24, 9], [scene.posterFrame, 24, 24]] as const;
+    for (const compact of [false, true]) {
+      for (const locale of locales) {
+        for (const [frame, burst, spread] of samples) {
+          const html = renderToStaticMarkup(<SceneShell scene={scene} frame={frame} compact={compact} locale={locale} />);
+          const dom = new DOMParser().parseFromString(html, "text/html");
+          for (const [tone, count] of [["danger", burst], ["ok", spread]] as const) {
+            const bars = Array.from(dom.querySelectorAll(`rect[fill="var(--visual-${tone})"]`));
+            if (count === 0) expect(bars).toHaveLength(0);
+            const drawnCount = bars.reduce((sum, bar) => sum + Number(bar.getAttribute("height")), 0) / (compact ? 3.9 : 6.6);
+            expect(drawnCount).toBeCloseTo(count);
+            expect(dom.querySelector(`text[fill="var(--visual-${tone})"]`)?.textContent).toBe(`${count} / 24`);
+          }
+        }
+      }
+    }
   });
 
   it("keeps the mobile explanation readable when reduced motion disables playback", async () => {

@@ -38,6 +38,7 @@ const editorialSlugs = [
   "internal-tools-query-language",
   "internal-tools-still-believe",
   "jobify-workers-queues-nestjs",
+  "jokarikara-first-ai-project",
   "joining-rockfi",
   "nodejs-stream-backpressure-history-export",
   "polymagine-industry-4-eyewear-2017",

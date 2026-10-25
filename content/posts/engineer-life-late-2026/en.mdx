@@ -1,10 +1,10 @@
 ---
-title: "An Engineer's Life in Late 2026: The Terminal Is My Office, My Ad Agency, and My PM"
-subtitle: "One black screen. Eight jobs. Same coffee."
-summary: "I still work in a terminal. Now I also use it to draft release announcements, plan milestones, and answer feedback. The drafts come faster; deciding what deserves to ship still takes work."
+title: "My Terminal in Late 2026: Staff Engineer, Video Factory Included"
+subtitle: "Data engineering, BI, SRE-ish work, design, and communication: increasingly porous boundaries."
+summary: "I do data engineering, BI, analysis, prepare designs, and built a video factory to promote our releases. How agents expand the work I can take on from my terminal."
 visualId: "bounded-ai-loop"
 publishedAt: "2026-09-28"
-readTimeMinutes: 4
+readTimeMinutes: 5
 tags:
   - ai
   - developer-tools
@@ -12,57 +12,60 @@ tags:
   - reflection
 ---
 
-My terminal has acquired a few responsibilities lately. Git, tests, deploys: familiar territory. Release announcements, milestone plans, communication drafts: less familiar. All of it now fits behind the same blinking cursor.
+I built a video factory to promote our releases, with proper communication around what we deliver. It has a repository, conventions, and scripts. So far, familiar territory. Then I open a storyboard, work on the narration, and find myself discussing the pacing of a scene.
 
-We were promised the end of the keyboard. I seem to have found more reasons to use mine.
+Staff engineer, with a side specialisation in video editing. I had not planned that one.
 
-## Same terminal, longer job description
+I also do data engineering, BI, analysis, some SRE-ish work, and prepare designs. These activities already overlap considerably with engineering. With agents, I can take on more of them and start initiatives beyond my role's usual scope.
 
-The odd part is how little changes on screen. I ask an agent to investigate a race condition, then ask it to make a release announcement less embarrassing. Both requests look roughly the same. They require very different answers.
+The terminal has become a place from which I prepare much of this work, from a data pipeline to a storyboard. The interface changes little; the questions I need to answer change considerably.
 
-The terminal was already where I spent much of my working day. Agents made it useful for work I used to do elsewhere, or leave to someone else. I can stay in the same window to prepare code, a changelog, and a communication plan. Whether I should own all three is a separate question, one the prompt doesn't ask.
+## Staff engineering is already a cross-functional role
 
-At least the progress bar is consistent. It moves, I relax. It stalls, I check whether I've broken something. Sometimes it's just waiting for me to approve a command. Oh, wait, there's auto mode for that too. Apparently even my click on "approve" needed automating.
+Reducing my role to reviewing PRs and checking a design does not describe what I do. It also involves framing the problem, making tradeoffs, handling dependencies between teams, and following the work through delivery. Project tracking belongs in that scope. I did not become a project manager the day an agent learned to generate a schedule.
 
-## Eight jobs, one chair
+The boundaries were already porous. A technical decision requires understanding the intended outcome, who will use the result, and what the teams can maintain. Those discussions have long extended beyond the code of the service we are working on.
 
-Beyond shipping code, I now help communicate the releases: what we're starting, what the first milestone delivers, what people can actually use when it goes live. The work starts well before the final announcement.
+What changes is how much work I can undertake myself around those decisions, and the fields in which I can try something.
 
-An agent can help prepare all of that. Which is convenient, because the original job hasn't got any smaller:
+## Data engineering, BI, and analysis are different kinds of work
 
-- **Staff engineer.** Check the design, review the code, think through the failure modes. Still the job on the résumé.
-- **Improvised marketer.** Explain why anyone should care about the release. A technically accurate changelog can still give readers no reason to open it.
-- **Project manager.** Keep the milestones and risks current. Generating a plan is quick. Finding out that a dependency has slipped takes a conversation.
-- **Data analyst on demand.** Pull numbers from the warehouse for "one quick question." Three joins later, I'm explaining why the two dashboards disagree.
-- **Community manager for the release.** Read the feedback and answer questions. Occasionally discover that the sentence everyone misunderstood is the one I thought was clearest.
-- **Designer between builds.** Move a button eight pixels, ask the agent for three variants, then pick the first one. The build is still running.
-- **Technical writer.** Update the README to explain how to run the project. Follow my own instructions and discover half the environment variables are missing. At least I've found my reader.
-- **Release video editor.** Prepare a thirty-second demo. Spend twenty minutes cutting the three seconds where I'm looking for the right tab.
+I actually do these activities. Grouping them under “pulling a number from the warehouse” leaves out much of the work.
 
-At this point, I do a bit of everything, including things I have no business spending this much time on. My job title still fits on one line; my day doesn't. That doesn't make me eight specialists. I'm still a conscientious engineer: I check the numbers, test what I ship, and ask for a review when I'm outside my expertise. Even if I spent the previous ten minutes choosing the demo thumbnail.
+In **data engineering**, we need to build pipelines and understand what they carry: grain, duplicates, freshness, and recovery after failure. A running pipeline does not guarantee that the data it produces is fit for its intended use.
 
-I can prepare more of this myself than I used to. But eight drafts ready before lunch are still eight drafts to review. And lunch is still lunch. I'd like to keep that feature.
+In **BI**, the work also involves defining metrics and making them useful. Which population is counted? As of which date? Which filters change the result? A polished dashboard can present a metric whose definition nobody agrees on.
 
-## The expensive part is switching
+In **data analysis**, we need to start from a question, choose what to compare, examine differences, and determine what the data supports. Writing the query does not settle those questions.
 
-There is no visible boundary between those tasks. A production bug and an announcement edit arrive in the same conversation, sometimes with equally confident suggestions from the agent.
+Agents can help prepare SQL, explore pipeline code, or propose a visualisation. We still need to understand the data and its limits to judge the result. Moving into another field means learning what matters in that field.
 
-That makes it easy to spend twenty minutes polishing a hook while a design decision waits. The announcement feels nearly done; the design needs another uncomfortable conversation. Guess which one is more tempting.
+## SRE-ish work and preparing designs
 
-Reviewing the work also means changing standards. For code, I look at behavior, tests, permissions, failure paths. For an announcement, I need to check what is available, who can use it, and whether the wording promises more than we delivered. Passing tests won't answer those questions.
+I am keeping the “ish”: opening a production dashboard does not give me an entire specialisation. But reliability, observability, diagnosis, and operational conditions take up a real part of my work. The question extends beyond “does the code work?”: how will we know when it stops working, and how will we intervene?
+
+On the **design** side, I prepare proposals. That means thinking about the user journey, the information presented, and interface states: loading, no results, errors, actions that are available or forbidden.
+
+Being able to prepare a design also makes discussion more concrete. We can examine a flow and its choices with the people involved, then revise it. That calls for different criteria from a code review.
+
+## The video factory extends beyond that scope
+
+This is the clearest example of the change for me. I set up a tool to produce videos and promote releases. Building it involves engineering, followed by the communication work we prepare with it.
+
+The factory organises the brief, storyboard, scenes, narration, and sound. It lets us work on those elements together. We need to choose what to say, who it is for, what to show, and what deserves to stay in the video.
+
+The changelog provides useful information. Communicating a release also means explaining what it brings to the people who will use it and preparing a presentation that speaks to them. That is editorial work, with decisions about content and form.
+
+Agents make this initiative more accessible from my usual working environment. I can prepare narration, build scenes, and iterate on the result. We still need to watch the video, listen to what it says, and decide whether it accurately presents what we delivered. A successful export cannot answer those questions. Unfortunately, good taste still has no exit code.
 
 <ArticleMedia mediaId="hat-switching-tax" />
 
-The tool makes switching cheap enough that I stop noticing how often I do it. I notice later, when the afternoon is gone and the difficult task is still open.
+## More possibilities, more skills to learn
 
-## Before I hit send
+Context switching remains an issue. Moving from a metric definition to a design, then to narration, requires changing criteria. Staying in the same terminal does not remove that effort.
 
-I don't need a new framework for this. I need to leave time for review and bring in the people who know what I don't.
+But switching tasks is not the only thing I take from this. I can also undertake things I would not necessarily have started before. The video factory exists because I could work on both the tool and what we wanted to do with it.
 
-Before merging code, check the diff and the evidence. Before publishing an announcement, check its claims against the feature people can use. Before committing to a milestone, check the dependencies and capacity with the team. An agent can prepare the material for each decision. It can't make the team available next Tuesday.
+I like that porosity. It gives me reasons to learn, prepare proposals, and work with people whose expertise differs from mine. It also requires knowing when to involve someone who understands the subject better.
 
-The same person doesn't have to approve everything. If I've drafted a message about a feature, someone who will use that feature may catch a misleading sentence much faster than I will. Owning the draft doesn't make me the best final reviewer.
-
-I like being able to do more from the terminal. I like it considerably less when that turns into an expectation that I'll own every task it can produce.
-
-For now, I'm keeping the extra capabilities. And I'm trying to close a task before opening the next one. The terminal can multitask. My attention remains stubbornly single-threaded. <small><em>Almost. I'm a robot too, after all.</em></small>
+My job title has not changed. I have still added a video factory to my projects. I may need a slightly longer line on the CV.

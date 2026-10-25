@@ -1,5 +1,5 @@
 ---
-title: "WebSockets: from Under the Limit to 30,000 connections at Forest"
+title: "WebSockets: from Under the Limit to 30,000 users at Forest"
 subtitle: "Cards, dice, GraphQL, and a backend everyone is waiting for after a restart."
 summary: "Under the Limit in 2018, lockdown games, and 25,000 to 30,000 people connected at Forest. My experience with WebSockets, from a game requested by Sigmund to mass reconnections with GraphQL and Apollo."
 visualId: "websockets-games-to-30000-connections"
@@ -62,6 +62,31 @@ After the `101`, the connection carries WebSocket frames. Playing a card no long
 
 TCP carries bytes without preserving application message boundaries. WebSocket adds that framing. A frame includes an end-of-message flag, an opcode, a length, and its payload. Opcodes distinguish text, binary, continuation, close, Ping, and Pong. One message can span multiple frames; one frame does not necessarily correspond to one TCP packet.
 
+These fields appear in transmission order. The header starts with two bytes; the drawn widths are not proportional to the bit counts.
+
+```text
+Byte 0
+┌─────┬─────┬────────┐
+│ FIN │ RSV │ opcode │
+│ 1 b │ 3 b │ 4 b    │
+└─────┴─────┴────────┘
+Byte 1
+┌──────┬────────┐
+│ MASK │ length │
+│ 1 b  │ 7 b    │
+└──────┴────────┘
+Then, in this order:
+┌──────────────────────────────┐
+│ Extended length: 0/2/8 bytes │
+├──────────────────────────────┤
+│ Masking key: 0 or 4 bytes    │
+├──────────────────────────────┤
+│ Payload: variable length     │
+└──────────────────────────────┘
+```
+
+`FIN` marks the message's final frame. The three `RSV` bits are zero unless a negotiated extension uses them. The length field directly encodes 0–125 bytes; `126` means the next 16 bits carry the length, and `127` means the next 64 bits do, with the most significant bit required to be zero. `MASK` indicates a 32-bit masking key, required from client to server and absent in the other direction. This is the format defined in [RFC 6455, section 5.2](https://www.rfc-editor.org/rfc/rfc6455#section-5.2).
+
 Browser-to-server frames are masked with a four-byte key carried in the frame. **Masking is not encryption.** It protects against certain interactions with network intermediaries, not someone reading the traffic. [MDN's guide to writing WebSocket servers](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers) describes the format.
 
 JSON sits another layer above. WebSocket carries text or binary data; it knows nothing about cards, notifications, or GraphQL.
@@ -76,7 +101,7 @@ The first rule is therefore to avoid sending players information they are not en
 
 Cryptography can also help when you need to hide a choice, then prove it has not changed. A classic example is *commit-reveal*: first publish the hash of a choice combined with a random secret, then reveal both once everyone has committed. The others can verify the hash. The secret must be sufficiently unpredictable: hashing a card alone is easy to defeat by trying every possible card.
 
-This is not a description of the exact protocol in my games, but an example of the kind of problem cryptography can address. It does not solve everything: a player can still refuse to reveal their choice, and dealing cards without any trusted participant is a separate problem.
+This example has limits: a player can still refuse to reveal their choice, and dealing cards without any trusted participant is a separate problem.
 
 At our scale, these questions remained manageable. We wanted to play with friends. At Forest, the problem that stayed with me was elsewhere.
 
@@ -86,7 +111,7 @@ We used GraphQL and Apollo for front-end notifications. The client could specify
 
 There are several layers in that sentence. WebSocket carries messages. An application protocol manages starting and stopping subscriptions. GraphQL describes the requested data. Apollo provides the application integration. [Apollo's subscription documentation](https://www.apollographql.com/docs/react/data/subscriptions) distinguishes these pieces; GraphQL does not mandate WebSocket as its transport.
 
-One connection can carry several subscriptions, distinguished by identifiers. The browser can start or stop them without closing the socket. The [`graphql-ws` library's protocol](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md) provides a current example. I am not citing it as the exact library we used at the time.
+One connection can carry several subscriptions, distinguished by identifiers. The browser can start or stop them without closing the socket. To see how that layer works, the [current `graphql-ws` library protocol](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md) provides a concrete example.
 
 That distinction matters after a restart: reopening the connection is not enough. You also need to restore the subscriptions the screen needs.
 
@@ -110,6 +135,8 @@ It is a very concrete trade-off. The user waits a little before receiving live u
 
 There is a catch: asking every client to wait five seconds just moves the spike by five seconds. *Jitter* introduces randomness into the delay. Backoff increases the window after successive failures, up to a cap. AWS illustrates the difference between [backoff alone and backoff with jitter](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/).
 
+[RFC 6455, section 7.2.3](https://www.rfc-editor.org/rfc/rfc6455#section-7.2.3) already recommends a randomized delay before the first reconnection after an abnormal closure, followed by increasing delays if attempts fail. It describes this exact risk: clients all reconnecting immediately can prevent the service from recovering.
+
 A *full jitter* formula can be written as follows, with `n = 0` for the first attempt after disconnection:
 
 ```text
@@ -119,7 +146,7 @@ wait(n) = uniform random draw between 0 and window(n)
 
 <MotionScene id="websocket-reconnect-jitter" />
 
-For a sense of scale, 30,000 first attempts spread uniformly over 30 seconds mean **1,000 attempts per second on average**. This is an illustrative calculation, not a Forest measurement or a configuration recommendation. You still have to verify that the system can handle that rate and its variations.
+For a sense of scale, 30,000 first attempts spread uniformly over 30 seconds mean **1,000 attempts per second on average**. This illustrative window needs to be sized against the rate the system can handle and its variations.
 
 The initial delay matters as much as the cap. If every client starts with an immediate attempt, the first spike has already happened before backoff does anything useful.
 
@@ -135,7 +162,7 @@ For an interface displaying current state, fetching that state again may be enou
 
 The same issue exists in the other direction. If a player sends an action just before disconnection, they may not know whether it was applied. Blindly resending “play this card” can produce a second action. A command identifier and deduplication by the game authority address a problem the transport cannot solve on its own.
 
-These are application decisions. I am separating them from our Forest experience here: spreading reconnections addresses the load on return, not every aspect of recovery semantics.
+Spreading reconnections reduces the load on return. Recovering data and actions still needs to be handled by the application.
 
 ## What to watch while the connection is alive
 
@@ -151,4 +178,4 @@ I still really like what WebSockets let you build. Sigmund's request in 2018 bec
 
 But at that scale, accepting some reconnection delay was part of making real-time updates work. That is probably what I remember most: we also needed clients that knew how to wait.
 
-_Written after leaving Forest Admin. The audience size is an order of magnitude from memory; protocol examples and calculations illustrate the mechanisms._
+_Written after leaving Forest Admin. The audience size is an order of magnitude from memory. Commit-reveal, the cited protocols, calculations, and recovery mechanisms are explanatory examples, not a reconstruction of the implementations in my games or at Forest._
