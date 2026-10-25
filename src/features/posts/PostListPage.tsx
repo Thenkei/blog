@@ -8,6 +8,10 @@ import {
   getPostSummaries,
   getThemeExclusivePostSummaries,
   isPostDiagramVisualId,
+  postCategories,
+  matchesPostCategory,
+  matchesPostTag,
+  canonicalPostTag,
   type PostLocale,
 } from "./content";
 import { usePostKeyboardNavigation } from "./hooks/usePostKeyboardNavigation";
@@ -58,7 +62,10 @@ export function PostListPage({ locale }: PostListPageProps) {
   const [areFiltersOpen, setAreFiltersOpen] = useState(false);
   const filterOptionsId = useId();
   const query = searchParams.get("q") ?? "";
-  const selectedTag = searchParams.get("tag") ?? "all";
+  const selectedTag = canonicalPostTag(searchParams.get("tag") ?? "all");
+  const selectedCategory = postCategories.find(
+    (category) => category.slug === searchParams.get("category"),
+  );
   const sortOrder = searchParams.get("sort") === "oldest" ? "oldest" : "newest";
 
   const openPost = (slug: string) => {
@@ -87,15 +94,17 @@ export function PostListPage({ locale }: PostListPageProps) {
     }
   }, [appliedTheme, location.hash]);
 
-  const updateFilters = (next: { query?: string; tag?: string; sort?: "newest" | "oldest" }) => {
+  const updateFilters = (next: { query?: string; tag?: string; category?: string; sort?: "newest" | "oldest" }) => {
     const params = new URLSearchParams(searchParams);
     const nextQuery = next.query ?? query;
     const nextTag = next.tag ?? selectedTag;
     const nextSort = next.sort ?? sortOrder;
+    const nextCategory = next.category ?? selectedCategory?.slug ?? "all";
 
     if (nextQuery.trim()) params.set("q", nextQuery); else params.delete("q");
     if (nextTag !== "all") params.set("tag", nextTag); else params.delete("tag");
     if (nextSort === "oldest") params.set("sort", nextSort); else params.delete("sort");
+    if (nextCategory !== "all") params.set("category", nextCategory); else params.delete("category");
     setSearchParams(params, { replace: true });
     setFocusedIndex(-1);
   };
@@ -109,8 +118,9 @@ export function PostListPage({ locale }: PostListPageProps) {
     const filtered = posts
       .filter((post) => matchingSlugs.has(post.slug))
       .filter(
-        (post) => selectedTag === "all" || post.tags.includes(selectedTag),
-      );
+        (post) => selectedTag === "all" || matchesPostTag(post.tags, selectedTag),
+      )
+      .filter((post) => !selectedCategory || matchesPostCategory(post.tags, selectedCategory));
 
     filtered.sort((a, b) => {
       if (sortOrder === "newest") {
@@ -120,7 +130,10 @@ export function PostListPage({ locale }: PostListPageProps) {
     });
 
     return filtered;
-  }, [posts, query, searchDocuments, selectedTag, sortOrder]);
+  }, [posts, query, searchDocuments, selectedTag, selectedCategory, sortOrder]);
+
+  const showFeaturedPost = !query.trim() && selectedTag === "all" &&
+    !selectedCategory && sortOrder === "newest";
 
   const { focusedIndex, setFocusedIndex, cardRefs } = usePostKeyboardNavigation(
     {
@@ -168,6 +181,29 @@ export function PostListPage({ locale }: PostListPageProps) {
               >
                 {t("ui.showFilters")}
               </button>
+            </div>
+            <div className="post-categories" role="group" aria-label={t("ui.browseCategories")}>
+              <button
+                className="post-category"
+                type="button"
+                aria-pressed={!selectedCategory}
+                onFocus={() => setFocusedIndex(-1)}
+                onClick={() => updateFilters({ category: "all", tag: "all" })}
+              >
+                {t("ui.allCategories")}
+              </button>
+              {postCategories.map((category) => (
+                <button
+                  key={category.slug}
+                  className="post-category"
+                  type="button"
+                  aria-pressed={selectedCategory?.slug === category.slug}
+                  onFocus={() => setFocusedIndex(-1)}
+                  onClick={() => updateFilters({ category: category.slug, tag: "all" })}
+                >
+                  {category.title[locale]}
+                </button>
+              ))}
             </div>
             <div className="post-controls-grid">
               <label className="post-control-field post-control-search">
@@ -225,13 +261,14 @@ export function PostListPage({ locale }: PostListPageProps) {
             </div>
           </section>
 
-          <div className="post-list" key="post-list">
+          <div className="post-list post-list-editorial" key="post-list">
             {filteredPosts.length === 0 ? (
               <p className="post-empty">{t("ui.noResults")}</p>
             ) : (
               filteredPosts.map((post, index) => {
                 const visibleTags = post.tags.slice(0, 3);
                 const hiddenTagCount = post.tags.length - visibleTags.length;
+                const isFeatured = showFeaturedPost && index === 0;
 
                 return (
                   <Link
@@ -241,7 +278,7 @@ export function PostListPage({ locale }: PostListPageProps) {
                     ref={(element) => {
                       cardRefs.current[index] = element;
                     }}
-                    className={`post-card ${focusedIndex === index ? "focused" : ""}`}
+                    className={`post-card ${isFeatured ? "post-card-featured" : "post-card-compact"} ${focusedIndex === index ? "focused" : ""}`}
                     onMouseEnter={() => setFocusedIndex(index)}
                     onFocus={() => setFocusedIndex(index)}
                   >
@@ -260,6 +297,7 @@ export function PostListPage({ locale }: PostListPageProps) {
                       />
                     )}
                     <div className="post-card-body">
+                      {isFeatured ? <span className="post-featured-label">{t("ui.featuredPost")}</span> : null}
                       <div className="meta">
                         <span>{formatDate(post.publishedAt, locale)}</span>
                         <span>•</span>
