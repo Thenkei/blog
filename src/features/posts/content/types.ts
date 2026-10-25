@@ -7,6 +7,7 @@ export type PostVisibility = (typeof postVisibilities)[number];
 export type PostAccessScope = PostVisibility;
 
 export const postVisualIds = [
+  "websockets-games-to-30000-connections",
   "agent-battle-2026",
   "frontier-model-race-2026",
   "bounded-ai-loop",
@@ -46,6 +47,7 @@ export type PostVisualId = (typeof postVisualIds)[number];
 // Some article visuals are raster editorial artwork rather than SVG diagrams
 // rendered by PostVisual; they have no diagram fallback of their own.
 export const postImageVisualIds = [
+  "websockets-games-to-30000-connections",
   "jokarikara-first-ai-project",
   "ai-is-not-immaterial",
   "better-handoffs-ai-engineering",

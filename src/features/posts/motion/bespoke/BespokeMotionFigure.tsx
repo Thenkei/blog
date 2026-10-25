@@ -1,4 +1,4 @@
-import { isValidElement, lazy, Suspense, use, type ReactNode } from "react";
+import { isValidElement, lazy, Suspense, use, useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { normalizeLocale } from "../../../../shared/routing";
 import type { PostLocale } from "../../content/types";
@@ -18,8 +18,19 @@ type Props = {
 
 /** Static drawing plus the narration as an ordered text alternative. */
 function PosterMedia({ scene, locale }: { scene: BespokeScene; locale: PostLocale }) {
+  const [compact, setCompact] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia?.("(max-width: 650px)");
+    if (!query) return;
+    const update = () => setCompact(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
   return <div className="bespoke-scene-poster">
-    <SceneShell scene={scene} frame={scene.posterFrame} compact={false} locale={locale} showNarration={false} />
+    <SceneShell scene={scene} frame={scene.posterFrame} compact={compact} locale={locale} showNarration={false} />
     <ol className="bespoke-scene-beats">
       {scene.beats.map((beat, index) => <li key={beat.at}>
         <span>{String(index + 1).padStart(2, "0")}</span>
