@@ -66,19 +66,25 @@ describe("bespoke article scenes", () => {
     }
   });
 
-  it("keeps the announcement in review before publication and leaves other tasks pending", async () => {
+  it("keeps the staff role broad and includes adjacent practices and release communication", async () => {
     const scene = await loadBespokeScene("hat-switching-tax");
     for (const compact of [false, true]) {
       for (const locale of locales) {
         const { Stage } = scene;
         const props = { compact, locale, width: compact ? 540 : 960, height: compact ? 520 : 420 };
-        const reviewing = renderToStaticMarkup(<svg><Stage {...props} frame={360} /></svg>);
-        const published = renderToStaticMarkup(<svg><Stage {...props} frame={478} /></svg>);
-        const publication = locale === "fr" ? "✓ PUBLIÉE" : "✓ PUBLISHED";
-        expect(reviewing).not.toContain(publication);
-        expect(published).toContain(publication);
-        expect(published.match(new RegExp(locale === "fr" ? "en attente" : "pending", "g"))).toHaveLength(7);
-        expect(scene.durationInFrames - 446).toBeGreaterThanOrEqual(60);
+        const initial = renderToStaticMarkup(<svg><Stage {...props} frame={0} /></svg>);
+        const poster = renderToStaticMarkup(<svg><Stage {...props} frame={scene.posterFrame} /></svg>);
+        expect(initial).toContain("Staff engineer");
+        expect(initial).toContain(locale === "fr" ? "Cadrer" : "Frame");
+        expect(initial).toMatch(locale === "fr" ? /arbitrer/i : /tradeoffs/i);
+        expect(initial).toMatch(/delivery/i);
+        for (const practice of ["Data engineering", "BI", "Data analyst", "SRE-ish", "Design"]) {
+          expect(poster).toContain(practice);
+        }
+        expect(poster).toContain(locale === "fr" ? "Vidéo factory" : "Video factory");
+        expect(poster).toMatch(/[Cc]ommunication/);
+        expect(poster).not.toMatch(/8 hats|8 casquettes|en attente|pending|PUBLIÉE|PUBLISHED/);
+        expect(scene.durationInFrames - scene.beats.at(-1)!.at).toBeGreaterThanOrEqual(60);
       }
     }
   });

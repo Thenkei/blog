@@ -1,10 +1,10 @@
 ---
-title: "Engineering in 2026: The Year AI Redefined Our Job"
-subtitle: "From Cursor to Claude Code, from hand-typed boilerplate to orchestration."
-summary: "What RockFi's tech team moving to Claude Code actually shifted: less code written by hand, more review, context and judgment, and 4 to 5 projects a day without losing my mind."
+title: "Engineering in 2026: What AI Changed in Our Work"
+subtitle: "RockFi's move from Cursor to Claude Code, our internal tools, and the time spent on review."
+summary: "RockFi's tech team moved to Claude Code: less code written by hand, tools for repetitive tasks, and more proposals to verify."
 visualId: "engineering-2026-ai-redefined-our-job"
 publishedAt: "2026-02-27"
-readTimeMinutes: 6
+readTimeMinutes: 4
 tags:
   - ai
   - engineering
@@ -12,68 +12,52 @@ tags:
   - reflection
 ---
 
-New year, new paradigm. Not the HR-approved "new year, new me" kind that evaporates by February. This one started before New Year's Eve, and it is still holding.
+Our work has changed considerably over the past few months. At **RockFi**, we write less code by hand and spend more time framing requests and checking the changes agents propose.
 
-At **RockFi**, we crossed that line without really planning to. Looking back, I might as well say it plainly: writing code is no longer our main activity. We spend far less time fighting syntax, and far more deciding what to build and checking that what got built actually holds up.
-
-## December: Leaving Cursor for Claude Code
+## December: leaving Cursor for Claude Code
 
 <ArticleDiagram visualId="engineering-2026-ai-redefined-our-job" />
 
-In late 2025, around December, the tech team (10 to 12 people at the time) moved from Cursor to **Claude Code**. You could read it as yet another shiny tool to help us forget our technical debt. What we were actually betting on was different: an AI that works in the terminal and the repo, in the middle of the messy reality of the project, instead of finishing our lines of code.
+In late 2025, around December, the tech team (10 to 12 people at the time) moved from Cursor to **Claude Code**. We wanted an agent that could work in the terminal and repository, with the project's constraints, rather than complete our lines of code.
 
-Nobody had to mandate the migration. People saw the difference between wrestling with context limits and actually finishing their tasks, and they switched on their own.
+Nobody had to mandate the migration: people tried the tool on their tasks and switched on their own.
 
-We don't type any faster. What we gained is **leverage**: Claude Code understands our spaghetti architecture well enough to absorb the soul-draining translation between "what I want" and "what the compiler forces me to type."
+I can delegate part of an implementation with the repository's files and conventions. I then need to check how the agent interpreted them, especially when a change affects several services.
 
-> We write far less code by hand than we used to. And yet we ship more. Said out loud, it still sounds like heresy.
+## Internal tools for repetitive tasks
 
-## Homegrown Tools That Do the Grunt Work
+We built tools around Claude Code for tasks that kept recurring:
 
-One of the best calls we made was building our own **internal tools** on top of Claude Code. Nothing cosmetic. They are narrow, opinionated tools, each aimed at one specific source of friction, the kind that makes you want to flip your desk:
+- **Workshops and brainstorming**: gather relevant context and structure the discussion.
+- **DiveIn preparation**: organise decisions and open questions in our design template.
+- **PR preparation**: create the branch, retrieve context, draft the description, and link the documents.
 
-- **Workshop and brainstorming support**: structured prompts and context loaders so we can explore ideas without falling down a rabbit hole of obsolete Jira tickets.
-- **Dive In generator**: our deep technical documentation tool. That kind of doc used to eat half a senior engineer's day and was outdated the day it was published. Now it's generated alongside the code. `// No more docs lying to production.`
-- **Story-to-PR pipelines**: we write the user story, the tool does the rest. It creates the branch, pulls the context, drafts the description and links the artifacts. The administrative tax we used to pay on every feature is gone.
+These tools save us some repetitive work. We still have to check that the document captures the decision correctly and that the PR addresses the need.
 
-None of these tools make decisions for us. They remove the mindless friction that slowly burns out good engineers, and that's already a lot.
+## Why I keep Codex and Claude Code
 
-## Codex and Claude Code (aka Tooling Polygamy, Owned)
+Alongside the team's shared stack, I use **Codex** and **Claude Code** in parallel.
 
-On top of the team's shared stack, I ended up with a more pragmatic personal setup: I run **Codex** and **Claude Code** side by side, and I have no intention of picking one.
+I mostly use Codex for focused changes with short feedback loops. Claude Code is what I tend to open to discuss an architecture decision or debug a distributed issue that requires more context. That is how I divide my work at this point, rather than a limit on what either tool can do.
 
-Codex is my scalpel for pure code generation. Tightly focused, great for short loops where you just need the damn function written. Claude Code brings the heavy artillery on context: it's what I open for the back-and-forth of an architecture decision, or to debug the gnarly distributed issue that only shows up at 3 AM.
+With that pair, I work across **4 to 5 projects a day**. An observability regression in one repository, a database migration to review in another, and my main project moving forward in between.
 
-With that pair, I work across **4 to 5 projects a day** without my brain melting. An observability regression to fix in one repo, a terrifying schema migration to review in another, and my main project moving forward in between. The context switching that used to crush my spirit before lunch has become bearable.
+I have not become a multitasker; my brain is still single-threaded. The tool keeps track of each repository, which helps me resume a topic I left two hours earlier. The context switching remains; I have less context to rebuild each time.
 
-I didn't become a multitasker, my brain is still single-threaded. The tool just keeps track of each repo, so picking a topic back up two hours later costs me almost nothing.
+## Time spent on review
 
-## Beyond "AI Makes Us Faster"
+Generating a first version takes less time. Review still takes time: checking business behaviour, understanding a migration, examining database access. We already did this work before AI. Keeping up becomes harder when diffs arrive faster.
 
-Boiling all this down to "we code faster" misses what actually moved:
-
-- **The unit of effort shifted.** We used to judge progress by how many lines we pushed to `main`. Now we judge it by problems solved, architecture decisions we can defend, and how the system holds up under load. `// Your AWS bill will finally appreciate it.`
-- **Juniors learn different things.** Boilerplate and syntax, which used to fill a good part of their early days, go to the LLM. What's left for them to learn is intent, the business domain, and the fine art of not creating circular dependencies.
-- **We finally do actual engineering.** Reading complex systems. Making painful tradeoffs. Designing for failure. Reviewing code to make sure it won't bring the database connection pool to its knees. `// Don't set concurrency to 100 unless you truly hate your database.` The hard stuff is now the core of the job.
-
-## The New Bottlenecks (aka Ways This Will Inevitably Explode)
-
-Writing code costs almost nothing now, but physics still applies: the bottleneck just moved.
-
-- **Code review paralysis (and AI reviewers):** reading code is harder than writing it. Reviewing an AI's PR is like reviewing a "10x" engineer who never sleeps, knows everything, and occasionally hallucinates a cryptographic library that doesn't exist. Reading 500 generated lines while hunting for the race condition quietly slipped into the middle is a muscle we didn't have. Our only viable defense is fighting fire with fire: dedicated reviewer skills in Claude (and their counterparts in Codex) now do the first pass. `// Let the bots argue about cyclomatic complexity before I have to look at it.`
-- **Context is the new syntax:** we stopped fighting syntax and started fighting context windows. Drop an LLM into a 5-year-old monolith without guidance and it will confidently rewrite your payment logic following an outdated architectural paradigm it read on Reddit in 2021. Knowing how to "talk to AI" isn't enough anymore: you have to carefully pick the context you feed it. We've become _context engineers_.
-- **The API dependency:** time for some self-deprecation. The day the Anthropic or OpenAI API goes down, the whole team grinds to a halt. We'll stare blankly at our IDEs, because manually typing out a 150-line boilerplate schema migration will feel like being asked to churn our own butter. The dependency is total, and it's a risk we took with our eyes open.
+Code review skills in Claude Code and Codex provide a first pass. They can flag a problem or suggest an additional check. We then need to examine those comments and the diff against the system's constraints.
 
 <ArticleMedia mediaId="ai-review-meme" />
 
-## Fast Typing Doesn't Hide Anything Anymore
+## Supplying the context
 
-Let's say it out loud: **what counts as an engineer's contribution has changed for good.** Typing 120 WPM was never the actual job, but it was a great place to hide a lack of critical thinking. That hiding place is gone.
+The agent needs to know which conventions apply, which contracts to preserve, and which parts of the system are involved. In an older repository, it may find several patterns and follow one we no longer use.
 
-If you aren't working on your system judgment, your ability to evaluate AI output without mercy, and your instinct for telling _what is solid_ from _what vaguely compiles_, 2026 is going to chew you up. The more the tools produce, the more you need someone able to say no to what they produce.
+Choosing the files and decisions to provide is therefore part of the work. The result can be consistent with the supplied context and incompatible with a constraint we left out.
 
-## Back to Work
+## Another dependency on APIs
 
-Eight months ago, I wouldn't have bet on a team shipping more, without breaking production, while writing less code by hand. Yet here we are, and the line between "designing" and "writing" code has become genuinely blurry.
-
-What's left is raising the level of the humans as fast as the level of the tools. And keeping someone on the team who can still write a migration by hand, for the day the API goes down.
+An Anthropic or OpenAI outage would slow down tasks we have grown used to delegating. It is another dependency in our workflow. We need to be able to resume those tasks without the agent, even if that takes longer.

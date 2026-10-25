@@ -61,10 +61,10 @@
 <pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
-<title>An Engineer&apos;s Life in Late 2026: The Terminal Is My Office, My Ad Agency, and My PM</title>
+<title>My Terminal in Late 2026: Staff Engineer, Video Factory Included</title>
 <link>https://thenkei.github.io/blog/en/posts/engineer-life-late-2026</link>
 <guid>https://thenkei.github.io/blog/en/posts/engineer-life-late-2026</guid>
-<description>I still work in a terminal. Now I also use it to draft release announcements, plan milestones, and answer feedback. The drafts come faster; deciding what deserves to ship still takes work.</description>
+<description>I do data engineering, BI, analysis, prepare designs, and built a video factory to promote our releases. How agents expand the work I can take on from my terminal.</description>
 <pubDate>Mon, 28 Sep 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
@@ -82,10 +82,10 @@
 <pubDate>Mon, 24 Aug 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
-<title>The Future of AI Engineering Isn&apos;t Better Agents. It&apos;s Better Hand-offs.</title>
+<title>What Our Agents Need to Pass On During an Investigation</title>
 <link>https://thenkei.github.io/blog/en/posts/better-handoffs-ai-engineering</link>
 <guid>https://thenkei.github.io/blog/en/posts/better-handoffs-ai-engineering</guid>
-<description>As agents move from isolated tools to connected workflows, the hard problem is preserving investigation state and human judgment across every hand-off.</description>
+<description>Our on-duty workflow, the investigation state agents need to pass on, and the decisions that still need review.</description>
 <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
@@ -131,10 +131,10 @@
 <pubDate>Fri, 19 Jun 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
-<title>Engineering in 2026: The Year AI Redefined Our Job</title>
+<title>Engineering in 2026: What AI Changed in Our Work</title>
 <link>https://thenkei.github.io/blog/en/posts/engineering-2026-ai-redefined-our-job</link>
 <guid>https://thenkei.github.io/blog/en/posts/engineering-2026-ai-redefined-our-job</guid>
-<description>What RockFi&apos;s tech team moving to Claude Code actually shifted: less code written by hand, more review, context and judgment, and 4 to 5 projects a day without losing my mind.</description>
+<description>RockFi&apos;s tech team moved to Claude Code: less code written by hand, tools for repetitive tasks, and more proposals to verify.</description>
 <pubDate>Fri, 27 Feb 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
@@ -166,10 +166,10 @@
 <pubDate>Wed, 14 Jan 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
-<title>The Force Multiplier: AI as the New Engineering Substrate</title>
+<title>AI in My Staff Engineering Workflow</title>
 <link>https://thenkei.github.io/blog/en/posts/ai-force-multiplier</link>
 <guid>https://thenkei.github.io/blog/en/posts/ai-force-multiplier</guid>
-<description>Why staff-level engineering shifts from raw implementation to orchestration when AI acceleration becomes ubiquitous.</description>
+<description>How I use AI to draft RFCs and explore refactorings, and what I check before keeping a proposal.</description>
 <pubDate>Sat, 10 Jan 2026 00:00:00 GMT</pubDate>
 </item>
 <item>

@@ -4,7 +4,7 @@ subtitle: "A timing game, geometric shapes, and my first experiments with Claude
 summary: "Jokarikara was my first time using AI in a personal project. A small game with concrete questions about geometry, rhythm, and judgment."
 visualId: "jokarikara-first-ai-project"
 publishedAt: "2026-10-22"
-readTimeMinutes: 4
+readTimeMinutes: 3
 tags:
   - ai
   - developer-tools
@@ -24,8 +24,6 @@ The basic idea is easy to explain. A shape appears at the center of the screen a
 
 The difficulty comes from what moves: size, orientation, and then the effects introduced as the game progresses. The camera zooms as the shapes get smaller to keep the action readable. The [gameplay guide](https://github.com/Thenkei/jokarikara/blob/main/GAMEPLAY.md) describes this loop and its variations.
 
-The gesture stays the same. Its context changes.
-
 That simplicity makes the project interesting from a development perspective. With one main interaction, every detail matters: growth speed, the clarity of a boundary, the moment a shape is accepted, and the feedback the player receives.
 
 ## A geometry problem beneath the shapes
@@ -40,28 +38,16 @@ These are implementation choices that can be examined and discussed. The word â€
 
 <MotionScene id="jokarikara-containment" />
 
-## Three tools, one project
+## Checking the result in the game
 
-Claude Code, Antigravity, and Codex were all part of this first experience. I would not turn that into a ranking: using several tools on one project does not make a controlled comparison.
+I used Claude Code, Antigravity, and Codex on this project. To examine the result, I can start with the game's behaviour: does an accepted placement match the visible boundary? Does rotation affect the containment check correctly? Do the added effects keep the game readable?
 
-What interests me here is connecting AI use to a result that can be inspected. In a game, the code eventually has to answer straightforward questions: can the player understand what is happening? Does a placement feel consistent with the visible boundary? Does the difficulty give the player a chance?
-
-Those questions provide concrete criteria for evaluating a technical proposal. A change can compile while making the game harder to read. A new mechanic can work in isolation while combining poorly with earlier ones.
-
-AI therefore becomes part of work that still needs intent and criteria. A game offers a particularly direct way to compare those criteria with what appears on screen.
+The geometry module lets me examine some of those questions in code. For rhythm and difficulty, I also need to play.
 
 ## Evolving the difficulty while keeping the rule
 
 The [gameplay configuration](https://github.com/Thenkei/jokarikara/blob/main/src/gameplay/config.ts) brings together progression, available shapes, quality thresholds, and world effects. These include pulsing, waves, vertical drift, and rotation inversions.
 
 This structure makes the settings visible. It separates a difficulty adjustment from a change to the geometry logic. It also shows how a very short starting rule can support a much richer system of variations.
-
-For a personal project built with AI, that distinction is useful: adding possibilities and understanding their interactions are two kinds of work that need to move forward together.
-
-## A first reference point
-
-I see Jokarikara as a first reference point in my personal use of AI. A manageable project, with a rule that takes a few seconds to explain and an implementation worth examining closely.
-
-There is something I like about that combination: a few shapes on screen, a single gesture, and already enough substance to talk about geometry, design, and how I want to build with these tools.
 
 The [Jokarikara source code](https://github.com/Thenkei/jokarikara) is open to anyone who wants to look beneath the outlines.

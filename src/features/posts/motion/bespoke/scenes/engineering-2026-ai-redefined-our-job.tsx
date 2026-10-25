@@ -30,9 +30,9 @@ const FRICTION = {
 } as const;
 const WORK = {
   en: ["tradeoffs", "design for failure", "reading systems", "review"],
-  fr: ["compromis", "design résilient", "lire les systèmes", "revue"],
+  fr: ["compromis", "design résilient", "lire les systèmes", "review"],
 } as const;
-const PLUGS = { en: ["terminal", "repo", "project"], fr: ["terminal", "dépôt", "projet"] } as const;
+const PLUGS = { en: ["terminal", "repo", "project"], fr: ["terminal", "repo", "projet"] } as const;
 
 const chipW = (text: string, size: number) => text.length * size * .6 + size * 1.5;
 
@@ -160,7 +160,7 @@ function Stage({ frame, compact, locale }: SceneStageProps) {
     {act2 ? <g {...claudeIn}>
       <Box x={G.claude.x} y={G.claude.y} w={G.claude.w} h={G.claude.h} tone="line" radius={16} focus={during(frame, T.absorb[0], T.absorb[2] + 24) * .8}>
         <Text x={G.claude.x + 16} y={G.claude.y + 24} size={17} weight={650}>Claude Code</Text>
-        <Text x={G.claude.x + 16} y={G.claude.y + (compact ? 44 : 46)} size={12.5} font="mono" weight={600} tone="line">{fr ? "collaborateur actif" : "active collaborator"}</Text>
+        <Text x={G.claude.x + 16} y={G.claude.y + (compact ? 44 : 46)} size={12.5} font="mono" weight={600} tone="line">{fr ? "agent dans le repo" : "repository agent"}</Text>
         {PLUGS[locale].map((plug, i) => {
           const widths = PLUGS[locale].map((p) => chipW(p, 11));
           const x = G.claude.x + 16 + widths.slice(0, i).reduce((sum, w) => sum + w + 6, 0);
@@ -195,7 +195,7 @@ function Stage({ frame, compact, locale }: SceneStageProps) {
       <Box x={G.engineer.x} y={engineerY} w={G.engineer.w} h={G.engineer.h} tone="hot" radius={12} focus={act2 ? during(frame, T.climb[0], T.climb[1] + 30) : during(frame, T.hand[0][0], T.hand[4][1])} label={fr ? "ingénieur" : "engineer"} labelSize={compact ? 15 : 16} />
     </g>
 
-    <Tag x={G.right - 4} y={compact ? G.bottomY + 50 : G.bottomY + 20} anchor="end" text={fr ? "moins à la main · plus livré" : "less by hand · more shipped"} tone="ok" size={12.5} appear={frame >= T.ship ? pop(frame, T.ship) : 0} />
+    <Tag x={G.right - 4} y={compact ? G.bottomY + 50 : G.bottomY + 20} anchor="end" text={fr ? "moins à écrire · toujours à vérifier" : "less to write · still needs review"} tone="ok" size={12.5} appear={frame >= T.ship ? pop(frame, T.ship) : 0} />
 
     {/* Theme flourish: a summit marker on the engineering band (mountain). */}
     <g className="scene-only-mountain" opacity={engLit}>
@@ -211,17 +211,17 @@ function during(frame: number, start: number, end: number) {
 export default defineScene({
   durationInFrames: T.end,
   posterFrame: 430,
-  title: { en: "Engineering at a different altitude", fr: "L'ingénierie à une autre altitude" },
+  title: { en: "Implementation and review", fr: "Implémentation et review" },
   caption: {
-    en: "The leverage was not typing faster. An active collaborator embedded in the terminal, the repo and the project absorbs the translation from “what I want” to what the compiler needs, and the engineer's time moves up to tradeoffs, design and review.",
-    fr: "Le levier n'était pas de taper plus vite. Un collaborateur actif, intégré au terminal, au dépôt et au projet, absorbe la traduction entre « ce que je veux » et ce qu'exige le compilateur, et le temps de l'ingénieur remonte vers les compromis, le design et la revue.",
+    en: "Claude Code works in the terminal and repository. It can prepare part of the implementation; the team still needs to check the behaviour, contracts, and database access.",
+    fr: "Claude Code travaille dans le terminal et le repo. Il peut préparer une partie de l'implémentation ; l'équipe doit toujours vérifier le comportement, les contrats et les accès à la base.",
   },
   beats: [
-    { at: 0, text: { en: "Before: “what I want” is translated by hand into what the compiler forces me to type.", fr: "Avant : « ce que je veux » se traduit à la main jusqu'à ce qu'exige le compilateur." } },
-    { at: 80, text: { en: "Syntax, boilerplate, context windows: the day stays at the lowest altitude, with autocomplete at best.", fr: "Syntaxe, boilerplate, limites de contexte : la journée reste à basse altitude, l'autocomplétion au mieux." } },
-    { at: T.act2, text: { en: "Claude Code: an active collaborator embedded in the terminal, the repo and the project.", fr: "Claude Code : un collaborateur actif, intégré au terminal, au dépôt et au projet." } },
-    { at: T.absorb[0], text: { en: "It absorbs the translation. The engineer climbs to tradeoffs, design for failure and review.", fr: "Il absorbe la traduction. L'ingénieur remonte vers les compromis, le design résilient et la revue." } },
-    { at: T.ship, text: { en: "Less code written by hand, and yet more shipped. The leverage is the gap it closes.", fr: "Moins de code écrit à la main, et pourtant on livre davantage. Le levier, c'est l'écart qu'il comble." } },
+    { at: 0, text: { en: "A request needs to become an implementation consistent with the repository.", fr: "La demande doit devenir une implémentation cohérente avec le repo." } },
+    { at: 80, text: { en: "Writing that implementation includes syntax and boilerplate.", fr: "Écrire cette implémentation comprend de la syntaxe et du boilerplate." } },
+    { at: T.act2, text: { en: "Claude Code can work with files and conventions in the repository.", fr: "Claude Code peut travailler avec les fichiers et les conventions du repo." } },
+    { at: T.absorb[0], text: { en: "Delegating implementation leaves decisions and review to the engineer.", fr: "Déléguer l'implémentation laisse les décisions et la review à l'ingénieur." } },
+    { at: T.ship, text: { en: "Less code written by hand still needs checking before it ships.", fr: "Le code généré reste à vérifier avant livraison." } },
   ],
   Stage,
 });
