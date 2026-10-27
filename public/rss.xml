@@ -5,18 +5,18 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
-<title>How I built Nexus in two days</title>
-<link>https://thenkei.github.io/blog/en/posts/nexus-in-two-days</link>
-<guid>https://thenkei.github.io/blog/en/posts/nexus-in-two-days</guid>
-<description>Four and a half years at Forest Admin, a vision for internal tools I kept coming back to, then a weekend spent building the v0 of Nexus with AI.</description>
-<pubDate>Tue, 27 Oct 2026 00:00:00 GMT</pubDate>
-</item>
-<item>
 <title>Ingestion, the &quot;solved&quot; problem</title>
 <link>https://thenkei.github.io/blog/en/posts/data-platform-ingestion-drift</link>
 <guid>https://thenkei.github.io/blog/en/posts/data-platform-ingestion-drift</guid>
 <description>First episode of the series on our data platform: the map of the stack (Airbyte, Snowflake, dbt, Dagster, Terraform), then why ingesting from sources you don&apos;t control is mostly a problem of cursors, invisible deletes, and schema drift.</description>
 <pubDate>Mon, 26 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>How I built Nexus in two days</title>
+<link>https://thenkei.github.io/blog/en/posts/nexus-in-two-days</link>
+<guid>https://thenkei.github.io/blog/en/posts/nexus-in-two-days</guid>
+<description>Four and a half years at Forest Admin, a vision for internal tools I kept coming back to, then a weekend spent building the v0 of Nexus with AI.</description>
+<pubDate>Sun, 25 Oct 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Jokarikara: My First Personal Project with AI</title>

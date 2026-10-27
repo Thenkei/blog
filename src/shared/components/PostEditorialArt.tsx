@@ -29,6 +29,12 @@ const jpegAssets = import.meta.glob<string>(
 );
 
 const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
+  "nexus-in-two-days": {
+    alt: {
+      en: "An engineer seen from behind assembles a miniature Nexus engine in his hands, with stone bridges and glowing cyan and copper flows.",
+      fr: "Un ingénieur vu de dos assemble dans ses mains un moteur Nexus miniature, avec des ponts de pierre et des flux lumineux cyan et cuivre.",
+    },
+  },
   "agent-battle-2026": {
     alt: {
       en: "Manga-inspired scene of an engineer choosing between three distinct routes for AI-assisted work.",
