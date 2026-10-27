@@ -1,0 +1,51 @@
+---
+title: "Comment j’ai build Nexus en deux jours"
+subtitle: "Enfin, la v0. Mais une v0 déjà full feature."
+summary: "Quatre ans et demi chez Forest Admin, une vision des internal tools qui me restait en tête, puis un week-end pour construire la v0 de Nexus avec l’IA."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-10-27"
+readTimeMinutes: 3
+tags:
+  - ai
+  - developer-tools
+  - personnel
+  - rockfi
+---
+
+J’ai build Nexus en deux jours. Enfin, la v0. Mais une v0 déjà full feature.
+
+Pour raconter ça, il faut quand même remonter un peu avant ce week-end.
+
+J’ai passé quatre ans et demi chez Forest Admin à construire des internal tools. J’y ai beaucoup appris. J’y ai aussi développé mes propres convictions sur la façon dont ces outils devaient fonctionner.
+
+Et je dois le dire : je n’étais pas d’accord avec toutes les décisions prises. En tant que staff engineer et engineering manager, j’avais pu défendre ma vision, sans toujours me sentir écouté. Ce sentiment a d’ailleurs contribué à mon départ.
+
+Depuis, j’avais gardé en tête ma propre version de ce que devait être un internal tool. Ce qui allait devenir Nexus.
+
+Je n’y pensais pas tous les jours. Mais chaque fois que je rencontrais une problématique liée aux internal tools, je revenais à cette idée. Je confrontais ma vision au problème, je précisais certains choix, les abstractions que je voulais et les endroits où elles devaient vivre.
+
+Puis un week-end, pendant mes expérimentations avec l’IA, je me suis dit : « Bah allez, lance-toi. Fais Nexus pour de vrai. »
+
+J’ai commencé par parler pendant une heure avec une IA. J’ai posé les grandes guidelines, expliqué comment je voyais le système, son architecture et les décisions auxquelles je tenais. J’en ai tiré un premier document, que j’ai relu.
+
+Ensuite, j’ai recommencé à une maille plus fine.
+
+Pour chaque petite brique, j’ai précisé le comportement attendu, les patterns à utiliser, les abstractions que je voulais et là où je les voulais. Ce n’était pas encore du code. On était juste au-dessus, avec des choix suffisamment concrets pour passer à l’implémentation.
+
+<ArticleDiagram visualId="internal-tools-as-product" />
+
+En quatre heures environ, j’avais un premier POC vraiment convaincant.
+
+Et je ne passais pas tout mon temps dessus. Globalement, j’envoyais des prompts et je partais faire autre chose. Puis je revenais voir où ça en était et je relançais une itération.
+
+Très vite, j’ai pu lancer plusieurs travaux en parallèle. Les grandes lignes étaient posées, puis les détails de chaque brique. J’avais de quoi avancer sur plusieurs parties du système.
+
+Au bout de ce week-end, j’avais ma v0 de Nexus. J’ai ensuite présenté mes avancées à toutes les équipes de RockFi.
+
+En trois semaines environ, j’avais repris 100 % de ce que nous avions construit en deux ans sur Retool, qui était notre outil interne. C’est cette version dont je parle dans [Construit avec des agents, maîtrisé par nous](../posts/internal-tools-built-with-agents).
+
+Et j’ai même ajouté des écrans et des use cases supplémentaires. Je voulais montrer ce que je pouvais faire côté UX, notamment en réutilisant des assets déjà présents sur les sites que nous produisons et proposons. J’avais envie de montrer concrètement à quoi pouvait ressembler cette expérience dans nos outils internes.
+
+Voilà comment j’ai build Nexus en deux jours. Avec quatre ans et demi d’expérience chez Forest Admin et une idée que j’avais continué à travailler depuis, chaque fois qu’un problème d’internal tool se présentait.
+
+Quand je me suis enfin lancé, j’avais déjà beaucoup de choses à dire à l’IA.

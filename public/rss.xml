@@ -5,6 +5,20 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
+<title>How I built Nexus in two days</title>
+<link>https://thenkei.github.io/blog/en/posts/nexus-in-two-days</link>
+<guid>https://thenkei.github.io/blog/en/posts/nexus-in-two-days</guid>
+<description>Four and a half years at Forest Admin, a vision for internal tools I kept coming back to, then a weekend spent building the v0 of Nexus with AI.</description>
+<pubDate>Tue, 27 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Ingestion, the &quot;solved&quot; problem</title>
+<link>https://thenkei.github.io/blog/en/posts/data-platform-ingestion-drift</link>
+<guid>https://thenkei.github.io/blog/en/posts/data-platform-ingestion-drift</guid>
+<description>First episode of the series on our data platform: the map of the stack (Airbyte, Snowflake, dbt, Dagster, Terraform), then why ingesting from sources you don&apos;t control is mostly a problem of cursors, invisible deletes, and schema drift.</description>
+<pubDate>Mon, 26 Oct 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>Jokarikara: My First Personal Project with AI</title>
 <link>https://thenkei.github.io/blog/en/posts/jokarikara-first-ai-project</link>
 <guid>https://thenkei.github.io/blog/en/posts/jokarikara-first-ai-project</guid>
@@ -22,7 +36,7 @@
 <title>Built With Agents, Owned by Us</title>
 <link>https://thenkei.github.io/blog/en/posts/internal-tools-built-with-agents</link>
 <guid>https://thenkei.github.io/blog/en/posts/internal-tools-built-with-agents</guid>
-<description>We built the first version of Nexus in about three weeks with coding agents. That only works because the rules live in the engine, not in the screens. Part six covers ownership, agents, and a proposed rollout that runs one process at a time.</description>
+<description>In about three weeks, Nexus covered 100% of what we had built over two years in Retool, plus extra screens and use cases. Part six covers ownership, agents, and a proposed rollout that runs one process at a time.</description>
 <pubDate>Mon, 19 Oct 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
