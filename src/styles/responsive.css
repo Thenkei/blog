@@ -59,6 +59,10 @@
     grid-template-columns: 1fr;
   }
 
+  .post-list-editorial {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .rocket-logbook-grid {
     grid-template-columns: 1fr;
   }
@@ -98,6 +102,55 @@
 }
 
 @media (max-width: 720px) {
+  .post-list-editorial {
+    grid-template-columns: 1fr;
+  }
+
+  .post-list-editorial .post-card-featured {
+    grid-template-columns: 1fr;
+  }
+
+  .post-card-featured .post-editorial-art-card,
+  .post-card-featured .post-system-visual-card {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+    border-right: 0;
+    border-bottom: 1px solid var(--divider);
+  }
+
+  .post-card-featured .post-card-body {
+    padding: 1.4rem;
+  }
+
+  .post-card-featured h3 {
+    font-size: 1.6rem;
+  }
+
+  .post-categories {
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .post-category {
+    padding-inline: 0.8rem;
+    font-size: 0.82rem;
+  }
+
+  /* Search and the filter toggle share one row; the panel opens below. */
+  .post-controls-grid {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 0.6rem;
+  }
+
+  /* Below 16px, iOS Safari zooms the page when a field takes focus. */
+  .post-control-input,
+  .post-control-select {
+    font-size: 1rem;
+    padding-block: 0.6rem;
+  }
+
   .rocket-logbook-header {
     grid-template-columns: 1fr;
   }
@@ -161,6 +214,7 @@
 
   .post-filter-options {
     display: none;
+    grid-column: 1 / -1;
     grid-template-columns: 1fr;
   }
 
@@ -249,6 +303,30 @@
     border-radius: 14px;
   }
 
+  .post-list-title {
+    font-size: 1.5rem;
+  }
+
+  .post-list-editorial {
+    gap: 1rem;
+  }
+
+  .post-list-editorial .post-card-featured {
+    margin-bottom: 0;
+  }
+
+  .post-card-featured .post-card-body {
+    padding: 1.15rem 1.25rem;
+  }
+
+  .post-card-featured h3 {
+    font-size: 1.45rem;
+  }
+
+  .post-card .meta {
+    font-size: 0.8rem;
+  }
+
   .footer-content {
     flex-direction: column;
     text-align: center;
@@ -296,5 +374,18 @@
 
   .rocket-progress[data-started="false"] .rocket-progress-flight-path {
     opacity: 0.28;
+  }
+}
+
+@media (max-width: 400px) {
+  /* The site title and both switchers no longer fit on one row: the title
+     wrapped at 375px and slid under the theme switcher at 320px. The trigger
+     keeps its glyph and its aria-label. */
+  .theme-menu-current {
+    display: none;
+  }
+
+  .global-header-title {
+    font-size: 1rem;
   }
 }

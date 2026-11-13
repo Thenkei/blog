@@ -148,7 +148,7 @@ describe("routing and UX", () => {
     const user = userEvent.setup();
 
     const input = await screen.findByPlaceholderText(
-      /Search by title, summary, or tag/i,
+      /Title, summary, or tag/i,
     );
     await user.type(input, "BullMQ");
 
@@ -171,6 +171,65 @@ describe("routing and UX", () => {
     expect(
       screen.queryByText(/From Smart to Sport: Why I Traded My Apple Watch/i),
     ).not.toBeInTheDocument();
+    expect(screen.getByDisplayValue("Oldest first")).toBeInTheDocument();
+  });
+
+  it("features the latest post once and returns to a regular grid when filtering", async () => {
+    const view = renderApp("/en");
+    const featured = await screen.findByText("Featured");
+    const featuredCard = featured.closest("a");
+    expect(featuredCard).toHaveClass("post-card-featured");
+    expect(view.container.querySelectorAll(`a[href="${featuredCard?.getAttribute("href")}"]`)).toHaveLength(1);
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Trail running" }));
+    expect(screen.queryByText("Featured")).not.toBeInTheDocument();
+    expect(screen.getByText(/From Smart to Sport: Why I Traded My Apple Watch/i)).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Your Back Office Is a Product.*Read post/i })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "All posts" }));
+    expect(screen.getByText("Featured")).toBeInTheDocument();
+  });
+
+  it("keeps category filters across languages and groups localized tag aliases", async () => {
+    renderApp("/fr?category=running&tag=course");
+    expect(await screen.findByRole("button", { name: "Trail", pressed: true })).toBeInTheDocument();
+    // One entry per subject, labelled in the reader's language.
+    expect(screen.getByDisplayValue("course")).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "running" })).not.toBeInTheDocument();
+    expect(screen.getByText(/Pourquoi j'ai remplacé mon Apple Watch/i)).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "EN" }));
+    expect(await screen.findByRole("button", { name: "Trail running", pressed: true })).toBeInTheDocument();
+    expect(screen.getByDisplayValue("running")).toBeInTheDocument();
+    expect(screen.getByText(/From Smart to Sport: Why I Traded My Apple Watch/i)).toBeInTheDocument();
+  });
+
+  it("only offers the tags of the selected category", async () => {
+    renderApp("/en?category=running");
+    await screen.findByRole("button", { name: "Trail running", pressed: true });
+
+    expect(screen.getByRole("option", { name: "gear" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "postgresql" })).not.toBeInTheDocument();
+  });
+
+  it("counts the results and resets every filter at once", async () => {
+    renderApp("/en?q=zzzz-no-match&category=ai&sort=oldest");
+
+    expect(await screen.findByRole("status")).toHaveTextContent("0 posts");
+    expect(screen.getByText("No post matches your current filters.")).toBeInTheDocument();
+    // An applied sort opens the mobile filter panel so it is never hidden.
+    expect(screen.getByRole("button", { name: /Filters/ })).toHaveAttribute("aria-expanded", "true");
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Reset filters" }));
+
+    expect(screen.getByRole("button", { name: "All posts", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("searchbox")).toHaveValue("");
+    expect(screen.queryByRole("button", { name: "Reset filters" })).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).not.toHaveTextContent("0 posts");
+    // Reset clears what narrows the list; the chosen order is kept.
     expect(screen.getByDisplayValue("Oldest first")).toBeInTheDocument();
   });
 

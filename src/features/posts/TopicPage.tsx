@@ -62,7 +62,7 @@ export function TopicPage({ locale, topicSlug }: TopicPageProps) {
           {posts.map((post) => (
             <Link key={post.slug} className="post-card" to={`/${locale}/posts/${post.slug}`} aria-label={`${post.title} - ${t("ui.readPost")}`}>
               <div className="post-card-body">
-                <div className="meta"><span>{formatDate(post.publishedAt, locale)}</span><span>•</span><span>{t("ui.readTime", { count: post.readTimeMinutes })}</span></div>
+                <div className="meta meta-inline"><span>{formatDate(post.publishedAt, locale)}</span><span>{t("ui.readTime", { count: post.readTimeMinutes })}</span></div>
                 <h3>{post.title}</h3>
                 <p className="post-subtitle">{post.subtitle}</p>
                 <p className="post-summary">{post.summary}</p>
