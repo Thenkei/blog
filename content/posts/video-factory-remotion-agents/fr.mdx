@@ -4,7 +4,7 @@ subtitle: "Remotion, six agents spécialisés et FFmpeg : comment un brief devie
 summary: "Chez RockFi, une vidéo est un dossier dans un dépôt Git. On l'ouvre dans Claude Code ou Codex, on donne un brief, et on récupère un MP4 masterisé avec son rapport de vérification. Ce que fait la fabrique, avec trois films d'exemple."
 visualId: "video-factory-remotion-agents"
 publishedAt: "2026-11-17"
-readTimeMinutes: 10
+readTimeMinutes: 11
 tags:
   - ia
   - agents
@@ -14,9 +14,11 @@ tags:
   - rockfi
 ---
 
-Chez RockFi, quand une fonctionnalité sort, elle sort de plus en plus souvent avec une vidéo. Un film d'une minute qui montre ce qu'elle permet de faire, un trailer de vingt secondes pour l'annoncer, parfois une vidéo qui explique un sujet technique au reste de l'entreprise.
+Chez RockFi, quand une fonctionnalité sort, elle sort de plus en plus souvent avec une vidéo. Un film d'une minute qui montre ce qu'elle permet de faire, ou un trailer de vingt secondes pour l'annoncer.
 
-Ces vidéos viennent toutes du même endroit : un dépôt Git, `videos-factory`. Le premier commit date du 10 octobre 2026. Aujourd'hui, une bonne partie de l'entreprise s'en sert pour annoncer ses sorties et monter ses trailers.
+On fait aussi des vidéos à but pédagogique, pour expliquer aux équipes des mécanismes techniques complexes.
+
+Ces vidéos viennent toutes du même endroit : un dépôt Git, `videos-factory`. Le premier commit date du 10 octobre 2026. Aujourd'hui, une bonne partie de l'entreprise s'en sert.
 
 Je trouve cet outil vraiment bon, et je veux expliquer ce qu'il fait.
 
@@ -119,6 +121,16 @@ L'agent principal fait l'orchestrateur. Il n'y a pas de service d'orchestration 
 Chaque mission donne le film concerné, les sources, le résultat attendu et les chemins que l'agent a le droit d'écrire. Tant que le storyboard n'est pas établi, rien ne part en parallèle. Ensuite les scènes, la voix et le son avancent en même temps, chacun dans ses fichiers. Un seul agent à la fois possède la timeline.
 
 Les prompts sont écrits une fois, dans `agents/*.md`. Un script génère les deux formats natifs, TOML pour Codex et Markdown pour Claude Code, et `npm run check` échoue si les trois versions divergent. On peut changer d'agent de code sans réécrire les rôles.
+
+## Expliquer un mécanisme technique aux équipes
+
+On se sert aussi de la fabrique à but pédagogique, pour expliquer aux équipes des mécanismes techniques complexes. C'est le rôle du format `explainer`.
+
+Le guide du format donne un ordre. On part de la question que le spectateur se pose. On montre un exemple concret avant de nommer le mécanisme. Un terme est introduit au moment où il devient nécessaire, dans le vocabulaire du public. On finit sur la conséquence à retenir, ou sur la décision que le spectateur peut maintenant prendre.
+
+Il fixe aussi une limite à la simplification. Le film garde assez de détail technique pour expliquer la causalité, le périmètre et les exceptions. Une flèche ne doit pas suggérer une propagation instantanée ou une garantie qui n'existe pas, et un cas d'échec ne disparaît pas parce qu'il complique le schéma.
+
+Un schéma se révèle dans l'ordre où on l'explique. Les éléments déjà affichés restent à leur place, et le spectateur a le temps de lire avant qu'un autre arrive.
 
 <ArticleVideo id="video-factory-explainer">
   Le format explainer, utilisé ici pour expliquer la fabrique elle-même.

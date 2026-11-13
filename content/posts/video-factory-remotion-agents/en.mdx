@@ -4,7 +4,7 @@ subtitle: "Remotion, six specialist agents and FFmpeg: how a brief becomes a rel
 summary: "At RockFi, a video is a folder in a Git repository. You open it in Claude Code or Codex, give a brief, and get back a mastered MP4 with its verification report. What the factory does, with three example films."
 visualId: "video-factory-remotion-agents"
 publishedAt: "2026-11-17"
-readTimeMinutes: 9
+readTimeMinutes: 10
 tags:
   - ai
   - agents
@@ -14,9 +14,11 @@ tags:
   - rockfi
 ---
 
-At RockFi, when a feature ships, it increasingly ships with a video. A one-minute film that shows what it lets you do, a twenty-second trailer to announce it, sometimes a video that explains a technical subject to the rest of the company.
+At RockFi, when a feature ships, it increasingly ships with a video. A one-minute film that shows what it lets you do, or a twenty-second trailer to announce it.
 
-These videos all come from the same place: a Git repository, `videos-factory`. The first commit is dated 10 October 2026. Today a large part of the company uses it to announce releases and make trailers.
+We also make videos for teaching, to explain complex technical mechanisms to the teams.
+
+These videos all come from the same place: a Git repository, `videos-factory`. The first commit is dated 10 October 2026. Today a large part of the company uses it.
 
 I think this tool is really good, and I want to explain what it does.
 
@@ -119,6 +121,16 @@ The main agent acts as the orchestrator. There is no orchestration service: thes
 Each assignment names the film, the sources, the expected output and the paths the agent is allowed to write. Until the storyboard is established, nothing runs in parallel. After that, scenes, voice and sound move forward at the same time, each in its own files. Only one agent at a time owns the timeline.
 
 The prompts are written once, in `agents/*.md`. A script generates the two native formats, TOML for Codex and Markdown for Claude Code, and `npm run check` fails if the three versions drift apart. You can change coding agent without rewriting the roles.
+
+## Explaining a technical mechanism to the teams
+
+We also use the factory for teaching, to explain complex technical mechanisms to the teams. That is the job of the `explainer` format.
+
+The format guide gives an order. You start from the question the viewer is asking. You show one concrete example before naming the mechanism. A term is introduced when it becomes necessary, in the audience's vocabulary. You end on the consequence to retain, or on the decision the viewer can now make.
+
+It also sets a limit on simplification. The film keeps enough technical detail to explain causality, scope and exceptions. An arrow must not suggest instant propagation or a guarantee that does not exist, and a failure case does not disappear because it complicates the diagram.
+
+A diagram is revealed in the order it is explained. Elements already on screen stay where they are, and the viewer has time to read before another one arrives.
 
 <ArticleVideo id="video-factory-explainer">
   The explainer format, used here to explain the factory itself.
