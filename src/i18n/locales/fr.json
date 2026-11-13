@@ -57,6 +57,13 @@
     "copyCode": "Copier le code",
     "copied": "Copié",
     "copyFailed": "Réessayer",
+    "skipToContent": "Aller au contenu",
+    "language": "Langue",
+    "breadcrumb": "Fil d'Ariane",
+    "scrollableTable": "Tableau, défile horizontalement",
+    "notFoundTitle": "Page introuvable",
+    "notFoundText": "Cette adresse ne correspond à aucune page du blog.",
+    "notFoundHome": "Voir tous les articles",
     "footer": {
       "copyright": "© {{year}} Le blog de Morgan.",
       "github": "GitHub",

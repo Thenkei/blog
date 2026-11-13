@@ -362,14 +362,33 @@ export function hasPostEditorialArt(slug: string): boolean {
   return getPostEditorialArt(slug) !== null;
 }
 
+/**
+ * Rendered width of each placement, for the browser to pick a source from.
+ * These mirror the grids in components.css and responsive.css: the content
+ * column is 1120px with 20px gutters. Stating the real width matters: a
+ * compact card is about 350px wide, and without it every card on the home
+ * page downloaded the 1600px file.
+ */
+const ARTWORK_SIZES = {
+  // Three columns, two below 900px, one below 720px.
+  card: "(max-width: 720px) calc(100vw - 40px), (max-width: 900px) calc(50vw - 32px), 352px",
+  // The featured card gives the picture a little over half of its width.
+  featured: "(max-width: 720px) calc(100vw - 40px), (max-width: 1160px) 52vw, 580px",
+  // Beside the title on wide screens, full width (capped) under it otherwise.
+  header: "(max-width: 900px) min(calc(100vw - 40px), 680px), 420px",
+} as const;
+
 export function PostEditorialArt({
   locale,
   slug,
   variant,
+  featured = false,
 }: {
   locale: PostLocale;
   slug: string;
   variant: PostEditorialArtVariant;
+  /** The large first card of the post list. */
+  featured?: boolean;
 }) {
   const art = getPostEditorialArt(slug);
   if (!art) {
@@ -378,8 +397,8 @@ export function PostEditorialArt({
 
   const isCard = variant === "card";
   const sizes = isCard
-    ? "(max-width: 900px) calc(100vw - 40px), 50vw"
-    : "(max-width: 900px) calc(100vw - 40px), 40vw";
+    ? ARTWORK_SIZES[featured ? "featured" : "card"]
+    : ARTWORK_SIZES.header;
 
   return (
     <div
@@ -391,29 +410,22 @@ export function PostEditorialArt({
     >
       <picture>
         <source
-          media="(min-width: 901px)"
-          type="image/avif"
-          srcSet={`${art.avif.large} 1600w`}
-        />
-        <source
           type="image/avif"
           srcSet={`${art.avif.small} 960w, ${art.avif.large} 1600w`}
-        />
-        <source
-          media="(min-width: 901px)"
-          type="image/webp"
-          srcSet={`${art.webp.large} 1600w`}
+          sizes={sizes}
         />
         <source
           type="image/webp"
           srcSet={`${art.webp.small} 960w, ${art.webp.large} 1600w`}
+          sizes={sizes}
         />
         <img
           src={art.fallback}
           alt={art.alt[locale]}
           loading={isCard ? "lazy" : "eager"}
+          // The header artwork is the largest paint of an article page.
+          fetchPriority={isCard ? "auto" : "high"}
           decoding="async"
-          sizes={sizes}
         />
       </picture>
     </div>

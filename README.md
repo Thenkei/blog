@@ -261,12 +261,48 @@ The Rocket variant uses a single `requestAnimationFrame`-coalesced scroll driver
 - `src/features/posts/PostListPage.tsx`
 - `src/features/posts/PostPage.tsx`
 
+## Navigation and Reading Behaviour
+
+- **Scroll position** is owned by `src/app/useScrollManagement.ts`. A new page
+  opens at the top; back, forward and reload return to where the reader was,
+  once the lazy route is tall enough; filter changes, in-page anchors and a
+  language switch keep the current position. Browser restoration is switched
+  off because it runs before lazy content exists.
+- **Unknown addresses** render `src/features/not-found/NotFoundPage.tsx`
+  (`noindex`). An address without a locale (`/about`, `/posts/<slug>`) is
+  redirected to the same page in the reader's language. A Rocket transmission
+  opened outside Rocket still goes back to the listing.
+- **Keyboard**: `j` / `k` move focus through the post cards and Enter opens the
+  focused one. Arrow keys are not intercepted. A skip link is the first tab
+  stop, and the table of contents is a button-driven disclosure (Escape and an
+  outside click close it; hovering opens it with a mouse).
+- **Links in articles** go through `src/app/mdxComponents.tsx`. Write links to
+  another post as `../posts/<slug>`: they are routed inside the app in the
+  active locale. External links open in a new tab.
+- **Tables in articles** are wrapped in a scrollable region automatically, so a
+  wide table never widens the page on a phone.
+- **Article figures** (diagrams, motion scenes) are loaded on demand from
+  `mdxComponents.tsx`; the home, topic and about pages do not download them.
+
+## Typography
+
+`src/styles/fonts.css` self-hosts the three families of the art direction
+(Space Grotesk, Manrope, IBM Plex Mono) from the `@fontsource` packages, Latin
+subsets only. Nothing is requested from a third party, and the service worker
+precaches the files. The stacks in `tokens.css` list the system fallbacks shown
+while a font loads.
+
 ## Internationalization
 Locale files:
 - `src/i18n/locales/en.json`
 - `src/i18n/locales/fr.json`
 
 Theme labels include `lightTheme`, `darkTheme`, `mountainTheme`, `rocketTheme`, and `themeSwitcher`.
+
+`<html lang>` follows the locale in the URL. The saved theme is applied by a
+small inline script in `index.html` before the first paint; keep its colour
+map in sync with `--bg-color` in `tokens.css` and `THEME_COLORS` in
+`ThemeProvider.tsx`.
 
 ## Testing Coverage
 Relevant tests for the redesign:
@@ -280,6 +316,12 @@ Relevant tests for the redesign:
   - article mapping, linear Rocket travel, independent boost envelope, and completion threshold
 - `tests/unit/post-editorial-art.test.tsx`
   - complete slug registration, localized alt text, responsive sources, loading behavior, and unknown-slug fallback
+- `tests/unit/scroll-management.test.tsx`
+  - top on a new page, restoration on back, untouched on filters and language switch
+- `tests/unit/post-keyboard-navigation.test.tsx`
+  - `j` / `k` focus movement, arrow keys and fields left alone
+- `tests/unit/article-links.test.ts`
+  - post links resolved to in-app routes, external links left to the browser
 
 Run all tests:
 ```bash

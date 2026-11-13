@@ -27,10 +27,62 @@ body {
     color var(--motion-base) var(--motion-ease-standard);
 }
 
+/* One visible keyboard focus style everywhere. Zero specificity, so a
+   component that draws its own ring (cards, fields, pills) still wins. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Focus moved here by the skip link or a route change, not by the reader. */
+main:focus {
+  outline: none;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 200;
+  padding: 0.6rem 0.95rem;
+  border: 1px solid var(--accent-text);
+  border-radius: 10px;
+  background: var(--bg-color);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  text-decoration: none;
+  transform: translateY(-250%);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* Placeholders for lazy chunks: they keep the footer below the fold while a
+   route or an article body loads. */
+.route-fallback {
+  min-height: 100vh;
+}
+
+.post-document-fallback {
+  min-height: 60vh;
+}
+
 .app {
   min-height: 100vh;
   position: relative;
   isolation: isolate;
+  /* A short page (404, an empty topic) still ends with the footer at the
+     bottom of the window instead of a band of background below it. */
+  display: flex;
+  flex-direction: column;
+}
+
+.app > .view-transition {
+  flex: 1 0 auto;
+  min-width: 0;
 }
 
 .parallax-container {
@@ -707,7 +759,7 @@ body {
   border: 1px solid color-mix(in srgb, var(--accent-primary) 55%, var(--divider));
   border-radius: 999px;
   background: color-mix(in srgb, var(--surface-raised) 72%, transparent);
-  color: var(--accent-primary);
+  color: var(--accent-text);
   font-family: var(--font-mono);
   font-size: clamp(0.68rem, 1.5vw, 0.78rem);
   letter-spacing: 0.045em;

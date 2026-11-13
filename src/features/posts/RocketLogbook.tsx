@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { LazyPostVisual as PostVisual } from "../../shared/components/LazyPostVisual";
 import { PostEditorialArt, hasPostEditorialArt } from "../../shared/components/PostEditorialArt";
-import { PostVisual } from "../../shared/components/PostVisual";
 import {
   isPostDiagramVisualId,
   type PostLocale,

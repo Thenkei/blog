@@ -1,5 +1,9 @@
 import type { PostLocale } from "../features/posts/content";
 
+export function isLocale(value: string | undefined): value is PostLocale {
+  return value === "en" || value === "fr";
+}
+
 export function normalizeLocale(value: string | undefined): PostLocale {
   return value === "fr" ? "fr" : "en";
 }

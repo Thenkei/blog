@@ -119,7 +119,16 @@ export function ThemeSwitcher({
   const className = `theme-menu-container${variant === "compact" ? " compact" : ""}`;
 
   return (
-    <div className={className} ref={containerRef}>
+    <div
+      className={className}
+      ref={containerRef}
+      onBlur={(event) => {
+        // Tabbing out of the menu closes it instead of leaving it open behind.
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setIsOpen(false);
+        }
+      }}
+    >
       <button
         ref={triggerRef}
         className="theme-menu-trigger"

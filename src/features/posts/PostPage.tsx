@@ -11,11 +11,12 @@ import {
 } from "react";
 
 import { useTranslation } from "react-i18next";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
   getAdjacentPosts,
   getPost,
   getRelatedPosts,
+  hasPostSlug,
   loadPostComponent,
   type PostAccessScope,
   type PostLocale,
@@ -27,6 +28,7 @@ import { ReadingProgressBar } from "../reading/ReadingProgressBar";
 import { TableOfContents } from "../reading/TableOfContents";
 import { CopyLinkButtons } from "../reading/CopyLinkButtons";
 import { enhanceCodeBlocks } from "../reading/enhanceCodeBlocks";
+import { NotFoundPage } from "../not-found/NotFoundPage";
 
 type PostPageProps = {
   locale: PostLocale;
@@ -85,7 +87,6 @@ function formatDate(date: string, locale: PostLocale): string {
 
 export function PostPage({ locale, slug }: PostPageProps) {
   const articleRef = useRef<HTMLElement | null>(null);
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const { appliedTheme } = useTheme();
   const postAccess = appliedTheme === "rocket" ? "rocket" : "public";
@@ -114,18 +115,18 @@ export function PostPage({ locale, slug }: PostPageProps) {
     return enhanceCodeBlocks(articleRef.current);
   }, [isContentReady, post]);
 
-  useEffect(() => {
-    if (!window.location.hash) {
-      window.scrollTo(0, 0);
-    }
-  }, [slug, locale]);
-
   const markContentReady = useCallback(() => {
     setReadyContentKey(postKey);
   }, [postKey]);
 
   if (!post) {
-    return <Navigate to={`/${locale}`} replace />;
+    // A Rocket transmission opened outside Rocket goes back to the listing
+    // without hinting that it exists. Anything else is a broken address.
+    return hasPostSlug(slug, "rocket") ? (
+      <Navigate to={`/${locale}`} replace />
+    ) : (
+      <NotFoundPage locale={locale} path={`/${locale}/posts/${slug}`} />
+    );
   }
 
   const PostContent = getPostContentComponent(locale, slug, postAccess);
@@ -168,21 +169,21 @@ export function PostPage({ locale, slug }: PostPageProps) {
             <span>{t("ui.readTime", { count: post.readTimeMinutes })}</span>
           </>
         }
-        onBreadcrumbClick={() => {
-          void navigate(`/${locale}`);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }}
+        homeHref={`/${locale}`}
         headerPadRem={headerPadRem}
       />
 
-      <main className="blog-content">
+      <main className="blog-content" id="main-content" tabIndex={-1}>
         <div className="container">
           <ReadingProgressBar articleRef={articleRef} contentKey={contentKey} />
           <article ref={articleRef}>
             <TableOfContents articleRef={articleRef} contentKey={contentKey} />
             <CopyLinkButtons articleRef={articleRef} contentKey={contentKey} />
             {post ? (
-              <Suspense key={`${locale}:${slug}`} fallback={<div aria-busy="true" />}>
+              <Suspense
+                key={`${locale}:${slug}`}
+                fallback={<div className="post-document-fallback" aria-busy="true" />}
+              >
                 <div className="post-document">
                   {createElement(PostContent, { onReady: markContentReady })}
                 </div>

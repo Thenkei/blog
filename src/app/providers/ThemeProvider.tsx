@@ -19,6 +19,14 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+/** `--bg-color` of each theme. Keep in sync with tokens.css and index.html. */
+const THEME_COLORS: Record<ThemeMode, string> = {
+  light: "#f6f9ff",
+  dark: "#0b1221",
+  mountain: "#0b1c1a",
+  rocket: "#040710",
+};
+
 function getSystemTheme(): "dark" | "light" {
   if (
     typeof window !== "undefined" &&
@@ -79,6 +87,10 @@ export function ThemeProvider({ children }: PropsWithChildren) {
 
   useLayoutEffect(() => {
     document.documentElement.setAttribute("data-theme", themeMode);
+    // Browser chrome (mobile address bar, PWA title bar) follows the theme.
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", THEME_COLORS[themeMode]);
   }, [themeMode]);
 
   const value = useMemo(

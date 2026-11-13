@@ -25,9 +25,37 @@ const TopicPage = lazy(() =>
 const AboutPage = lazy(() =>
   import("../features/about/AboutPage").then((m) => ({ default: m.AboutPage })),
 );
+const NotFoundPage = lazy(() =>
+  import("../features/not-found/NotFoundPage").then((m) => ({
+    default: m.NotFoundPage,
+  })),
+);
 import { SiteFooter } from "../shared/components/SiteFooter";
 import { GlobalHeader } from "../shared/components/GlobalHeader";
-import { normalizeLocale } from "../shared/routing";
+import { isLocale, normalizeLocale } from "../shared/routing";
+import { useScrollManagement } from "./useScrollManagement";
+
+/**
+ * A URL without a locale ("/about", "/posts/<slug>") is a link someone typed
+ * or shortened. Send it to the same page in the reader's language rather than
+ * dropping them on the home page.
+ */
+function LocalePrefixRedirect() {
+  const { i18n } = useTranslation();
+  const location = useLocation();
+  const locale = normalizeLocale(i18n.resolvedLanguage ?? i18n.language);
+
+  return (
+    <Navigate
+      replace
+      to={{
+        pathname: `/${locale}${location.pathname}`,
+        search: location.search,
+        hash: location.hash,
+      }}
+    />
+  );
+}
 
 function RootRedirect() {
   const { i18n } = useTranslation();
@@ -45,7 +73,7 @@ function RootRedirect() {
 }
 
 function LocaleLayout() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { appliedTheme } = useTheme();
   const params = useParams();
   const location = useLocation();
@@ -53,10 +81,14 @@ function LocaleLayout() {
   const locale = normalizeLocale(params.locale);
   const postAccess = appliedTheme === "rocket" ? "rocket" : "public";
 
+  useScrollManagement();
+
   useEffect(() => {
     if (i18n.language !== locale) {
       void i18n.changeLanguage(locale);
     }
+    // Screen readers and hyphenation follow the document language.
+    document.documentElement.lang = locale;
   }, [i18n, locale]);
 
   useEffect(() => {
@@ -71,15 +103,30 @@ function LocaleLayout() {
     }
   }, [locale, location.pathname, location.search, navigate, postAccess]);
 
-  if (!params.locale || (params.locale !== "en" && params.locale !== "fr")) {
-    return <Navigate replace to={`/${locale}`} />;
+  if (!isLocale(params.locale)) {
+    return <LocalePrefixRedirect />;
   }
 
   return (
     <div className="app">
+      <a
+        className="skip-link"
+        href="#main-content"
+        onClick={(event) => {
+          // Move focus without leaving "#main-content" in the address bar.
+          event.preventDefault();
+          const main = document.getElementById("main-content");
+          main?.focus({ preventScroll: true });
+          main?.scrollIntoView({ block: "start" });
+        }}
+      >
+        {t("ui.skipToContent")}
+      </a>
       <GlobalHeader />
       <div className="view-transition">
-        <Suspense fallback={<div />}>
+        {/* Holds the page height while a route chunk loads, so the footer
+            does not jump to the top and back. */}
+        <Suspense fallback={<div className="route-fallback" aria-busy="true" />}>
           <Outlet />
         </Suspense>
       </div>
@@ -116,8 +163,15 @@ function LocaleAboutRoute() {
   return <AboutPage locale={normalizeLocale(params.locale)} />;
 }
 
-function NotFoundRedirect() {
-  return <Navigate replace to="/en" />;
+function LocaleNotFoundRoute() {
+  const params = useParams();
+  const location = useLocation();
+  return (
+    <NotFoundPage
+      locale={normalizeLocale(params.locale)}
+      path={location.pathname}
+    />
+  );
 }
 
 export function AppRouter() {
@@ -130,8 +184,9 @@ export function AppRouter() {
         <Route path="topics/:topicSlug" element={<LocaleTopicRoute />} />
         <Route path="about" element={<LocaleAboutRoute />} />
         <Route path="posts/:slug" element={<LocalePostRoute />} />
+        <Route path="*" element={<LocaleNotFoundRoute />} />
       </Route>
-      <Route path="*" element={<NotFoundRedirect />} />
+      <Route path="*" element={<LocalePrefixRedirect />} />
     </Routes>
   );
 }

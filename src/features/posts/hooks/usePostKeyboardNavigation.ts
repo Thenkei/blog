@@ -1,100 +1,76 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 type UsePostKeyboardNavigationParams = {
   enabled: boolean;
   count: number;
-  onSelectIndex: (index: number) => void;
 };
 
-function isTypingTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) {
-    return false;
-  }
+/**
+ * Anything that already gives keys a meaning. A shortcut fired from inside a
+ * field, a menu or a dialog would fight the control the reader is using.
+ */
+const KEY_CONSUMER_SELECTOR =
+  'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="menu"], [role="listbox"], [role="dialog"]';
 
-  const tag = target.tagName.toLowerCase();
-  return (
-    tag === "input" ||
-    tag === "textarea" ||
-    tag === "select" ||
-    target.isContentEditable
-  );
+function isKeyConsumer(target: EventTarget | null): boolean {
+  return target instanceof Element && target.closest(KEY_CONSUMER_SELECTOR) !== null;
 }
 
+/**
+ * `j` / `k` move through the post cards, vim-style.
+ *
+ * The shortcut moves real keyboard focus rather than painting a highlight, so
+ * Enter, the focus ring and assistive technology all agree on which card is
+ * current. Arrow keys are left alone: they scroll the page.
+ */
 export function usePostKeyboardNavigation({
   enabled,
   count,
-  onSelectIndex,
 }: UsePostKeyboardNavigationParams) {
-  const [focusedIndex, setFocusedIndex] = useState(-1);
   const cardRefs = useRef<(HTMLElement | null)[]>([]);
-  const focusedIndexRef = useRef(focusedIndex);
-  const onSelectIndexRef = useRef(onSelectIndex);
 
   useEffect(() => {
-    focusedIndexRef.current = focusedIndex;
-    onSelectIndexRef.current = onSelectIndex;
-  }, [focusedIndex, onSelectIndex]);
-
-  useEffect(() => {
-    if (!enabled) {
-      setFocusedIndex(-1);
+    if (!enabled || count === 0) {
       return;
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (isTypingTarget(event.target) || count === 0) {
+      if (
+        event.defaultPrevented ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        (event.key !== "j" && event.key !== "k") ||
+        isKeyConsumer(event.target)
+      ) {
         return;
       }
 
-      if (event.key === "ArrowDown" || event.key === "j") {
-        event.preventDefault();
-        const next =
-          focusedIndexRef.current < count - 1
-            ? focusedIndexRef.current + 1
-            : 0;
-        focusedIndexRef.current = next;
-        setFocusedIndex(next);
-        cardRefs.current[next]?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
+      const cards = cardRefs.current.slice(0, count);
+      const current = cards.findIndex(
+        (card) => card !== null && card === document.activeElement,
+      );
+      const step = event.key === "j" ? 1 : -1;
+      // From outside the list, `j` enters at the first card and `k` at the last.
+      const next =
+        current === -1
+          ? step === 1
+            ? 0
+            : count - 1
+          : (current + step + count) % count;
+      const card = cards[next];
+      if (!card) {
         return;
       }
 
-      if (event.key === "ArrowUp" || event.key === "k") {
-        event.preventDefault();
-        const next =
-          focusedIndexRef.current > 0
-            ? focusedIndexRef.current - 1
-            : count - 1;
-        focusedIndexRef.current = next;
-        setFocusedIndex(next);
-        cardRefs.current[next]?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-        return;
-      }
-
-      const currentFocusedIndex = focusedIndexRef.current;
-      if (event.key === "Enter" && currentFocusedIndex >= 0) {
-        event.preventDefault();
-        onSelectIndexRef.current(currentFocusedIndex);
-        return;
-      }
-
-      if (event.key === "Escape") {
-        setFocusedIndex(-1);
-      }
+      event.preventDefault();
+      card.focus({ preventScroll: true });
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [count, enabled]);
 
-  return {
-    focusedIndex,
-    setFocusedIndex,
-    cardRefs,
-  };
+  return { cardRefs };
 }

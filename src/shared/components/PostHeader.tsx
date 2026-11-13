@@ -1,10 +1,12 @@
 import type { CSSProperties, ReactNode } from "react";
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import type {
   PostLocale,
   PostVisualId,
 } from "../../features/posts/content";
 import { isPostDiagramVisualId } from "../../features/posts/content";
-import { PostVisual } from "./PostVisual";
+import { LazyPostVisual as PostVisual } from "./LazyPostVisual";
 import { PostEditorialArt, hasPostEditorialArt } from "./PostEditorialArt";
 
 type PostHeaderProps = {
@@ -14,7 +16,7 @@ type PostHeaderProps = {
   slug: string;
   visualId?: PostVisualId | undefined;
   metaInfo: ReactNode;
-  onBreadcrumbClick: () => void;
+  homeHref: string;
   headerPadRem: number;
 };
 
@@ -25,23 +27,21 @@ export function PostHeader({
   slug,
   visualId,
   metaInfo,
-  onBreadcrumbClick,
+  homeHref,
   headerPadRem,
 }: PostHeaderProps) {
+  const { t } = useTranslation();
+
   return (
     <header
       className="post-header"
       style={{ "--post-header-pad": `${headerPadRem}rem` } as CSSProperties}
     >
       <div className="post-header-inner">
-        <nav className="breadcrumb" aria-label="Breadcrumb">
-          <button
-            className="breadcrumb-link"
-            onClick={onBreadcrumbClick}
-            type="button"
-          >
+        <nav className="breadcrumb" aria-label={t("ui.breadcrumb")}>
+          <Link className="breadcrumb-link" to={homeHref}>
             ← {backToHomeLabel}
-          </button>
+          </Link>
         </nav>
 
         <div className="post-header-grid">
