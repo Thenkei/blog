@@ -15,6 +15,7 @@ const figureModules = {
   imageMotionFigure: () => import("../shared/components/ImageMotionFigure"),
   conceptMotionFigure: () => import("../shared/components/ConceptMotionFigure"),
   motionScene: () => import("../shared/components/MotionScene"),
+  articleVideo: () => import("../shared/components/ArticleVideo"),
 };
 
 const ArticleDiagram = lazy(() =>
@@ -40,6 +41,10 @@ const ConceptMotionFigure = lazy(() =>
 );
 const MotionScene = lazy(() =>
   figureModules.motionScene().then((module) => ({ default: module.MotionScene })),
+);
+
+const ArticleVideo = lazy(() =>
+  figureModules.articleVideo().then((module) => ({ default: module.ArticleVideo })),
 );
 
 /** Fetches every figure module ahead of the first article render. */
@@ -130,4 +135,5 @@ export const mdxComponents = {
   ImageMotionFigure,
   ConceptMotionFigure,
   MotionScene,
+  ArticleVideo,
 };

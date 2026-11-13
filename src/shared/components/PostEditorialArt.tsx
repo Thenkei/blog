@@ -29,6 +29,12 @@ const jpegAssets = import.meta.glob<string>(
 );
 
 const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
+  "video-factory-remotion-agents": {
+    alt: {
+      en: "An illustrated desk at night where a conveyor belt leaves a laptop and passes six small robots writing, storyboarding, filming, recording, mixing and reviewing, ending on a glowing film frame.",
+      fr: "Un bureau illustré, de nuit, où un tapis roulant part d'un ordinateur portable et passe devant six petits robots qui écrivent, storyboardent, filment, enregistrent, mixent et relisent, jusqu'à une image de film lumineuse.",
+    },
+  },
   "websockets-games-to-30000-connections": {
     alt: {
       en: "An illustrated home desk with a card game and dice, connected by luminous traces to a server room and many distant browser windows.",
