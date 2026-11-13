@@ -285,8 +285,8 @@ body {
   display: none;
 }
 
-.mountain-cinematic-runner[data-stride="a"] .mountain-runner-pose-a,
-.mountain-cinematic-runner[data-stride="b"] .mountain-runner-pose-b {
+[data-stride="a"] > .mountain-runner-pose-a,
+[data-stride="b"] > .mountain-runner-pose-b {
   display: inline;
 }
 

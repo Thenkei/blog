@@ -259,11 +259,6 @@
     justify-content: center;
   }
 
-  .mountain-progress-runner {
-    width: 44px;
-    height: 30px;
-  }
-
   .rocket-progress[data-progress-placement="right"] {
     --rocket-orbit-size: 78px;
     --rocket-orbit-radius: 39px;

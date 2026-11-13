@@ -118,24 +118,52 @@ describe("ReadingProgressBar", () => {
 
     const mountainProgress = container.querySelector(".mountain-progress");
     expect(mountainProgress).toBeTruthy();
-    expect(mountainProgress).toHaveAttribute("data-progress-placement", "top");
+    expect(mountainProgress).toHaveAttribute("data-progress-placement", "right");
     await waitFor(() => {
       expect(mountainProgress).toHaveAttribute("data-direction", "up");
     });
-    expect(container.querySelector(".mountain-runner-icon")).toBeTruthy();
-    expect(container.querySelector(".runner-leg-front")).toBeTruthy();
-    expect(container.querySelector(".runner-leg-back")).toBeTruthy();
-    expect(container.querySelector(".runner-leg-front-upper")).toBeTruthy();
-    expect(container.querySelector(".runner-leg-front-foot")).toBeTruthy();
-    expect(container.querySelector(".runner-leg-back-upper")).toBeTruthy();
-    expect(container.querySelector(".runner-leg-back-foot")).toBeTruthy();
-    expect(container.querySelector(".mountain-progress-track")).toBeNull();
-    expect(container.querySelector(".mountain-progress-fill")).toBeNull();
-    expect(container.querySelector(".mountain-progress-glow")).toBeNull();
+  });
+
+  it("draws the mountain climb with the trail, the summit and the hero's runner", () => {
+    const { container } = renderProgress("mountain");
+    const climb = container.querySelector(".mountain-progress-climb");
+
+    expect(climb).toHaveAttribute("aria-hidden", "true");
+    expect(climb?.querySelector(".mountain-progress-trail")).toBeTruthy();
+    expect(climb?.querySelector(".mountain-progress-trail-lit")).toBeTruthy();
+    expect(climb?.querySelector(".mountain-progress-summit")).toBeTruthy();
+    // The lit trail and the dotted trail are the same path, so they cannot diverge.
     expect(
-      container.querySelector(".mountain-progress-checkpoints"),
-    ).toBeNull();
-    expect(container.querySelector(".mountain-progress-altitude")).toBeNull();
+      climb?.querySelector(".mountain-progress-trail-lit")?.getAttribute("d"),
+    ).toBe(climb?.querySelector(".mountain-progress-trail")?.getAttribute("d"));
+
+    const runner = climb?.querySelector(".mountain-progress-runner");
+    expect(runner).toHaveAttribute("data-stride", "a");
+    expect(runner?.querySelectorAll(".mountain-runner-pose")).toHaveLength(2);
+  });
+
+  it("exposes semantic Mountain progress and marks the summit at the end", async () => {
+    const { container } = renderProgress("mountain");
+    const mountainProgress = container.querySelector(".mountain-progress");
+
+    expect(mountainProgress).toHaveAttribute("role", "progressbar");
+    expect(mountainProgress).toHaveAttribute("aria-valuemin", "0");
+    expect(mountainProgress).toHaveAttribute("aria-valuemax", "100");
+    expect(mountainProgress).toHaveAttribute("aria-valuenow", "0");
+    expect(mountainProgress).toHaveAttribute("data-summit", "false");
+    expect(container.querySelector(".mountain-progress-label")).toHaveTextContent(
+      "Reading 0%",
+    );
+    expect(mountainProgress?.getAttribute("aria-labelledby")).toBe(
+      container.querySelector(".mountain-progress-label")?.id,
+    );
+
+    window.scrollY = 2100;
+    window.dispatchEvent(new Event("scroll"));
+    await waitFor(() => {
+      expect(mountainProgress).toHaveAttribute("aria-valuenow", "100");
+    });
+    expect(mountainProgress).toHaveAttribute("data-summit", "true");
   });
 
   it("runs mountain runner between 0 and 100 progress and stops at boundaries", async () => {

@@ -225,7 +225,7 @@ Implemented in `src/features/reading/ReadingProgressBar.tsx` and `src/styles/rea
 
 Variants:
 - `light` / `dark`: a thin line flush under the sticky header, with a small marker
-- `mountain`: the same line under the header, with the animated trail runner carried in a small tab hanging from it
+- `mountain`: a small mountain in the right margin with a switchback trail; the hero's runner climbs it as the article is read and reaches the summit flag at `100%`. Below `1100px` wide it becomes the same thin line under the header, so the article keeps its full width
 - `rocket`: the canonical cinematic ship launches linearly from the viewport bottom while boost power changes independently; lift-off emits expanding dust rings and particles, then at `100%` the ship enters a continuous orbit around the moon
 
 The header is sticky, so the top variants hang from its bottom edge. `GlobalHeader` publishes its measured height as `--global-header-height`; anything pinned below the header should use that token rather than a fixed offset.
