@@ -42,6 +42,41 @@ describe("ArticleVideo", () => {
     expect(container.querySelector("figcaption")?.textContent).toMatch(/A caption\..*Silent, 21 seconds/);
   });
 
+  it("marks a silent film as muted and gives it no caption track", () => {
+    const { container } = render(<ArticleVideo id="video-factory-release" />);
+    const video = container.querySelector("video");
+
+    expect(video?.muted).toBe(true);
+    expect(container.querySelector("track")).toBeNull();
+    expect(getArticleVideo("video-factory-release", "en").captions).toBeUndefined();
+  });
+
+  it("plays a narrated film with its sound on and offers captions in the reader's language", async () => {
+    const { container, unmount } = render(<ArticleVideo id="video-factory-explainer" />);
+
+    expect(container.querySelector("video")?.muted).toBe(false);
+    expect(container.querySelector("track")).toHaveAttribute("kind", "captions");
+    expect(container.querySelector("track")).toHaveAttribute("srclang", "en");
+    expect(container.querySelector("track")).toHaveAttribute(
+      "src",
+      expect.stringMatching(/explainer\.en\.vtt/),
+    );
+    // The reader turns captions on: the film already carries on-screen text.
+    expect(container.querySelector("track")).not.toHaveAttribute("default");
+    expect(container.querySelector("figcaption")?.textContent).toMatch(/Narrated, 60 seconds/);
+    unmount();
+
+    await i18n.changeLanguage("fr");
+    const french = render(<ArticleVideo id="video-factory-explainer" />);
+
+    expect(french.container.querySelector("track")).toHaveAttribute("srclang", "fr");
+    expect(french.container.querySelector("track")).toHaveAttribute(
+      "src",
+      expect.stringMatching(/explainer\.fr\.vtt/),
+    );
+    expect(french.container.querySelector("figcaption")?.textContent).toMatch(/Avec voix, 64 secondes/);
+  });
+
   it("serves the French export and description to French readers", async () => {
     await i18n.changeLanguage("fr");
     const { container } = render(<ArticleVideo id="video-factory-release" />);
