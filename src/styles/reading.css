@@ -37,6 +37,19 @@
   right: 162px;
 }
 
+/*
+ * The percentage pill needs a free margin beside the article. Below this width
+ * it sat on the text, so the line alone carries the progress. On phones the
+ * Mountain and Rocket variants are not rendered at all: see
+ * COMPACT_READING_QUERY in ReadingProgressBar.tsx.
+ */
+@media (max-width: 1024px), (max-height: 520px) {
+  .clean-progress-label,
+  .mountain-progress-label {
+    display: none;
+  }
+}
+
 .clean-progress[data-progress-placement="top"] {
   top: calc(env(safe-area-inset-top) + var(--global-header-height) - 1px);
   left: 0;

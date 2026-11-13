@@ -15,11 +15,12 @@
     right: 138px;
   }
 
-  [data-theme="rocket"] .blog-content article {
+  /* Make room for the rail only while it is on screen: it is not rendered on
+     phones, where the article keeps its full width. */
+  .blog-content .container:has(> .rocket-progress) > article {
     box-sizing: border-box;
     padding-right: 6rem;
   }
-
 }
 
 /* Same query as the compact scene framing in ParallaxHero. */
@@ -335,45 +336,6 @@
 
   .footer-links {
     justify-content: center;
-  }
-
-  .rocket-progress[data-progress-placement="right"] {
-    --rocket-orbit-size: 78px;
-    --rocket-orbit-radius: 39px;
-    --rocket-moon-size: 46px;
-    --rocket-moon-inset: 16px;
-    --rocket-ship-width: 34px;
-    --rocket-orbit-top: 0px;
-    --rocket-track-bottom: 96px;
-
-    top: calc(env(safe-area-inset-top) + 112px);
-    right: 24px;
-    width: 88px;
-  }
-
-  .rocket-progress-label {
-    top: calc(env(safe-area-inset-top) + 108px);
-    right: 118px;
-  }
-
-  [data-theme="rocket"] .blog-content article {
-    box-sizing: border-box;
-    padding-right: 4.375rem;
-  }
-
-  .rocket-progress-launch-effects {
-    transform: scale(0.82);
-    transform-origin: 50% 50%;
-  }
-
-  .rocket-progress[data-started="false"] .rocket-progress-moon,
-  .rocket-progress[data-started="false"] .rocket-progress-orbit-ring,
-  .rocket-progress[data-started="false"] .rocket-progress-orbit-arc {
-    opacity: 0.2;
-  }
-
-  .rocket-progress[data-started="false"] .rocket-progress-flight-path {
-    opacity: 0.28;
   }
 }
 
