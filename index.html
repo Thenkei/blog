@@ -33,6 +33,43 @@
     />
 
     <link rel="canonical" href="https://thenkei.github.io/blog/" />
+    <meta name="theme-color" content="#0b1221" />
+    <script>
+      // Apply the saved theme before the first paint. Without this the page
+      // renders with the default tokens until the app bundle has loaded, then
+      // flips. Mirrors getInitialThemeMode in ThemeProvider.
+      (function () {
+        var themeColors = {
+          light: "#f6f9ff",
+          dark: "#0b1221",
+          mountain: "#0b1c1a",
+          rocket: "#040710",
+        };
+        var theme = null;
+        try {
+          theme = localStorage.getItem("themeMode") || localStorage.getItem("theme");
+        } catch (error) {
+          // Storage is unavailable (private mode, blocked cookies).
+        }
+        if (!Object.prototype.hasOwnProperty.call(themeColors, theme)) {
+          theme =
+            window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+        }
+        document.documentElement.setAttribute("data-theme", theme);
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", themeColors[theme]);
+      })();
+    </script>
+    <style>
+      /* Matches --bg-color per theme, so the document is never white behind a
+         dark theme while the stylesheet loads. */
+      html { background: #0b1221; }
+      html[data-theme="light"] { background: #f6f9ff; }
+      html[data-theme="mountain"] { background: #0b1c1a; }
+      html[data-theme="rocket"] { background: #040710; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

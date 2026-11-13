@@ -3,33 +3,13 @@ import { HelmetProvider } from "react-helmet-async";
 import { MDXProvider } from "@mdx-js/react";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import { AppRouter } from "./router";
-import { ArticleDiagram } from "../shared/components/PostVisual";
-import { ArticleMedia } from "../shared/components/ArticleMedia";
-import { InlineArticleDiagram } from "../shared/components/InlineArticleDiagram";
-import { ImageMotionFigure } from "../shared/components/ImageMotionFigure";
-import { ConceptMotionFigure } from "../shared/components/ConceptMotionFigure";
-import { MotionScene } from "../shared/components/MotionScene";
-
-import type { ComponentProps } from "react";
-
-const components = {
-  img: (props: ComponentProps<"img">) => (
-    <img loading="lazy" decoding="async" {...props} />
-  ),
-  picture: (props: ComponentProps<"picture">) => <picture {...props} />,
-  ArticleDiagram,
-  ArticleMedia,
-  InlineArticleDiagram,
-  ImageMotionFigure,
-  ConceptMotionFigure,
-  MotionScene,
-};
+import { mdxComponents } from "./mdxComponents";
 
 export default function App() {
   return (
     <HelmetProvider>
       <ThemeProvider>
-        <MDXProvider components={components}>
+        <MDXProvider components={mdxComponents}>
           <BrowserRouter basename={import.meta.env.BASE_URL}>
             <AppRouter />
           </BrowserRouter>

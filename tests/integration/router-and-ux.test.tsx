@@ -7,12 +7,7 @@ import { MemoryRouter } from "react-router-dom";
 import "../../src/i18n/config";
 import { ThemeProvider } from "../../src/app/providers/ThemeProvider";
 import { AppRouter } from "../../src/app/router";
-import { ArticleDiagram } from "../../src/shared/components/PostVisual";
-import { ArticleMedia } from "../../src/shared/components/ArticleMedia";
-import { InlineArticleDiagram } from "../../src/shared/components/InlineArticleDiagram";
-import { ImageMotionFigure } from "../../src/shared/components/ImageMotionFigure";
-import { ConceptMotionFigure } from "../../src/shared/components/ConceptMotionFigure";
-import { MotionScene } from "../../src/shared/components/MotionScene";
+import { mdxComponents, preloadArticleFigures } from "../../src/app/mdxComponents";
 import { enhanceCodeBlocks } from "../../src/features/reading/enhanceCodeBlocks";
 
 const lazyContentTimeout = 3_000;
@@ -21,7 +16,7 @@ function renderApp(initialPath: string) {
   return render(
     <HelmetProvider>
       <ThemeProvider>
-        <MDXProvider components={{ ArticleDiagram, ArticleMedia, InlineArticleDiagram, ImageMotionFigure, ConceptMotionFigure, MotionScene }}>
+        <MDXProvider components={mdxComponents}>
           <MemoryRouter initialEntries={[initialPath]}>
             <AppRouter />
           </MemoryRouter>
@@ -43,7 +38,11 @@ async function waitForPostHeading(name: string) {
 // inside an assertion timeout, and React Router keeps the previous screen up
 // during the transition, so a slow CI runner times out on stale UI.
 beforeAll(async () => {
-  await import("../../src/features/posts/PostPage");
+  // Article figures are lazy as well; warm them for the same reason.
+  await Promise.all([
+    import("../../src/features/posts/PostPage"),
+    preloadArticleFigures(),
+  ]);
 }, 30_000);
 
 beforeEach(() => {
@@ -87,7 +86,7 @@ describe("routing and UX", () => {
     expect(await waitForPostHeading("The Plot Twist")).toBeInTheDocument();
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "FR" }));
+    await user.click(screen.getByRole("button", { name: "Français" }));
 
     expect(await waitForPostHeading("Le dénouement")).toBeInTheDocument();
     expect(
@@ -200,7 +199,7 @@ describe("routing and UX", () => {
     expect(screen.getByText(/Pourquoi j'ai remplacé mon Apple Watch/i)).toBeInTheDocument();
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "EN" }));
+    await user.click(screen.getByRole("button", { name: "English" }));
     expect(await screen.findByRole("button", { name: "Trail running", pressed: true })).toBeInTheDocument();
     expect(screen.getByDisplayValue("running")).toBeInTheDocument();
     expect(screen.getByText(/From Smart to Sport: Why I Traded My Apple Watch/i)).toBeInTheDocument();
@@ -223,7 +222,10 @@ describe("routing and UX", () => {
     expect(screen.getByRole("button", { name: /Filters/ })).toHaveAttribute("aria-expanded", "true");
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Reset filters" }));
+    // One in the results header, one next to the empty-state message.
+    const resetButtons = screen.getAllByRole("button", { name: "Reset filters" });
+    expect(resetButtons).toHaveLength(2);
+    await user.click(resetButtons[0]!);
 
     expect(screen.getByRole("button", { name: "All posts", pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("searchbox")).toHaveValue("");
@@ -475,7 +477,7 @@ describe("routing and UX", () => {
       }),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "EN" }));
+    await user.click(screen.getByRole("button", { name: "English" }));
 
     expect(
       await screen.findByRole("heading", {
@@ -520,5 +522,176 @@ describe("routing and UX", () => {
       "/fr",
     );
     expect(screen.getByRole("button", { name: /Apparence:/i })).toBeInTheDocument();
+  });
+
+  it("shows a not-found page for an address that matches nothing", async () => {
+    renderApp("/en/posts/this-post-does-not-exist");
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Page not found" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /See all posts/ })).toHaveAttribute(
+      "href",
+      "/en",
+    );
+    // A miss must not be indexed under the address that produced it.
+    await waitFor(() => {
+      expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute(
+        "content",
+        "noindex,nofollow,noarchive",
+      );
+    });
+  });
+
+  it("keeps the header and the language on an unknown section", async () => {
+    renderApp("/fr/nowhere");
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Page introuvable" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("navigation", { name: "Navigation principale" }),
+    ).toBeInTheDocument();
+  });
+
+  it("adds the missing locale to an address instead of dropping it", async () => {
+    renderApp("/about");
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: /About Morgan|À propos de Morgan/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("sets the document language from the route", async () => {
+    renderApp("/fr/about");
+    await screen.findByRole("heading", { level: 1, name: "À propos de Morgan" });
+    await waitFor(() => expect(document.documentElement).toHaveAttribute("lang", "fr"));
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "English" }));
+
+    await screen.findByRole("heading", { level: 1, name: "About Morgan" });
+    await waitFor(() => expect(document.documentElement).toHaveAttribute("lang", "en"));
+    expect(screen.getByRole("button", { name: "English" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("titles the home page with the site name once", async () => {
+    renderApp("/en");
+    await screen.findByText(/Latest Posts/i);
+
+    await waitFor(() => expect(document.title).toBe("Morgan's Blog"));
+  });
+
+  it("marks the current section in the primary navigation", async () => {
+    renderApp("/en/topics");
+
+    const navigation = await screen.findByRole("navigation", {
+      name: "Primary navigation",
+    });
+    expect(within(navigation).getByRole("link", { name: "Topics" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(within(navigation).getByRole("link", { name: "About" })).not.toHaveAttribute(
+      "aria-current",
+    );
+  });
+
+  it("offers a skip link to the page content", async () => {
+    renderApp("/en/about");
+    await screen.findByRole("heading", { level: 1, name: "About Morgan" });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("link", { name: "Skip to content" }));
+
+    expect(screen.getByRole("main")).toHaveFocus();
+  });
+
+  it("does not let a hovered card capture Enter pressed on another control", async () => {
+    renderApp("/en");
+    const [firstPostCard] = await screen.findAllByRole("link", {
+      name: / - Read post/i,
+    });
+
+    const user = userEvent.setup();
+    await user.hover(firstPostCard!);
+    const navigation = screen.getByRole("navigation", { name: "Primary navigation" });
+    within(navigation).getByRole("link", { name: "Topics" }).focus();
+    await user.keyboard("{Enter}");
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Topics" }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens and closes the table of contents from the keyboard", async () => {
+    renderApp("/en/posts/postgresql-unique-nulls");
+    await waitForPostHeading("The Plot Twist");
+
+    const user = userEvent.setup();
+    const toggle = await screen.findByRole("button", { name: "Table of Contents" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+    toggle.focus();
+    await user.keyboard("{Enter}");
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+    await user.keyboard("{Escape}");
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(toggle).toHaveFocus();
+
+    await user.click(toggle);
+    await user.click(screen.getByRole("link", { name: "The Plot Twist" }));
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("routes links between posts inside the app, in the active locale", async () => {
+    renderApp("/fr/posts/idempotency-debounce-jobify-bullmq");
+
+    // Written as "../posts/<slug>" in the article source.
+    const internalLinks = await waitFor(
+      () => {
+        const links = within(screen.getByRole("article"))
+          .getAllByRole("link")
+          .filter(
+            (link) =>
+              link.getAttribute("href") === "/fr/posts/jobify-workers-queues-nestjs" &&
+              !link.className,
+          );
+        expect(links.length).toBeGreaterThan(0);
+        return links;
+      },
+      { timeout: lazyContentTimeout },
+    );
+
+    for (const link of internalLinks) {
+      expect(link).not.toHaveAttribute("target");
+    }
+  });
+
+  it("marks external article links as leaving the site", async () => {
+    renderApp("/en/posts/postgresql-unique-nulls");
+    await waitForPostHeading("The Plot Twist");
+
+    const external = screen.getByRole("link", { name: "Unique Nulls Not Distinct" });
+    expect(external).toHaveAttribute("target", "_blank");
+    expect(external).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("wraps article tables in a scrollable, focusable region", async () => {
+    renderApp("/en/posts/idempotency-debounce-jobify-bullmq");
+
+    const regions = await screen.findAllByRole(
+      "region",
+      { name: "Table, scrolls sideways" },
+      { timeout: lazyContentTimeout },
+    );
+    for (const region of regions) {
+      expect(region).toHaveAttribute("tabindex", "0");
+      expect(within(region).getByRole("table")).toBeInTheDocument();
+    }
   });
 });

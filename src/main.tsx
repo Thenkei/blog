@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./i18n/config";
+import "./styles/fonts.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/layout.css";

@@ -14,7 +14,7 @@ export function AboutPage({ locale }: { locale: "en" | "fr" }) {
   const projects = t("about.projects", { returnObjects: true }) as Array<{ title: string; description: string }>;
 
   return (
-    <main className="blog-content">
+    <main className="blog-content" id="main-content" tabIndex={-1}>
       <div className="container about-page">
         <PageMeta title={t("about.title")} description={t("about.summary")} path={`/${locale}/about`} type="website" />
         <p className="section-eyebrow">{t("ui.about")}</p>

@@ -56,12 +56,8 @@
 }
 
 .breadcrumb-link {
-  background: transparent;
-  border: none;
-  color: var(--accent-primary);
-  cursor: pointer;
-  font: inherit;
-  padding: 0;
+  color: var(--accent-text);
+  text-decoration: none;
 }
 
 .breadcrumb-link:hover,
@@ -100,7 +96,6 @@
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  cursor: pointer;
   padding-bottom: 0.15em;
 }
 
@@ -116,7 +111,7 @@
 }
 
 .rocket-post-badge {
-  color: var(--accent-primary);
+  color: var(--accent-text);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -146,6 +141,8 @@ article {
   font-size: 1.08rem;
   color: var(--text-primary);
   line-height: 1.78;
+  /* A long URL or identifier wraps instead of widening the page. */
+  overflow-wrap: break-word;
 }
 
 article h2,
@@ -168,9 +165,64 @@ article h2::before {
   background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
 }
 
+article h3 {
+  font-family: var(--font-display);
+  font-size: clamp(1.22rem, 2.6vw, 1.42rem);
+  margin: 2.3rem 0 0.7rem;
+  line-height: 1.25;
+  color: var(--text-primary);
+  letter-spacing: -0.015em;
+}
+
+article h2 + h3 {
+  margin-top: 1.4rem;
+}
+
 p {
   margin-bottom: 1.45rem;
   color: var(--text-primary);
+}
+
+/* Links written in the article body. Components inside an article (cards,
+   navigation, copy buttons) carry a class and keep their own styling. */
+.post-document a:not([class]) {
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color var(--motion-fast) var(--motion-ease-standard);
+}
+
+.post-document a:not([class]):hover,
+.post-document a:not([class]):focus-visible {
+  text-decoration-color: currentColor;
+}
+
+.post-document blockquote {
+  margin: 1.8rem 0;
+  padding: 0.35rem 0 0.35rem 1.25rem;
+  border-left: 3px solid var(--accent-primary);
+  color: var(--text-secondary);
+}
+
+.post-document blockquote p {
+  color: inherit;
+}
+
+.post-document blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.post-document li > ul,
+.post-document li > ol {
+  margin-top: 0.45rem;
+  margin-bottom: 0.45rem;
+}
+
+.post-document img {
+  max-width: 100%;
+  height: auto;
 }
 
 ul,
@@ -220,21 +272,62 @@ article table {
   overflow: hidden;
 }
 
+/* Every article table sits in a wrapper (see mdxComponents) that scrolls
+   sideways when the table is wider than the column. */
+.article-table-wrap,
 .article-table-scroll {
   max-width: 100%;
   margin: 1.5rem 0;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   border: 1px solid var(--divider);
   border-radius: 16px;
+  background: var(--surface-raised);
   box-shadow: var(--shadow-sm);
+}
+
+.article-table-wrap table,
+.article-table-scroll table {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Three columns and more need room to stay readable; two fit a phone. */
+.article-table-wrap table:has(th:nth-child(3)) {
+  min-width: 34rem;
 }
 
 .article-table-scroll table {
   min-width: 760px;
-  margin: 0;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
+}
+
+/* A table wrapped by hand in the article is not wrapped twice. */
+.article-table-scroll .article-table-wrap {
+  display: contents;
+}
+
+/* The wrapper draws the outer border; drop the cells' copy of it. */
+.article-table-wrap tr > :first-child,
+.article-table-scroll tr > :first-child {
+  border-left: 0;
+}
+
+.article-table-wrap tr > :last-child,
+.article-table-scroll tr > :last-child {
+  border-right: 0;
+}
+
+.article-table-wrap thead tr:first-child > *,
+.article-table-scroll thead tr:first-child > * {
+  border-top: 0;
+}
+
+.article-table-wrap tbody tr:last-child > *,
+.article-table-scroll tbody tr:last-child > * {
+  border-bottom: 0;
 }
 
 article th,
@@ -331,7 +424,7 @@ article th {
   border: 1px solid var(--visual-line);
   border-radius: 8px;
   background: var(--surface-raised);
-  color: var(--accent-primary);
+  color: var(--accent-text);
   font: 700 12px var(--font-mono);
   letter-spacing: .12em;
   overflow: hidden;
@@ -485,7 +578,7 @@ article th {
 }
 
 .global-header-title:hover {
-  color: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 .global-header-actions {
@@ -502,15 +595,25 @@ article th {
 }
 
 .global-header-nav a {
+  /* Padding, not font size, makes the link easy to hit. */
+  padding: 0.5rem 0.15rem;
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   text-decoration: none;
+}
+
+.global-header-nav a[aria-current="page"] {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--accent-primary);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.5em;
 }
 
 .global-header-nav a:hover,
 .global-header-nav a:focus-visible {
-  color: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 @media (max-width: 768px) {
@@ -529,6 +632,9 @@ article th {
     grid-column: 1 / -1;
     grid-row: 2;
     justify-self: start;
+    gap: 1.1rem;
+    /* The links' own padding already separates the two rows. */
+    margin-block: -0.35rem;
   }
 
   .theme-menu-trigger-copy {

@@ -60,7 +60,7 @@
 .post-featured-label {
   width: fit-content;
   margin-bottom: 0.9rem;
-  color: var(--accent-primary);
+  color: var(--accent-text);
   font: 600 0.75rem var(--font-mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -150,7 +150,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  color: var(--accent-primary);
+  color: var(--accent-text);
   font-family: var(--font-mono);
   font-size: 0.68rem;
   letter-spacing: 0.04em;
@@ -191,7 +191,7 @@
 }
 
 .post-card:hover,
-.post-card.focused {
+.post-card:focus-visible {
   background: var(--surface-raised);
   border-color: color-mix(
     in srgb,
@@ -202,10 +202,6 @@
   box-shadow:
     0 0 0 2px color-mix(in srgb, var(--accent-primary) 70%, transparent),
     var(--shadow-lg);
-}
-
-.post-card.focused {
-  box-shadow: var(--focus-ring), var(--shadow-md);
 }
 
 .post-card:focus-visible {
@@ -221,8 +217,8 @@
 }
 
 .post-card:hover h3,
-.post-card.focused h3 {
-  color: var(--accent-primary);
+.post-card:focus-visible h3 {
+  color: var(--accent-text);
 }
 
 .post-subtitle {
@@ -247,7 +243,7 @@
 }
 
 .post-tag-more {
-  color: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 .post-tag-item {
@@ -265,7 +261,7 @@
   width: fit-content;
   margin-top: auto;
   padding-top: 1.3rem;
-  color: var(--accent-primary);
+  color: var(--accent-text);
   text-decoration: none;
   font-family: var(--font-mono);
   font-size: 0.9rem;
@@ -287,7 +283,7 @@
   background: transparent;
   border: 1px solid
     color-mix(in srgb, var(--accent-primary) 50%, var(--card-border));
-  color: var(--accent-primary);
+  color: var(--accent-text);
   padding: 0.55rem 0.95rem;
   border-radius: 999px;
   font-family: var(--font-mono);
@@ -368,7 +364,7 @@
 .post-category[aria-pressed="true"] {
   background: var(--accent-soft);
   border-color: var(--accent-primary);
-  color: var(--accent-primary);
+  color: var(--accent-text);
   box-shadow: inset 0 0 0 1px var(--accent-primary);
 }
 
@@ -378,7 +374,7 @@
   .post-category:hover {
     background: var(--accent-soft);
     border-color: var(--accent-primary);
-    color: var(--accent-primary);
+    color: var(--accent-text);
   }
 }
 
@@ -404,7 +400,7 @@
   border: 1px solid var(--divider);
   border-radius: 10px;
   background: var(--accent-soft);
-  color: var(--accent-primary);
+  color: var(--accent-text);
   font: 0.82rem var(--font-mono);
   cursor: pointer;
 }
@@ -452,7 +448,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--accent-primary);
+  color: var(--accent-text);
   font: inherit;
   text-decoration: underline;
   text-underline-offset: 0.2em;
@@ -499,9 +495,30 @@
 
 .post-empty {
   grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1.2rem;
   margin: 0;
   color: var(--text-secondary);
   font-family: var(--font-mono);
+}
+
+.post-empty p {
+  margin: 0;
+  color: inherit;
+}
+
+.post-empty-reset {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
 }
 
 /* Date and read time on a card. The separator is drawn before each item and
@@ -582,7 +599,7 @@
 }
 
 .post-card:hover .post-editorial-art img,
-.post-card.focused .post-editorial-art img {
+.post-card:focus-visible .post-editorial-art img {
   transform: scale(1.035);
 }
 
@@ -1715,7 +1732,7 @@
 
 .section-eyebrow {
   margin-bottom: 0.65rem;
-  color: var(--accent-primary);
+  color: var(--accent-text);
   font-family: var(--font-mono);
   font-size: 0.76rem;
   font-weight: 700;
@@ -1725,13 +1742,40 @@
 
 .topic-index,
 .topic-page,
-.about-page {
+.about-page,
+.not-found-page {
   max-width: var(--content-width);
+}
+
+.not-found-page {
+  min-height: 46vh;
+}
+
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.8rem;
+  margin-top: 2rem;
+}
+
+.not-found-link {
+  padding-block: 0.5rem;
+  color: var(--accent-text);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.not-found-link:hover,
+.not-found-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
 }
 
 .topic-index h1,
 .topic-page h1,
-.about-page h1 {
+.about-page h1,
+.not-found-page h1 {
   max-width: 18ch;
   font-family: var(--font-display);
   font-size: clamp(2.25rem, 6vw, 4rem);
@@ -1797,7 +1841,7 @@
 
 .topic-card span {
   margin-top: auto;
-  color: var(--accent-primary);
+  color: var(--accent-text);
   font-family: var(--font-mono);
   font-size: 0.8rem;
 }
@@ -1805,7 +1849,7 @@
 .page-back-link {
   display: inline-block;
   margin-bottom: 2.25rem;
-  color: var(--accent-primary);
+  color: var(--accent-text);
   font-family: var(--font-mono);
   font-size: 0.84rem;
   text-decoration: none;
@@ -1911,7 +1955,7 @@
 
 .theme-menu-option-glyph,
 .theme-menu-option-check {
-  color: var(--accent-primary);
+  color: var(--accent-text);
   text-align: center;
 }
 
@@ -1962,7 +2006,7 @@
 
 .toc {
   position: fixed;
-  bottom: 2rem;
+  bottom: max(2rem, env(safe-area-inset-bottom));
   right: 2rem;
   z-index: 50;
   border: none;
@@ -1989,6 +2033,11 @@
   z-index: 51;
 }
 
+.toc-bubble:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring), var(--shadow-md);
+}
+
 .toc-icon {
   stroke: var(--accent-primary);
 }
@@ -1998,9 +2047,10 @@
   bottom: 0;
   right: 0;
   width: 300px;
-  max-width: calc(100vw - 4rem);
-  max-height: calc(100vh - 8rem);
+  max-width: calc(100vw - 2rem);
+  max-height: min(70vh, calc(100vh - 8rem));
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--surface-raised);
   border: 1px solid var(--divider);
   border-radius: 16px;
@@ -2011,21 +2061,37 @@
   pointer-events: none;
   transform: translateY(10px) scale(0.95);
   transform-origin: bottom right;
-  transition: all var(--motion-base) var(--motion-ease-emphasis);
+  transition:
+    opacity var(--motion-base) var(--motion-ease-emphasis),
+    transform var(--motion-base) var(--motion-ease-emphasis),
+    visibility var(--motion-base);
   z-index: 52;
 }
 
-.toc:hover .toc-content,
-.toc-content:focus-within {
+/* Opened from the button (touch, keyboard): the panel sits above it, so the
+   same button closes it. */
+.toc.open .toc-content {
+  bottom: calc(100% + 0.75rem);
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transform: translateY(0) scale(1);
 }
 
-.toc:hover .toc-bubble {
-  opacity: 0;
-  pointer-events: none;
+/* With a mouse, hovering is enough: the panel opens over the button. Touch
+   screens report a sticky hover after a tap, so they are left out. */
+@media (hover: hover) and (pointer: fine) {
+  .toc:not(.open):hover .toc-content {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+  }
+
+  .toc:not(.open):hover .toc-bubble {
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 .toc-title {
@@ -2061,8 +2127,15 @@
 
 .toc-link:hover,
 .toc-link:focus-visible {
-  color: var(--accent-primary);
+  color: var(--accent-text);
   border-left-color: var(--accent-primary);
+}
+
+/* The section being read. */
+.toc-link[aria-current="location"] {
+  color: var(--accent-text);
+  border-left-color: var(--accent-primary);
+  font-weight: 600;
 }
 
 .article-title {
@@ -2108,7 +2181,7 @@
 .post-nav-link:focus-visible,
 .related-post-link:hover,
 .related-post-link:focus-visible {
-  color: var(--accent-primary);
+  color: var(--accent-text);
   border-color: color-mix(in srgb, var(--accent-primary) 52%, var(--divider));
   text-decoration: none;
 }
@@ -2185,7 +2258,7 @@
 
 .next-recommended-link:hover,
 .next-recommended-link:focus-visible {
-  color: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 .copy-link-heading {
@@ -2284,7 +2357,7 @@
 
 .copy-link-button:hover,
 .copy-link-button:focus-visible {
-  color: var(--accent-primary);
+  color: var(--accent-text);
   border-color: var(--accent-primary);
   background: var(--accent-soft);
   transform: translateY(-1px);
@@ -2305,7 +2378,7 @@
 }
 
 .copy-link-button[data-copy-state="copied"] {
-  color: var(--accent-primary);
+  color: var(--accent-text);
   border-color: var(--accent-primary);
 }
 
@@ -2348,7 +2421,7 @@
   display: inline-flex;
   min-height: 44px;
   align-items: center;
-  color: var(--accent-primary);
+  color: var(--accent-text);
   font-family: var(--font-mono);
   text-decoration: none;
 }
@@ -2379,6 +2452,6 @@
 
 .about-social-links a:hover,
 .about-social-links a:focus-visible {
-  color: var(--accent-primary);
+  color: var(--accent-text);
   border-color: var(--accent-primary);
 }

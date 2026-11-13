@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import mdx from "@mdx-js/rollup";
 import remarkFrontmatter from "remark-frontmatter";
@@ -41,7 +41,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,avif,webp,jpg,json}"],
+        // woff2: the self-hosted fonts, so an offline visit keeps its typography.
+        globPatterns: ["**/*.{js,css,html,svg,avif,webp,jpg,json,woff2}"],
         globIgnores: ["assets/posts/**", "assets/FigureMotionPlayer-*.js", "assets/BespokePlayer-*.js"],
         runtimeCaching: [
           {
@@ -84,6 +85,9 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./tests/setup.ts"],
+    // Agent worktrees are full checkouts inside the repo: without this their
+    // tests run too, against a second copy of React.
+    exclude: [...configDefaults.exclude, ".claude/**"],
     testTimeout: 15000,
     coverage: {
       provider: "v8",

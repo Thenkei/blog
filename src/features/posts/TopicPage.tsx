@@ -24,7 +24,7 @@ export function TopicPage({ locale, topicSlug }: TopicPageProps) {
 
   if (!topicSlug) {
     return (
-      <main className="blog-content">
+      <main className="blog-content" id="main-content" tabIndex={-1}>
         <div className="container topic-index">
           <PageMeta title={t("ui.topics")} description={t("ui.topicsDescription")} path={`/${locale}/topics`} type="website" />
           <p className="section-eyebrow">{t("ui.explore")}</p>
@@ -51,7 +51,7 @@ export function TopicPage({ locale, topicSlug }: TopicPageProps) {
 
   const posts = getTopicPosts(locale, topicSlug, postAccess);
   return (
-    <main className="blog-content">
+    <main className="blog-content" id="main-content" tabIndex={-1}>
       <div className="container topic-page">
         <PageMeta title={topic.title[locale]} description={topic.description[locale]} path={`/${locale}/topics/${topic.slug}`} type="website" />
         <Link className="page-back-link" to={`/${locale}/topics`}>← {t("ui.allTopics")}</Link>

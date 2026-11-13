@@ -1,7 +1,13 @@
 :root {
-  --font-main: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
-  --font-display: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", "JetBrains Mono", "SFMono-Regular", monospace;
+  /* Native controls (select menus, scrollbars, autofill) follow the theme. */
+  color-scheme: dark;
+
+  /* Loaded in fonts.css. The rest of each stack is what shows while a font
+     loads, or if it never does. */
+  --font-main: "Manrope", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, "SF Mono",
+    "Cascadia Mono", Menlo, Consolas, monospace;
 
   /* Fallback only: GlobalHeader publishes the measured height at runtime. */
   --global-header-height: 3.5rem;
@@ -23,6 +29,9 @@
   --accent-primary: #61dafb;
   --accent-secondary: #8bf4cc;
   --accent-tertiary: #9f7aea;
+  /* Accent used as text. Same as the accent wherever it already passes
+     WCAG AA on the page background; the light theme overrides it. */
+  --accent-text: var(--accent-primary);
 
   --gradient-start: #0d1426;
   --gradient-end: #090f1e;
@@ -61,16 +70,22 @@
 }
 
 [data-theme="light"] {
+  color-scheme: light;
+
   --bg-color: #f6f9ff;
   --surface-1: #ffffff;
   --surface-2: #edf3ff;
   --surface-3: #dfeaff;
   --text-primary: #12243f;
   --text-secondary: #486189;
-  --text-muted: #6480ab;
+  /* 5.0:1 on the page background; #6480ab was 3.8:1. */
+  --text-muted: #526c96;
   --accent-primary: #1d8fe1;
   --accent-secondary: #17aa7b;
   --accent-tertiary: #5e6ad2;
+  /* #1d8fe1 is 3.3:1 on this background: fine for rules and fills, too
+     light for links and labels. This one is 5.4:1. */
+  --accent-text: #0f69b0;
 
   --gradient-start: #f7fbff;
   --gradient-end: #ecf4ff;

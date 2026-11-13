@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useParams } from "react-router-dom";
+import { Link, NavLink, useLocation, useParams } from "react-router-dom";
 import { useTheme } from "../../app/providers/ThemeProvider";
 import { normalizeLocale } from "../routing";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -10,6 +10,7 @@ export function GlobalHeader() {
   const { t } = useTranslation();
   const { themeMode, setThemeMode } = useTheme();
   const params = useParams();
+  const { pathname } = useLocation();
   const locale = normalizeLocale(params.locale);
   const headerRef = useRef<HTMLElement | null>(null);
 
@@ -52,14 +53,21 @@ export function GlobalHeader() {
         <Link
           to={`/${locale}`}
           className="global-header-title"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          onClick={() => {
+            // Already on the home page: the title acts as "back to top".
+            // Arriving from another page is handled by useScrollManagement.
+            if (pathname === `/${locale}`) {
+              window.scrollTo(0, 0);
+            }
+          }}
         >
           {t("header.title")}
         </Link>
 
+        {/* NavLink sets aria-current="page" on the section being viewed. */}
         <nav className="global-header-nav" aria-label={t("ui.primaryNavigation")}>
-          <Link to={`/${locale}/topics`}>{t("ui.topics")}</Link>
-          <Link to={`/${locale}/about`}>{t("ui.about")}</Link>
+          <NavLink to={`/${locale}/topics`}>{t("ui.topics")}</NavLink>
+          <NavLink to={`/${locale}/about`}>{t("ui.about")}</NavLink>
         </nav>
 
         <div className="global-header-actions">

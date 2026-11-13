@@ -82,7 +82,18 @@ describe("PostEditorialArt", () => {
     );
 
     expect(container.querySelector("[data-editorial-art='coros-apex-4']")).toBeTruthy();
-    expect(container.querySelectorAll("source")).toHaveLength(4);
+    // One source per format; each offers both widths and states how wide the
+    // picture is drawn, so a card never downloads the large file by default.
+    const sources = Array.from(container.querySelectorAll("source"));
+    expect(sources.map((source) => source.getAttribute("type"))).toEqual([
+      "image/avif",
+      "image/webp",
+    ]);
+    for (const source of sources) {
+      expect(source.getAttribute("srcset")).toMatch(/960w, .+ 1600w$/);
+      expect(source.getAttribute("sizes")).toContain("352px");
+      expect(source).not.toHaveAttribute("media");
+    }
     expect(screen.getByRole("img", { name: /trail runner/i })).toHaveAttribute(
       "loading",
       "lazy",

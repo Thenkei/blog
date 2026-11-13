@@ -57,6 +57,13 @@
     "copyCode": "Copy code",
     "copied": "Copied",
     "copyFailed": "Try again",
+    "skipToContent": "Skip to content",
+    "language": "Language",
+    "breadcrumb": "Breadcrumb",
+    "scrollableTable": "Table, scrolls sideways",
+    "notFoundTitle": "Page not found",
+    "notFoundText": "This address does not match any page on the blog.",
+    "notFoundHome": "See all posts",
     "footer": {
       "copyright": "© {{year}} Morgan's Blog.",
       "github": "GitHub",

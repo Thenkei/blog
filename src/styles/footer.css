@@ -46,7 +46,7 @@
 }
 
 .footer-link:hover {
-  color: var(--accent-primary);
+  color: var(--accent-text);
   border-color: color-mix(in srgb, var(--accent-primary) 50%, var(--divider));
   background: var(--accent-soft);
   transform: translateY(-1px);

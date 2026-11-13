@@ -286,6 +286,17 @@
     height: calc(100svh + clamp(520px, 75svh, 680px));
   }
 
+  /* Smaller and closer to the corner, so it covers less of the text. */
+  .toc {
+    right: 1rem;
+    bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .toc-bubble {
+    width: 48px;
+    height: 48px;
+  }
+
   .post-card {
     border-radius: 18px;
     padding: 0;

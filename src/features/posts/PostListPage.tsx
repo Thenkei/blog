@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useTheme } from "../../app/providers/ThemeProvider";
 import {
   collectPostTags,
@@ -21,7 +21,7 @@ import {
 import { usePostKeyboardNavigation } from "./hooks/usePostKeyboardNavigation";
 import { ParallaxHero } from "../../shared/components/ParallaxHero";
 import { PageMeta } from "../../shared/seo/PageMeta";
-import { PostVisual } from "../../shared/components/PostVisual";
+import { LazyPostVisual as PostVisual } from "../../shared/components/LazyPostVisual";
 import {
   PostEditorialArt,
   hasPostEditorialArt,
@@ -46,7 +46,6 @@ function formatDate(date: string, locale: PostLocale): string {
 
 export function PostListPage({ locale }: PostListPageProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const location = useLocation();
   const { appliedTheme, themeMode } = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -62,10 +61,6 @@ export function PostListPage({ locale }: PostListPageProps) {
     collapsedFilterCount > 0,
   );
   const filterOptionsId = useId();
-
-  const openPost = (slug: string) => {
-    void navigate(`/${locale}/posts/${slug}`);
-  };
 
   const posts = useMemo(() => getPostSummaries(locale, "public"), [locale]);
   // Only offer tags that exist in the selected category. The applied tag stays
@@ -103,7 +98,6 @@ export function PostListPage({ locale }: PostListPageProps) {
       writeDiscoveryFilters(searchParams, { ...filters, ...patch }),
       { replace: true },
     );
-    setFocusedIndex(-1);
   };
 
   // A tag is picked inside a category, so changing category clears it rather
@@ -123,18 +117,10 @@ export function PostListPage({ locale }: PostListPageProps) {
   const hasActiveFilters = hasActiveDiscoveryFilters(filters);
   const showFeaturedPost = showsFeaturedPost(filters);
 
-  const { focusedIndex, setFocusedIndex, cardRefs } = usePostKeyboardNavigation(
-    {
-      enabled: true,
-      count: filteredPosts.length,
-      onSelectIndex: (index) => {
-        const selected = filteredPosts[index];
-        if (selected) {
-          openPost(selected.slug);
-        }
-      },
-    },
-  );
+  const { cardRefs } = usePostKeyboardNavigation({
+    enabled: true,
+    count: filteredPosts.length,
+  });
 
   return (
     <>
@@ -154,7 +140,7 @@ export function PostListPage({ locale }: PostListPageProps) {
         }
       />
 
-      <main className="blog-content">
+      <main className="blog-content" id="main-content" tabIndex={-1}>
         <div className="container">
           <RocketLogbook locale={locale} posts={rocketPosts} />
           <section className="post-controls" aria-label={t("ui.discovery")}>
@@ -184,7 +170,6 @@ export function PostListPage({ locale }: PostListPageProps) {
                 className="post-category"
                 type="button"
                 aria-pressed={filters.category === null}
-                onFocus={() => setFocusedIndex(-1)}
                 onClick={() => selectCategory(null)}
               >
                 {t("ui.allCategories")}
@@ -195,7 +180,6 @@ export function PostListPage({ locale }: PostListPageProps) {
                   className="post-category"
                   type="button"
                   aria-pressed={filters.category === category.slug}
-                  onFocus={() => setFocusedIndex(-1)}
                   onClick={() => selectCategory(category.slug)}
                 >
                   {category.title[locale]}
@@ -279,7 +263,16 @@ export function PostListPage({ locale }: PostListPageProps) {
 
           <div className="post-list post-list-editorial" key="post-list">
             {filteredPosts.length === 0 ? (
-              <p className="post-empty">{t("ui.noResults")}</p>
+              <div className="post-empty">
+                <p>{t("ui.noResults")}</p>
+                <button
+                  className="post-empty-reset"
+                  type="button"
+                  onClick={resetFilters}
+                >
+                  {t("ui.resetFilters")}
+                </button>
+              </div>
             ) : null}
             {filteredPosts.map((post, index) => {
               const visibleTags = post.tags.slice(0, 3);
@@ -294,12 +287,15 @@ export function PostListPage({ locale }: PostListPageProps) {
                   ref={(element) => {
                     cardRefs.current[index] = element;
                   }}
-                  className={`post-card ${isFeatured ? "post-card-featured" : "post-card-compact"} ${focusedIndex === index ? "focused" : ""}`}
-                  onMouseEnter={() => setFocusedIndex(index)}
-                  onFocus={() => setFocusedIndex(index)}
+                  className={`post-card ${isFeatured ? "post-card-featured" : "post-card-compact"}`}
                 >
                   {hasPostEditorialArt(post.slug) ? (
-                    <PostEditorialArt locale={locale} slug={post.slug} variant="card" />
+                    <PostEditorialArt
+                      locale={locale}
+                      slug={post.slug}
+                      variant="card"
+                      featured={isFeatured}
+                    />
                   ) : (
                     <PostVisual
                       locale={locale}
