@@ -8,6 +8,7 @@ import {
 import { postImageVisualIds } from "../../src/features/posts/content";
 
 const editorialSlugs = [
+  "accepting-being-a-nerd-2026",
   "video-factory-remotion-agents",
   "websockets-games-to-30000-connections",
   "nexus-in-two-days",
