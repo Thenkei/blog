@@ -36,7 +36,8 @@ describe("in-article motion scenes", () => {
     for (const slug of readdirSync(posts)) {
       for (const locale of ["en", "fr"] as const) {
         const content = readFileSync(join(posts, slug, `${locale}.mdx`), "utf8");
-        expect(content, `${slug}/${locale}`).toMatch(/<(ArticleDiagram|ArticleMedia|InlineArticleDiagram|ImageMotionFigure|ConceptMotionFigure|MotionScene)\b/);
+        // A rendered film (ArticleVideo) counts: it is motion with a poster and a text description.
+        expect(content, `${slug}/${locale}`).toMatch(/<(ArticleDiagram|ArticleMedia|InlineArticleDiagram|ImageMotionFigure|ConceptMotionFigure|MotionScene|ArticleVideo)\b/);
         expect(content, `${slug}/${locale}`).not.toMatch(/\.svg(?:\?raw)?["']/);
       }
     }

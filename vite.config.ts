@@ -9,6 +9,9 @@ import { VitePWA } from "vite-plugin-pwa";
 
 const postModulePattern = /\/content\/posts\/([^/]+)\/(en|fr)\.mdx$/;
 const postAssetPath = "src/assets/images/posts/";
+// Rendered films and their posters: fetched on demand, never precached, and kept out of
+// `assets/posts/` because its CacheFirst route does not answer a video's range requests.
+const postVideoPath = "src/assets/videos/posts/";
 // Bespoke article scenes are per-post chunks: runtime-cached with the posts, never precached.
 const bespokeScenePattern = /\/motion\/bespoke\/scenes\/[^/]+\.tsx$/;
 
@@ -42,7 +45,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,avif,webp,jpg,json}"],
-        globIgnores: ["assets/posts/**", "assets/FigureMotionPlayer-*.js", "assets/BespokePlayer-*.js"],
+        globIgnores: ["assets/posts/**", "assets/videos/**","assets/FigureMotionPlayer-*.js", "assets/BespokePlayer-*.js"],
         runtimeCaching: [
           {
             urlPattern: /\/blog\/assets\/posts\/.*$/,
@@ -74,6 +77,10 @@ export default defineConfig({
         assetFileNames(asset) {
           if (asset.originalFileNames.some((fileName) => fileName.includes(postAssetPath))) {
             return "assets/posts/[name]-[hash][extname]";
+          }
+
+          if (asset.originalFileNames.some((fileName) => fileName.includes(postVideoPath))) {
+            return "assets/videos/[name]-[hash][extname]";
           }
 
           return "assets/[name]-[hash][extname]";

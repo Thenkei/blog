@@ -12,6 +12,11 @@ type LocalizedStory = Record<PostLocale, MotionStory["beats"]> & {
 // Each sequence is a compact explanation of the article's own argument.
 // Keep both locales in sync when adding or changing a published article.
 export const MOTION_STORIES = {
+  "video-factory-remotion-agents": {
+    kind: "flow",
+    en: ["Write the brief in a video folder", "Six agents produce script, scenes and sound", "Render, measure, then a human reviews"],
+    fr: ["Écrire le brief dans un dossier de vidéo", "Six agents produisent texte, scènes et son", "Rendre, mesurer, puis une revue humaine"],
+  },
   "websockets-games-to-30000-connections": {
     kind: "cycle",
     en: ["Keep a two-way connection", "The backend restarts", "Spread reconnections over time"],

@@ -271,6 +271,14 @@ article th {
   height: auto;
 }
 
+.article-video video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  background: var(--visual-surface);
+}
+
 .post-visual figcaption {
   margin: 0;
   padding: 0.92rem 1rem;
