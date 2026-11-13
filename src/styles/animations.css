@@ -102,6 +102,30 @@
   }
 }
 
+@keyframes mountainMistDrift {
+  from {
+    transform: translateX(-36px);
+  }
+  to {
+    transform: translateX(36px);
+  }
+}
+
+@keyframes heroScrollCue {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  25% {
+    opacity: 1;
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
 @keyframes runnerStride {
   0%,
   100% {

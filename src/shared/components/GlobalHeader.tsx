@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 import { useTheme } from "../../app/providers/ThemeProvider";
@@ -10,9 +11,43 @@ export function GlobalHeader() {
   const { themeMode, setThemeMode } = useTheme();
   const params = useParams();
   const locale = normalizeLocale(params.locale);
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  // The header is sticky and wraps onto two rows on narrow screens. Anything
+  // pinned below it (reading progress) reads its real height from this token
+  // instead of guessing, so it can never end up hidden behind the header.
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!header) {
+      return;
+    }
+
+    const root = document.documentElement;
+    const publishHeight = () => {
+      const { height } = header.getBoundingClientRect();
+      if (height > 0) {
+        root.style.setProperty("--global-header-height", `${height}px`);
+      }
+    };
+
+    publishHeight();
+    if (typeof ResizeObserver === "undefined") {
+      return () => {
+        root.style.removeProperty("--global-header-height");
+      };
+    }
+
+    const observer = new ResizeObserver(publishHeight);
+    observer.observe(header);
+
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--global-header-height");
+    };
+  }, []);
 
   return (
-    <header className="global-header">
+    <header className="global-header" ref={headerRef}>
       <div className="global-header-inner">
         <Link
           to={`/${locale}`}

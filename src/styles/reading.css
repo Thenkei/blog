@@ -18,9 +18,13 @@
   pointer-events: none;
 }
 
+/*
+ * The header is sticky, so everything here hangs from its bottom edge: pinned
+ * to the top of the viewport it would sit behind the header and be invisible.
+ */
 .clean-progress-label,
 .mountain-progress-label {
-  top: calc(env(safe-area-inset-top) + 28px);
+  top: calc(env(safe-area-inset-top) + var(--global-header-height) + 12px);
   right: clamp(10px, 2vw, 24px);
 }
 
@@ -29,16 +33,21 @@
   right: 162px;
 }
 
-.clean-progress[data-progress-placement="top"],
+.clean-progress[data-progress-placement="top"] {
+  top: calc(env(safe-area-inset-top) + var(--global-header-height) - 1px);
+  left: 0;
+  right: 0;
+}
+
 .mountain-progress[data-progress-placement="top"] {
-  top: calc(env(safe-area-inset-top) + 6px);
-  left: clamp(10px, 2vw, 24px);
-  right: clamp(10px, 2vw, 24px);
+  top: calc(env(safe-area-inset-top) + var(--global-header-height) - 1px);
+  left: 0;
+  right: 0;
 }
 
 .clean-progress {
   z-index: 92;
-  height: 18px;
+  height: 3px;
 }
 
 .clean-progress-track,
@@ -46,21 +55,18 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
-  border-radius: 999px;
-  transform: translateY(-50%);
+  top: 0;
+  height: 3px;
 }
 
 .clean-progress-track {
-  height: 8px;
-  background: color-mix(in srgb, var(--progress-rail-bg) 88%, transparent);
-  box-shadow: 0 1px 0 rgb(255 255 255 / 0.08) inset;
+  background: color-mix(in srgb, var(--progress-rail-bg) 70%, transparent);
 }
 
 .clean-progress-fill {
   right: auto;
-  height: 8px;
   width: calc(var(--reading-progress, 0) * 1%);
+  border-radius: 0 999px 999px 0;
   background: var(--progress-fill);
   box-shadow: var(--progress-glow);
 }
@@ -69,44 +75,51 @@
   position: absolute;
   left: clamp(0%, calc(var(--reading-progress, 0) * 1%), 100%);
   top: 50%;
-  width: 16px;
-  height: 16px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   background: var(--progress-marker-bg);
   box-shadow:
-    inset 0 0 0 2px color-mix(in srgb, var(--accent-primary) 36%, transparent),
+    inset 0 0 0 2px color-mix(in srgb, var(--accent-primary) 46%, transparent),
     var(--progress-marker-shadow);
 }
 
-.clean-progress-dark .clean-progress-track {
-  backdrop-filter: blur(2px);
-}
-
-.clean-progress-light .clean-progress-marker {
-  width: 15px;
-  height: 15px;
-}
-
+/*
+ * Mountain: the same line under the header, with the runner carried in a small
+ * tab that hangs from it. The tab gives the figure its own surface, so it
+ * never mixes with the article text scrolling underneath.
+ */
 .mountain-progress {
   z-index: 96;
-  height: 56px;
+  height: 3px;
+  background: color-mix(in srgb, var(--progress-rail-bg) 70%, transparent);
+}
+
+.mountain-progress::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--reading-progress, 0) * 1%);
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(90deg, #7de0bf 0%, #f0c277 100%);
+  box-shadow: var(--progress-glow);
 }
 
 .mountain-progress-runner {
   position: absolute;
-  left: clamp(0%, calc(var(--reading-progress, 0) * 1%), 100%);
-  top: 50%;
-  width: 98px;
-  height: 58px;
-  transform: translate(-50%, -50%) rotate(-2.5deg);
-  transform-origin: 58% 84%;
-  transition: transform var(--motion-base) var(--motion-ease-standard);
-  filter: drop-shadow(0 8px 12px rgb(0 0 0 / 0.22));
-}
-
-.mountain-progress[data-direction="up"] .mountain-progress-runner {
-  transform: translate(-50%, -50%) rotate(3deg);
+  left: clamp(27px, calc(var(--reading-progress, 0) * 1%), calc(100% - 27px));
+  top: 3px;
+  box-sizing: border-box;
+  width: 50px;
+  height: 34px;
+  padding: 2px 4px 3px;
+  border: 1px solid var(--divider);
+  border-top: 0;
+  border-radius: 0 0 14px 14px;
+  background: var(--surface-2);
+  box-shadow: var(--shadow-sm);
+  transform: translateX(-50%);
 }
 
 .mountain-runner-icon {

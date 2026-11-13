@@ -3,6 +3,9 @@
   --font-display: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", "JetBrains Mono", "SFMono-Regular", monospace;
 
+  /* Fallback only: GlobalHeader publishes the measured height at runtime. */
+  --global-header-height: 3.5rem;
+
   --motion-fast: 0.18s;
   --motion-base: 0.28s;
   --motion-slow: 0.55s;

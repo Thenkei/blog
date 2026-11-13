@@ -72,36 +72,21 @@ body {
   --near-shift: 0;
   --near-scale: 1;
   --near-drift: 0;
-  --route-progress: 0.04;
-  --runner-progress: 0;
-  --runner-x: 6;
-  --runner-y: 92;
-  --runner-rotate: -18;
-  --runner-scale: 1.08;
-  --runner-opacity: 0.62;
-  --foreground-opacity: 1;
+  --route-fraction: 0;
+  --runner-opacity: 1;
   --cinematic-title-opacity: 1;
   --cinematic-title-shift: 0;
   --cinematic-title-scale: 1;
-  --summit-glow: 0.16;
-  --mountain-atmosphere: 0.22;
+  --mountain-dawn: 0;
+  --pass-glow: 0;
+  --hero-hint-opacity: 0;
   --cinematic-handoff: 0;
   height: 100svh;
   border-bottom: none;
   isolation: isolate;
-  background: #102d3b;
-}
-
-.mountain-camera-stage::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 5;
-  opacity: var(--mountain-atmosphere);
-  background:
-    radial-gradient(circle at 86% 16%, rgba(255, 226, 164, 0.3), transparent 26%),
-    linear-gradient(180deg, transparent 45%, rgba(5, 17, 19, 0.54));
+  align-items: flex-start;
+  justify-content: flex-start;
+  background: #071d2a;
 }
 
 .mountain-camera-stage::after,
@@ -115,7 +100,6 @@ body {
   background: linear-gradient(180deg, transparent 55%, var(--bg-color) 100%);
 }
 
-.mountain-layer,
 .rocket-layer {
   position: absolute;
   inset: -6% -5% -10%;
@@ -125,49 +109,234 @@ body {
   will-change: transform, opacity;
 }
 
+/*
+ * Mountain scene. Each plane is an inline SVG fitted to the stage height and
+ * anchored bottom-right; artwork continues past the left and bottom edges of
+ * its viewBox, so no aspect ratio or camera move can uncover an edge.
+ */
+.mountain-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.mountain-layer > svg {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: block;
+  width: auto;
+  height: 100%;
+  overflow: visible;
+}
+
 .mountain-layer-sky {
   z-index: 1;
-  background-image: url("../assets/images/mountain_camera_sky.svg");
-  transform: translate3d(0, calc(var(--sky-shift) * 1px), 0) scale(1.035);
+  transform: translate3d(0, calc(var(--sky-shift) * 1px), 0);
 }
 
 .mountain-layer-far {
   z-index: 2;
-  background-image: url("../assets/images/mountain_camera_far.svg");
   transform: translate3d(
       calc(var(--near-drift) * -0.22px),
       calc(var(--far-shift) * 1px),
       0
     )
     scale(var(--far-scale));
-  transform-origin: 70% 62%;
+  transform-origin: 78% 62%;
 }
 
 .mountain-layer-near {
   z-index: 4;
-  opacity: var(--foreground-opacity);
-  background-image: url("../assets/images/mountain_camera_near.svg");
   transform: translate3d(
       calc(var(--near-drift) * 1px),
       calc(var(--near-shift) * 1px),
       0
     )
     scale(var(--near-scale));
-  transform-origin: 54% 82%;
+  transform-origin: 82% 78%;
 }
 
-.mountain-trail-journey,
+/* First light to sunrise: every warm element follows --mountain-dawn. */
+.mountain-stars {
+  opacity: calc(1 - var(--mountain-dawn) * 0.94);
+}
+
+.mountain-dawn-glow {
+  opacity: calc(0.3 + var(--mountain-dawn) * 0.7);
+}
+
+.mountain-clouds {
+  opacity: calc(0.3 + var(--mountain-dawn) * 0.7);
+}
+
+.mountain-sun {
+  transform: translateY(calc(var(--mountain-dawn) * -168px));
+}
+
+.mountain-alpenglow {
+  opacity: calc(0.26 + var(--mountain-dawn) * 0.74);
+}
+
+.mountain-snow-light {
+  opacity: calc(0.3 + var(--mountain-dawn) * 0.7);
+}
+
+.mountain-mist {
+  animation: mountainMistDrift 52s ease-in-out infinite alternate;
+}
+
+.mountain-slope-light {
+  opacity: var(--mountain-dawn);
+}
+
+.mountain-slope-rim {
+  opacity: calc(0.1 + var(--mountain-dawn) * 0.9);
+}
+
+.mountain-rock-light {
+  opacity: calc(0.18 + var(--mountain-dawn) * 0.62);
+}
+
+.mountain-contours path {
+  stroke: rgb(125 224 191 / 0.07);
+  stroke-width: 1.6;
+}
+
+.mountain-route-bed,
+.mountain-route-dirt,
+.mountain-route-glow,
+.mountain-route-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mountain-route-bed {
+  stroke: #071a18;
+  stroke-opacity: 0.42;
+  stroke-width: 12;
+}
+
+.mountain-route-dirt {
+  stroke: #857c5c;
+  stroke-width: 6;
+}
+
+/* pathLength is 1, so the dash offset is the share of trail still to run. */
+.mountain-route-glow,
+.mountain-route-line {
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: calc(1 - var(--route-fraction));
+}
+
+.mountain-route-glow {
+  stroke: rgb(255 221 150 / 0.22);
+  stroke-width: 15;
+}
+
+.mountain-route-line {
+  stroke-width: 4.2;
+}
+
+.mountain-checkpoint-ring {
+  fill: #0b2623;
+  stroke: #f6d48f;
+  stroke-opacity: 0.8;
+  stroke-width: 2.4;
+}
+
+.mountain-checkpoint-core {
+  fill: #fff0c2;
+  opacity: clamp(
+    0,
+    calc((var(--route-fraction) - var(--checkpoint-at)) * 60),
+    1
+  );
+}
+
+.mountain-pass-ring {
+  fill: none;
+  stroke: #fff0c2;
+  stroke-width: 2.5;
+  opacity: calc(var(--pass-glow) * 0.85);
+  transform: scale(calc(0.55 + var(--pass-glow) * 0.45));
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.mountain-pass-pole {
+  fill: none;
+  stroke: #e9dcc0;
+  stroke-linecap: round;
+  stroke-width: 3.5;
+}
+
+.mountain-pass-flag {
+  fill: #ef8658;
+}
+
+.mountain-cinematic-runner {
+  opacity: var(--runner-opacity);
+}
+
+.mountain-runner-pose {
+  display: none;
+}
+
+.mountain-cinematic-runner[data-stride="a"] .mountain-runner-pose-a,
+.mountain-cinematic-runner[data-stride="b"] .mountain-runner-pose-b {
+  display: inline;
+}
+
+.mountain-runner-outline,
+.mountain-runner-limbs,
+.mountain-runner-torso {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mountain-runner-outline {
+  stroke: #061513;
+  stroke-opacity: 0.72;
+  stroke-width: 10.5;
+}
+
+.mountain-runner-limbs {
+  stroke: #fff3d6;
+  stroke-width: 5.6;
+}
+
+.mountain-runner-torso {
+  stroke: #fff3d6;
+  stroke-width: 10;
+}
+
+.mountain-runner-pack {
+  fill: #ef8658;
+  stroke: rgb(6 21 19 / 0.5);
+  stroke-width: 1.5;
+}
+
+.mountain-runner-head {
+  fill: #ffe6ad;
+  stroke: rgb(6 21 19 / 0.6);
+  stroke-width: 1.5;
+}
+
+/* The headlamp goes out as the sun comes up. */
+.mountain-runner-headlamp {
+  opacity: calc(1 - var(--mountain-dawn) * 1.6);
+}
+
 .rocket-flight-journey {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-.mountain-trail-journey {
-  z-index: 7;
-}
-
-.mountain-trail-map,
 .rocket-flight-map {
   position: absolute;
   inset: 0;
@@ -176,8 +345,6 @@ body {
   overflow: visible;
 }
 
-.mountain-route-bed,
-.mountain-route-line,
 .rocket-flight-ghost,
 .rocket-flight-line {
   fill: none;
@@ -186,109 +353,9 @@ body {
   stroke-linejoin: round;
 }
 
-.mountain-route-bed {
-  stroke: rgba(9, 24, 24, 0.74);
-  stroke-width: clamp(12px, 1.35vw, 22px);
-  opacity: 0.74;
-}
-
-.mountain-route-line {
-  stroke: url("#mountain-route-gradient");
-  stroke-width: clamp(3px, 0.38vw, 6px);
-}
-
-.mountain-route-reveal-clip,
 .rocket-flight-reveal-clip {
   transform-box: fill-box;
   transform-origin: left center;
-}
-
-.mountain-route-reveal-clip {
-  transform: scaleX(var(--route-progress));
-}
-
-.mountain-route-trailhead {
-  fill: #f1d38e;
-  stroke: rgba(8, 26, 25, 0.88);
-  stroke-width: 5;
-  vector-effect: non-scaling-stroke;
-  opacity: calc(1 - (var(--runner-progress) * 0.72));
-}
-
-.mountain-route-summit-ring {
-  fill: none;
-  stroke: rgba(255, 237, 187, 0.72);
-  stroke-width: 2;
-  vector-effect: non-scaling-stroke;
-  opacity: calc(var(--summit-glow) * 0.8);
-}
-
-.mountain-route-summit {
-  fill: #fff0bc;
-  opacity: var(--summit-glow);
-}
-
-.mountain-summit-glow {
-  position: absolute;
-  left: 88.1%;
-  top: 30.2%;
-  width: clamp(130px, 18vw, 280px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  opacity: calc(var(--summit-glow) * 0.68);
-  transform: translate(-50%, -50%)
-    scale(calc(0.72 + (var(--summit-glow) * 0.28)));
-  background: radial-gradient(circle, rgba(255, 229, 159, 0.42), transparent 68%);
-}
-
-.mountain-cinematic-runner {
-  position: absolute;
-  left: calc(var(--runner-x) * 1%);
-  top: calc(var(--runner-y) * 1%);
-  width: clamp(34px, 4.8vw, 66px);
-  aspect-ratio: 1;
-  overflow: visible;
-  opacity: var(--runner-opacity);
-  transform: translate(-50%, -54%) rotate(calc(var(--runner-rotate) * 1deg))
-    scale(var(--runner-scale));
-  transform-origin: center;
-  filter: drop-shadow(0 8px 10px rgba(5, 15, 15, 0.58));
-  will-change: left, top, transform, opacity;
-}
-
-.mountain-runner-silhouette {
-  fill: none;
-  stroke: #fff0c7;
-  stroke-width: 6.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.mountain-runner-silhouette circle {
-  fill: #ffe6ad;
-  stroke: #153a39;
-  stroke-width: 3;
-}
-
-.mountain-runner-pack {
-  fill: #ef8658;
-  stroke: #173b39;
-  stroke-width: 3.5;
-}
-
-.mountain-runner-torso {
-  fill: #f4d99c;
-  stroke: #173b39;
-  stroke-width: 3.5;
-}
-
-.mountain-runner-limb {
-  fill: none;
-}
-
-.mountain-runner-pole {
-  stroke: rgba(255, 240, 199, 0.72);
-  stroke-width: 3;
 }
 
 .mountain-camera-stage .hero-content,
@@ -314,6 +381,43 @@ body {
     color-mix(in srgb, var(--gradient-end) 62%, transparent),
     transparent 70%
   );
+}
+
+/* The title sits in open sky, aligned with the page column. */
+.mountain-camera-stage .hero-content {
+  width: min(680px, calc(100% - 40px));
+  margin: clamp(92px, 17svh, 200px) 0 0
+    max(20px, calc((100vw - var(--content-width)) / 2 + 20px));
+  padding: 0;
+  place-items: start;
+  text-align: left;
+  transform-origin: left top;
+}
+
+.mountain-camera-stage .hero-content::before {
+  content: none;
+}
+
+.hero-scroll-cue {
+  position: relative;
+  width: 22px;
+  height: 36px;
+  margin-top: 0.9rem;
+  border: 1.5px solid rgb(236 243 238 / 0.55);
+  border-radius: 12px;
+  opacity: var(--hero-hint-opacity, 0);
+}
+
+.hero-scroll-cue span {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 3px;
+  height: 7px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: #f6d48f;
+  animation: heroScrollCue 1.7s var(--motion-ease-standard) infinite;
 }
 
 .rocket-camera-stage {
