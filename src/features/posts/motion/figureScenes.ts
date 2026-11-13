@@ -140,7 +140,7 @@ export const assetSceneIds = [
   "context-stack", "self-service-lanes", "unknowns-review",
   "ai-material-chain", "polymagine-pipeline",
   "identity-federation", "oidc-code-flow", "agent-token-validation", "saml-token-bridge",
-  "frontier-dimensions", "saint-jacques-race",
+  "frontier-dimensions", "saint-jacques-race", "nerd-reading-habits",
 ] as const;
 
 export type AssetSceneId = (typeof assetSceneIds)[number];
@@ -165,6 +165,7 @@ const ASSET_PLANS: Record<AssetSceneId, LocalizedAssetPlan> = {
   "saml-token-bridge": { kind: "flow", motif: "exchange", points: [[.18,.50],[.50,.47],[.82,.51]], en: [["Receive SAML assertion", "Upstream IdP supplies signed identity"],["Validate before exchange", "Audience, signature, tenant and policy"],["Mint downstream access", "Narrow scope for one agent audience"]], fr: [["Recevoir l’assertion SAML", "L’IdP amont fournit une identité signée"],["Valider avant échange", "Audience, signature, tenant et politique"],["Émettre l’accès aval", "Scope borné pour un seul agent"]] },
   "frontier-dimensions": { kind: "choice", motif: "comparison", points: [[.18,.50],[.50,.47],[.82,.51]], en: [["Capability", "Reasoning, coding, context and multimodality"],["Economics and control", "Latency, cost, openness and deployment"],["Workflow fit", "Distribution and governance decide utility"]], fr: [["Capacités", "Raisonnement, code, contexte et multimodalité"],["Économie et contrôle", "Latence, coût, ouverture et déploiement"],["Adéquation au workflow", "Distribution et gouvernance décident de l’utilité"]] },
   "saint-jacques-race": { kind: "threshold", motif: "route", points: [[.18,.55],[.50,.67],[.82,.30]], en: [["A fast start", "35–40 minutes ahead at the first aid station"],["The hard middle", "Water runs out before the longest hot climb"],["Recover and finish", "Support at Lac du Bouchet resets the race"]], fr: [["Départ rapide", "35 à 40 minutes d’avance au premier ravito"],["Le milieu difficile", "L’eau manque avant la longue montée sous le soleil"],["Repartir et finir", "Le soutien au lac du Bouchet relance la course"]] },
+  "nerd-reading-habits": { kind: "flow", motif: "stack", points: [[.20,.50],[.50,.48],[.80,.50]], en: [["What I read", "Science, engineering and technology"],["What I watch", "Channels like Veritasium"],["What I accept", "I am a nerd and engineering is my passion"]], fr: [["Ce que je lis", "Sciences, ingénierie et technologies"],["Ce que je regarde", "Des chaînes comme Veritasium"],["Ce que j’accepte", "Je suis un nerd et ma passion est l’ingénierie"]] },
 };
 
 export function getAssetScene(id: AssetSceneId, locale: PostLocale): FigureScene {
