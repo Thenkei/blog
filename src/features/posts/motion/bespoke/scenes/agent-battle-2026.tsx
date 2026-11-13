@@ -2,7 +2,7 @@ import { Boundary, Box, Checkpoint, Comet, ease, easeOut, enter, hash, lerp, Met
 import { defineScene, type SceneStageProps } from "../types";
 
 // Act 1: the article's anti-pattern: ten agents on an uncertain design fan out
-// and land as ten interpretations to reconcile, some colliding. Act 2: one unit
+// and land as that many interpretations to reconcile, some colliding. Act 2: one unit
 // of work goes through the three modes in the article's order: explore in
 // pairing until the problem has boundaries, fly into a task contract and a
 // bounded delegation, split into genuinely independent units that run in their
@@ -288,14 +288,14 @@ function during(frame: number, start: number, end: number) {
 export default defineScene({
   durationInFrames: T.end,
   posterFrame: 490,
-  title: { en: "Three modes, not three brands", fr: "Trois modes, pas trois marques" },
+  title: { en: "Three ways to work with an agent", fr: "Trois façons de travailler avec un agent" },
   caption: {
-    en: "Ten agents on an uncertain design produce ten interpretations to reconcile. Choose the mode from the shape of the work: explore in pairing, delegate a bounded task under a contract, parallelise only independent units, and integrate under human accountability.",
-    fr: "Dix agents sur une conception incertaine produisent dix interprétations à réconcilier. Choisir le mode selon la forme du travail : explorer en pairing, déléguer une tâche bornée sous contrat, paralléliser seulement les unités indépendantes et intégrer sous responsabilité humaine.",
+    en: "Several agents on an uncertain design produce as many interpretations to reconcile. Choose the mode from the shape of the work: explore in pairing, delegate a bounded task under a contract, parallelise only independent units, and integrate under human accountability.",
+    fr: "Plusieurs agents sur une conception incertaine produisent autant d’interprétations à réconcilier. Choisir le mode selon la forme du travail : explorer en pairing, déléguer une tâche bornée sous contrat, paralléliser seulement les unités indépendantes et intégrer sous responsabilité humaine.",
   },
   beats: [
-    { at: 0, text: { en: "Ten agents on an uncertain design do not multiply capacity by ten.", fr: "Dix agents sur une conception incertaine ne multiplient pas la capacité par dix." } },
-    { at: T.land, text: { en: "They produce ten interpretations to reconcile: file collisions and incompatible decisions.", fr: "Ils produisent dix interprétations à réconcilier : collisions de fichiers et décisions incompatibles." } },
+    { at: 0, text: { en: "Agents launched together on an uncertain design do not multiply capacity.", fr: "Lancer plusieurs agents sur une conception incertaine ne multiplie pas la capacité." } },
+    { at: T.land, text: { en: "They produce as many interpretations to reconcile: file collisions and incompatible decisions.", fr: "Ils produisent autant d’interprétations à réconcilier : collisions de fichiers et décisions incompatibles." } },
     { at: T.modes, text: { en: "Pick the mode from the shape of the work. Ambiguous: a person and an agent explore until it has boundaries.", fr: "Le mode suit la forme du travail. Ambigu : une personne et un agent explorent jusqu'à des frontières nettes." } },
     { at: T.fly[0], text: { en: "Clear issue: a task contract, then bounded delegation in a sandbox, until there is completion evidence.", fr: "Issue claire : un contrat de tâche, puis une délégation bornée en sandbox, jusqu'à la preuve de fin." } },
     { at: T.split[0], text: { en: "Only genuinely independent units run in parallel, each in its own worktree.", fr: "Seules les unités réellement indépendantes partent en parallèle, chacune dans son worktree." } },

@@ -59,7 +59,7 @@ const COMPACT_L: Layout = {
 
 function copy(fr: boolean) {
   return {
-    group: fr ? "projet de groupe" : "group project",
+    group: fr ? "travail collectif" : "collective work",
     disciplines: fr
       ? ["propulsion", "mécanique", "logiciel", "matériaux", "opérations", "sécurité"]
       : ["propulsion", "mechanics", "software", "materials", "operations", "safety"],
@@ -68,7 +68,7 @@ function copy(fr: boolean) {
     genius: fr ? "génie solitaire ✗" : "solitary genius ✗",
     engineering: fr ? "ingénierie ✓" : "engineering ✓",
     vision: "vision ?",
-    exit: fr ? "pas une porte de sortie ✗" : "not an exit plan ✗",
+    exit: fr ? "pas un plan B ✗" : "not a plan B ✗",
     home: fr ? "notre place reste ici" : "our place remains here",
     orbit: fr ? "orbite · environnement partagé" : "orbit · shared environment",
     orbitShort: fr ? "orbite commune" : "shared orbit",
@@ -282,7 +282,7 @@ function Stage({ frame, compact, locale, width, height }: SceneStageProps) {
 export default defineScene({
   durationInFrames: T.end,
   posterFrame: T.end - 1,
-  title: { en: "Admire, without subscribing", fr: "Admirer sans s’abonner" },
+  title: { en: "Admiring and staying critical", fr: "Admirer et rester critique" },
   caption: {
     en: "Admiration for exploration does not erase orbital responsibility or our attachment to Earth.",
     fr: "L’admiration pour l’exploration n’efface ni la responsabilité orbitale ni notre attachement à la Terre.",
@@ -290,9 +290,9 @@ export default defineScene({
   beats: [
     { at: 0, text: { en: "Liftoff brings two reactions: extraordinary engineering, and much less conviction about the vision around it.", fr: "Au décollage, deux réactions : quelle prouesse d’ingénierie, et bien moins de conviction pour la vision." } },
     { at: T.stack - 10, text: { en: "Behind the footage: six disciplines, one system, teams and tests. That collective work gets the applause.", fr: "Derrière les images : six disciplines, un seul système, des équipes, des essais. C’est ça qu’on applaudit." } },
-    { at: T.mars, text: { en: "The vision points further: Mars as humanity’s fallback. For me it is not an exit plan; our place is here.", fr: "La vision va plus loin : Mars en repli. Pour moi, ce n’est pas une porte de sortie ; notre place reste ici." } },
+    { at: T.mars, text: { en: "The vision points further: Mars as humanity’s fallback. I do not see it as a plan B. Our place is here.", fr: "La vision va plus loin : Mars en repli. Je n’y vois pas un plan B ; notre place reste ici." } },
     { at: T.crowd, text: { en: "Closer to home, orbit fills up. Speed needs an equal plan: end of life, tracking, collisions, governance.", fr: "Plus près, l’orbite se remplit : il faut prévoir fin de vie, suivi, collisions et gouvernance." } },
-    { at: T.both, text: { en: "Both positions survive re-entry: admire the engineering, stay critical of the rest.", fr: "Les deux positions tiennent : admirer l’ingénierie, rester critique sur le reste." } },
+    { at: T.both, text: { en: "I keep both positions: admire the engineering, stay critical of the rest.", fr: "Les deux positions tiennent : admirer l’ingénierie, rester critique sur le reste." } },
   ],
   Stage,
 });

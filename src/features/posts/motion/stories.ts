@@ -17,6 +17,11 @@ export const MOTION_STORIES = {
     en: ["Keep a two-way connection", "The backend restarts", "Spread reconnections over time"],
     fr: ["Garder une connexion bidirectionnelle", "Le backend redémarre", "Étaler les reconnexions"],
   },
+  "nexus-in-two-days": {
+    kind: "flow",
+    en: ["Four and a half years at Forest Admin", "Describe the architecture, then each component", "A POC in four hours, a v0 in two days"],
+    fr: ["Quatre ans et demi chez Forest Admin", "Poser l’architecture, puis chaque brique", "Un POC en quatre heures, une v0 en deux jours"],
+  },
   "agent-battle-2026": {
     kind: "choice",
     en: ["Start with the task", "Match context and controls", "Choose the right agent"],

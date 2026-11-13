@@ -20,10 +20,28 @@
     padding-right: 6rem;
   }
 
-  .mountain-progress[data-progress-placement="top"],
-  .clean-progress[data-progress-placement="top"] {
-    left: 12px;
-    right: 12px;
+}
+
+/* Same query as the compact scene framing in ParallaxHero. */
+@media (max-width: 900px), (max-aspect-ratio: 4 / 5) {
+  .mountain-camera-stage {
+    justify-content: center;
+  }
+
+  .mountain-camera-stage .hero-content {
+    width: min(94%, 720px);
+    margin: clamp(148px, 21svh, 210px) 0 0;
+    place-items: center;
+    text-align: center;
+    transform-origin: center top;
+  }
+
+  .mountain-route-dirt {
+    stroke-width: 8;
+  }
+
+  .mountain-route-line {
+    stroke-width: 5.5;
   }
 }
 
@@ -96,38 +114,8 @@
     height: 100svh;
   }
 
-  .mountain-camera-stage::before {
-    background:
-      radial-gradient(circle at 88% 14%, rgba(255, 226, 164, 0.26), transparent 24%),
-      linear-gradient(180deg, transparent 38%, rgba(5, 17, 19, 0.58));
-  }
-
-  .mountain-layer,
   .rocket-layer {
     inset: -4% -12% -8%;
-  }
-
-  .mountain-layer-sky,
-  .mountain-layer-far,
-  .mountain-layer-near {
-    background-position: 74% bottom;
-  }
-
-  .mountain-cinematic-runner {
-    width: clamp(32px, 8vw, 48px);
-  }
-
-  .mountain-trail-journey {
-    transform: translateY(-8svh);
-  }
-
-  .mountain-route-bed {
-    stroke: rgba(241, 211, 142, 0.2);
-    stroke-width: 5px;
-  }
-
-  .mountain-route-line {
-    stroke-width: 3px;
   }
 
   .rocket-layer-space,
@@ -205,11 +193,6 @@
     padding-top: 3rem;
   }
 
-  .mountain-progress[data-progress-placement="top"],
-  .clean-progress[data-progress-placement="top"] {
-    left: 10px;
-    right: 10px;
-  }
 
   .copy-link-button {
     width: 2.75rem;
@@ -274,17 +257,6 @@
 
   .footer-links {
     justify-content: center;
-  }
-
-  .clean-progress[data-progress-placement="top"],
-  .mountain-progress[data-progress-placement="top"] {
-    left: 8px;
-    right: 8px;
-  }
-
-  .mountain-progress-runner {
-    width: 86px;
-    height: 50px;
   }
 
   .rocket-progress[data-progress-placement="right"] {

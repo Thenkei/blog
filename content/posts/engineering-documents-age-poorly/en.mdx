@@ -1,7 +1,7 @@
 ---
 title: "Your Engineering Documents Have an Expiry Date"
-subtitle: "The dangerous page is not the old one. It is the old one still dressed as today's truth."
-summary: "Owners, evidence, review triggers, and expiry: a minimum contract that lets useful documentation age honestly."
+subtitle: "An outdated page becomes a problem when nothing tells the reader it is outdated."
+summary: "A named owner, evidence, review triggers, and expiry: the information you need to know whether a document can still be trusted."
 visualId: "engineering-documents-age-poorly"
 publishedAt: "2026-08-31"
 readTimeMinutes: 5
@@ -23,15 +23,17 @@ An AI assistant may even retrieve it, treat it as reliable context, and turn it 
 
 <ArticleDiagram visualId="engineering-documents-age-poorly" />
 
-## The page that still looks employed
+## The outdated page that still looks authoritative
 
 Most wikis know who created a page and when it was edited. Few say what evidence supports it, which change should trigger a review, or what replaced it.
 
-A missing page announces its absence. A stale one still looks like an active reference, even when its assumptions belong to history.
+When a page is missing, you notice. An outdated page still looks like an active reference, even when the assumptions behind it are no longer true.
 
-“Last updated Tuesday” does not rescue the reader. It proves that someone touched the page on Tuesday, not that anyone verified the contract it describes.
+It has happened to us with three kinds of pages: a runbook that no longer matched what was running, a design decision that had been replaced without the page saying so, and a DiveIn that the delivered behaviour had moved away from.
 
-## What does not fix it
+“Last updated Tuesday” does not help much. It says that someone edited the page on Tuesday. It does not say that anyone checked what the page describes.
+
+## What is not enough
 
 - Review every page quarterly, regardless of what changed.
 - Generate documentation from code and assume it also captures domain decisions.
@@ -39,9 +41,9 @@ A missing page announces its absence. A stale one still looks like an active ref
 - Confuse “last updated” with “last verified”.
 - Assign documentation to everyone without naming an owner for each page.
 
-A clean-up campaign brings temporary relief. Then commits, migrations, and incidents make some pages wrong again. AI makes writing cheaper, not verification; it may even smooth over contradictory sources. Maintenance needs to follow the changes that affect what the page describes.
+A big clean-up helps for a while. Then commits, migrations, and incidents make some pages wrong again. AI makes pages faster to write, but it does not make them faster to check, and it can smooth over sources that contradict each other. Reviews have to be tied to the changes that affect what the page describes.
 
-## Documents have different half-lives
+## Not all documents age the same way
 
 There is no reason to maintain every category in the same way:
 
@@ -53,9 +55,9 @@ There is no reason to maintain every category in the same way:
 
 Each kind of document needs its own rule for review or expiry.
 
-## Six questions before a page can claim authority
+## Six questions before trusting a page
 
-Before an active document asks anyone to trust it, it should answer six questions:
+Before anyone relies on an active document, it should answer six questions:
 
 | Field | Purpose |
 | --- | --- |
@@ -66,20 +68,22 @@ Before an active document asks anyone to trust it, it should answer six question
 | Expiry | Date or condition after which it is no longer authoritative |
 | Successor | Document replacing this version |
 
-These fields help readers spot when a page may no longer be authoritative.
+These fields tell the reader when the page needs to be checked again before relying on it.
 
 <ArticleMedia mediaId="document-lifecycle-motion" />
 
-## Review the page where reality changed
+## Review the page when something changes
 
-A pull request that changes a contract can list affected documents. A migration may invalidate a runbook; an incident may correct a procedure. Review happens while the evidence is still at hand.
+A pull request that changes a contract can list the affected documents. A migration may invalidate a runbook; an incident may correct a procedure. The page is then reviewed while the evidence is still available.
 
 AI can find affected pages and prepare a diff. The owner checks the meaning before publishing.
 
-## There is no immortality clause
+## Someone still has to do the review
 
-These fields cannot guarantee a review: some dependencies between code and prose remain hard to detect. Focus this effort on pages that guide decisions or repeated actions. Historical notes can stay as they are when their status is clear.
+We do not have these fields everywhere. Today only some kinds of documents carry them, and most pages do not.
 
-The goal is simple: an old page should no longer pass for today's reference.
+These fields do not guarantee that a review happens: some dependencies between code and prose remain hard to detect. I would spend this effort on the pages that guide decisions or repeated actions. A historical note can stay as it is when its status is clear.
+
+An old page should no longer be mistaken for the current reference.
 
 Start of the series: [Unknown Unknowns in Software Architecture](../posts/unknown-unknowns-software-architecture).

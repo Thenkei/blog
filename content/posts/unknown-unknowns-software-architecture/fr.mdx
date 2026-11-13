@@ -15,37 +15,41 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 1
 ---
 
-## La carte s'arrête à la porte de la production
+## Ce qu'une revue d'architecture ne voit pas
 
-Une revue d'architecture traite bien les risques connus : charge, disponibilité, migrations, retries. Elle peut couvrir ces sujets et laisser son hypothèse la plus importante dans la marge.
+Une revue d'architecture traite bien les risques connus : charge, disponibilité, migrations, retries. Elle peut couvrir ces quatre sujets et passer à côté de l'hypothèse la plus importante, parce que personne ne l'a écrite.
 
-Une hypothèse peut rester implicite, ou un mode de panne absent du diagramme. Ce sont les **inconnus inconnus** : les risques qui ne sont jamais entrés dans la liste.
+Ce sont les **inconnus inconnus** : une hypothèse restée implicite, ou un mode de panne absent du diagramme. Ils ne sont jamais entrés dans la liste des risques.
 
 Dans [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386?lang=fr), Thariq Shihipar décrit l'écart entre la description fournie à un agent et la réalité du système. En logiciel aussi, aucun document ne représente complètement les opérateurs, les données historiques et les usages de production.
 
 <ArticleDiagram visualId="unknown-unknowns-software-architecture" />
 
-## La production ramène toujours un invité surprise
+## Ce que les tests ne couvrent pas
 
-Une conception peut réussir tous les scénarios écrits et échouer lorsqu'une requête est rejouée pendant la première tentative, ou qu'un événement arrive après la suppression de sa cible.
+Une conception peut réussir tous les scénarios écrits et échouer lorsqu'une requête est rejouée pendant que la première tentative est encore en cours, ou qu'un événement arrive après la suppression de sa cible.
 
-Les tests n'ont pas menti : nous leur avons posé les questions prévues. Le danger est de confondre « tous les tests passent » avec « nous avons tout modélisé ».
+Les deux nous sont arrivés. Il y en a eu d'autres : un système qui avait changé entre la spec et l'implémentation, des latences dans un système distribué auxquelles personne n'avait pensé, et des règles métier que personne n'avait spécifiées, découvertes après la mise en production.
 
-## Fausses assurances
+Les tests ne sont pas faux. Ils répondent aux questions que nous avons pensé à poser. « Tous les tests passent » ne veut pas dire « nous avons tout modélisé ».
 
-Le premier réflexe est d'enrichir le diagramme. Mais ajouter des boîtes représente mal le temps, la concurrence et les opérations manuelles. La checklist, elle, mémorise les risques connus : par construction, elle ne contient pas les hypothèses absentes du modèle.
+## Ce qui ne suffit pas
 
-Reste la tentation de l'agent omniscient. Il peut inspecter plus de sources, mais ne découvre que ce qui y a laissé une trace. Aucun de ces outils ne certifie qu'une revue est complète.
+Le premier réflexe est d'enrichir le diagramme. Mais ajouter des boîtes représente mal le temps, la concurrence et les opérations manuelles. Une checklist enregistre les risques déjà connus : elle ne peut pas contenir une hypothèse à laquelle personne n'a pensé.
 
-## Poser des questions qui piquent
+Un agent ne règle pas le problème non plus. Il peut inspecter plus de sources que nous, mais il ne trouve que ce qui y a laissé une trace. Aucun de ces outils ne certifie qu'une revue est complète.
 
-Une revue centrée sur le chemin nominal décrit les composants, mais que se passe-t-il si un appel est dupliqué, réordonné ou rejoué par un opérateur ?
+## Des questions qui demandent une preuve
+
+Une revue qui suit le chemin nominal décrit les composants. Elle ne dit pas ce qui se passe quand un appel est dupliqué, réordonné ou rejoué par un opérateur.
 
 « Est-ce scalable ? » appelle une réponse générique. « Quelle hypothèse de cardinalité casse ce composant en premier ? » pousse à chercher une preuve.
 
 Avant une décision importante, notre outil interne combine des **gates** sur les invariants connus, une passe **find blind spots** sur les hypothèses non prouvées et des **adversarial reviews** côté exploitation, sécurité, données et déploiement.
 
-L'outil relie chaque question à une preuve, ou rend son absence visible :
+C'est déjà arrivé plusieurs fois : la passe find blind spots a fait remonter une hypothèse que personne n'avait écrite et que la revue habituelle n'avait pas vue.
+
+L'outil relie chaque question à une preuve, ou montre que la preuve manque :
 
 - Quel invariant financier ou métier pourrait être violé silencieusement ?
 - Quelle dépendance serait aussi touchée par notre panne ?
@@ -55,17 +59,17 @@ L'outil relie chaque question à une preuve, ou rend son absence visible :
 
 La décision reste humaine. Pour accepter un risque, il faut d'abord l'avoir identifié.
 
-## Installer les sorties de secours quand tout est calme
+## Préparer le retour arrière avant l'incident
 
-On ne prédira pas chaque panne. On peut rendre la surprise visible, contenir son impact et revenir à un état sûr.
+On ne prédira pas chaque panne. On peut rendre la surprise visible, limiter son impact et revenir à un état sûr.
 
-Ça commence par réduire le nombre d'hypothèses implicites : des contrats explicites et des invariants exécutables laissent moins de place à l'implicite. Isoler les composants et les permissions borne ensuite le blast radius. Pour détecter les divergences, on s'appuie sur les métriques, les traces, les rapprochements et les alertes métier. Reste le chemin du retour — idempotence, replay contrôlé, kill switch, rollback ou compensation — à installer tant que tout est calme, justement.
+Ça commence par réduire le nombre d'hypothèses implicites, avec des contrats explicites et des invariants exécutables. Isoler les composants et les permissions limite ensuite le blast radius. Pour détecter les divergences, on s'appuie sur les métriques, les traces, les rapprochements et les alertes métier. Reste le chemin du retour : idempotence, replay contrôlé, kill switch, rollback ou compensation. Tout cela doit être en place avant l'incident.
 
 <InlineArticleDiagram assetId="unknowns-review">
   Une revue utile transforme une hypothèse en preuve, en signal ou en risque explicitement accepté.
 </InlineArticleDiagram>
 
-Question finale : si cette hypothèse devient fausse demain, saurons-nous le voir et réagir ?
+Pour chaque hypothèse qui reste, nous demandons : si elle devient fausse demain, saurons-nous le voir et réagir ?
 
 ## Les limites de la méthode
 

@@ -351,7 +351,7 @@ function during(frame: number, start: number, end: number) {
 export default defineScene({
   durationInFrames: T.end,
   posterFrame: 600,
-  title: { en: "A human-led loop, not an agent", fr: "Une boucle humaine, pas un agent" },
+  title: { en: "A loop led by a human", fr: "Une boucle menée par un humain" },
   caption: {
     en: "Speeding up implementation alone moves the bottleneck to review. The Product OS pins the problem, decisions, boundaries and definition of done in artefacts, and keeps human gates on product, architecture, sensitive changes and merge.",
     fr: "Accélérer uniquement l'implémentation déplace le goulot vers la review. Le Product OS fixe le problème, les décisions, les limites et la définition de « terminé » dans des artefacts, et garde des gates humaines sur le produit, l'architecture, les changements sensibles et le merge.",

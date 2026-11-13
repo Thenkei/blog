@@ -1,7 +1,7 @@
 ---
 title: "Unknown Unknowns in Software Architecture"
 subtitle: "An architecture review cannot name every surprise. It can make sure the system survives one."
-summary: "How to challenge hidden assumptions, look beyond the nominal path, and design systems that can recover when the map is wrong."
+summary: "How to challenge hidden assumptions, look beyond the nominal path, and design systems that can recover when our assumptions are wrong."
 visualId: "unknown-unknowns-software-architecture"
 publishedAt: "2026-08-10"
 readTimeMinutes: 6
@@ -15,62 +15,66 @@ seriesId: "engineering-ideas-that-survive-reality"
 seriesOrder: 1
 ---
 
-## The diagram stops at production
+## What an architecture review does not see
 
-Architecture reviews handle known risks well: load, availability, migrations, retries. They can cover all four and leave the most important assumption in the margins.
+Architecture reviews handle known risks well: load, availability, migrations, retries. A review can cover all four and still miss the assumption that matters most, because nobody wrote it down.
 
-An assumption may remain implicit, or a failure mode may be absent from the diagram. These are the **unknown unknowns**: risks that never made it onto the list.
+These are the **unknown unknowns**: an assumption that stayed implicit, or a failure mode that is missing from the diagram. They never made it onto the list of risks.
 
-Thariq Shihipar's [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386) describes the gap between the *map* supplied to an agent and the real *territory*. In software, too, no document fully represents operators, historical data, and production usage.
+Thariq Shihipar's [A Field Guide to Fable: Finding Your Unknowns](https://x.com/trq212/article/2073100352921215386) describes the gap between the description given to an agent and the real system. The same applies to software: no document fully represents operators, historical data, and production usage.
 
 <ArticleDiagram visualId="unknown-unknowns-software-architecture" />
 
-## Production always brings a plus-one
+## What the tests do not cover
 
-A design can pass every written scenario and still fail when a request is retried during the first attempt, or an event arrives after its target is deleted.
+A design can pass every written scenario and still fail when a request is retried while the first attempt is still running, or when an event arrives after its target has been deleted.
 
-The tests did not lie; we asked the questions we planned for. The danger is confusing “all tests passed” with “we modelled everything”.
+Both have happened to us. So have others: a system that changed between the spec and the implementation, latency in a distributed system that nobody had thought about, and business rules nobody had specified, which we only learned about after the release.
 
-## False reassurance
+The tests are not wrong. They answer the questions we thought to ask. “All tests passed” does not mean “we modelled everything”.
 
-The first reflex is to flesh out the diagram. But more boxes do little to represent time, concurrency, or manual intervention. A checklist, for its part, records known risks: by construction, it holds none of the assumptions missing from everyone's model.
+## What is not enough
 
-Then there is the temptation of the omniscient agent. It can inspect more sources, but it only finds what left a trace in them. None of these tools can certify that a review is complete.
+The first reflex is to add detail to the diagram. More boxes do little to show time, concurrency, or manual intervention. A checklist records the risks we already know, so it cannot contain an assumption nobody has thought of.
 
-## Ask questions with teeth
+An agent does not solve this either. It can inspect more sources than we can, but it only finds what left a trace in them. None of these tools can certify that a review is complete.
 
-A review of the nominal path describes the components, but what happens if a call is duplicated, reordered, or replayed by an operator?
+## Questions that ask for evidence
 
-“Will it scale?” invites a generic answer. “Which cardinality assumption breaks this component first?” sends the reviewer looking for evidence.
+A review that follows the nominal path describes the components. It does not say what happens when a call is duplicated, reordered, or replayed by an operator.
+
+“Will it scale?” gets a generic answer. “Which cardinality assumption breaks this component first?” makes the reviewer look for evidence.
 
 Before an important decision, our internal tool combines **gates** for known invariants, a **find blind spots** pass for unproven assumptions, and **adversarial reviews** across operations, security, data, and deployment.
 
-The tool connects each question to evidence, or makes its absence visible:
+It has already happened several times: the blind-spots pass brought up an assumption that nobody had written down and that the usual review had missed.
+
+The tool links each question to evidence, or shows that the evidence is missing:
 
 - Which financial or domain invariant could fail silently?
-- Which dependency shares our blast radius?
+- Which dependency would also be affected by our failure?
 - Which manual operation bypasses the nominal path?
 - Which signal would expose the issue before a customer does?
-- Which recovery path remains possible when the assumption is false?
+- Which action is still possible when the assumption is false?
 
-A human reviewer remains accountable: a known risk can be accepted, an invisible one cannot.
+The decision stays with a human. To accept a risk, you first have to have identified it.
 
-## Build the fire exits while it is still quiet
+## Prepare the recovery before the incident
 
-We will not predict every failure. We can make surprises visible, contain their impact, and recover.
+We will not predict every failure. We can make a surprise visible, limit its impact, and get back to a safe state.
 
-It starts with shrinking the assumption surface: explicit contracts and executable invariants leave less room for the implicit. Isolating components and permissions then contains the blast radius. To detect divergence, we rely on metrics, traces, reconciliation, and domain alerts. That leaves the way back — idempotency, controlled replay, kill switches, rollback, or compensation — which is precisely what you set up while things are still quiet.
+It starts with fewer implicit assumptions: explicit contracts and executable invariants. Isolating components and permissions then limits the blast radius. To detect divergence, we rely on metrics, traces, reconciliation, and domain alerts. Then comes the way back: idempotency, controlled replay, kill switches, rollback, or compensation. These have to be in place before the incident.
 
 <InlineArticleDiagram assetId="unknowns-review">
   A useful review turns an assumption into evidence, a signal, or an explicitly accepted risk.
 </InlineArticleDiagram>
 
-One final question: if the assumption becomes false tomorrow, will we notice and respond?
+For each assumption that remains, we ask: if it becomes false tomorrow, will we notice and respond?
 
 ## Limits of the method
 
-This method can create noise and delay decisions that are easy to undo. Scale the effort to the potential impact: a financial calculation or irreversible migration needs more evidence than an isolated experiment.
+This method can create noise and slow down decisions that are easy to undo. The effort should match the possible consequences: a financial calculation or an irreversible migration needs more evidence than an isolated experiment.
 
-Reviews also inherit the blind spots of their sources. Incidents, operator feedback, and production evidence remain irreplaceable. The goal is uncertainty we can observe and own.
+Reviews also inherit the blind spots of their sources. Incidents, operator feedback, and production data remain irreplaceable. What we want to know is what is still uncertain and how we will monitor it.
 
 Next in the series: [Building Self-Service Analytics That Does Not Lie](../posts/self-service-analytics-that-doesnt-lie).
