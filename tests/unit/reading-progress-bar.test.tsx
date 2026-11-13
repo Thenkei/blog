@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useRef } from "react";
 import "../../src/i18n/config";
@@ -7,7 +7,10 @@ import {
   type ThemeMode,
   useTheme,
 } from "../../src/app/providers/ThemeProvider";
-import { ReadingProgressBar } from "../../src/features/reading/ReadingProgressBar";
+import {
+  COMPACT_READING_QUERY,
+  ReadingProgressBar,
+} from "../../src/features/reading/ReadingProgressBar";
 
 const ARTICLE_TOP = 500;
 const ARTICLE_HEIGHT = 2400;
@@ -414,5 +417,100 @@ describe("ReadingProgressBar", () => {
     } finally {
       window.matchMedia = originalMatchMedia;
     }
+  });
+
+  describe("on a phone", () => {
+    // A matchMedia whose compact-layout answer can change, as on rotation.
+    function installCompactViewport(initiallyCompact: boolean) {
+      const originalMatchMedia = window.matchMedia.bind(window);
+      const listeners = new Set<() => void>();
+      let compact = initiallyCompact;
+
+      window.matchMedia = vi.fn((query: string) => ({
+        get matches() {
+          return query === COMPACT_READING_QUERY && compact;
+        },
+        media: query,
+        onchange: null,
+        addEventListener: (_type: string, listener: () => void) => {
+          if (query === COMPACT_READING_QUERY) listeners.add(listener);
+        },
+        removeEventListener: (_type: string, listener: () => void) => {
+          listeners.delete(listener);
+        },
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(() => false),
+      })) as unknown as typeof window.matchMedia;
+
+      return {
+        setCompact(next: boolean) {
+          compact = next;
+          act(() => listeners.forEach((listener) => listener()));
+        },
+        restore() {
+          window.matchMedia = originalMatchMedia;
+        },
+      };
+    }
+
+    it.each(["mountain", "rocket"] as const)(
+      "does not render or track the %s progress",
+      (theme) => {
+        const viewport = installCompactViewport(true);
+        const addEventListener = vi.spyOn(window, "addEventListener");
+
+        try {
+          const { container } = renderProgress(theme);
+
+          expect(container.querySelector('[role="progressbar"]')).toBeNull();
+          expect(container.querySelector(".reading-progress-label")).toBeNull();
+          expect(addEventListener).not.toHaveBeenCalledWith(
+            "scroll",
+            expect.any(Function),
+            expect.anything(),
+          );
+        } finally {
+          addEventListener.mockRestore();
+          viewport.restore();
+        }
+      },
+    );
+
+    it("keeps the thin line of the light theme", () => {
+      const viewport = installCompactViewport(true);
+
+      try {
+        const { container } = renderProgress("light");
+        expect(container.querySelector(".clean-progress")).toBeInTheDocument();
+      } finally {
+        viewport.restore();
+      }
+    });
+
+    it("brings the rail back at the current position when the viewport widens", async () => {
+      const viewport = installCompactViewport(true);
+
+      try {
+        const { container } = renderProgress("rocket");
+        expect(container.querySelector(".rocket-progress")).toBeNull();
+
+        // Halfway through the article (progress runs from 300 to 2100).
+        window.scrollY = 1200;
+        viewport.setCompact(false);
+
+        await waitFor(() => {
+          const rocketProgress = container.querySelector(".rocket-progress");
+          expect(rocketProgress).toHaveAttribute("aria-valuenow", "50");
+          // Appearing mid-article is not a departure: no launch burst.
+          expect(rocketProgress).toHaveAttribute("data-launch-sequence", "0");
+        });
+
+        viewport.setCompact(true);
+        expect(container.querySelector(".rocket-progress")).toBeNull();
+      } finally {
+        viewport.restore();
+      }
+    });
   });
 });

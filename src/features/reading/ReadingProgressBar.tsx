@@ -10,6 +10,7 @@ import { useTheme } from "../../app/providers/ThemeProvider";
 import { MountainReadingProgress } from "./MountainReadingProgress";
 import { RocketReadingProgress } from "./RocketReadingProgress";
 import { computeArticleReadingProgress } from "./readingProgressState";
+import { useMediaQuery } from "./useMediaQuery";
 import { useTranslation } from "react-i18next";
 
 type ReadingProgressBarProps = {
@@ -18,6 +19,14 @@ type ReadingProgressBarProps = {
 };
 
 const ROCKET_LAUNCH_THRESHOLD = 0.5;
+
+/**
+ * Phones, in portrait or landscape. The Mountain climb and the Rocket rail
+ * live in the page margin, and a phone has none: the rail took 70px out of a
+ * 335px column. There they are not rendered at all, so no scroll work runs
+ * for a scene nobody sees. The light and dark themes keep their 3px line.
+ */
+export const COMPACT_READING_QUERY = "(max-width: 900px), (max-height: 520px)";
 
 type RocketLaunchState = {
   sessionKey: string;
@@ -37,6 +46,9 @@ export function ReadingProgressBar({
   const pendingLaunchCheckRef = useRef(false);
   const { appliedTheme } = useTheme();
   const { t } = useTranslation();
+  const isCompact = useMediaQuery(COMPACT_READING_QUERY);
+  const isHidden =
+    isCompact && (appliedTheme === "mountain" || appliedTheme === "rocket");
   const launchSessionKey = `${contentKey}:${appliedTheme}`;
   const [rocketLaunchState, setRocketLaunchState] =
     useState<RocketLaunchState>({
@@ -50,6 +62,10 @@ export function ReadingProgressBar({
       : 0;
 
   useEffect(() => {
+    if (isHidden) {
+      return;
+    }
+
     let animationFrame: number | null = null;
 
     const computeProgress = (allowLaunch: boolean) => {
@@ -155,7 +171,7 @@ export function ReadingProgressBar({
         window.cancelAnimationFrame(animationFrame);
       }
     };
-  }, [appliedTheme, articleRef, contentKey, launchSessionKey]);
+  }, [appliedTheme, articleRef, contentKey, isHidden, launchSessionKey]);
 
   const roundedProgress = Math.round(progress);
 
@@ -168,6 +184,10 @@ export function ReadingProgressBar({
       }) as CSSProperties,
     [progress],
   );
+
+  if (isHidden) {
+    return null;
+  }
 
   if (appliedTheme === "rocket") {
     return (

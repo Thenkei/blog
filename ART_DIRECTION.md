@@ -469,6 +469,7 @@ Règles :
 
 - transitions courtes pour menus, cartes et états de focus ;
 - parallax réservé aux thèmes Montagne et Rocket ;
+- la progression de lecture Montagne (l'ascension) et Rocket (le rail de lancement) vit dans la marge de la page : sur téléphone (largeur ≤ 900 px ou hauteur ≤ 520 px) elle n'est pas affichée, et l'article garde toute sa largeur. Les thèmes clair et sombre conservent leur ligne de 3 px sous le header. La pastille de pourcentage disparaît dès que la marge ne peut plus la contenir (≤ 1024 px) ;
 - dans la progression de lecture Rocket, la position de la fusée reste strictement linéaire avec la lecture ; la puissance visuelle des gaz monte progressivement avant de retomber à l'approche, le décollage émet une onde de poussière stylisée, puis la fusée reste en orbite continue autour de la lune avec une accélération sur l'arc inférieur ;
 - aucune animation indispensable à la compréhension d’un diagramme ;
 - respect systématique de `prefers-reduced-motion` ;
