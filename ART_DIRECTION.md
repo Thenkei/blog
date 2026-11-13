@@ -408,13 +408,27 @@ Scène Montagne : une vallée alpine aux premières lueurs, et une seule trace q
 
 ### Découverte et cartes
 
-La recherche reste visible en permanence. Sur mobile, tag et tri sont placés dans un panneau repliable.
+La recherche reste visible en permanence. Sur mobile, tag et tri sont placés
+dans un panneau repliable, ouvert par le bouton « Filtres » posé à côté du champ
+de recherche. Le bouton affiche le nombre de réglages appliqués, et le panneau
+s'ouvre de lui-même quand l'URL en contient déjà un.
 
 Les catégories Ingénierie, Data, IA, Trail et Parcours restent visibles sur
 desktop et mobile. Elles filtrent la liste publique, se combinent à la recherche
 et au tri, et sont conservées dans l'URL lors d'un changement de langue. Changer
-de catégorie réinitialise le tag précis. Les variantes EN/FR des tags sont
-regroupées dans le filtre détaillé sans modifier les tags des articles.
+de catégorie réinitialise le tag précis, et le filtre par tag ne propose que les
+tags de la catégorie choisie. Les variantes EN/FR des tags sont regroupées dans
+le filtre détaillé sans modifier les tags des articles : chaque sujet apparaît
+une fois, dans la langue du lecteur. La table d'alias vit dans
+`src/features/posts/content/discovery.ts` ; un test échoue si un article traduit
+introduit un tag qui n'y figure pas, ou si un article public ne tombe dans
+aucune catégorie.
+
+Le nombre d'articles affichés est indiqué à côté du titre de la liste. Dès qu'un
+filtre est actif, un lien remet la recherche, la catégorie et le tag à zéro.
+
+Mobile : les champs font 16 px de corps (en dessous, iOS zoome la page à la
+prise de focus) et chaque contrôle offre une cible d'au moins 44 px.
 
 Sans filtre et avec le tri par date décroissante, le dernier article public est
 présenté une seule fois dans une carte « À la une » : image et texte côte à côte

@@ -1,7 +1,7 @@
 import { buildPostManifest } from "./manifest";
 import { isPublished as isPublishedOn, utcToday } from "./publication";
 import { getTopic } from "./topics";
-import { canonicalPostTag } from "./discovery";
+import { canonicalPostTags, collectPostTags, matchesPostTag } from "./discovery";
 import type { ComponentType } from "react";
 import type {
   PostDocument,
@@ -143,14 +143,10 @@ export function getAvailableTags(
   locale: PostLocale,
   access: PostAccessScope,
 ): string[] {
-  const tags = new Set<string>();
-  for (const post of accessiblePosts(manifest.byLocale[locale], access)) {
-    for (const tag of post.tags) {
-      tags.add(canonicalPostTag(tag));
-    }
-  }
-
-  return [...tags].sort((a, b) => a.localeCompare(b));
+  return collectPostTags(
+    accessiblePosts(manifest.byLocale[locale], access),
+    locale,
+  );
 }
 
 export function getTopicPosts(
@@ -164,7 +160,7 @@ export function getTopicPosts(
   }
 
   return accessiblePosts(manifest.byLocale[locale], access)
-    .filter((post) => post.tags.some((tag) => topic.tags.includes(tag)))
+    .filter((post) => topic.tags.some((tag) => matchesPostTag(post.tags, tag)))
     .map(toSummary);
 }
 
@@ -183,9 +179,14 @@ export function getSearchDocuments(
   }));
 }
 
+// Compare canonical tags: French articles mix "ia" and "ai", "securite" and
+// "security", and would otherwise score lower than their English versions.
 function overlapScore(a: string[], b: string[]): number {
-  const bSet = new Set(b);
-  return a.reduce((score, tag) => score + (bSet.has(tag) ? 1 : 0), 0);
+  const bSet = new Set(canonicalPostTags(b));
+  return canonicalPostTags(a).reduce(
+    (score, tag) => score + (bSet.has(tag) ? 1 : 0),
+    0,
+  );
 }
 
 // A series sibling is the most relevant next read, even when it shares few
@@ -298,5 +299,23 @@ export {
 export { buildPostManifest };
 export { postFrontmatterSchema } from "./schema";
 export { getTopic, topics } from "./topics";
-export { canonicalPostTag, postCategories, matchesPostCategory, matchesPostTag } from "./discovery";
+export {
+  canonicalPostTag,
+  collectPostTags,
+  defaultDiscoveryFilters,
+  filterPosts,
+  getPostTagLabel,
+  hasActiveDiscoveryFilters,
+  matchesPostCategory,
+  matchesPostTag,
+  postCategories,
+  readDiscoveryFilters,
+  showsFeaturedPost,
+  writeDiscoveryFilters,
+} from "./discovery";
+export type {
+  PostCategory,
+  PostDiscoveryFilters,
+  PostSortOrder,
+} from "./discovery";
 export type { TopicDefinition } from "./topics";
