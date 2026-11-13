@@ -29,6 +29,12 @@ const jpegAssets = import.meta.glob<string>(
 );
 
 const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
+  "accepting-being-a-nerd-2026": {
+    alt: {
+      en: "An illustrated desk at night with a stack of science and engineering books, a tablet showing a pendulum experiment, a small telescope and a model rocket, while distant fireworks light the window.",
+      fr: "Un bureau illustré, de nuit, avec une pile de livres de sciences et d'ingénierie, une tablette montrant une expérience de pendule, une petite lunette et une maquette de fusée, pendant que des feux d'artifice lointains éclairent la fenêtre.",
+    },
+  },
   "video-factory-remotion-agents": {
     alt: {
       en: "An illustrated desk at night where a conveyor belt leaves a laptop and passes six small robots writing, storyboarding, filming, recording, mixing and reviewing, ending on a glowing film frame.",
