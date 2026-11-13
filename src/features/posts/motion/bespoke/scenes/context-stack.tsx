@@ -294,7 +294,7 @@ function Stage({ frame, compact, locale, width, height }: SceneStageProps) {
 export default defineScene({
   durationInFrames: T.end,
   posterFrame: T.end - 30,
-  title: { en: "One stack, packed per task", fr: "Une pile, remplie selon la tâche" },
+  title: { en: "One stack, filled for each task", fr: "Une pile, remplie selon la tâche" },
   caption: {
     en: "Every item must justify its presence, authority and validity period. The order is the priority; the task decides what is packed; conflicts between authoritative sources are surfaced.",
     fr: "Chaque élément doit justifier sa présence, son autorité et sa durée de validité. L’ordre fixe la priorité, la tâche décide du contenu, et les conflits entre sources d’autorité sont signalés.",

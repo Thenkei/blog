@@ -1,7 +1,7 @@
 ---
 title: "Ingénierie du contexte : au-delà du prompt"
-subtitle: "La bonne formule ne suffit pas. Un agent fiable doit savoir ce qui est vrai aujourd'hui — et ce qu'il a le droit de faire."
-summary: "Pourquoi un agent fiable exige un contexte conçu comme une interface, avec provenance, fraîcheur, permissions, priorités et tests."
+subtitle: "Un prompt bien formulé ne suffit pas. L'agent doit aussi savoir ce qui est vrai aujourd'hui et ce qu'il a le droit de faire."
+summary: "Ce qu'il faut à un agent en plus du prompt : des sources avec un responsable et une durée de validité, des permissions, un ordre de priorité et des tests."
 visualId: "context-engineering-beyond-prompt-engineering"
 publishedAt: "2026-08-24"
 readTimeMinutes: 5
@@ -21,21 +21,23 @@ Le prompt engineering travaille la formulation d'une instruction. L'ingénierie 
 
 « Mettre à jour le tunnel de paiement » ne dit pas quelle branche fait foi, quel invariant financier protéger ni si l'agent doit proposer un patch ou le déployer.
 
-Quand l'agent accède à plusieurs systèmes, ce contexte devient une interface : il lui faut une provenance, des droits d'accès, une durée de validité et une règle pour les informations manquantes.
+Quand l'agent accède à plusieurs systèmes, ce contexte doit être spécifié comme une interface : d'où vient chaque élément, qui peut y accéder, combien de temps il reste valide et que faire quand une information manque.
 
 <ArticleDiagram visualId="context-engineering-beyond-prompt-engineering" />
 
-## Une réponse cohérente peut être complètement à côté
+## Une réponse cohérente peut quand même être fausse
 
-Un agent peut prendre une ancienne proposition pour une décision actuelle, ou une permission de lecture pour une autorisation d'agir. Si une information manque, il devine ; si elle est périmée, il répond pour l'ancienne version du système. Trop d'informations peuvent aussi masquer la contrainte essentielle.
+Un agent peut prendre une ancienne proposition pour une décision actuelle, ou une permission de lecture pour une autorisation d'agir. Si une information manque, il devine ; si elle est périmée, il répond pour l'ancienne version du système. Trop d'informations peuvent aussi masquer la seule contrainte qui compte.
+
+J'en ai vu deux au travail : un agent qui prenait une proposition dépassée pour la décision actuelle, et un agent qui comblait une information manquante par une supposition plausible.
 
 Ajouter « sois rigoureux » dans le prompt ne corrige aucun de ces problèmes.
 
-## Le buffet à volonté du contexte
+## Trop de contexte
 
-Charger tout le dépôt « au cas où » rend les priorités moins visibles. Dans un fichier d'instructions monolithique, les règles actuelles côtoient les anciennes. Une recherche par similarité peut même retrouver un document périmé et manquer une décision récente formulée autrement.
+Charger tout le dépôt « au cas où » rend les priorités moins visibles. Dans un fichier d'instructions monolithique, les règles actuelles côtoient les anciennes. Une recherche par similarité peut retrouver un document périmé et manquer une décision récente formulée autrement.
 
-Les outils comptent aussi. Donner tous les accès dès le départ élargit les conséquences possibles d'une erreur ; une capacité technique n'est pas une autorisation métier.
+C'est pareil pour les outils. Donner tous les accès dès le départ aggrave les conséquences possibles d'une erreur. Avoir techniquement accès à un système ne veut pas dire avoir le droit d'y agir.
 
 ## Choisir le contexte selon la tâche
 
@@ -45,7 +47,7 @@ Une revue de PR demande le diff et les conventions de revue ; un incident demand
 
 ## Le contexte a besoin d'un ordre
 
-Nous organisons le contexte de travail comme une pile :
+Nous essayons d'organiser le contexte de travail comme une pile. Aujourd'hui, ce n'est en place qu'en partie : certaines couches sont explicites, d'autres restent implicites ou absentes. La cible ressemble à ceci :
 
 1. **Autorité** : objectif utilisateur et frontières d'action.
 2. **État courant** : branche, diff, schéma ou document réellement en vigueur.
@@ -54,16 +56,16 @@ Nous organisons le contexte de travail comme une pile :
 5. **Preuves** : tests, métriques, logs et sources permettant de vérifier la sortie.
 
 <InlineArticleDiagram assetId="context-stack">
-  Chaque élément doit justifier sa présence, son autorité et sa durée de validité.
+  Pour chaque élément : pourquoi il est là, quelle autorité il a et combien de temps il reste valide.
 </InlineArticleDiagram>
 
 Chaque source indique son responsable, sa provenance, son périmètre et sa durée de validité. Les instructions critiques ont une priorité explicite ; l'accès aux outils est autorisé quand ils deviennent nécessaires. Si deux sources faisant autorité se contredisent, l'agent doit signaler le conflit.
 
-## Tester le chemin, pas seulement la réponse
+## Tester aussi avec un mauvais contexte
 
-Testons aussi le chemin : une règle périmée, deux sources contradictoires ou un document interdit. L'agent doit signaler le problème, pas le transformer discrètement en réponse plausible.
+Il faut aussi tester l'agent avec un mauvais contexte : une règle périmée, deux sources contradictoires ou un document qu'il n'a pas le droit d'utiliser. Il doit signaler le problème. Il ne doit pas le transformer discrètement en réponse plausible.
 
-## Parfois, un fichier suffit vraiment
+## Parfois, un fichier suffit
 
 Cette discipline ne corrige ni une source fausse ni un objectif mal défini, et son infrastructure doit être maintenue. Une petite modification réversible peut se contenter d'un prompt et d'un fichier. Le travail supplémentaire se justifie quand le workflow se répète, traverse plusieurs systèmes ou peut déclencher une action dont les conséquences sont importantes.
 

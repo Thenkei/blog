@@ -1,6 +1,6 @@
 ---
 title: "Vos documents d'ingénierie ont une date de péremption"
-subtitle: "Le document dangereux n'est pas celui qui paraît vieux. C'est celui qui continue à se présenter comme la vérité du jour."
+subtitle: "Une page périmée devient un problème quand rien n'indique au lecteur qu'elle l'est."
 summary: "Responsable identifié, preuves, déclencheurs de révision et expiration : les informations nécessaires pour savoir si une documentation est encore fiable."
 visualId: "engineering-documents-age-poorly"
 publishedAt: "2026-08-31"
@@ -27,9 +27,11 @@ Un assistant IA peut même retrouver cette page, la traiter comme un contexte fi
 
 La plupart des wikis savent qui a créé une page et quand elle a été modifiée. Ils disent rarement quelle preuve la soutient, quel changement impose sa révision ou ce qui l'a remplacée.
 
-Une page manquante signale son absence. Une page périmée ressemble encore à une référence active, même lorsque ses hypothèses sont devenues historiques.
+Quand une page manque, on le voit. Une page périmée ressemble encore à une référence active, même quand ses hypothèses ne sont plus vraies.
 
-La mention « mis à jour mardi » ne sauve pas le lecteur. Elle prouve que quelqu'un a touché la page mardi, pas que le contrat décrit a été vérifié.
+Cela nous est arrivé avec trois types de pages : un runbook qui ne correspondait plus à ce qui tournait, une décision d'architecture remplacée sans que la page le dise, et un DiveIn dont le comportement livré s'était éloigné.
+
+La mention « mis à jour mardi » n'aide pas beaucoup. Elle dit que quelqu'un a modifié la page mardi. Elle ne dit pas que quelqu'un a vérifié ce que la page décrit.
 
 ## Ce qui ne suffit pas
 
@@ -39,7 +41,7 @@ La mention « mis à jour mardi » ne sauve pas le lecteur. Elle prouve que quel
 - Confondre « dernière mise à jour » avec « dernière vérification ».
 - Confier la documentation à tout le monde sans nommer de responsable par page.
 
-Un grand ménage apporte un répit, puis les commits, migrations et incidents rendent de nouveau certaines pages fausses. L'IA accélère leur rédaction, pas leur validation ; elle peut même lisser des sources contradictoires. Il faut relier la maintenance aux changements qui affectent la réalité décrite.
+Un grand ménage aide un moment, puis les commits, migrations et incidents rendent de nouveau certaines pages fausses. L'IA accélère la rédaction des pages, mais pas leur vérification, et elle peut lisser des sources contradictoires. Il faut relier les révisions aux changements qui touchent ce que la page décrit.
 
 ## Tous les documents ne vieillissent pas de la même façon
 
@@ -53,9 +55,9 @@ Rien n'oblige à maintenir chaque catégorie de la même manière :
 
 Chaque type de document a ainsi sa propre règle de révision ou d'expiration.
 
-## Six questions avant de faire autorité
+## Six questions avant de se fier à une page
 
-Avant de demander à quelqu'un de lui faire confiance, un document actif devrait répondre à six questions :
+Avant qu'on s'y fie, un document actif devrait répondre à six questions :
 
 | Champ | Rôle |
 | --- | --- |
@@ -70,7 +72,7 @@ Ces champs permettent de savoir quand il faut revérifier la page avant de s'y f
 
 <ArticleMedia mediaId="document-lifecycle-motion" />
 
-## Réviser là où la réalité a bougé
+## Réviser la page quand quelque chose change
 
 Une pull request qui modifie un contrat peut lister les documents concernés. Une migration peut invalider un runbook ; un incident, corriger une procédure. On révise alors la page pendant que les preuves sont encore disponibles.
 
@@ -78,8 +80,10 @@ L'IA peut retrouver les pages concernées et préparer un diff. Le responsable v
 
 ## Il faut encore quelqu'un pour faire la révision
 
-Ces champs ne garantissent pas qu'une révision aura lieu : certaines dépendances entre code et prose restent invisibles. Concentrons cet effort sur les pages qui guident des décisions ou des actions répétées. Une note historique peut rester figée si son statut est clair.
+Nous n'avons pas ces champs partout. Aujourd'hui, seuls certains types de documents les portent, et la plupart des pages n'en ont pas.
 
-Le but est simple : qu'une vieille page ne puisse plus se faire passer pour la référence du moment.
+Ces champs ne garantissent pas qu'une révision aura lieu : certaines dépendances entre code et prose restent difficiles à repérer. Je consacrerais cet effort aux pages qui guident des décisions ou des actions répétées. Une note historique peut rester telle quelle si son statut est clair.
+
+Une vieille page ne doit plus pouvoir être prise pour la référence du moment.
 
 Début de la série : [Architecture logicielle : apprivoiser les inconnus inconnus](../posts/unknown-unknowns-software-architecture).

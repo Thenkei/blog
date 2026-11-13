@@ -216,7 +216,7 @@ describe("routing and UX", () => {
     expect(
       await screen.findByRole("figure", {
         // The bespoke scene replaces the generic storyboard once its chunk loads.
-        name: /review where reality changed/i,
+        name: /review when something changes/i,
       }),
     ).toBeInTheDocument();
   });

@@ -1,7 +1,7 @@
 ---
 title: "Context Engineering: Beyond Prompt Engineering"
-subtitle: "The right wording is not enough. A reliable agent must know what is true now—and what it is allowed to do."
-summary: "Why reliable agents need context designed as an interface, with provenance, freshness, permissions, priorities, and tests."
+subtitle: "A well-worded prompt is not enough. The agent also needs to know what is true today and what it is allowed to do."
+summary: "What an agent needs besides the prompt: sources with an owner and a validity period, permissions, an order of priority, and tests."
 visualId: "context-engineering-beyond-prompt-engineering"
 publishedAt: "2026-08-24"
 readTimeMinutes: 5
@@ -21,31 +21,33 @@ Prompt engineering works on the wording of an instruction. Context engineering s
 
 “Update the checkout flow” does not say which branch is current, which payment invariant matters, or whether the agent should propose a patch or deploy it.
 
-When an agent reaches across systems, context becomes an interface. It needs provenance, access rules, a validity period, and a rule for missing information.
+When an agent has access to several systems, this context has to be specified like an interface: where each piece comes from, who can access it, how long it stays valid, and what to do when information is missing.
 
 <ArticleDiagram visualId="context-engineering-beyond-prompt-engineering" />
 
-## Coherent is not the same as correct
+## A coherent answer can still be wrong
 
-An agent may treat an old proposal as a current decision, or read access as permission to act. Missing information invites a guess; stale information produces an answer for an older system. Too much information can bury the constraint that matters.
+An agent may treat an old proposal as a current decision, or read access as permission to act. If information is missing, it guesses. If it is stale, it answers for an older version of the system. Too much information can also hide the one constraint that matters.
 
-Adding “be rigorous” to the prompt fixes none of them.
+I have seen two of these at work: an agent treating an outdated proposal as the current decision, and an agent filling in missing information with a plausible guess.
 
-## The all-you-can-eat context buffet
+Adding “be rigorous” to the prompt fixes none of these problems.
 
-Loading the whole repository “just in case” makes priorities harder to see. In a monolithic instruction file, current rules sit beside stale ones. Similarity search may even retrieve an obsolete document while missing a recent decision phrased differently.
+## Too much context
 
-Tools matter too. Granting every capability at the start increases the potential impact of an error; technical access is not domain authorisation.
+Loading the whole repository “just in case” makes priorities harder to see. In a monolithic instruction file, current rules sit next to old ones. A similarity search can return an obsolete document and miss a recent decision that is worded differently.
 
-## Pack for the task in front of you
+The same goes for tools. Giving the agent every tool from the start makes the consequences of a mistake larger. Having technical access to a system does not mean being authorised to act on it.
+
+## Choose the context for the task
 
 Context can be **provided** at startup, **retrieved** when needed, or **produced** by an earlier step. The first takes up space, the second depends on search quality, and the third can carry errors forward.
 
-A PR review needs the diff and review conventions; an incident needs a timeline, logs, and deployment state. The same generic bundle serves neither particularly well.
+A PR review needs the diff and review conventions; an incident needs a timeline, logs, and deployment state. Giving both exactly the same context does not work.
 
 ## Context needs an order
 
-We organise the working context as a stack:
+We try to organise the working context as a stack. Today this is only partly in place: some layers are explicit, others are still implicit or missing. The target looks like this:
 
 1. **Authority**: user intent and action boundaries.
 2. **Current state**: the branch, diff, schema, or document actually in force.
@@ -54,17 +56,17 @@ We organise the working context as a stack:
 5. **Evidence**: tests, metrics, logs, and sources used to verify the output.
 
 <InlineArticleDiagram assetId="context-stack">
-  Every item must justify its presence, authority, and validity period.
+  For each item: why it is there, what authority it has, and how long it stays valid.
 </InlineArticleDiagram>
 
-Each source records its owner, provenance, scope, and validity period. Critical instructions have an explicit priority; tools are granted when needed. If two authoritative sources disagree, the agent should surface the conflict.
+Each source records its owner, provenance, scope, and validity period. Critical instructions have an explicit priority; access to a tool is granted when it becomes necessary. If two authoritative sources contradict each other, the agent should report the conflict.
 
-## Test the route, not just the arrival
+## Test with bad context too
 
-Test the route too: a stale rule, conflicting sources, or a document the agent cannot use. It should flag the problem rather than quietly turn it into a plausible answer.
+The agent should also be tested with bad context: a stale rule, two sources that contradict each other, or a document it is not allowed to use. It should report the problem. It should not quietly turn it into a plausible answer.
 
 ## Sometimes one file is enough
 
-This discipline cannot repair a false source or a poorly defined goal, and its infrastructure needs maintenance. A small, reversible change may need only a prompt and a file. The extra work pays off when a workflow repeats, crosses systems, or can trigger a consequential action.
+This discipline does not fix a wrong source or a badly defined goal, and its infrastructure has to be maintained. For a small, reversible change, a prompt and a file can be enough. The extra work is justified when the workflow repeats, spans several systems, or can trigger an action with serious consequences.
 
 Next in the series: [Your Engineering Documents Have an Expiry Date](../posts/engineering-documents-age-poorly).
