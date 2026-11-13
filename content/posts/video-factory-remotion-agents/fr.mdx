@@ -1,0 +1,207 @@
+---
+title: "Une fabrique de vidéos dans un dépôt Git"
+subtitle: "Remotion, six agents spécialisés et FFmpeg : comment un brief devient un film de release, un trailer ou une vidéo explicative."
+summary: "Chez RockFi, une vidéo est un dossier dans un dépôt Git. On l'ouvre dans Claude Code ou Codex, on donne un brief, et on récupère un MP4 masterisé avec son rapport de vérification. Ce que fait la fabrique, avec trois films d'exemple."
+visualId: "video-factory-remotion-agents"
+publishedAt: "2026-11-17"
+readTimeMinutes: 10
+tags:
+  - ia
+  - agents
+  - developer-tools
+  - video
+  - remotion
+  - rockfi
+---
+
+Chez RockFi, quand une fonctionnalité sort, elle sort de plus en plus souvent avec une vidéo. Un film d'une minute qui montre ce qu'elle permet de faire, un trailer de vingt secondes pour l'annoncer, parfois une vidéo qui explique un sujet technique au reste de l'entreprise.
+
+Ces vidéos viennent toutes du même endroit : un dépôt Git, `videos-factory`. Le premier commit date du 10 octobre 2026. Aujourd'hui, une bonne partie de l'entreprise s'en sert pour annoncer ses sorties et monter ses trailers.
+
+Je trouve cet outil vraiment bon, et je veux expliquer ce qu'il fait.
+
+Les trois films de cet article sortent de la fabrique. Je les ai fait produire pour l'occasion, pour un produit qui n'existe pas : Ravito, une application de plan de course pour le trail. Nos vrais films parlent de fonctionnalités internes, je ne les montre pas ici.
+
+<ArticleVideo id="video-factory-trailer">
+  Le format trailer : des phrases courtes, des coupes franches, deux détails du produit.
+</ArticleVideo>
+
+## Ce qu'on donne, ce qu'on récupère
+
+On ouvre le dépôt dans Claude Code ou dans Codex et on écrit ce qu'on veut annoncer, à qui, et à partir de quelles sources. L'agent principal mène le travail jusqu'à un export qu'on peut regarder.
+
+Ce qu'on récupère est un dossier `out/<prise>/` avec un `video.mp4` en 1920 × 1080, H.264, mixé à −16 LUFS, et un rapport de vérification à côté.
+
+Sous le capot, c'est [Remotion](https://www.remotion.dev/) : chaque scène est un composant React, et l'image affichée ne dépend que du numéro de frame. FFmpeg s'occupe du mastering et des mesures. Il faut Node.js 22 et FFmpeg. Aucune clé d'API ni service cloud n'est nécessaire pour produire un film.
+
+La fabrique connaît trois formats. Ils partagent la même direction artistique et diffèrent par leur intention.
+
+| Format | Ce que le spectateur doit en retirer | Déroulé | Budget de départ |
+| --- | --- | --- | --- |
+| `explainer` | Comprendre une idée et sa conséquence pratique | Question, exemple concret, mécanisme, conséquence | 60 à 180 s |
+| `release` | Savoir ce qu'une fonctionnalité livrée permet de faire | Friction, promesse, résultat démontré, action suivante | 45 à 120 s |
+| `trailer` | Retenir une promesse et avoir envie d'aller voir | Tension, révélation, deux ou trois preuves, conclusion | 15 à 30 s |
+
+Ces durées sont des points de départ. Le dépôt contient aujourd'hui neuf films, du trailer de 25 secondes à un film de plus de dix minutes.
+
+## Une vidéo est un dossier
+
+```sh
+npm run new -- ravito-release release
+npm run studio -- ravito-release
+```
+
+La première commande crée `videos/ravito-release/`. Tout ce qui concerne ce film vit dedans.
+
+```text
+videos/ravito-release/
+  video.json        Format et plan sonore
+  brief.md          Public, objectif, sources, contraintes
+  storyboard.md     Les scènes, dans l'ordre, avec leurs preuves
+  VOICEOVER.md      La narration, scène par scène
+  assets.json       Origine, droits et attribution de chaque média
+  src/              Les scènes, la timeline, la table des voix
+  public/           Les captures et médias de ce film
+  out/<prise>/      Les exports nommés et leur vérification
+```
+
+Il n'y a pas de registre global des compositions, pas de base de données, pas de file d'attente ni de service de rendu. Les dépendances sont installées une fois à la racine. Ajouter une vidéo, c'est ajouter un dossier.
+
+Les assets d'un film passent avant les assets partagés. Pour les exemples de cet article, j'ai remplacé le logo par celui d'une marque fictive en déposant un SVG dans le `public/` de chaque film. Le kit commun n'a pas été modifié.
+
+`src/timeline.json` fait autorité pour les durées : nombre d'images par seconde, durée de chaque scène en frames, transitions, départs de voix. La durée totale s'en déduit.
+
+```text
+total = somme des durées des scènes − transition × (nombre de scènes − 1)
+```
+
+Comme tout est du texte, un film se relit dans une pull request. Changer une phrase à l'écran produit un diff d'une ligne. Rendre deux fois le même commit donne les mêmes images, au bruit d'encodage près.
+
+## Le texte est validé avant la production
+
+Pour une présentation de fonctionnalité, l'agent ne commence pas par animer des écrans. Il propose deux ou trois angles distincts, chacun avec sa phrase d'ouverture, ses arguments, ses sources et ce qu'il faudra montrer pour le prouver. Il en recommande un. Il présente ensuite le texte complet, dans l'ordre des scènes.
+
+Rien n'est enregistré ni rendu en version finale tant qu'une personne n'a pas validé l'angle et les mots. Le guide le dit explicitement : le silence ne vaut pas approbation.
+
+La narration suit une consigne simple. La voix explique ce que la fonctionnalité change pour le public, et l'interface le prouve. Une voix qui commente les clics n'apporte rien : le spectateur les voit.
+
+Avec Ravito, cela donne :
+
+| Ligne qui décrit le geste | Ligne qui dit ce que ça change |
+| --- | --- |
+| « On clique sur le champ, puis on saisit l'heure de passage. » | « Un retard ? Le plan suit. » |
+
+Les bénéfices sont sourcés avec le même soin que les comportements. « Voir les changements avant de publier » ne prouve pas « moins d'erreurs ». Le guide interdit d'inventer des métriques, des résultats clients ou une disponibilité.
+
+<ArticleVideo id="video-factory-release">
+  Le format release : une légende à gauche, la fenêtre du produit à droite.
+</ArticleVideo>
+
+Pour une vraie démonstration, la fabrique enregistre l'application avec Playwright, sur un serveur en mode mock dont les données ne contiennent aucune information personnelle. Playwright n'enregistre pas le pointeur : le script en injecte un, le déplace avant chaque clic, puis tient le résultat deux à trois secondes pour qu'on ait le temps de lire.
+
+Une interface reconstruite doit être étiquetée comme telle, dans le storyboard et dans l'image. C'est le cas ci-dessus : le film porte la mention « Interface simulée » du début à la fin.
+
+## Six agents, des fichiers attribués
+
+Le dépôt définit six spécialistes.
+
+| Agent | Responsabilité |
+| --- | --- |
+| `story-producer` | Public, angles, arguments, preuves et texte |
+| `storyboard-director` | Scènes, direction visuelle, durées, plan de capture |
+| `remotion-engineer` | Implémentation des scènes et export |
+| `voice-director` | Narration, prononciation, durées mesurées |
+| `sound-designer` | Musique, effets, repères et mixage |
+| `video-reviewer` | Revue du film rendu, en lecture seule |
+
+L'agent principal fait l'orchestrateur. Il n'y a pas de service d'orchestration : ce sont des définitions d'agents que Claude Code et Codex chargent nativement.
+
+Chaque mission donne le film concerné, les sources, le résultat attendu et les chemins que l'agent a le droit d'écrire. Tant que le storyboard n'est pas établi, rien ne part en parallèle. Ensuite les scènes, la voix et le son avancent en même temps, chacun dans ses fichiers. Un seul agent à la fois possède la timeline.
+
+Les prompts sont écrits une fois, dans `agents/*.md`. Un script génère les deux formats natifs, TOML pour Codex et Markdown pour Claude Code, et `npm run check` échoue si les trois versions divergent. On peut changer d'agent de code sans réécrire les rôles.
+
+<ArticleVideo id="video-factory-explainer">
+  Le format explainer, utilisé ici pour expliquer la fabrique elle-même.
+</ArticleVideo>
+
+## Le son est un choix
+
+Un nouveau film démarre sans musique et sans effets. Le plan sonore s'écrit dans `video.json`, en commençant par l'intention.
+
+```json
+{
+  "sound": {
+    "intent": "Laisser de la place à l'explication ; accentuer seulement la révélation.",
+    "music": "none",
+    "voice": true,
+    "effects": []
+  }
+}
+```
+
+Le silence est un choix valide. Les trois films de cet article sont muets : ils sont faits pour être lus dans une page, et leur export ne contient aucune piste audio.
+
+Quand il y a une voix, on dépose un clip par scène. `npm run voice` les normalise à −18 LUFS, mesure leur durée et refuse un clip qui dépasse sa scène ou en chevauche un autre. La musique baisse automatiquement sous la narration.
+
+La fabrique peut générer une musique de départ en local, sans échantillons ni API. Elle peut aussi appeler ElevenLabs pour la voix et les effets, mais jamais d'elle-même. Aucun rendu ne déclenche un appel payant. La commande a un mode `--dry-run` qui montre la requête sans l'envoyer. Les appels partent un par un, sans nouvelle tentative automatique : une requête qui a expiré a peut-être déjà été facturée.
+
+Les règles de prononciation vivent dans le script, sous un titre « Prononciation ». On y écrit que « chat » se dit « tchat ». La règle ne modifie que le texte envoyé à la synthèse, le script reste inchangé.
+
+## Ce que la machine vérifie
+
+```sh
+npm run render -- ravito-release v1
+npm run verify -- ravito-release v1
+```
+
+Un nom de prise ne se réutilise pas. Si `v1` existe, il faut rendre `v2`. Une prise ratée reste sur le disque pour qu'on puisse comprendre ce qui s'est passé.
+
+`verify` contrôle le codec, la résolution, la cadence, le nombre exact d'images par rapport à la timeline, la piste AAC, un niveau intégré de −16 LUFS à 1 près et une crête vraie sous −1 dBFS. Il extrait ensuite deux images par scène, une au milieu et une sur le temps de lecture, et les assemble en planche-contact.
+
+Voici l'essentiel du rapport du trailer en haut de cet article.
+
+```json
+{
+  "video": "blog-demo-trailer",
+  "take": "fr-v2",
+  "expectedSeconds": 21.5,
+  "actualSeconds": 21.5,
+  "mediaOK": true,
+  "audioExpected": false,
+  "loudnessOK": true,
+  "visualReview": "pending",
+  "listeningReview": "not applicable: intentional silence"
+}
+```
+
+`visualReview` reste à `pending`. La fabrique ne déclare jamais qu'un film est bon parce que l'export a réussi. Elle mesure ce qui se mesure et laisse la revue visuelle et l'écoute à quelqu'un.
+
+### Comparer deux prises
+
+Le 17 octobre, un changement de mastering a remodelé le mix d'un film entier. Le niveau intégré n'avait presque pas bougé, donc `verify` passait.
+
+`npm run compare` vient de là. La commande prend une prise déjà validée et une nouvelle, et regarde les scènes qu'elles ont en commun. Côté son, la différence doit être un gain constant, mesuré par fenêtres de deux secondes. Côté image, elle compte par frame les pixels dont la luminance a bougé de plus de 48 niveaux, et signale une scène au-delà de 400 pixels. Une moyenne aurait caché un mot changé et signalé le bruit de l'encodeur.
+
+Autre mesure faite dans le dépôt : dans l'export brut, le son arrive 2 048 échantillons après l'image, soit un peu plus d'une frame. L'écart a été mesuré par corrélation croisée entre la musique source et le rendu, et le mastering le retire.
+
+### Un relecteur qui n'a pas écrit le film
+
+Après l'intégration, l'orchestrateur lance un `video-reviewer` dans une tâche neuve. Cet agent n'a pas vu la production et n'a pas le droit de modifier quoi que ce soit. Il travaille à partir de planches-contact, puis zoome là où quelque chose semble faux.
+
+Il reçoit un segment d'environ deux minutes au plus. Un film long est découpé, avec un relecteur par segment et une vérification séparée des raccords. Chaque remarque vient avec une frame ou un timecode, ce qui a été observé, et la plus petite correction utile.
+
+## Ce qui reste à faire soi-même
+
+La fabrique ne sait pas quoi dire. Il faut quelqu'un qui connaît la fonctionnalité, son public et ce qu'on a le droit d'affirmer. L'étape de validation du texte existe pour cette personne.
+
+Elle n'écoute pas à votre place. Les mesures ne disent pas si une phrase sonne juste.
+
+Elle n'apporte pas les droits. Les polices sous licence ne sont pas dans le dépôt, et les exemples de cet article utilisent les polices de repli. Une musique existante demande une licence. `assets.json` sert à noter d'où vient chaque média et ce qu'on a le droit d'en faire.
+
+Une vraie démonstration demande un jeu de données sûr. Sans lui, on montre une interface reconstruite et on l'écrit dans l'image.
+
+## Ce qui la rend utile
+
+La qualité des films vient de ce qui est écrit dans le dépôt : les formats, la consigne de narration, la timeline comme source unique des durées, les contrôles de `verify` et de `compare`. Un agent qui arrive dans ce dépôt trouve les règles là où il les lit, et un humain aussi. On peut changer d'agent de code, les règles restent. J'avais décrit la même chose pour [nos outils internes](../posts/internal-tools-built-with-agents).
+
+L'effet concret, c'est que la personne qui connaît une fonctionnalité peut en faire un film. Elle écrit le brief, valide l'angle et le texte, puis regarde le rendu. Elle n'a pas besoin de savoir monter.

@@ -1,0 +1,207 @@
+---
+title: "A Video Factory in a Git Repository"
+subtitle: "Remotion, six specialist agents and FFmpeg: how a brief becomes a release film, a trailer or an explainer."
+summary: "At RockFi, a video is a folder in a Git repository. You open it in Claude Code or Codex, give a brief, and get back a mastered MP4 with its verification report. What the factory does, with three example films."
+visualId: "video-factory-remotion-agents"
+publishedAt: "2026-11-17"
+readTimeMinutes: 9
+tags:
+  - ai
+  - agents
+  - developer-tools
+  - video
+  - remotion
+  - rockfi
+---
+
+At RockFi, when a feature ships, it increasingly ships with a video. A one-minute film that shows what it lets you do, a twenty-second trailer to announce it, sometimes a video that explains a technical subject to the rest of the company.
+
+These videos all come from the same place: a Git repository, `videos-factory`. The first commit is dated 10 October 2026. Today a large part of the company uses it to announce releases and make trailers.
+
+I think this tool is really good, and I want to explain what it does.
+
+The three films in this article come out of the factory. I had them produced for the occasion, for a product that does not exist: Ravito, a race-plan app for trail running. Our real films are about internal features, so I am not showing them here.
+
+<ArticleVideo id="video-factory-trailer">
+  The trailer format: short phrases, hard cuts, two product details.
+</ArticleVideo>
+
+## What you give, what you get back
+
+You open the repository in Claude Code or Codex and write what you want to announce, to whom, and from which sources. The main agent carries the work through to an export you can watch.
+
+What you get back is an `out/<take>/` folder with a `video.mp4` at 1920 × 1080, H.264, mixed at −16 LUFS, and a verification report next to it.
+
+Under the hood it is [Remotion](https://www.remotion.dev/): each scene is a React component, and the picture depends only on the frame number. FFmpeg handles mastering and measurements. You need Node.js 22 and FFmpeg. No API key or cloud service is required to produce a film.
+
+The factory knows three formats. They share the same art direction and differ in intent.
+
+| Format | What the viewer should take away | Spine | Starting budget |
+| --- | --- | --- | --- |
+| `explainer` | Understand one idea and its practical consequence | Question, concrete example, mechanism, consequence | 60 to 180 s |
+| `release` | Know what a delivered feature now makes possible | Friction, promise, demonstrated result, next action | 45 to 120 s |
+| `trailer` | Remember one promise and want to go and look | Tension, reveal, two or three proofs, payoff | 15 to 30 s |
+
+These durations are starting points. The repository currently holds nine films, from a 25-second trailer to a film of more than ten minutes.
+
+## A video is a folder
+
+```sh
+npm run new -- ravito-release release
+npm run studio -- ravito-release
+```
+
+The first command creates `videos/ravito-release/`. Everything about that film lives inside it.
+
+```text
+videos/ravito-release/
+  video.json        Format and sound plan
+  brief.md          Audience, outcome, sources, constraints
+  storyboard.md     The scenes, in order, with their evidence
+  VOICEOVER.md      The narration, scene by scene
+  assets.json       Origin, rights and attribution of each asset
+  src/              The scenes, the timeline, the voice map
+  public/           This film's captures and media
+  out/<take>/       Named exports and their verification
+```
+
+There is no global composition registry, no database, no queue and no rendering service. Dependencies are installed once at the root. Adding a video means adding a folder.
+
+A film's own assets take precedence over the shared ones. For the examples in this article, I replaced the logo with a fictional brand's by dropping an SVG into each film's `public/` folder. The shared kit was not modified.
+
+`src/timeline.json` is the authority on timing: frames per second, the length of each scene in frames, transitions, voice starts. The total duration follows from it.
+
+```text
+total = sum of scene durations − transition × (scene count − 1)
+```
+
+Because everything is text, a film is reviewed in a pull request. Changing a sentence on screen produces a one-line diff. Rendering the same commit twice gives the same frames, within encoder noise.
+
+## The script is approved before production
+
+For a feature presentation, the agent does not start by animating screens. It proposes two or three distinct angles, each with its opening line, its arguments, its sources and what will have to be shown to prove it. It recommends one. Then it presents the complete script, in scene order.
+
+Nothing is recorded or rendered as a final version until a person has approved the angle and the words. The guide says it explicitly: silence is not approval.
+
+The narration follows a simple instruction. The voice explains what the feature changes for the audience, and the interface proves it. A voice that comments on the clicks adds nothing: the viewer can see them.
+
+With Ravito, that gives:
+
+| A line that describes the gesture | A line that says what changes |
+| --- | --- |
+| "We click the field, then type the passage time." | "Running late? The plan follows." |
+
+Benefits are sourced as carefully as behaviour. "Review the changes before publishing" does not prove "fewer errors". The guide forbids inventing metrics, customer outcomes or availability.
+
+<ArticleVideo id="video-factory-release">
+  The release format: a caption on the left, the product window on the right.
+</ArticleVideo>
+
+For a real demonstration, the factory records the application with Playwright, against a server in mock mode whose data contains no personal information. Playwright does not record the pointer: the script injects one, moves it before each click, then holds the result for two to three seconds so there is time to read.
+
+A reconstructed interface must be labelled as such, in the storyboard and in the picture. That is the case above: the film carries the words "Simulated interface" from start to finish.
+
+## Six agents, assigned files
+
+The repository defines six specialists.
+
+| Agent | Responsibility |
+| --- | --- |
+| `story-producer` | Audience, angles, arguments, evidence and script |
+| `storyboard-director` | Scenes, visual direction, timing, capture plan |
+| `remotion-engineer` | Scene implementation and export |
+| `voice-director` | Narration, pronunciation, measured durations |
+| `sound-designer` | Music, effects, cues and mix |
+| `video-reviewer` | Read-only review of the rendered film |
+
+The main agent acts as the orchestrator. There is no orchestration service: these are agent definitions that Claude Code and Codex load natively.
+
+Each assignment names the film, the sources, the expected output and the paths the agent is allowed to write. Until the storyboard is established, nothing runs in parallel. After that, scenes, voice and sound move forward at the same time, each in its own files. Only one agent at a time owns the timeline.
+
+The prompts are written once, in `agents/*.md`. A script generates the two native formats, TOML for Codex and Markdown for Claude Code, and `npm run check` fails if the three versions drift apart. You can change coding agent without rewriting the roles.
+
+<ArticleVideo id="video-factory-explainer">
+  The explainer format, used here to explain the factory itself.
+</ArticleVideo>
+
+## Sound is a choice
+
+A new film starts with no music and no effects. The sound plan is written in `video.json`, starting with the intention.
+
+```json
+{
+  "sound": {
+    "intent": "Leave room for the explanation; accent only the reveal.",
+    "music": "none",
+    "voice": true,
+    "effects": []
+  }
+}
+```
+
+Silence is a valid choice. The three films in this article are silent: they are made to be read inside a page, and their export contains no audio stream.
+
+When there is a voice, you provide one clip per scene. `npm run voice` normalises them to −18 LUFS, measures their duration, and rejects a clip that runs past its scene or overlaps another one. The music is lowered automatically under the narration.
+
+The factory can generate a starter score locally, with no samples and no API. It can also call ElevenLabs for voice and effects, but never on its own. No render triggers a paid call. The command has a `--dry-run` mode that shows the request without sending it. Calls go out one at a time, with no automatic retry: a request that timed out may already have been billed.
+
+Pronunciation rules live in the script, under a "Prononciation" heading. That is where you write that the French word « chat » is said « tchat ». The rule only changes the text sent to synthesis; the script itself stays as written.
+
+## What the machine checks
+
+```sh
+npm run render -- ravito-release v1
+npm run verify -- ravito-release v1
+```
+
+A take name is never reused. If `v1` exists, you render `v2`. A failed take stays on disk so you can work out what happened.
+
+`verify` checks the codec, the resolution, the frame rate, the exact frame count against the timeline, the AAC track, an integrated loudness of −16 LUFS within 1, and a true peak under −1 dBFS. It then extracts two frames per scene, one in the middle and one on the reading hold, and assembles them into a contact sheet.
+
+Here are the main fields of the report for the trailer at the top of this article.
+
+```json
+{
+  "video": "blog-demo-trailer",
+  "take": "en-v2",
+  "expectedSeconds": 21.5,
+  "actualSeconds": 21.5,
+  "mediaOK": true,
+  "audioExpected": false,
+  "loudnessOK": true,
+  "visualReview": "pending",
+  "listeningReview": "not applicable: intentional silence"
+}
+```
+
+`visualReview` stays at `pending`. The factory never declares a film good because the export succeeded. It measures what can be measured and leaves the visual review and the listening to someone.
+
+### Comparing two takes
+
+On 17 October, a mastering change reshaped the mix of an entire film. The integrated loudness had barely moved, so `verify` passed.
+
+`npm run compare` comes from that. The command takes an already validated take and a new one, and looks at the scenes they share. For sound, the difference must be one constant gain, measured in two-second windows. For picture, it counts per frame the pixels whose luma moved by more than 48 levels, and flags a scene above 400 pixels. An average would have hidden a changed word and flagged encoder noise.
+
+Another measurement made in the repository: in the raw export, sound arrives 2,048 samples after the picture, a little more than one frame. The offset was measured by cross-correlating the source music with the render, and mastering removes it.
+
+### A reviewer who did not write the film
+
+After integration, the orchestrator starts a `video-reviewer` in a fresh task. This agent has not seen the production and is not allowed to modify anything. It works from contact sheets, then zooms in where something looks wrong.
+
+It receives one segment of about two minutes at most. A long film is split, with one reviewer per segment and a separate check of the joins. Each finding comes with a frame or a timecode, what was observed, and the smallest useful correction.
+
+## What you still do yourself
+
+The factory does not know what to say. It needs someone who knows the feature, its audience and what can be claimed. The script approval step exists for that person.
+
+It does not listen for you. Measurements do not tell you whether a sentence sounds right.
+
+It does not bring the rights. Licensed fonts are not in the repository, and the examples in this article use the fallback fonts. An existing piece of music needs a licence. `assets.json` is where you record where each asset comes from and what you are allowed to do with it.
+
+A real demonstration needs a safe dataset. Without one, you show a reconstructed interface and say so in the picture.
+
+## What makes it useful
+
+The quality of the films comes from what is written in the repository: the formats, the narration instruction, the timeline as the single source of timing, the checks in `verify` and `compare`. An agent arriving in this repository finds the rules where it reads them, and so does a human. You can change coding agent and the rules stay. I described the same thing for [our internal tools](../posts/internal-tools-built-with-agents).
+
+The concrete effect is that the person who knows a feature can make a film about it. They write the brief, approve the angle and the script, then watch the render. They do not need to know how to edit video.

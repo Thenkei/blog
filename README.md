@@ -198,6 +198,21 @@ meme-style figures are original compositions, not copied internet memes or
 franchise imagery. Use `<ArticleMedia mediaId="..." />` only when motion adds
 information or gives a dense section a deliberate pause.
 
+### Rendered Films
+
+`src/shared/components/ArticleVideo.tsx` embeds a rendered MP4 in an article:
+`<ArticleVideo id="...">caption</ArticleVideo>`. Each film has one export and
+one poster per locale under `src/assets/videos/posts/<article>/<name>.<locale>.mp4`
+and `.jpg`, because its on-screen copy is part of the picture. The component
+owns the id registry, the accessible title and a one-sentence description of
+what happens on screen, shown in the caption for readers who do not play it.
+
+The element uses `preload="none"`, so only the poster loads until the reader
+presses play; it never autoplays. Keep films short, silent or meaningful when
+muted, and around 720p. They build into `assets/videos/`, which the service
+worker neither precaches nor serves from cache: the `assets/posts/` cache does
+not answer the range requests a video makes.
+
 `src/shared/components/PostEditorialArt.tsx` owns the slug-to-artwork mapping,
 localized alt text, responsive `<picture>` sources, and card/header behavior.
 Mapped artwork is used by the standard post list, the Rocket Logbook, and the
