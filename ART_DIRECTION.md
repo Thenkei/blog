@@ -398,6 +398,14 @@ Tous les liens sont construits depuis la locale active. Une page française ne d
 
 Le titre reste le point focal. Les scènes Montagne et Rocket enrichissent l’atmosphère sans créer une identité concurrente.
 
+Scène Montagne : une vallée alpine aux premières lueurs, et une seule trace qui monte du premier plan jusqu’au col. Invariants :
+
+- le sentier, le coureur et le terrain partagent le même repère : la trace ne peut pas se décoller de la pente, quel que soit le format d’écran ;
+- le défilement fait avancer le coureur et lever le jour (étoiles, soleil, lumière sur les sommets) ; la partie éclairée de la trace s’arrête toujours aux pieds du coureur ;
+- le titre est posé dans le ciel dégagé, aligné sur la colonne de la page, et reste pleinement lisible pendant tout le trajet ;
+- les deux checkpoints et le fanion du col sont des jalons de progression, pas des ornements : ils s’allument quand le coureur les a passés ;
+- en format compact, on regarde la partie droite de la même scène sous un ciel plus haut, sans dessin séparé à maintenir.
+
 ### Découverte et cartes
 
 La recherche reste visible en permanence. Sur mobile, tag et tri sont placés dans un panneau repliable.
@@ -542,6 +550,7 @@ Si le diagramme ne fait qu’illustrer le sujet sans structurer une idée, le fa
 | Composition globale et articles | `src/styles/layout.css` |
 | Adaptation mobile | `src/styles/responsive.css` |
 | Hero et grille topographique | `src/shared/components/ParallaxHero.tsx`, `src/styles/base.css` |
+| Scène Montagne (dessin, géométrie, caméra) | `src/shared/components/parallax/MountainScene.tsx`, `scripts/generate-mountain-scene.mjs`, `src/shared/components/parallax/useMultiplaneCamera.ts` |
 | Menu Apparence | `src/shared/components/ThemeSwitcher.tsx` |
 | Scènes Remotion sur mesure | `src/features/posts/motion/bespoke/` |
 

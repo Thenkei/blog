@@ -1,11 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useMultiplaneCamera } from "./parallax/useMultiplaneCamera";
 import { useRocketCamera } from "./parallax/useRocketCamera";
-import {
-  MountainTrailJourney,
-  RocketFlightJourney,
-} from "./parallax/CinematicSceneArtwork";
+import { RocketFlightJourney } from "./parallax/CinematicSceneArtwork";
 import type { ThemeMode } from "../../app/providers/ThemeProvider";
+
+// The scene carries its own geometry; other themes never need to download it.
+const MountainScene = lazy(() =>
+  import("./parallax/MountainScene").then((module) => ({
+    default: module.MountainScene,
+  })),
+);
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const COMPACT_LAYOUT_QUERY =
@@ -80,7 +84,7 @@ export function ParallaxHero({
   const mountainMode = themeMode === "mountain";
   const rocketMode = themeMode === "rocket";
 
-  useMultiplaneCamera({
+  const { refresh: refreshMountainScene } = useMultiplaneCamera({
     shellRef: mountainShellRef,
     stageRef: mountainStageRef,
     enabled: mountainMode,
@@ -100,6 +104,11 @@ export function ParallaxHero({
     <div className="hero-content">
       <h1 className="hero-title">{title}</h1>
       <p className="hero-subtitle">{subtitle}</p>
+      {themeMode === "mountain" ? (
+        <div className="hero-scroll-cue" aria-hidden="true">
+          <span />
+        </div>
+      ) : null}
       {signal ? (
         <div className="hero-signal-slot" aria-live="polite">
           <a className="hero-signal" href="#rocket-logbook">
@@ -121,19 +130,12 @@ export function ParallaxHero({
             ref={mountainStageRef}
           >
             <div className="topographic-field" aria-hidden="true" />
-            <div
-              className="mountain-layer mountain-layer-sky"
-              aria-hidden="true"
-            />
-            <div
-              className="mountain-layer mountain-layer-far"
-              aria-hidden="true"
-            />
-            <MountainTrailJourney />
-            <div
-              className="mountain-layer mountain-layer-near"
-              aria-hidden="true"
-            />
+            <Suspense fallback={null}>
+              <MountainScene
+                compact={isCompactLayout}
+                onReady={refreshMountainScene}
+              />
+            </Suspense>
             {heroContent}
           </section>
         </div>

@@ -15,11 +15,11 @@ tags:
 
 Quand on parle d'agents IA, on demande souvent jusqu'où ils peuvent agir seuls. Notre expérience de l'on-duty m'a amené à poser une autre question : que transmettent-ils lorsqu'ils s'arrêtent ?
 
-Un agent qui enquête, puis laisse derrière lui un tas de logs et une décision inexpliquée, oblige la personne suivante à tout recommencer. C'est l'équivalent logiciel du collègue qui part en vacances en laissant un post-it « c'est le cache ». La qualité du handoff compte autant que celle de l'investigation.
+Un agent qui enquête, puis laisse derrière lui un tas de logs et une décision inexpliquée, oblige la personne suivante à tout recommencer. La qualité du handoff compte autant que celle de l'investigation.
 
 ## Tout a commencé pendant l'on-duty
 
-Pendant l'on-duty, il faut trouver les données utiles, comprendre ce qui a changé, consulter le repo et le runbook, puis décider de la suite. Le contexte est dispersé entre dashboards, tickets et investigations précédentes, et l'horloge tourne.
+Pendant l'on-duty, il faut trouver les données utiles, comprendre ce qui a changé, consulter le repo et le runbook, puis décider de la suite. Le contexte est dispersé entre dashboards, tickets et investigations précédentes, et on a peu de temps.
 
 Les questions changent peu d'une alerte à l'autre. S'agit-il d'un incident réel ou d'un signal bruité ? Quel système est réellement responsable ? Qu'est-ce qui a changé récemment ? Quelle preuve permettrait de départager les causes possibles ? Et l'étape la plus sûre est-elle un rollback, un patch, une modification de configuration, ou simplement d'observer encore un peu ?
 
@@ -29,9 +29,7 @@ Les premières étapes se répètent aussi : comparer l'état actuel à l'état 
 
 Un agent collecte les preuves, un autre connaît le repo concerné, un troisième vérifie une hypothèse ou prépare un patch. La personne on-duty passe ainsi moins de temps à rassembler le contexte et plus de temps à interpréter les résultats.
 
-> Nous n'avons pas automatisé la responsabilité. Nous avons automatisé l'investigation.
-
-Concrètement, c'est toujours la personne on-duty qui décide : quel agent appeler, dans quel ordre, et quand les preuves suffisent. Les agents inspectent, comparent et proposent, et leur sortie n'autorise pas à elle seule une modification risquée.
+Nous avons automatisé l'investigation. La décision reste à la personne on-duty : quel agent appeler, dans quel ordre, et quand les preuves suffisent. Les agents inspectent, comparent et proposent. Leur sortie n'autorise pas à elle seule une modification risquée.
 
 <MotionScene id="better-handoffs-relay" />
 
@@ -41,15 +39,15 @@ Une fois ces agents en place, il est tentant de les enchaîner : collecte des do
 
 Il évaluait les preuves, repérait les contradictions, abandonnait les hypothèses réfutées et décidait quand demander un autre avis. Si les agents s'appellent entre eux, cette orchestration doit devenir explicite.
 
-L'orchestrateur peut poursuivre une tâche bien étayée et peu risquée, ou demander une review. Pour choisir, il lui faut l'état de l'investigation plutôt que la dernière réponse : l'objectif, les pistes déjà écartées, ce qui a été tenté, les preuves derrière l'hypothèse actuelle et ce qui manque encore, le niveau de confiance, et ce que risquent les prochaines actions.
+L'orchestrateur peut poursuivre une tâche bien étayée et peu risquée, ou demander une review. Pour choisir, il lui faut l'état de l'investigation, et la dernière réponse ne suffit pas : l'objectif, les pistes déjà écartées, ce qui a été tenté, les preuves derrière l'hypothèse actuelle et ce qui manque encore, le niveau de confiance, et ce que risquent les prochaines actions.
 
 Sans cela, la chaîne continue d'avancer et perd le fil.
 
-## 14 h 03, et ensuite ?
+## Un handoff qui n'en dit pas assez
 
-Retrouver les bons documents et donner accès aux bons outils, c'est la moitié du chemin. L'autre moitié consiste à transmettre le raisonnement construit à partir d'eux.
+Retrouver les bons documents et donner accès aux bons outils ne suffit pas. Il faut aussi transmettre le raisonnement construit à partir d'eux.
 
-Voici un exemple de handoff qui a l'air utile :
+Prenons une vraie alerte, anonymisée ici. Ce handoff a l'air utile :
 
 ```text
 Le taux d'erreur a augmenté à 14 h 03.
@@ -85,9 +83,9 @@ L'hypothèse, ses preuves, les pistes écartées et l'incertitude restante sont 
 
 ## Un endroit où reprendre la main
 
-Un événement pourrait déclencher une investigation automatique, puis l'orchestrateur déposerait un handoff structuré dans un thread Slack. La personne on-duty y trouverait les preuves, les hypothèses, la confiance et les actions possibles au moment précis où son jugement devient nécessaire.
+C'est ce que nous utilisons aujourd'hui pendant l'on-duty : l'orchestrateur dépose un handoff structuré dans un thread Slack. La personne on-duty y trouve les preuves, les hypothèses, la confiance et les actions possibles au moment où elle doit décider.
 
-Le même format peut vivre dans un ticket, une pull request ou une timeline d'incident. Entre agents aussi, cet état compact vaut mieux qu'une transcription brute que chacun devra réinterpréter.
+Le même format peut vivre dans un ticket, une pull request ou une timeline d'incident. Entre agents aussi, cet état compact vaut mieux qu'une transcription brute que chacun doit réinterpréter.
 
 ## Définir le contenu du handoff
 
@@ -102,7 +100,7 @@ Un handoff doit rendre explicites six choses :
 
 La confiance ne tranche pas tout. Une étape de diagnostic peu risquée peut être lancée automatiquement, tandis qu'une modification de production exige parfois une review même si l'hypothèse paraît solide.
 
-Demander une validation à chaque micro-étape recrée le goulot d'étranglement, et supprimer tout point de contrôle rend les erreurs coûteuses. Le juste milieu : laisser le système avancer seul sur les diagnostics bornés, puis l'arrêter avant une action ambiguë ou à fort impact. À ce moment-là, l'humain reçoit assez de contexte pour contester le raisonnement, choisir une option et apporter ce que les agents ignorent.
+Demander une validation à chaque micro-étape recrée le goulot d'étranglement, et supprimer tout point de contrôle rend les erreurs coûteuses. Nous visons l'entre-deux : le système avance seul sur les diagnostics bornés, puis s'arrête avant une action ambiguë ou à fort impact. À ce moment-là, l'humain reçoit assez de contexte pour contester le raisonnement, choisir une option et apporter ce que les agents ignorent.
 
 <MotionScene id="better-handoffs-checkpoints" />
 

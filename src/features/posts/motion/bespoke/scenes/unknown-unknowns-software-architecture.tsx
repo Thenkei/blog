@@ -271,17 +271,17 @@ function Stage({ frame, compact, locale, width, height }: SceneStageProps) {
 export default defineScene({
   durationInFrames: T.end,
   posterFrame: T.end - 30,
-  title: { en: "The map stops at production", fr: "La carte s’arrête à la production" },
+  title: { en: "What the review does not see", fr: "Ce que la revue ne voit pas" },
   caption: {
     en: "The review covered load, availability, migrations and retries. What broke was the assumption nobody wrote down: tests only answer the questions we planned for.",
     fr: "La revue couvrait charge, disponibilité, migrations et retries. Ce qui casse, c’est l’hypothèse que personne n’a écrite : les tests ne répondent qu’aux questions prévues.",
   },
   beats: [
     { at: 0, text: { en: "The review covers the known risks: load, availability, migrations, retries. Every test passes.", fr: "La revue couvre les risques connus : charge, disponibilité, migrations, retries. Tous les tests passent." } },
-    { at: T.territory, text: { en: "The map stops at production: operators, historical data, real usage. Key assumptions stay in the margin.", fr: "La carte s’arrête à la production : opérateurs, données, usages réels. Des hypothèses restent en marge." } },
-    { at: BREAK_A - 8, text: { en: "Plus-one: a request is retried during the first attempt. An assumption from the margin breaks.", fr: "Invité surprise : une requête est rejouée pendant la première tentative. Une hypothèse en marge casse." } },
-    { at: EVENT - 10, text: { en: "Another: an event arrives after its target is deleted. Nothing on the list described it.", fr: "Autre surprise : un événement arrive après la suppression de sa cible. Rien dans la liste ne le décrivait." } },
-    { at: T.verdict, text: { en: "The tests did not lie; we asked the questions we planned for. Passing is not modelling everything.", fr: "Les tests n’ont pas menti : nous avons posé les questions prévues. Tout passer n’est pas tout modéliser." } },
+    { at: T.territory, text: { en: "The diagram stops before production: operators, historical data, real usage. Assumptions stay in the margin.", fr: "Le schéma s’arrête avant la production : opérateurs, données, usages réels. Des hypothèses restent en marge." } },
+    { at: BREAK_A - 8, text: { en: "First surprise: a request is retried during the first attempt. An assumption from the margin breaks.", fr: "Première surprise : une requête est rejouée pendant la première tentative. Une hypothèse en marge casse." } },
+    { at: EVENT - 10, text: { en: "Second surprise: an event arrives after its target is deleted. Nothing on the list described it.", fr: "Deuxième surprise : un événement arrive après la suppression de sa cible. Rien dans la liste ne le décrivait." } },
+    { at: T.verdict, text: { en: "The tests are not wrong. They answer the questions we thought to ask, and nothing more.", fr: "Les tests ne sont pas faux. Ils répondent aux questions que nous avons pensé à poser, pas plus." } },
   ],
   Stage,
 });
