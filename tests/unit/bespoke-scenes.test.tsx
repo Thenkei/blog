@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import "../../src/i18n/config";
 import { bespokeSceneIds, hasBespokeScene, loadBespokeScene } from "../../src/features/posts/motion/bespoke/registry";
 import { SceneShell } from "../../src/features/posts/motion/bespoke/SceneShell";
@@ -95,6 +95,64 @@ describe("bespoke article scenes", () => {
     expect(screen.getByRole("figure", { name: /upsert insère deux fois/i })).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(scene.beats.length);
     expect(screen.getByText(/NULLS NOT DISTINCT \(PostgreSQL 15\+\)/)).toBeInTheDocument();
+  });
+
+  it("draws one square per arrived reconnect attempt and keeps the three counters consistent with them", async () => {
+    const scene = await loadBespokeScene("websocket-reconnect-jitter");
+    // [frame, immediate, fixed]: the randomized rule is checked for consistency and monotony.
+    const samples = [[0, 0, 0], [59, 0, 0], [75, 24, 0], [179, 24, 0], [195, 24, 24], [scene.posterFrame, 24, 24]] as const;
+    for (const compact of [false, true]) {
+      for (const locale of locales) {
+        const randomized: number[] = [];
+        for (const [frame, immediate, fixed] of samples) {
+          const html = renderToStaticMarkup(<SceneShell scene={scene} frame={frame} compact={compact} locale={locale} />);
+          const dom = new DOMParser().parseFromString(html, "text/html");
+          const drawn = (rule: string) => dom.querySelectorAll(`g[data-rule="${rule}"] rect[data-attempt]`).length;
+          const counted = (rule: string) => dom.querySelector(`g[data-rule="${rule}"] text[text-anchor="end"]`)?.textContent;
+          expect(drawn("immediate"), `immediate f${frame}`).toBe(immediate);
+          expect(drawn("fixed"), `fixed f${frame}`).toBe(fixed);
+          for (const rule of ["immediate", "fixed", "randomized"]) {
+            expect(counted(rule), `${rule} f${frame}`).toBe(`${drawn(rule)} / 24`);
+          }
+          randomized.push(drawn("randomized"));
+        }
+        expect(randomized[0]).toBe(0);
+        expect(randomized.at(-1)).toBe(24);
+        expect(randomized).toEqual([...randomized].sort((a, b) => a - b));
+        expect(randomized[3], "the randomized rule is mid-way when the fixed delay expires").toBeGreaterThan(0);
+        expect(randomized[3]).toBeLessThan(24);
+
+        const poster = renderToStaticMarkup(<SceneShell scene={scene} frame={scene.posterFrame} compact={compact} locale={locale} />);
+        const peaks = [...poster.matchAll(/(?:peak|pic\u00a0): (\d+)\/s/g)].map((match) => Number(match[1]));
+        expect(peaks, "a fixed delay keeps the peak; only the randomized delay lowers it").toEqual([24, 24, 4]);
+      }
+    }
+  });
+
+  it("keeps the mobile explanation readable when reduced motion disables playback", async () => {
+    const originalMatchMedia = window.matchMedia.bind(window);
+    const media = vi.spyOn(window, "matchMedia").mockImplementation((query) => ({
+      ...originalMatchMedia(query),
+      matches: query === "(max-width: 650px)" || query === "(prefers-reduced-motion: reduce)",
+    }));
+    try {
+      const scene = await loadBespokeScene("websocket-reconnect-jitter");
+      const view = await act(async () => {
+        const rendered = render(<MotionScene id="websocket-reconnect-jitter" />);
+        await loadBespokeScene("websocket-reconnect-jitter");
+        return rendered;
+      });
+      try {
+        const figure = await screen.findByRole("figure", { name: scene.title.en });
+        expect(figure.querySelector("svg")).toHaveAttribute("viewBox", "0 0 540 520");
+        expect(figure.querySelectorAll("li")).toHaveLength(scene.beats.length);
+        expect(screen.queryByRole("button", { name: /play video/i })).not.toBeInTheDocument();
+      } finally {
+        view.unmount();
+      }
+    } finally {
+      media.mockRestore();
+    }
   });
 
   it("loads a MotionScene lazily into an accessible figure", async () => {

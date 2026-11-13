@@ -29,6 +29,12 @@ const jpegAssets = import.meta.glob<string>(
 );
 
 const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
+  "websockets-games-to-30000-connections": {
+    alt: {
+      en: "An illustrated home desk with a card game and dice, connected by luminous traces to a server room and many distant browser windows.",
+      fr: "Un bureau illustré avec un jeu de cartes et des dés, relié par des tracés lumineux à une salle de serveurs et de nombreuses fenêtres de navigateur au loin.",
+    },
+  },
   "nexus-in-two-days": {
     alt: {
       en: "An engineer seen from behind assembles a miniature Nexus engine in his hands, with stone bridges and glowing cyan and copper flows.",

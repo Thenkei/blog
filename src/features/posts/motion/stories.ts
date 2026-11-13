@@ -12,6 +12,11 @@ type LocalizedStory = Record<PostLocale, MotionStory["beats"]> & {
 // Each sequence is a compact explanation of the article's own argument.
 // Keep both locales in sync when adding or changing a published article.
 export const MOTION_STORIES = {
+  "websockets-games-to-30000-connections": {
+    kind: "cycle",
+    en: ["Keep a two-way connection", "The backend restarts", "Spread reconnections over time"],
+    fr: ["Garder une connexion bidirectionnelle", "Le backend redémarre", "Étaler les reconnexions"],
+  },
   "nexus-in-two-days": {
     kind: "flow",
     en: ["Four and a half years at Forest Admin", "Describe the architecture, then each component", "A POC in four hours, a v0 in two days"],

@@ -5,6 +5,13 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
+<title>WebSockets: from Under the Limit to 30,000 users at Forest</title>
+<link>https://thenkei.github.io/blog/en/posts/websockets-games-to-30000-connections</link>
+<guid>https://thenkei.github.io/blog/en/posts/websockets-games-to-30000-connections</guid>
+<description>Under the Limit in 2018, lockdown games, and 25,000 to 30,000 people connected at Forest. My experience with WebSockets, from a game requested by Sigmund to mass reconnections with GraphQL and Apollo.</description>
+<pubDate>Fri, 13 Nov 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>Would we make the same choice again?</title>
 <link>https://thenkei.github.io/blog/en/posts/data-platform-retrospective</link>
 <guid>https://thenkei.github.io/blog/en/posts/data-platform-retrospective</guid>
