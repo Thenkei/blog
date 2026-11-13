@@ -97,22 +97,34 @@ describe("bespoke article scenes", () => {
     expect(screen.getByText(/NULLS NOT DISTINCT \(PostgreSQL 15\+\)/)).toBeInTheDocument();
   });
 
-  it("shows only arrived reconnect attempts and keeps the counters consistent with the bars", async () => {
+  it("draws one square per arrived reconnect attempt and keeps the three counters consistent with them", async () => {
     const scene = await loadBespokeScene("websocket-reconnect-jitter");
-    const samples = [[0, 0, 0], [69, 0, 0], [70, 24, 1], [160, 24, 9], [scene.posterFrame, 24, 24]] as const;
+    // [frame, immediate, fixed]: the randomized rule is checked for consistency and monotony.
+    const samples = [[0, 0, 0], [59, 0, 0], [75, 24, 0], [179, 24, 0], [195, 24, 24], [scene.posterFrame, 24, 24]] as const;
     for (const compact of [false, true]) {
       for (const locale of locales) {
-        for (const [frame, burst, spread] of samples) {
+        const randomized: number[] = [];
+        for (const [frame, immediate, fixed] of samples) {
           const html = renderToStaticMarkup(<SceneShell scene={scene} frame={frame} compact={compact} locale={locale} />);
           const dom = new DOMParser().parseFromString(html, "text/html");
-          for (const [tone, count] of [["danger", burst], ["ok", spread]] as const) {
-            const bars = Array.from(dom.querySelectorAll(`rect[fill="var(--visual-${tone})"]`));
-            if (count === 0) expect(bars).toHaveLength(0);
-            const drawnCount = bars.reduce((sum, bar) => sum + Number(bar.getAttribute("height")), 0) / (compact ? 3.9 : 6.6);
-            expect(drawnCount).toBeCloseTo(count);
-            expect(dom.querySelector(`text[fill="var(--visual-${tone})"]`)?.textContent).toBe(`${count} / 24`);
+          const drawn = (rule: string) => dom.querySelectorAll(`g[data-rule="${rule}"] rect[data-attempt]`).length;
+          const counted = (rule: string) => dom.querySelector(`g[data-rule="${rule}"] text[text-anchor="end"]`)?.textContent;
+          expect(drawn("immediate"), `immediate f${frame}`).toBe(immediate);
+          expect(drawn("fixed"), `fixed f${frame}`).toBe(fixed);
+          for (const rule of ["immediate", "fixed", "randomized"]) {
+            expect(counted(rule), `${rule} f${frame}`).toBe(`${drawn(rule)} / 24`);
           }
+          randomized.push(drawn("randomized"));
         }
+        expect(randomized[0]).toBe(0);
+        expect(randomized.at(-1)).toBe(24);
+        expect(randomized).toEqual([...randomized].sort((a, b) => a - b));
+        expect(randomized[3], "the randomized rule is mid-way when the fixed delay expires").toBeGreaterThan(0);
+        expect(randomized[3]).toBeLessThan(24);
+
+        const poster = renderToStaticMarkup(<SceneShell scene={scene} frame={scene.posterFrame} compact={compact} locale={locale} />);
+        const peaks = [...poster.matchAll(/(?:peak|pic\u00a0): (\d+)\/s/g)].map((match) => Number(match[1]));
+        expect(peaks, "a fixed delay keeps the peak; only the randomized delay lowers it").toEqual([24, 24, 4]);
       }
     }
   });

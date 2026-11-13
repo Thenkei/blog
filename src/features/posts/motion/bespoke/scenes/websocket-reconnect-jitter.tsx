@@ -1,89 +1,160 @@
-import { Box, ease, Text, TONE } from "../primitives";
+import { Axis, Box, during, easeOut, hash, lerp, NBSP, pop, Pulse, Tag, Text, TONE, type Tone } from "../primitives";
 import { defineScene, type SceneStageProps } from "../types";
 
-// A deterministic, illustrative distribution of the same 24 first attempts.
-// Buckets are relative time intervals, not production throughput measurements.
-const BURST = [24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-const SPREAD = [1, 3, 2, 1, 2, 4, 1, 3, 2, 1, 2, 2];
-const START = 60;
-const END = 300;
+// The same 24 first attempts replayed under three waiting rules, on the same
+// ten-second axis. One square is one client; one column is one second.
+// The distribution is illustrative, not a production measurement.
+const CLIENTS = 24;
+const SECONDS = 10;
+const FIXED_DELAY = 5;
+const FRAMES_PER_SECOND = 24;
 
-// Reveal a whole bucket as the time cursor reaches its centre. The bar and
-// counter must represent the same arrivals, including at the first frame.
-const hasArrived = (frame: number, index: number) =>
-  frame >= START + (index + 0.5) / BURST.length * (END - START);
+const T = {
+  sweep: 60,
+  spread: 130,
+  fixed: 60 + FIXED_DELAY * FRAMES_PER_SECOND,
+  settled: 60 + SECONDS * FRAMES_PER_SECOND,
+  end: 400,
+} as const;
+
+// Attempts drawn into each one-second column by the randomized rule (sums to 24).
+const RANDOM_PER_SECOND = [3, 1, 3, 2, 4, 2, 1, 3, 2, 3] as const;
+
+type Attempt = { second: number; rank: number; land: number };
+
+/** Every client waits `delay` seconds: the attempts land together, bottom row first. */
+const together = (delay: number): Attempt[] => Array.from({ length: CLIENTS }, (_, rank) => ({
+  second: delay,
+  rank,
+  land: T.sweep + delay * FRAMES_PER_SECOND + rank * .4,
+}));
+
+/** Each client draws its own delay: a fixed seed keeps the poster and the replay identical. */
+const RANDOMIZED: Attempt[] = RANDOM_PER_SECOND.flatMap((count, second) => Array.from({ length: count }, (_, rank) => ({
+  second,
+  rank,
+  land: T.sweep + (second + (rank + .2 + .6 * hash(second * 7 + rank)) / count) * FRAMES_PER_SECOND,
+})));
+
+const RULES = [
+  { id: "immediate", tone: "danger", attempts: together(0), focusAt: T.sweep, peakAt: T.sweep + 12 },
+  { id: "fixed", tone: "danger", attempts: together(FIXED_DELAY), focusAt: T.fixed, peakAt: T.fixed + 12 },
+  { id: "randomized", tone: "ok", attempts: RANDOMIZED, focusAt: T.settled, peakAt: T.settled + 6 },
+] as const satisfies readonly { id: string; tone: Tone; attempts: Attempt[]; focusAt: number; peakAt: number }[];
+
+type Layout = {
+  panel: (index: number) => { x: number; y: number; w: number; h: number };
+  inset: number;
+  titleY: number;
+  /** Rule detail: under the title when wide, in a shared column on the title line when compact. */
+  detail: { x: number; y: number };
+  baseFromBottom: number;
+  perRow: number;
+  unit: number;
+  gap: number;
+  tagRise: number;
+};
+
+const WIDE_LAYOUT: Layout = {
+  panel: (index) => ({ x: 40 + index * 300, y: 64, w: 280, h: 300 }),
+  inset: 20, titleY: 28, detail: { x: 20, y: 52 }, baseFromBottom: 40, perRow: 2, unit: 9, gap: 2, tagRise: 66,
+};
+
+const COMPACT_LAYOUT: Layout = {
+  panel: (index) => ({ x: 20, y: 54 + index * 146, w: 500, h: 138 }),
+  inset: 20, titleY: 23, detail: { x: 228, y: 23.5 }, baseFromBottom: 28, perRow: 4, unit: 9, gap: 2, tagRise: 34,
+};
 
 function Stage({ frame, compact, locale, width }: SceneStageProps) {
   const fr = locale === "fr";
-  const panelWidth = compact ? 500 : 430;
-  const panelHeight = compact ? 210 : 290;
-  const progress = ease(frame, START, END, (value) => value);
+  const L = compact ? COMPACT_LAYOUT : WIDE_LAYOUT;
+  const pitch = L.unit + L.gap;
+  const now = (frame - T.sweep) / FRAMES_PER_SECOND;
+  const sweeping = during(frame, T.sweep - 8, T.settled + 16, 8);
+
+  const t = {
+    immediate: { title: fr ? "Sans attente" : "No delay", detail: fr ? `attente${NBSP}: 0${NBSP}s` : "wait: 0 s" },
+    fixed: { title: fr ? "Attente fixe" : "Fixed delay", detail: fr ? `attente${NBSP}: 5${NBSP}s` : "wait: 5 s" },
+    randomized: { title: fr ? "Attente aléatoire" : "Randomized delay", detail: fr ? `attente${NBSP}: 0 à 10${NBSP}s` : "wait: 0 to 10 s" },
+    peak: (count: number) => (fr ? `pic${NBSP}: ${count}/s` : `peak: ${count}/s`),
+    footnote: fr
+      ? "Temps écoulé depuis la coupure · 24 clients par cas · répartition illustrative"
+      : "Time since the disconnect · 24 clients per case · illustrative distribution",
+  };
 
   return <>
-    {[BURST, SPREAD].map((counts, panel) => {
-      const x = compact ? 20 : 30 + panel * 470;
-      const y = compact ? 60 + panel * 225 : 72;
-      const left = x + 38;
-      const chartWidth = panelWidth - 72;
-      const bottom = y + panelHeight - 44;
-      const unit = compact ? 3.9 : 6.6;
-      const tone = panel === 0 ? "danger" : "ok";
-      const arrived = counts.reduce((sum, count, index) =>
-        sum + (hasArrived(frame, index) ? count : 0), 0);
+    {RULES.map((rule, index) => {
+      const P = L.panel(index);
+      const x0 = P.x + L.inset;
+      const chartW = P.w - 2 * L.inset;
+      const columnW = chartW / SECONDS;
+      const base = P.y + P.h - L.baseFromBottom;
+      const stackW = L.perRow * L.unit + (L.perRow - 1) * L.gap;
+      const arrived = rule.attempts.filter((attempt) => frame >= attempt.land);
+      const peak = Math.max(0, ...Array.from({ length: SECONDS }, (_, second) => arrived.filter((attempt) => attempt.second === second).length));
+      const appear = easeOut(frame, index * 5, index * 5 + 18);
+      const copy = t[rule.id];
+      const spreadOut = rule.id === "randomized";
+      const peakSecond = spreadOut ? RANDOM_PER_SECOND.indexOf(4) : rule.attempts[0]!.second;
+      const towerTop = base - 3 - Math.ceil(CLIENTS / L.perRow) * pitch;
+      // The verdict sits beside a tower, and above the low spread-out row.
+      const tagX = spreadOut ? x0 + chartW / 2 : x0 + (peakSecond + 1) * columnW + 8;
+      const cursorX = x0 + Math.max(0, Math.min(SECONDS, now)) / SECONDS * chartW;
 
-      return <g key={panel}>
-        <Box x={x} y={y} w={panelWidth} h={panelHeight} tone={tone} />
-        <Text x={x + 20} y={y + 28} size={17} weight={600}>
-          {panel === 0
-            ? (fr ? "Reconnexion immédiate" : "Immediate reconnect")
-            : (fr ? "Attente aléatoire" : "Randomized delay")}
+      return <g key={rule.id} data-rule={rule.id} opacity={appear} transform={`translate(0 ${(1 - appear) * 10})`}>
+        <Box x={P.x} y={P.y} w={P.w} h={P.h} tone={rule.tone} radius={16} focus={during(frame, rule.focusAt, rule.focusAt + 54, 12)} />
+        <Text x={P.x + L.inset} y={P.y + L.titleY} size={16} weight={600}>{copy.title}</Text>
+        <Text x={P.x + L.detail.x} y={P.y + L.detail.y} size={13} weight={500} font="mono" tone="muted">{copy.detail}</Text>
+        <Text x={P.x + P.w - L.inset} y={P.y + L.titleY} size={14} weight={600} font="mono" tone={rule.tone} anchor="end">
+          {arrived.length} / {CLIENTS}
         </Text>
-        <Text x={x + panelWidth - 20} y={y + 28} size={16} anchor="end" tone={tone}>
-          {arrived} / 24
-        </Text>
-        <Text x={left} y={y + 53} size={15} tone="muted">
-          {fr ? "Tentatives par intervalle" : "Attempts per time interval"}
-        </Text>
-        {[0, 12, 24].map((count) => <g key={count}>
-          <line x1={left} x2={left + chartWidth} y1={bottom - count * unit} y2={bottom - count * unit}
-            stroke={TONE.muted} strokeOpacity={0.2} strokeDasharray={count === 0 ? undefined : "3 5"} />
-          <Text x={left - 7} y={bottom - count * unit + 4} size={14} anchor="end" tone="muted">{count}</Text>
-        </g>)}
-        {counts.map((count, index) => {
-          if (!count || !hasArrived(frame, index)) return null;
-          const barX = left + index * chartWidth / counts.length + 4;
-          const barWidth = chartWidth / counts.length - 8;
-          return <rect key={index} x={barX} y={bottom - count * unit}
-            width={barWidth} height={count * unit} rx={2}
-            fill={TONE[tone]} opacity={0.9} />;
+
+        <Axis x={x0} y={base} w={chartW} ticks={[0, 5, 10]} format={(second) => `${second} s`} />
+        {sweeping > 0 ? <line
+          x1={cursorX} x2={cursorX} y1={towerTop - 8} y2={base}
+          stroke="var(--scene-ink)" strokeOpacity={.28 * sweeping} strokeWidth={1} strokeDasharray="3 4"
+        /> : null}
+
+        {arrived.map((attempt) => {
+          const settle = easeOut(frame, attempt.land, attempt.land + 7);
+          const column = attempt.rank % L.perRow;
+          const row = Math.floor(attempt.rank / L.perRow);
+          return <rect
+            key={`${attempt.second}-${attempt.rank}`} data-attempt=""
+            x={x0 + attempt.second * columnW + (columnW - stackW) / 2 + column * pitch}
+            y={base - 3 - (row + 1) * pitch + L.gap - lerp(8, 0, settle)}
+            width={L.unit} height={L.unit} rx={2}
+            fill={TONE[rule.tone]} opacity={.25 + .7 * settle}
+          />;
         })}
-        <line x1={left + progress * chartWidth} x2={left + progress * chartWidth}
-          y1={y + 68} y2={bottom} stroke={TONE.ink} strokeWidth={1.5} strokeDasharray="3 4" />
-        <Text x={left} y={bottom + 24} size={14} tone="muted">{fr ? "coupure" : "disconnect"}</Text>
-        <Text x={left + chartWidth} y={bottom + 24} size={14} anchor="end" tone="muted">
-          {fr ? "temps →" : "time →"}
-        </Text>
+
+        {spreadOut ? null : <Pulse x={x0 + (peakSecond + .5) * columnW} y={towerTop} frame={frame} at={rule.peakAt - 4} period={30} r={9} tone="danger" once />}
+        <Tag
+          x={tagX} y={base - L.tagRise} anchor={spreadOut ? "middle" : "start"}
+          text={t.peak(peak)} tone={rule.tone} size={13} appear={pop(frame, rule.peakAt)}
+        />
       </g>;
     })}
-    {!compact && <Text x={width / 2} y={396} size={13} anchor="middle" tone="muted">
-      {fr ? "Même nombre de tentatives · mêmes axes · répartition illustrative" : "Same attempt count · same axes · illustrative distribution"}
-    </Text>}
+    <Text x={width / 2} y={compact ? 503 : 392} size={13} weight={500} anchor="middle" tone="muted" opacity={easeOut(frame, 16, 34)}>
+      {t.footnote}
+    </Text>
   </>;
 }
 
 export default defineScene({
-  durationInFrames: 390,
-  posterFrame: 330,
+  durationInFrames: T.end,
+  posterFrame: T.settled + 40,
   title: { fr: "Étaler les reconnexions", en: "Spreading reconnections" },
   caption: {
-    fr: "24 clients fictifs, une première tentative chacun et la même échelle sur les deux graphiques. Le jitter répartit les tentatives dans le temps ; il ne garantit pas un plafond de débit. Ce schéma ne représente pas des mesures de Forest.",
-    en: "24 illustrative clients, one first attempt each, and the same scale in both charts. Jitter spreads attempts over time; it does not guarantee a rate limit. This diagram does not show Forest measurements.",
+    fr: "24 clients fictifs, une première tentative chacun, la même échelle sur les trois graphiques. Une attente fixe déplace le pic ; une attente aléatoire l'étale, sans garantir un plafond de débit. Ce schéma ne représente pas des mesures de Forest.",
+    en: "24 illustrative clients, one first attempt each, the same scale in all three charts. A fixed delay moves the peak; a randomized delay spreads it, without guaranteeing a rate limit. This diagram does not show Forest measurements.",
   },
   beats: [
-    { at: 0, text: { fr: "Une coupure commune : les 24 clients doivent rétablir leur connexion.", en: "A shared disconnect: all 24 clients need to restore their connection." } },
-    { at: 80, text: { fr: "Sans attente, les premières tentatives arrivent ensemble.", en: "Without a delay, the first attempts arrive together." } },
-    { at: 160, text: { fr: "Avec une attente aléatoire dès le départ, les retours s'étalent.", en: "A randomized delay from the first attempt spreads clients' return." } },
-    { at: 310, text: { fr: "24 tentatives dans les deux cas. Le pic change, pas le travail total de cette première tentative.", en: "24 attempts in both cases. The peak changes, not the total work of this first attempt." } },
+    { at: 0, text: { fr: "Une coupure commune : 24 clients doivent rétablir leur connexion.", en: "A shared disconnect: 24 clients need to restore their connection." } },
+    { at: T.sweep, text: { fr: "Sans attente, les 24 premières tentatives arrivent dans la même seconde.", en: "Without a delay, the 24 first attempts arrive within the same second." } },
+    { at: T.spread, text: { fr: "Avec une attente aléatoire entre 0 et 10 s, elles arrivent quelques-unes à la fois.", en: "With a randomized delay between 0 and 10 s, they arrive a few at a time." } },
+    { at: T.fixed - 4, text: { fr: "Une attente fixe de 5 s déplace le pic de 5 s. Il est aussi haut.", en: "A fixed 5 s delay moves the peak by 5 s. It is just as high." } },
+    { at: T.settled + 10, text: { fr: "24 tentatives dans les trois cas. Seule l'attente aléatoire réduit le pic.", en: "24 attempts in all three cases. Only the randomized delay lowers the peak." } },
   ],
   Stage,
 });

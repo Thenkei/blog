@@ -3,7 +3,7 @@ title: "WebSockets : d'Under the Limit aux 30 000 utilisateurs chez Forest"
 subtitle: "Des cartes, des dés, GraphQL et un backend que tout le monde attend au redémarrage."
 summary: "Under the Limit en 2018, les jeux du confinement, et 25 à 30 000 personnes connectées chez Forest. Mon expérience des WebSockets, du premier jeu demandé par Sigmund aux reconnexions massives avec GraphQL et Apollo."
 visualId: "websockets-games-to-30000-connections"
-publishedAt: "2026-11-12"
+publishedAt: "2026-11-13"
 readTimeMinutes: 11
 tags:
   - websockets
@@ -95,7 +95,7 @@ Le JSON arrive encore au-dessus. WebSocket transporte du texte ou du binaire ; i
 
 Sur mes petits projets, la difficulté intéressante était surtout là : éviter qu'un joueur puisse connaître les informations des autres.
 
-Une carte face cachée à l'écran ne l'est plus vraiment si sa valeur est déjà dans le state JavaScript. Il suffit d'ouvrir les outils de développement. Pas besoin d'être particulièrement motivé, ce qui est déjà beaucoup demander à des gens capables de tricher à un jeu de soirée.
+Une carte face cachée à l'écran ne l'est plus vraiment si sa valeur est déjà dans le state JavaScript. Il suffit d'ouvrir les outils de développement.
 
 La première règle est donc de ne pas envoyer à un joueur ce qu'il n'a pas le droit de connaître. Si un serveur de confiance distribue les cartes, il peut conserver le paquet et ne transmettre à chacun que sa propre main. Chiffrer la connexion avec `wss://` protège le trajet ; cela n'empêche pas son destinataire de lire ce qu'il reçoit.
 
@@ -176,6 +176,6 @@ Enfin, le nombre de connexions ouvertes ne suffit pas pour savoir si tout va bie
 
 J'aime toujours autant les WebSockets pour ce qu'elles permettent de construire. La demande de Sigmund en 2018 a donné Under the Limit, puis une partie de ce travail a resservi pour nos soirées du confinement. Chez Forest, les WebSockets nous donnaient une interface qui recevait directement les informations auxquelles elle était abonnée.
 
-Mais à cette échelle, accepter un peu d'attente à la reconnexion faisait partie du fonctionnement du temps réel. C'est probablement ce que j'en retiens le plus : nous avions aussi besoin que les clients sachent patienter.
+Mais à cette échelle, accepter un peu d'attente à la reconnexion faisait partie du fonctionnement du temps réel. C'est probablement ce que j'en retiens le plus.
 
 _Retour d'expérience écrit après mon départ de Forest Admin. L'ordre de grandeur de fréquentation vient de mon souvenir. Le commit-reveal, les protocoles cités, les calculs et les mécanismes de reprise sont des exemples explicatifs, pas une reconstitution des implémentations de mes jeux ou de Forest._

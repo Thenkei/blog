@@ -3,7 +3,7 @@ title: "WebSockets: from Under the Limit to 30,000 users at Forest"
 subtitle: "Cards, dice, GraphQL, and a backend everyone is waiting for after a restart."
 summary: "Under the Limit in 2018, lockdown games, and 25,000 to 30,000 people connected at Forest. My experience with WebSockets, from a game requested by Sigmund to mass reconnections with GraphQL and Apollo."
 visualId: "websockets-games-to-30000-connections"
-publishedAt: "2026-11-12"
+publishedAt: "2026-11-13"
 readTimeMinutes: 10
 tags:
   - websockets
@@ -95,7 +95,7 @@ JSON sits another layer above. WebSocket carries text or binary data; it knows n
 
 On my personal projects, the interesting challenge was mostly this: preventing a player from learning what the other players knew.
 
-A face-down card on screen is not particularly secret if its value is already in JavaScript state. Just open the developer tools. It does not take much dedication, which is already more than you should expect from people willing to cheat at a party game.
+A face-down card on screen is not particularly secret if its value is already in JavaScript state. Just open the developer tools.
 
 The first rule is therefore to avoid sending players information they are not entitled to see. If a trusted server deals the cards, it can retain the deck and send each player only their own hand. Encrypting the connection with `wss://` protects data in transit; it does not stop its recipient from reading it.
 
@@ -176,6 +176,6 @@ Finally, the open connection count is not enough to tell you whether everything 
 
 I still really like what WebSockets let you build. Sigmund's request in 2018 became Under the Limit, and some of that work later found its way into our lockdown games. At Forest, WebSockets gave us an interface that directly received the information it had subscribed to.
 
-But at that scale, accepting some reconnection delay was part of making real-time updates work. That is probably what I remember most: we also needed clients that knew how to wait.
+But at that scale, accepting some reconnection delay was part of making real-time updates work. That is probably what I remember most.
 
 _Written after leaving Forest Admin. The audience size is an order of magnitude from memory. Commit-reveal, the cited protocols, calculations, and recovery mechanisms are explanatory examples, not a reconstruction of the implementations in my games or at Forest._
