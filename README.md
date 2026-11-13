@@ -209,7 +209,9 @@ what happens on screen, shown in the caption for readers who do not play it.
 
 The element uses `preload="none"`, so only the poster loads until the reader
 presses play; it never autoplays. Keep films short, silent or meaningful when
-muted, and around 720p. They build into `assets/videos/`, which the service
+muted, and around 720p. A film with a voice is marked `narrated: true` in the
+registry: it plays with its sound on and needs a `<name>.<locale>.vtt` caption
+file next to each MP4, offered as a captions track the reader turns on. They build into `assets/videos/`, which the service
 worker neither precaches nor serves from cache: the `assets/posts/` cache does
 not answer the range requests a video makes.
 
