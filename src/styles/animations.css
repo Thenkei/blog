@@ -102,80 +102,27 @@
   }
 }
 
-@keyframes runnerStride {
-  0%,
-  100% {
-    transform: scaleX(-1) translateY(0) rotate(-0.8deg);
+@keyframes mountainMistDrift {
+  from {
+    transform: translateX(-36px);
   }
-  35% {
-    transform: scaleX(-1) translateY(-0.8px) rotate(0.9deg);
-  }
-  65% {
-    transform: scaleX(-1) translateY(-0.3px) rotate(-0.4deg);
+  to {
+    transform: translateX(36px);
   }
 }
 
-@keyframes runnerFrontLegSwing {
-  0%,
-  100% {
-    transform: translateY(0) rotate(8deg);
+@keyframes heroScrollCue {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
   }
   25% {
-    transform: translateY(-0.3px) rotate(14deg);
+    opacity: 1;
   }
-  50% {
-    transform: translateY(0.2px) rotate(-6deg);
-  }
-  75% {
-    transform: translateY(0.1px) rotate(-12deg);
-  }
-}
-
-@keyframes runnerBackLegSwing {
-  0%,
+  70%,
   100% {
-    transform: translateY(0.1px) rotate(-12deg);
-  }
-  25% {
-    transform: translateY(0.2px) rotate(-5deg);
-  }
-  50% {
-    transform: translateY(-0.3px) rotate(11deg);
-  }
-  75% {
-    transform: translateY(-0.1px) rotate(6deg);
-  }
-}
-
-@keyframes runnerFrontFootStrike {
-  0%,
-  100% {
-    transform: rotate(-8deg);
-  }
-  25% {
-    transform: rotate(-2deg);
-  }
-  50% {
-    transform: rotate(12deg);
-  }
-  75% {
-    transform: rotate(4deg);
-  }
-}
-
-@keyframes runnerBackFootStrike {
-  0%,
-  100% {
-    transform: rotate(12deg);
-  }
-  25% {
-    transform: rotate(4deg);
-  }
-  50% {
-    transform: rotate(-8deg);
-  }
-  75% {
-    transform: rotate(-2deg);
+    opacity: 0;
+    transform: translateY(12px);
   }
 }
 

@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import "../../src/i18n/config";
@@ -38,19 +38,57 @@ describe("ParallaxHero themed cameras", () => {
     expect(container.querySelector(".rocket-camera-shell")).toBeFalsy();
   });
 
-  it("renders sticky multiplane shell with exactly three mountain depth layers", () => {
+  it("renders sticky multiplane shell with exactly three mountain depth layers", async () => {
     const { container } = renderHero("mountain");
 
     expect(container.querySelector(".mountain-camera-shell")).toBeTruthy();
     expect(container.querySelector(".mountain-camera-sticky")).toBeTruthy();
     expect(container.querySelector(".mountain-camera-stage")).toBeTruthy();
-    expect(container.querySelectorAll(".mountain-layer")).toHaveLength(3);
+    // The title never waits for the scene, which loads on demand.
+    expect(container.querySelector(".hero-title")).toBeTruthy();
+    await waitFor(() => {
+      expect(container.querySelectorAll(".mountain-layer")).toHaveLength(3);
+    });
     expect(container.querySelector(".mountain-layer-sky")).toBeTruthy();
     expect(container.querySelector(".mountain-layer-far")).toBeTruthy();
     expect(container.querySelector(".mountain-layer-near")).toBeTruthy();
     expect(container.querySelector(".mountain-trail-journey")).toBeTruthy();
     expect(container.querySelector(".mountain-route-line")).toBeTruthy();
     expect(container.querySelector(".mountain-cinematic-runner")).toBeTruthy();
+  });
+
+  it("keeps the trail and the runner inside the plane of the slope they sit on", async () => {
+    const { container } = renderHero("mountain");
+    await waitFor(() => {
+      expect(container.querySelector(".mountain-layer-near")).toBeTruthy();
+    });
+    const near = container.querySelector(".mountain-layer-near");
+
+    // Drawn in the terrain's own coordinate system, they cannot drift apart
+    // from it when the camera moves or the frame changes shape.
+    expect(near?.querySelector(".mountain-route-line")).toBeTruthy();
+    expect(near?.querySelector(".mountain-cinematic-runner")).toBeTruthy();
+    expect(near?.querySelector(".mountain-pass")).toBeTruthy();
+    expect(near?.querySelectorAll(".mountain-checkpoint")).toHaveLength(2);
+
+    const viewBoxes = Array.from(
+      container.querySelectorAll(".mountain-layer > svg"),
+    ).map((svg) => svg.getAttribute("viewBox"));
+    expect(new Set(viewBoxes).size).toBe(1);
+  });
+
+  it("is decorative: every mountain plane is hidden from assistive technology", async () => {
+    const { container } = renderHero("mountain");
+    await waitFor(() => {
+      expect(container.querySelectorAll(".mountain-layer")).toHaveLength(3);
+    });
+
+    container.querySelectorAll(".mountain-layer").forEach((layer) => {
+      expect(layer.getAttribute("aria-hidden")).toBe("true");
+    });
+    expect(container.querySelector(".hero-title")?.textContent).toBe(
+      "Morgan's Blog",
+    );
   });
 
   it("renders sticky rocket camera shell with layered scene", () => {

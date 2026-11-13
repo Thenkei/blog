@@ -1,6 +1,6 @@
 ---
 title: "De Zero à Hero : construire le Product OS de RockFi"
-subtitle: "Vingt personnes, dix challenges Claude Code et des plugins pour que le contexte survive au trajet entre un workshop et une PR."
+subtitle: "Vingt personnes, dix challenges Claude Code et des plugins pour ne pas perdre le contexte entre un workshop et une PR."
 summary: "Comment les Claude Code Challenges ont sorti les bons usages de l'IA des historiques de terminal, puis comment nous les avons encodés en plugins qui relient discovery, conception et delivery, sans jamais confier le merge à un agent."
 visualId: "bounded-ai-loop"
 publishedAt: "2026-07-10"
@@ -19,9 +19,9 @@ Voici comment nous sommes passés de là à ce que nous appelons, avec une modes
 
 ## Écrire le code plus vite ne sert à rien si le contexte s'est perdu avant
 
-Prouver qu'un agent sait écrire du code, c'était réglé. Le vrai sujet se situait en amont. Entre une découverte produit et une PR, le contexte traverse plusieurs handoffs : workshop, document, issues, implémentation, review. À chaque passage, on peut égarer le problème initial, une décision, une limite ou la définition de « terminé ».
+Nous savions déjà qu'un agent sait écrire du code. Notre problème se situait en amont. Entre une découverte produit et une PR, le contexte traverse plusieurs handoffs : workshop, document, issues, implémentation, review. À chaque passage, on peut égarer le problème initial, une décision, une limite ou la définition de « terminé ».
 
-Les symptômes étaient toujours les mêmes. Le prompt efficace dormait dans un historique de terminal. La convention importante n'arrivait jamais au moment où elle servait. Le document produit était propre, mais avait perdu l'intention du workshop. L'issue découpait le code sans préserver la valeur attendue. Et quelques semaines plus tard, l'explication du *pourquoi* était éparpillée entre des conversations et des pages.
+Nous retrouvions toujours les mêmes situations. Un prompt efficace restait dans un historique de terminal. Une convention importante n'était pas là au moment où elle aurait servi. Un document était propre, mais avait perdu l'intention du workshop. Une issue découpait le code sans préserver la valeur attendue. Et quelques semaines plus tard, l'explication du *pourquoi* était éparpillée entre des conversations et des pages.
 
 Écrire le code plus vite ne nous aidait pas beaucoup si nous devions ensuite retrouver le problème initial ou reprendre une décision mal transmise.
 
@@ -33,7 +33,7 @@ Nous avons aussi eu notre période « méga-prompt » : un bloc qui transportait
 
 Puis nous avons essayé la ligne droite : PRD, conception, tâches, code. Elle tient jusqu'à la première hypothèse fausse découverte pendant l'implémentation. Sans retour vers la conception, l'agent poursuit l'implémentation sur une hypothèse que nous savons fausse.
 
-Pour mémoire, les tentations que nous avons écartées :
+Ce que nous avons choisi de ne pas faire :
 
 - Acheter un outil et appeler ça une stratégie d'adoption.
 - Mesurer le progrès au volume de code ou de contenu généré.
@@ -41,9 +41,9 @@ Pour mémoire, les tentations que nous avons écartées :
 - Automatiser un workflow instable avant de savoir qui en est owner et où sont les gates.
 - Laisser un agent publier une décision produit ou merger une PR sur la seule base de tests qui passent.
 
-## Dix challenges, et le droit d'échouer en public
+## Dix challenges, et partager ce qui rate
 
-Nous avons donc lancé les **Claude Code Challenges: From Zero to Hero**. Toute l'équipe y a participé : vingt personnes, pas uniquement les développeurs. Logique, puisque le contexte qui se perd entre un workshop et une PR ne se perd pas seulement dans le code.
+Nous avons donc lancé les **Claude Code Challenges: From Zero to Hero**. Toute l'équipe y a participé : vingt personnes, pas uniquement les développeurs. C'était logique, puisque le contexte qui se perd entre un workshop et une PR ne se perd pas seulement dans le code.
 
 Le format est volontairement terre à terre : dix challenges courts, bonus compris, réalisés en asynchrone sur du vrai code. Comptez 60 à 90 minutes par challenge, avec un livrable concret à la sortie et une review.
 
@@ -55,23 +55,23 @@ La progression suit le travail réel :
 - Travailler avec des subagents et des worktrees parallèles, quand le parallélisme se justifie.
 - Construire des hooks et des skills, puis reverser les workflows utiles à l'équipe.
 
-Le choix qui a le plus pesé : le programme vit dans Slack, et on y partage d'abord ce qui rate. Le prompt qui a marché, l'approche qui a échoué, une capture d'écran, la leçon inattendue d'une session. Aucun classement. Un leaderboard aurait récompensé la vitesse ; nous voulions voir la partie invisible du travail avec une IA, c'est-à-dire comment chacun cadre la demande, inspecte la sortie, corrige la trajectoire et décide qu'un résultat est assez bon pour avancer.
+Le choix qui a le plus pesé : le programme se déroule dans Slack, et on y partage d'abord ce qui rate. Un prompt qui a marché, une approche qui a échoué, une capture d'écran, ce qu'une session nous a appris sans qu'on s'y attende. Il n'y a pas de classement. Un leaderboard aurait récompensé la vitesse. Nous voulions voir comment chacun cadre la demande, inspecte la sortie, corrige la trajectoire et décide qu'un résultat est assez bon pour avancer.
 
-Cette partie-là compte bien plus que les recettes de prompts. Claude Code produit très vite une réponse plausible. Il ne peut pas savoir si elle préserve le bon invariant dans notre domaine, sauf si nous lui donnons le contexte et que nous vérifions derrière.
+Cela compte bien plus que les recettes de prompts. Claude Code produit très vite une réponse plausible. Il ne peut pas savoir si elle préserve le bon invariant dans notre domaine, sauf si nous lui donnons le contexte et que nous vérifions derrière.
 
-## Du terminal de quelqu'un à la marketplace de tout le monde
+## Des challenges aux plugins
 
-Les challenges ont servi de détecteur : ils ont fait remonter les pratiques réelles de l'équipe avant que nous essayions de les encoder. Un échec partagé dans un thread devenait un cas limite à gérer. Un workflow que tout le monde refaisait à la main devenait un skill. Une règle qu'on ne voulait plus jamais voir enfreinte devenait un hook.
+Les challenges nous ont montré comment l'équipe travaillait vraiment, avant que nous essayions d'encoder quoi que ce soit. Un échec partagé dans un thread devenait un cas limite à gérer. Un workflow que tout le monde refaisait à la main devenait un skill. Une règle qu'on ne voulait plus voir enfreinte devenait un hook.
 
 Restait à choisir comment partager ces pratiques. Une bibliothèque de prompts serait difficile à maintenir. Une plateforme centralisée demanderait trop de travail avant le premier usage. Et laisser chaque équipe se débrouiller nous ramènerait au point de départ. Nous avons choisi des **plugins composables** : assez petits pour appartenir à un workflow précis, versionnés avec leurs templates et leurs garde-fous, installables par qui en a besoin, et reliés entre eux par des contrats explicites.
 
-La différence avec un prompt partagé tient dans ce que le plugin embarque : la procédure, les garde-fous, les templates et les cas limites qui rendent un workflow fiable dans notre manière de travailler. Notre marketplace interne contient aujourd'hui des plugins techniques et d'autres plus transverses, pour les tâches récurrentes de l'entreprise. C'est côté technique que le Product OS se voit le mieux. En voici deux.
+Contrairement à un prompt partagé, un plugin embarque la procédure, les garde-fous, les templates et les cas limites qui rendent un workflow fiable dans notre manière de travailler. Notre marketplace interne contient aujourd'hui des plugins techniques et d'autres plus transverses, pour les tâches récurrentes de l'entreprise. C'est côté technique que le Product OS se voit le mieux. En voici deux.
 
 ## `rockfi-engineering` : les règles du dépôt dans l'outil
 
 Le plugin `rockfi-engineering` amène le workflow quotidien d'ingénierie dans Claude Code, avec des règles explicites. Un workflow rapide qui contourne la discipline de review ne fait que produire plus vite un historique illisible.
 
-Son skill de création de PR ne se contente pas de remplir un template. Il analyse le changement, estime sa complexité, repère les scopes sans rapport et prévient quand la PR mériterait d'être découpée. Il rédige ensuite une description structurée autour des questions que ce même reviewer se pose vraiment : objectif, raison, implémentation, ressources.
+Son skill de création de PR analyse le changement, estime sa complexité, repère les scopes sans rapport et prévient quand la PR mériterait d'être découpée. Il rédige ensuite une description structurée autour des questions qu'un reviewer se pose : objectif, raison, implémentation, ressources.
 
 Le skill de commit, lui, valide nos règles de conventional commits. Et un hook strict, déclenché avant l'exécution des outils, bloque tout commit ou push depuis `main`. Il crée alors une feature branch correctement nommée et reprend le travail depuis cette branche.
 
@@ -79,14 +79,14 @@ Nous ne demandons jamais à un agent de « livrer ». Nous encodons un chemin (f
 
 ## `rockfi-ve` : garder le « pourquoi » attaché à la PR
 
-Créer une PR propre, c'est la partie facile. Le plus dur est de s'assurer qu'elle reste reliée à la décision qui la justifie.
+Créer une PR propre est assez facile. Il est plus difficile de la garder reliée à la décision qui la justifie.
 
 Le plugin `rockfi-ve` accompagne notre processus de Value Engineering, de la facilitation d'un workshop jusqu'au document de conception final, le **DiveIn**, en s'appuyant sur les templates Notion officiels. Il a deux modes :
 
 - **Facilitation** : quand la réflexion reste à faire, il guide un workshop ou un DiveIn section par section. L'équipe explore le problème, compare les solutions, documente la décision et définit le résultat attendu.
 - **Distillation** : quand la discussion a déjà eu lieu et qu'il faut surtout la retrouver, il organise le contenu existant selon le template, fait remonter ce qui manque, signale les hypothèses et prépare un brouillon à confirmer avant publication.
 
-La structure du DiveIn rend le handoff concret : contexte, definition of done, solution fonctionnelle, solution technique, slicing et ressources. On obtient moins un joli document qu'un contrat entre produit et tech : quel problème on résout, ce que « terminé » veut dire, ce qui est volontairement hors périmètre, et comment découper le travail en étapes utiles et livrables séparément.
+La structure du DiveIn rend le handoff concret : contexte, definition of done, solution fonctionnelle, solution technique, slicing et ressources. Le résultat sert de contrat entre produit et tech : quel problème on résout, ce que « terminé » veut dire, ce qui est volontairement hors périmètre, et comment découper le travail en étapes utiles et livrables séparément.
 
 Le plugin prépare aussi les étapes suivantes. Un workshop mène à un DiveIn, un DiveIn à des slices, un plan QA, un plan de rollout et des issues. D'autres capacités prennent alors le relais : la delivery transforme la definition of done et les slices en tâches reviewables, et le reste couvre la discovery, le plan QA, le rollout ou la chasse aux angles morts.
 
@@ -123,7 +123,7 @@ Si l'implémentation révèle une hypothèse fausse, nous devons pouvoir revenir
 
 Nous restons prudents avec le mot « automatisation ». Le système accélère la préparation et rend le processus plus cohérent, mais des gates humaines restent posées sur les décisions produit, les choix d'architecture, les changements sensibles et le merge. Un agent peut préparer le dossier d'une décision VE ou une definition of done ; la décision reste à confirmer par les personnes responsables. Et une PR attend un reviewer capable de challenger le design et le code, pas seulement de constater que la CI est verte.
 
-Ce que nous cherchons à gagner, c'est le temps passé à reconstruire du contexte à chaque handoff, pour le rendre aux décisions qui demandent de connaître le produit, les clients et le système. Produire davantage de documents ne suffit pas à réduire ce travail.
+Ce que nous cherchons à économiser, c'est le temps passé à reconstruire du contexte à chaque handoff, pour le consacrer aux décisions qui demandent de connaître le produit, les clients et le système. Produire davantage de documents ne suffit pas à réduire ce travail. Et cela fonctionne : nous reconstruisons nettement moins de contexte entre le workshop, le DiveIn et la PR.
 
 ## Les workflows restent à maintenir
 

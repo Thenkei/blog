@@ -1,4 +1,4 @@
-import { useCallback, type RefObject } from "react";
+import { useCallback, useEffect, useRef, type RefObject } from "react";
 import {
   computeCinematicProgress,
   useCinematicScroll,
@@ -13,14 +13,6 @@ type UseMultiplaneCameraOptions = {
   compactLayout: boolean;
 };
 
-type TrailPose = {
-  at: number;
-  x: number;
-  y: number;
-  rotate: number;
-  scale: number;
-};
-
 export type MultiplaneCameraVars = {
   progress: number;
   skyShift: number;
@@ -29,30 +21,45 @@ export type MultiplaneCameraVars = {
   nearShift: number;
   nearScale: number;
   nearDrift: number;
+  /** How far along the visible route the runner is, from 0 to 1. */
   routeProgress: number;
-  runnerProgress: number;
-  runnerX: number;
-  runnerY: number;
-  runnerRotate: number;
   runnerScale: number;
   runnerOpacity: number;
-  foregroundOpacity: number;
-  titleOpacity: number;
   titleShift: number;
-  titleScale: number;
-  summitGlow: number;
-  atmosphere: number;
+  /** First light (0) to sunrise (1): drives stars, sun, glow and warm light. */
+  dawn: number;
+  passGlow: number;
+  hintOpacity: number;
   handoff: number;
 };
 
-const TRAIL_POSES: readonly [TrailPose, ...TrailPose[]] = [
-  { at: 0, x: 6, y: 92, rotate: -18, scale: 1.08 },
-  { at: 0.18, x: 23, y: 88, rotate: -24, scale: 1 },
-  { at: 0.38, x: 38, y: 69, rotate: -28, scale: 0.88 },
-  { at: 0.58, x: 54, y: 60, rotate: -22, scale: 0.76 },
-  { at: 0.78, x: 72, y: 46, rotate: -29, scale: 0.63 },
-  { at: 1, x: 88, y: 30, rotate: -32, scale: 0.48 },
-];
+export type TrailSample = {
+  x: number;
+  y: number;
+  /** Direction of travel at this point (does not need to be normalised). */
+  dx: number;
+  dy: number;
+};
+
+export type RunnerPlacement = {
+  x: number;
+  y: number;
+  /** Degrees, already signed for the direction the runner faces. */
+  rotate: number;
+  /** 1 when running towards the right, -1 on a switchback going left. */
+  facing: 1 | -1;
+};
+
+/** Poster frame used when motion is reduced: mid-climb, sun already up. */
+const POSTER_PROGRESS = 0.62;
+/** The runner leans with the slope, but only part of the way. */
+const SLOPE_LEAN = 0.35;
+const MAX_LEAN_DEGREES = 14;
+/** Scene units kept between the frame edge and the runner's first step. */
+const ENTRY_MARGIN = 70;
+const ENTRY_SAMPLES = 160;
+/** Scene units covered by one stride pose. */
+const STRIDE_LENGTH = 24;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -63,38 +70,6 @@ function smoothstep(start: number, end: number, value: number): number {
   return progress * progress * (3 - 2 * progress);
 }
 
-function interpolatePose(progress: number): Omit<TrailPose, "at"> {
-  const normalized = clamp(progress, 0, 1);
-  const nextIndex = TRAIL_POSES.findIndex((pose) => pose.at >= normalized);
-  const first = TRAIL_POSES[0];
-
-  if (nextIndex <= 0) {
-    const { x, y, rotate, scale } = first;
-    return { x, y, rotate, scale };
-  }
-
-  const next = TRAIL_POSES[nextIndex];
-  const previous = TRAIL_POSES[nextIndex - 1];
-  if (!next || !previous) {
-    const { x, y, rotate, scale } = first;
-    return { x, y, rotate, scale };
-  }
-  const localProgress = smoothstep(
-    previous.at,
-    next.at,
-    normalized,
-  );
-  const mix = (from: number, to: number) =>
-    from + (to - from) * localProgress;
-
-  return {
-    x: mix(previous.x, next.x),
-    y: mix(previous.y, next.y),
-    rotate: mix(previous.rotate, next.rotate),
-    scale: mix(previous.scale, next.scale),
-  };
-}
-
 export const computeCameraProgress = computeCinematicProgress;
 
 export function computeMultiplaneVars(
@@ -102,50 +77,149 @@ export function computeMultiplaneVars(
   compactLayout: boolean,
   reducedMotion = false,
 ): MultiplaneCameraVars {
-  const normalizedProgress = clamp(progress, 0, 1);
-  const sceneProgress = reducedMotion ? 0.46 : normalizedProgress;
+  const sceneProgress = reducedMotion
+    ? POSTER_PROGRESS
+    : clamp(progress, 0, 1);
   const routeProgress = reducedMotion
-    ? 1
-    : 0.04 + smoothstep(0.04, 0.9, sceneProgress) * 0.96;
-  const runnerProgress = reducedMotion
-    ? 0.5
-    : smoothstep(0.08, 0.9, sceneProgress);
-  const runnerPose = interpolatePose(runnerProgress);
-  const handoff = reducedMotion ? 0 : smoothstep(0.88, 1, sceneProgress);
-  const titleTravel = reducedMotion
-    ? 0
-    : smoothstep(0.14, 0.5, sceneProgress);
+    ? POSTER_PROGRESS
+    : smoothstep(0, 0.94, sceneProgress) * 0.55 +
+      clamp(sceneProgress / 0.94, 0, 1) * 0.45;
+  const handoff = reducedMotion ? 0 : smoothstep(0.9, 1, sceneProgress);
+  // The runner shrinks as the trail recedes towards the pass.
+  const perspective = 1.02 - routeProgress * 0.34;
 
   return {
     progress: sceneProgress,
     skyShift: sceneProgress * (compactLayout ? -10 : -18),
     farShift: sceneProgress * (compactLayout ? -34 : -56),
-    farScale: 1 + sceneProgress * (compactLayout ? 0.025 : 0.04),
+    farScale: 1 + sceneProgress * (compactLayout ? 0.018 : 0.03),
     nearShift: sceneProgress * (compactLayout ? -58 : -92),
-    nearScale: 1 + sceneProgress * (compactLayout ? 0.13 : 0.2),
+    nearScale: 1 + sceneProgress * (compactLayout ? 0.06 : 0.09),
     nearDrift:
       Math.sin(sceneProgress * Math.PI * 1.4) * (compactLayout ? 2.5 : 5.5),
     routeProgress,
-    runnerProgress,
-    runnerX: runnerPose.x,
-    runnerY: runnerPose.y,
-    runnerRotate: runnerPose.rotate,
-    runnerScale: runnerPose.scale * (compactLayout ? 0.84 : 1),
-    runnerOpacity: reducedMotion
-      ? 1
-      : 0.62 + smoothstep(0.02, 0.12, sceneProgress) * 0.38 - handoff * 0.6,
-    foregroundOpacity: reducedMotion
-      ? 1
-      : 1 - smoothstep(0.76, 1, sceneProgress) * 0.44,
-    titleOpacity: reducedMotion
-      ? 1
-      : clamp(1 - titleTravel * 0.69 - handoff * 0.17, 0.14, 1),
-    titleShift: reducedMotion ? 0 : titleTravel * (compactLayout ? -24 : -38),
-    titleScale: reducedMotion ? 1 : 1 - titleTravel * 0.07,
-    summitGlow: 0.16 + smoothstep(0.58, 0.95, sceneProgress) * 0.84,
-    atmosphere: 0.22 + smoothstep(0.24, 0.92, sceneProgress) * 0.64,
+    runnerScale: perspective * (compactLayout ? 1.4 : 1),
+    runnerOpacity: 1 - handoff * 0.4,
+    titleShift: reducedMotion ? 0 : sceneProgress * (compactLayout ? -8 : -28),
+    dawn: reducedMotion ? 0.78 : smoothstep(0.05, 0.9, sceneProgress),
+    passGlow: smoothstep(0.66, 0.97, sceneProgress),
+    hintOpacity: reducedMotion ? 0 : 1 - smoothstep(0.015, 0.09, sceneProgress),
     handoff,
   };
+}
+
+/**
+ * Where the runner starts. On narrow frames the trailhead is outside the
+ * picture, so the run begins where the trail first enters it.
+ */
+export function computeTrailEntry(
+  samples: readonly { x: number; length: number }[],
+  visibleLeft: number,
+): number {
+  const first = samples[0];
+  if (!first || first.x >= visibleLeft) {
+    return 0;
+  }
+
+  return samples.find((sample) => sample.x >= visibleLeft)?.length ?? 0;
+}
+
+export function computeRunnerPlacement(sample: TrailSample): RunnerPlacement {
+  const facing = sample.dx < 0 ? -1 : 1;
+  const slopeDegrees =
+    (Math.atan2(sample.dy, Math.abs(sample.dx)) * 180) / Math.PI;
+  const lean = clamp(
+    slopeDegrees * SLOPE_LEAN,
+    -MAX_LEAN_DEGREES,
+    MAX_LEAN_DEGREES,
+  );
+
+  return {
+    x: sample.x,
+    y: sample.y,
+    rotate: lean * facing,
+    facing,
+  };
+}
+
+type TrailGeometry = {
+  route: SVGPathElement;
+  runner: SVGGElement;
+  total: number;
+  entry: number;
+};
+
+function measureTrail(stage: HTMLElement): TrailGeometry | null {
+  const route = stage.querySelector<SVGPathElement>(".mountain-route-line");
+  const runner = stage.querySelector<SVGGElement>(".mountain-cinematic-runner");
+  const layer = stage.querySelector<HTMLElement>(".mountain-layer-near");
+  const viewBox = route?.ownerSVGElement?.viewBox?.baseVal;
+
+  // jsdom (tests) and very old engines do not implement SVG geometry: the
+  // scene then stays on its static default pose.
+  if (
+    !route ||
+    !runner ||
+    !layer ||
+    !viewBox ||
+    typeof route.getTotalLength !== "function" ||
+    typeof route.getPointAtLength !== "function"
+  ) {
+    return null;
+  }
+
+  const scale = layer.offsetHeight / viewBox.height;
+  const total = route.getTotalLength();
+  if (!(scale > 0) || !(total > 0)) {
+    return null;
+  }
+
+  const visibleLeft =
+    viewBox.x + viewBox.width - stage.offsetWidth / scale + ENTRY_MARGIN;
+  const samples = Array.from({ length: ENTRY_SAMPLES + 1 }, (_, index) => {
+    const length = (total * index) / ENTRY_SAMPLES;
+    return { x: route.getPointAtLength(length).x, length };
+  });
+
+  return {
+    route,
+    runner,
+    total,
+    entry: computeTrailEntry(samples, visibleLeft),
+  };
+}
+
+function placeRunner(
+  stage: HTMLElement,
+  geometry: TrailGeometry | null,
+  vars: MultiplaneCameraVars,
+) {
+  if (!geometry) {
+    stage.style.setProperty("--route-fraction", vars.routeProgress.toFixed(4));
+    return;
+  }
+
+  const { route, runner, total, entry } = geometry;
+  const length = entry + vars.routeProgress * (total - entry);
+  const from = route.getPointAtLength(Math.max(0, length - 3));
+  const to = route.getPointAtLength(Math.min(total, length + 3));
+  const here = route.getPointAtLength(length);
+  const placement = computeRunnerPlacement({
+    x: here.x,
+    y: here.y,
+    dx: to.x - from.x,
+    dy: to.y - from.y,
+  });
+
+  runner.setAttribute(
+    "transform",
+    `translate(${placement.x.toFixed(1)} ${placement.y.toFixed(1)}) ` +
+      `rotate(${placement.rotate.toFixed(1)}) ` +
+      `scale(${(vars.runnerScale * placement.facing).toFixed(3)} ${vars.runnerScale.toFixed(3)})`,
+  );
+  runner.dataset.stride =
+    Math.floor(length / STRIDE_LENGTH) % 2 === 0 ? "a" : "b";
+  stage.style.setProperty("--route-fraction", (length / total).toFixed(4));
 }
 
 function applyStageVars(stage: HTMLElement, vars: MultiplaneCameraVars) {
@@ -156,19 +230,11 @@ function applyStageVars(stage: HTMLElement, vars: MultiplaneCameraVars) {
   stage.style.setProperty("--near-shift", vars.nearShift.toFixed(3));
   stage.style.setProperty("--near-scale", vars.nearScale.toFixed(4));
   stage.style.setProperty("--near-drift", vars.nearDrift.toFixed(3));
-  stage.style.setProperty("--route-progress", vars.routeProgress.toFixed(4));
-  stage.style.setProperty("--runner-progress", vars.runnerProgress.toFixed(4));
-  stage.style.setProperty("--runner-x", vars.runnerX.toFixed(3));
-  stage.style.setProperty("--runner-y", vars.runnerY.toFixed(3));
-  stage.style.setProperty("--runner-rotate", vars.runnerRotate.toFixed(3));
-  stage.style.setProperty("--runner-scale", vars.runnerScale.toFixed(4));
   stage.style.setProperty("--runner-opacity", vars.runnerOpacity.toFixed(4));
-  stage.style.setProperty("--foreground-opacity", vars.foregroundOpacity.toFixed(4));
-  stage.style.setProperty("--cinematic-title-opacity", vars.titleOpacity.toFixed(4));
   stage.style.setProperty("--cinematic-title-shift", vars.titleShift.toFixed(3));
-  stage.style.setProperty("--cinematic-title-scale", vars.titleScale.toFixed(4));
-  stage.style.setProperty("--summit-glow", vars.summitGlow.toFixed(4));
-  stage.style.setProperty("--mountain-atmosphere", vars.atmosphere.toFixed(4));
+  stage.style.setProperty("--mountain-dawn", vars.dawn.toFixed(4));
+  stage.style.setProperty("--pass-glow", vars.passGlow.toFixed(4));
+  stage.style.setProperty("--hero-hint-opacity", vars.hintOpacity.toFixed(4));
   stage.style.setProperty("--cinematic-handoff", vars.handoff.toFixed(4));
 }
 
@@ -179,12 +245,48 @@ export function useMultiplaneCamera({
   isReducedMotion,
   compactLayout,
 }: UseMultiplaneCameraOptions) {
+  const geometryRef = useRef<TrailGeometry | null>(null);
+  const lastVarsRef = useRef<MultiplaneCameraVars | null>(null);
+
+  /**
+   * Re-measures the trail and puts the runner back on it. Needed whenever the
+   * framing changes without a scroll: the scene finishing its lazy load, a
+   * resize, or the switch between wide and compact framing.
+   */
+  const refresh = useCallback(() => {
+    const stage = stageRef.current;
+    if (!stage) {
+      return;
+    }
+
+    geometryRef.current = measureTrail(stage);
+    if (lastVarsRef.current) {
+      placeRunner(stage, geometryRef.current, lastVarsRef.current);
+    }
+  }, [stageRef]);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!enabled || !stage || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(refresh);
+    observer.observe(stage);
+
+    return () => {
+      observer.disconnect();
+      geometryRef.current = null;
+    };
+  }, [enabled, refresh, stageRef]);
+
   const renderProgress = useCallback<CinematicProgressRenderer>(
     (stage, progress, reducedMotion) => {
-      applyStageVars(
-        stage,
-        computeMultiplaneVars(progress, compactLayout, reducedMotion),
-      );
+      const vars = computeMultiplaneVars(progress, compactLayout, reducedMotion);
+      geometryRef.current ??= measureTrail(stage);
+      lastVarsRef.current = vars;
+      applyStageVars(stage, vars);
+      placeRunner(stage, geometryRef.current, vars);
     },
     [compactLayout],
   );
@@ -196,4 +298,6 @@ export function useMultiplaneCamera({
     isReducedMotion,
     renderProgress,
   });
+
+  return { refresh };
 }

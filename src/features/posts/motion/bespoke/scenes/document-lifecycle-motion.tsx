@@ -77,7 +77,7 @@ function Stage({ frame, compact, locale }: SceneStageProps) {
   const triggerLit = ease(frame, T.land, T.land + 8) * (1 - ease(frame, T.published, T.published + 20));
   const reviewWash = inReview ? Math.min(1, reviewFlip) : 0;
 
-  // ── Review happens where reality changed: a rail of four steps ──
+  // ── Review happens when something changes: a rail of four steps ──
   const railX = compact ? 32 : 452;
   const cardX = compact ? 50 : 476;
   const cardW = compact ? 470 : 444;
@@ -204,7 +204,7 @@ function Stage({ frame, compact, locale }: SceneStageProps) {
 export default defineScene({
   durationInFrames: T.end,
   posterFrame: T.end - 30,
-  title: { en: "Review where reality changed", fr: "Réviser là où la réalité a bougé" },
+  title: { en: "Review when something changes", fr: "Réviser quand quelque chose change" },
   caption: {
     en: "A document becomes trustworthy when the event that can make it wrong also triggers its review.",
     fr: "Un document devient fiable lorsque l’événement qui peut le rendre faux déclenche aussi sa revue.",

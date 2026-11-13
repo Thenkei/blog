@@ -1,6 +1,6 @@
 ---
 title: "From Zero to Hero: Building RockFi's Product OS"
-subtitle: "Twenty people, ten Claude Code challenges, and plugins that keep context alive on the trip from a workshop to a PR."
+subtitle: "Twenty people, ten Claude Code challenges, and plugins so that context is not lost between a workshop and a PR."
 summary: "How the Claude Code Challenges got good AI practices out of terminal histories, and how we then encoded them as plugins connecting discovery, design, and delivery, without ever handing the merge to an agent."
 visualId: "bounded-ai-loop"
 publishedAt: "2026-07-10"
@@ -19,9 +19,9 @@ This is how we got from there to what we call, with only relative modesty, our *
 
 ## Writing code faster is pointless if the context was lost upstream
 
-Proving that an agent could write code was settled. The real issue sat further upstream. Between product discovery and a PR, context crosses several handoffs: workshop, document, issues, implementation, review. At every crossing, you can drop the original problem, a decision, a boundary, or the definition of “done”.
+We already knew an agent could write code. Our problem was further upstream. Between product discovery and a PR, context crosses several handoffs: workshop, document, issues, implementation, review. At every crossing, you can drop the original problem, a decision, a boundary, or the definition of “done”.
 
-The symptoms were always the same. The effective prompt slept in a terminal history. The important convention never showed up at the moment it mattered. The document was clean but had lost the intent of the workshop. The issue sliced the code without preserving the expected value. And a few weeks later, the explanation of *why* was scattered across conversations and pages.
+We kept seeing the same things. A prompt that worked stayed in a terminal history. An important convention was not there when it was needed. A document was clean but had lost the intent of the workshop. An issue split the code without keeping the expected value. And a few weeks later, the explanation of *why* was scattered across conversations and pages.
 
 Writing code faster did little for us if we then had to recover the original problem or revisit a decision that had been poorly communicated.
 
@@ -33,7 +33,7 @@ We also had our “mega-prompt” phase: one block carrying all the context at o
 
 Then we tried the straight line: PRD, design, tasks, code. It holds until the first false assumption discovered during implementation. Without a return to design, the agent keeps implementing an assumption we now know is false.
 
-For the record, the temptations we turned down:
+What we chose not to do:
 
 - Buy a tool and call it an adoption strategy.
 - Measure progress by the volume of generated code or content.
@@ -41,9 +41,9 @@ For the record, the temptations we turned down:
 - Automate an unstable workflow before knowing who owns it and where the gates are.
 - Let an agent publish a product decision or merge a PR solely because the tests pass.
 
-## Ten challenges, and the right to fail in public
+## Ten challenges, and sharing what went wrong
 
-So we launched **Claude Code Challenges: From Zero to Hero**. The whole team took part: twenty people, not just the developers. Which makes sense, since the context that gets lost between a workshop and a PR does not only get lost in the code.
+So we launched **Claude Code Challenges: From Zero to Hero**. The whole team took part: twenty people, not just the developers. That made sense, since the context lost between a workshop and a PR is not only lost in the code.
 
 The format is deliberately down to earth: ten short challenges, bonus ones included, completed asynchronously on real code. Allow 60 to 90 minutes per challenge, with a concrete deliverable and a review at the end.
 
@@ -55,40 +55,40 @@ The sequence follows real work:
 - Work with subagents and parallel worktrees where parallelism is justified.
 - Build hooks and skills, then contribute useful workflows back to the team.
 
-The choice that mattered most: the programme lives in Slack, and what gets shared first is what went wrong. The prompt that worked, the approach that failed, a screenshot, the unexpected lesson from a session. No ranking. A leaderboard would have rewarded speed; we wanted to see the invisible part of working with AI, meaning how people frame the request, inspect the output, correct course, and decide that a result is good enough to move forward.
+The choice that mattered most: the programme runs in Slack, and people share what went wrong first. A prompt that worked, an approach that failed, a screenshot, something unexpected learned during a session. There is no ranking. A leaderboard would have rewarded speed. We wanted to see how people frame the request, inspect the output, correct course, and decide that a result is good enough to move on.
 
-That part matters far more than prompt recipes. Claude Code produces a plausible answer very quickly. It cannot know whether that answer preserves the right invariant in our domain unless we give it the context and check afterwards.
+That matters far more than prompt recipes. Claude Code produces a plausible answer very quickly. It cannot know whether that answer preserves the right invariant in our domain unless we give it the context and check afterwards.
 
-## From someone's terminal to everyone's marketplace
+## From the challenges to plugins
 
-The challenges acted as a detector: they surfaced the team's real practices before we tried to encode them. A failure shared in a thread became an edge case to handle. A workflow everyone kept redoing by hand became a skill. A rule we never wanted to see broken again became a hook.
+The challenges showed us how the team really worked before we tried to encode anything. A failure shared in a thread became an edge case to handle. A workflow everyone kept redoing by hand became a skill. A rule we did not want to see broken again became a hook.
 
 We still had to choose how to share those practices. A prompt library would be difficult to maintain. A central platform would require too much work before its first use. Leaving each team to figure it out would take us back to where we started. We chose **composable plugins**: small enough to belong to one precise workflow, versioned with their templates and guardrails, installable by whoever needs them, and connected to each other through explicit contracts.
 
-What separates a plugin from a shared prompt is what it carries: the procedure, the guardrails, the templates, and the edge cases that make a workflow reliable in the way we work. Our internal marketplace now holds technical plugins as well as broader ones for the company's recurring tasks. The technical side is where the Product OS is most visible. Here are two of them.
+Unlike a shared prompt, a plugin carries the procedure, the guardrails, the templates, and the edge cases that make a workflow reliable in the way we work. Our internal marketplace now holds technical plugins as well as broader ones for the company's recurring tasks. The technical side is where the Product OS is most visible. Here are two of them.
 
 ## `rockfi-engineering`: repository rules in the tool
 
 The `rockfi-engineering` plugin brings the everyday engineering workflow into Claude Code, with explicit rules. A fast workflow that bypasses review discipline only produces an unreadable history faster.
 
-Its PR creation skill does more than fill in a template. It analyses the change, scores its complexity, spots unrelated scopes, and warns when the PR should be split. It then writes a structured description around the questions that same reviewer actually asks: objective, rationale, implementation, resources.
+Its PR creation skill analyses the change, scores its complexity, spots unrelated scopes, and warns when the PR should be split. It then writes a structured description around the questions a reviewer asks: objective, rationale, implementation, resources.
 
 The commit skill validates our conventional-commit rules. And a strict pre-tool hook blocks any commit or push from `main`. It creates an appropriately named feature branch and resumes work from that branch.
 
-We never ask an agent to “ship it”. We encode a path (feature branch, clear PR, review by the right people before anything is merged) and AI removes the mechanical friction from it. The review stays exactly where it is.
+We never ask an agent to “ship it”. We encode a path (feature branch, clear PR, review by the right people before anything is merged) and AI takes care of the repetitive steps. The review stays where it is.
 
 ## `rockfi-ve`: keeping the “why” attached to the PR
 
-Creating a clean PR is the easy part. The hard part is making sure it stays connected to the decision that justified it.
+Creating a clean PR is fairly easy. It is harder to keep it connected to the decision that justified it.
 
 The `rockfi-ve` plugin supports our Value Engineering process, from facilitating a workshop through to the final design document, the **DiveIn**, grounded in the official Notion templates. It has two modes:
 
 - **Facilitation:** when the thinking still needs to happen, it guides a workshop or a DiveIn section by section. The team explores the problem, compares solutions, documents the decision, and defines the expected outcome.
-- **Distillation:** when the discussion already happened and the main job is finding it again, it maps the existing content into the right structure, surfaces what is missing, flags assumptions, and prepares a draft for confirmation before publication.
+- **Distillation:** when the discussion already happened and the main job is finding it again, it organises the existing content according to the template, surfaces what is missing, flags assumptions, and prepares a draft for confirmation before publication.
 
-The DiveIn structure makes the handoff concrete: context, definition of done, functional solution, technical solution, slicing, and resources. What comes out is less a nice document than a contract between product and tech: which problem we are solving, what “done” means, what is deliberately out of scope, and how to deliver in increments that stand on their own.
+The DiveIn structure makes the handoff concrete: context, definition of done, functional solution, technical solution, slicing, and resources. The result works as a contract between product and tech: which problem we are solving, what “done” means, what is deliberately out of scope, and how to split the work into useful steps that can be delivered separately.
 
-The plugin also knows the next move. A workshop leads to a DiveIn; a DiveIn leads to slices, a QA plan, a rollout plan, and issues. Other capabilities then take over: delivery turns the definition of done and the slices into reviewable tasks, and the rest covers discovery, QA planning, rollout, and hunting for blind spots.
+The plugin also prepares the next steps. A workshop leads to a DiveIn; a DiveIn leads to slices, a QA plan, a rollout plan, and issues. Other capabilities then take over: delivery turns the definition of done and the slices into reviewable tasks, and the rest covers discovery, QA planning, rollout, and hunting for blind spots.
 
 ## Being able to revisit a decision
 
@@ -123,12 +123,12 @@ If implementation reveals a false assumption, we need to revisit the design and 
 
 We stay cautious with the word “automation”. The system speeds up preparation and makes the process more consistent, but human gates remain on product decisions, architecture choices, sensitive changes, and merge. An agent can prepare the material for a VE decision or a definition of done; the responsible people still need to confirm the decision. And a PR waits for a reviewer who can challenge the design and the code, not merely observe that CI is green.
 
-What we are trying to win back is the time spent rebuilding context at every handoff, and give it to the decisions that require knowing the product, the customers, and the system. Producing more documents is not enough to reduce that work.
+What we want to save is the time spent rebuilding context at every handoff, so we can spend it on the decisions that require knowing the product, the customers, and the system. Producing more documents is not enough to reduce that work. And it works: we rebuild noticeably less context between the workshop, the DiveIn, and the PR.
 
 ## The workflows still need maintenance
 
 A plugin can propagate a bad practice too. Every workflow therefore needs an owner, an evaluation, and stop conditions when the context is not enough.
 
-The Product OS replaces neither product strategy, nor domain expertise, nor technical review. It even adds a surface to maintain: permissions, templates, connectors, tool compatibility, observability.
+The Product OS replaces neither product strategy, nor domain expertise, nor technical review. It even adds things to maintain: permissions, templates, connectors, tool compatibility, observability.
 
 Finally, not everything should cross the whole chain. A typo fix does not need a VE workshop and a DiveIn. A small, reversible change deserves a short path.

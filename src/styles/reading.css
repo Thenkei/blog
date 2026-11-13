@@ -18,10 +18,18 @@
   pointer-events: none;
 }
 
+/*
+ * The header is sticky, so everything here hangs from its bottom edge: pinned
+ * to the top of the viewport it would sit behind the header and be invisible.
+ */
 .clean-progress-label,
 .mountain-progress-label {
-  top: calc(env(safe-area-inset-top) + 28px);
+  top: calc(env(safe-area-inset-top) + var(--global-header-height) + 12px);
   right: clamp(10px, 2vw, 24px);
+}
+
+.mountain-progress-label {
+  right: 38px;
 }
 
 .rocket-progress-label {
@@ -29,16 +37,15 @@
   right: 162px;
 }
 
-.clean-progress[data-progress-placement="top"],
-.mountain-progress[data-progress-placement="top"] {
-  top: calc(env(safe-area-inset-top) + 6px);
-  left: clamp(10px, 2vw, 24px);
-  right: clamp(10px, 2vw, 24px);
+.clean-progress[data-progress-placement="top"] {
+  top: calc(env(safe-area-inset-top) + var(--global-header-height) - 1px);
+  left: 0;
+  right: 0;
 }
 
 .clean-progress {
   z-index: 92;
-  height: 18px;
+  height: 3px;
 }
 
 .clean-progress-track,
@@ -46,21 +53,18 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
-  border-radius: 999px;
-  transform: translateY(-50%);
+  top: 0;
+  height: 3px;
 }
 
 .clean-progress-track {
-  height: 8px;
-  background: color-mix(in srgb, var(--progress-rail-bg) 88%, transparent);
-  box-shadow: 0 1px 0 rgb(255 255 255 / 0.08) inset;
+  background: color-mix(in srgb, var(--progress-rail-bg) 70%, transparent);
 }
 
 .clean-progress-fill {
   right: auto;
-  height: 8px;
   width: calc(var(--reading-progress, 0) * 1%);
+  border-radius: 0 999px 999px 0;
   background: var(--progress-fill);
   box-shadow: var(--progress-glow);
 }
@@ -69,121 +73,139 @@
   position: absolute;
   left: clamp(0%, calc(var(--reading-progress, 0) * 1%), 100%);
   top: 50%;
-  width: 16px;
-  height: 16px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   background: var(--progress-marker-bg);
   box-shadow:
-    inset 0 0 0 2px color-mix(in srgb, var(--accent-primary) 36%, transparent),
+    inset 0 0 0 2px color-mix(in srgb, var(--accent-primary) 46%, transparent),
     var(--progress-marker-shadow);
 }
 
-.clean-progress-dark .clean-progress-track {
-  backdrop-filter: blur(2px);
-}
-
-.clean-progress-light .clean-progress-marker {
-  width: 15px;
-  height: 15px;
-}
-
-.mountain-progress {
+/*
+ * Mountain: the reader climbs a small mountain in the right margin, the
+ * counterpart of the Rocket launch rail. The lit trail and the runner follow
+ * the same path; pathLength is 1, so the dash offset is the share left to read.
+ */
+.mountain-progress[data-progress-placement="right"] {
+  top: calc(env(safe-area-inset-top) + var(--global-header-height) + 52px);
+  right: 30px;
+  bottom: calc(env(safe-area-inset-bottom) + 104px);
   z-index: 96;
-  height: 56px;
+  display: flex;
+  width: 112px;
+  align-items: center;
+  justify-content: center;
+}
+
+.mountain-progress-climb {
+  display: block;
+  width: auto;
+  height: min(100%, 540px);
+  overflow: visible;
+}
+
+/* The mountain fades out towards its base, so it has no hard bottom edge. */
+.mountain-progress-rock-top {
+  stop-color: var(--surface-3);
+  stop-opacity: 0.95;
+}
+
+.mountain-progress-rock-mid {
+  stop-color: var(--surface-2);
+  stop-opacity: 0.7;
+}
+
+.mountain-progress-rock-base {
+  stop-color: var(--surface-2);
+  stop-opacity: 0;
+}
+
+.mountain-progress-light {
+  fill: rgb(240 194 119 / 0.09);
+}
+
+.mountain-progress-snow {
+  fill: color-mix(in srgb, var(--text-primary) 82%, transparent);
+}
+
+.mountain-progress-firs {
+  fill: color-mix(in srgb, var(--surface-3) 70%, transparent);
+}
+
+.mountain-progress-trail,
+.mountain-progress-trail-lit {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mountain-progress-trail {
+  stroke: color-mix(in srgb, var(--text-primary) 30%, transparent);
+  stroke-dasharray: 1 6;
+  stroke-width: 2.4;
+}
+
+.mountain-progress-trail-lit {
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: calc(1 - var(--reading-progress, 0) / 100);
+  stroke-width: 3.4;
+  filter: drop-shadow(0 0 4px rgb(240 194 119 / 0.4));
+}
+
+.mountain-progress-trailhead {
+  fill: #7de0bf;
+  stroke: var(--bg-color);
+  stroke-width: 2;
+}
+
+.mountain-progress-summit {
+  opacity: 0.6;
+  transition: opacity var(--motion-base) var(--motion-ease-standard);
+}
+
+.mountain-progress[data-summit="true"] .mountain-progress-summit {
+  opacity: 1;
 }
 
 .mountain-progress-runner {
-  position: absolute;
-  left: clamp(0%, calc(var(--reading-progress, 0) * 1%), 100%);
-  top: 50%;
-  width: 98px;
-  height: 58px;
-  transform: translate(-50%, -50%) rotate(-2.5deg);
-  transform-origin: 58% 84%;
-  transition: transform var(--motion-base) var(--motion-ease-standard);
-  filter: drop-shadow(0 8px 12px rgb(0 0 0 / 0.22));
+  filter: drop-shadow(0 3px 4px rgb(0 0 0 / 0.35));
 }
 
-.mountain-progress[data-direction="up"] .mountain-progress-runner {
-  transform: translate(-50%, -50%) rotate(3deg);
-}
+/*
+ * Narrow screens have no margin to spare: the climb gives way to the same thin
+ * line the other themes use, so the article keeps its full width.
+ */
+@media (max-width: 1100px) {
+  .mountain-progress-label {
+    right: clamp(10px, 2vw, 24px);
+  }
 
-.mountain-runner-icon {
-  width: 100%;
-  height: 100%;
-  display: block;
-  transform: scaleX(-1);
-  animation: runnerStride var(--runner-stride-duration, 0.84s) ease-in-out infinite;
-  animation-play-state: paused;
-  transform-origin: 58% 84%;
-}
+  .mountain-progress[data-progress-placement="right"] {
+    top: calc(env(safe-area-inset-top) + var(--global-header-height) - 1px);
+    right: 0;
+    bottom: auto;
+    left: 0;
+    display: block;
+    width: auto;
+    height: 3px;
+    background: color-mix(in srgb, var(--progress-rail-bg) 70%, transparent);
+  }
 
-.mountain-runner-icon .runner-leg-front,
-.mountain-runner-icon .runner-leg-back,
-.mountain-runner-icon .runner-leg-front-foot,
-.mountain-runner-icon .runner-leg-back-foot {
-  transform-box: view-box;
-  will-change: transform;
-  animation-duration: var(--runner-stride-duration, 0.84s);
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-fill-mode: both;
-  animation-play-state: paused;
-}
+  .mountain-progress[data-progress-placement="right"]::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--reading-progress, 0) * 1%);
+    border-radius: 0 999px 999px 0;
+    background: linear-gradient(90deg, #7de0bf 0%, #f0c277 100%);
+    box-shadow: var(--progress-glow);
+  }
 
-.mountain-runner-icon .runner-leg-front {
-  transform-origin: 72px 79px;
-  animation-name: runnerFrontLegSwing;
-}
-
-.mountain-runner-icon .runner-leg-back {
-  transform-origin: 75px 69px;
-  animation-name: runnerBackLegSwing;
-}
-
-.mountain-runner-icon .runner-leg-front-foot {
-  transform-origin: 45px 113px;
-  animation-name: runnerFrontFootStrike;
-}
-
-.mountain-runner-icon .runner-leg-back-foot {
-  transform-origin: 98px 83px;
-  animation-name: runnerBackFootStrike;
-}
-
-.mountain-progress[data-running="true"] .mountain-runner-icon,
-.mountain-progress[data-running="true"] .mountain-runner-icon .runner-leg-front,
-.mountain-progress[data-running="true"] .mountain-runner-icon .runner-leg-back,
-.mountain-progress[data-running="true"] .mountain-runner-icon .runner-leg-front-foot,
-.mountain-progress[data-running="true"] .mountain-runner-icon .runner-leg-back-foot {
-  animation-play-state: running;
-}
-
-.runner-ground {
-  fill: color-mix(in srgb, var(--surface-2) 72%, transparent);
-  opacity: 0.9;
-}
-
-.runner-grass {
-  fill: none;
-  stroke: color-mix(in srgb, var(--text-primary) 44%, var(--surface-2));
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  opacity: 0.8;
-}
-
-.runner-silhouette {
-  fill: color-mix(in srgb, var(--text-primary) 95%, #010101);
-}
-
-.runner-backpack {
-  fill: color-mix(in srgb, var(--text-primary) 90%, var(--surface-1));
-}
-
-.runner-dust {
-  fill: color-mix(in srgb, var(--surface-2) 78%, var(--text-secondary));
-  opacity: 0.78;
+  .mountain-progress-climb {
+    display: none;
+  }
 }
 
 .rocket-progress[data-progress-placement="right"] {
