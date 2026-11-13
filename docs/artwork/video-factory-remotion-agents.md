@@ -28,7 +28,7 @@ Three example films, produced with the factory the article describes, for a fict
 | --- | --- | --- | --- |
 | `video-factory-trailer` | `videos/blog-demo-trailer` | `fr-v2`, `en-v2` | 21.5 s |
 | `video-factory-release` | `videos/blog-demo-release` | `fr-v1`, `en-v1` | 25 s |
-| `video-factory-explainer` | `videos/blog-demo-explainer` (French), `videos/blog-demo-explainer-en` (English) | `fr-v2`, `en-v3` | 64.2 s, 60.3 s |
+| `video-factory-explainer` | `videos/blog-demo-explainer` (French), `videos/blog-demo-explainer-en` (English) | `fr-v3`, `en-v4` | 64.2 s, 60.3 s |
 
 The sources live in the `videos-factory` repository, not in this one. The two silent folders render French by default and English with `REMOTION_LOCALE=en`:
 
@@ -64,13 +64,13 @@ The voice is generated with ElevenLabs (`eleven_multilingual_v2`) on the author'
 Each element of the diagrams appears on the word that names it. The frames come from the character alignment ElevenLabs returns with the audio.
 
 ```sh
-npm run render -- blog-demo-explainer fr-v3
-REMOTION_LOCALE=en npm run render -- blog-demo-explainer-en en-v4
-npm run verify -- blog-demo-explainer fr-v3
-node videos/blog-demo-explainer/captions.mjs blog-demo-explainer fr-v3      # out/fr-v3/captions.vtt
+npm run render -- blog-demo-explainer fr-v4
+REMOTION_LOCALE=en npm run render -- blog-demo-explainer-en en-v5
+npm run verify -- blog-demo-explainer fr-v4
+node videos/blog-demo-explainer/captions.mjs blog-demo-explainer fr-v4      # out/fr-v4/captions.vtt
 ```
 
-Both takes passed `verify` (exact frame count, AAC, −16 LUFS, true peak under −1 dBFS). A local whisper.cpp transcript of each final mix contains every word of the script, in order. Nobody has listened to them yet.
+Both takes passed `verify` (exact frame count, AAC, −16 LUFS, true peak under −1 dBFS). A local whisper.cpp transcript of each final mix contains every word of the script, in order. A fresh read-only review of the rendered films found no blocker and measured every reveal 67 to 100 ms after its word; `fr-v3` and `en-v4` apply three of its picture remarks with the same audio. Nobody has listened to them yet.
 
 The web files keep the audio (AAC, 96 kb/s) and come with a WebVTT caption file per language, generated from the same alignment:
 
