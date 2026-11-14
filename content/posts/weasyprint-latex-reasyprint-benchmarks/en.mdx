@@ -4,7 +4,7 @@ subtitle: "Same inputs, two PDFs per document, checks that do not require identi
 summary: "How I compared the LaTeX rendering of a Lambda with WeasyPrint, then started a renderer in Rust: what 'same output' means, the timing protocol and its limits, the variants tested by sub-agents, and what has not been measured."
 visualId: "bounded-ai-loop"
 publishedAt: "2026-12-08"
-readTimeMinutes: 10
+readTimeMinutes: 12
 tags:
   - pdf
   - performance
@@ -237,12 +237,54 @@ The round also produced a Python binding, built as Linux wheels for x86_64 and a
 
 The engine went from 416 to 452 tests.
 
+## A fourth round: public documents
+
+The six reference documents come from our templates: client names, business content, licensed fonts. They cannot leave my machine, so CI never saw them and no one else can check a number measured on them. I told the session to stop working on them and to write its own benchmark documents instead, several kinds, several templates.
+
+It wrote a generator for ten kinds of documents, filled with invented data and set in DejaVu: an invoice, a letter, a 21-page report with a cover and charts, a 51-page ledger of 2,600 rows, a three-column newsletter, a dashboard, a contract, a page of Arabic and Hebrew, a form written for PDF/UA, a catalogue of 48 product cards. They are committed with the code, CI checks that the generator still produces them byte for byte, and veraPDF validates all ten as PDF/A-2b and PDF/UA-1.
+
+These documents were written to cover features, not tuned to the engine, and they found what the six had not:
+
+- two forced page breaks in a row counted as two, which gave the report a 22nd page;
+- `::before` and `::after` of a flex or grid container not laid out as items;
+- a float placed before a block pushing that block down;
+- `double` borders drawn as a single line;
+- a full-bleed cover (`@page :first { margin: 0 }`) laid out at the width of the other pages, so its title wrapped;
+- the 2,600-row ledger taking 4.3 seconds to lay out with collapsed borders, against 0.1 seconds with separated ones: each border was looked up in a list, which is quadratic in the number of cells;
+- every chart with text rescanning all the fonts installed on the machine, about 570 ms per render, then setting its labels in Times instead of the document's font.
+
+A last sub-agent wrote a fuzzer: a generator of random but plausible documents, rendered end to end, that checks for no panic, the same bytes on a second render, and a time limit. Out of about 7,000 documents, three were enough to break something. One `@page` margin larger than the page gave one word 26 pages. A `colspan` of 70,000 built a grid of 70,000 columns. A one-billion-point font in a multi-column block took 7.5 seconds. CI now renders 600 such documents on every pull request.
+
+Timings on the same Mac, medians in milliseconds once warm:
+
+| Document | Pages | WeasyPrint | reasyprint | Speed-up | Worst page, pixels differing |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| invoice | 2 | 118 | 3.2 | 37× | 0.48 % |
+| letter | 1 | 30 | 3.7 | 8× | 3.9 % |
+| report | 21 | 625 | 24 | 26× | 3.8 % |
+| ledger | 51 | 15,717 | 261 | 60× | 1.9 % |
+| newsletter | 6 | 566 | 13 | 43× | 21 % |
+| dashboard | 1 | 68 | 2.0 | 34× | 0.00 % |
+| contract | 10 | 207 | 12 | 17× | 17 % |
+| multilingual | 1 | 35 | 3.2 | 11× | 0.30 % |
+| accessible | 2 | 39 | 2.5 | 16× | 5.0 % |
+| catalog | 6 | 695 | 6.1 | 114× | 8.6 % |
+
+The Mac was busy with other work. WeasyPrint's times moved by up to 2.6 times between two runs, and the table keeps the faster one, so the speed-ups are lower bounds.
+
+Both engines give the same page count on all ten documents. Three of them place every line of text within a quarter of a point. For the others, I asked for a visual comparison of every page, and went through each difference:
+
+- **Two are reasyprint bugs.** In the newsletter, an article whose three columns do not fit the rest of page 1 moves whole to page 2 and leaves its heading alone at the bottom of the page; every later page inherits the shift. In the form, a heading beside a float is one point too tall.
+- **The others are choices.** The two engines hyphenate with different dictionaries (`sig-nal` against `si-gnal`), and in the contract the shifted lines end up moving a page break. reasyprint drops a grid's row gap at a page break, as the CSS Grid specification asks. It draws collapsed borders inside the cells rather than astride the grid line, and centres table header cells as browsers do.
+
+The engine went from 452 to 510 tests.
+
 ## What has not been measured
 
 - End-to-end latency in a deployed Lambda, cold and warm, for all three renderers. reasyprint has only run in the Lambda image, on a CI runner.
 - Memory of LaTeX and WeasyPrint. reasyprint peaks at 14 MB on the 14-page report, on my Mac.
 - reasyprint on the corpus of 52 documents.
 - reasyprint against LaTeX under the same conditions. The comparison above is indirect.
-- veraPDF on the six reference documents. It has only run on the two test documents.
+- veraPDF on the six reference documents. It runs on the two test documents and the ten public ones.
 
 The target for reasyprint: replace LaTeX in the Lambda and generate PDFs more than 100 times faster, with the same output quality. The factor of 100 is exceeded on the six documents of the indirect comparison. It remains to be measured in a deployed Lambda, and the output quality remains to be checked against LaTeX.
