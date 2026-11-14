@@ -73,7 +73,7 @@ const COPY = {
     round: (n: number) => `tour ${n}`,
     median: "médiane",
     renders: "12 rendus à chaud",
-    decide: "l'auteur décide du tour suivant",
+    decide: "je décide du tour suivant",
     variant: "variante contre le rendu existant",
   },
   en: {
@@ -99,7 +99,7 @@ const COPY = {
     round: (n: number) => `round ${n}`,
     median: "median",
     renders: "12 warm renders",
-    decide: "the author decides the next round",
+    decide: "I decide the next round",
     variant: "variant against the existing render",
   },
 } as const;
@@ -312,7 +312,7 @@ function Stage({ frame, compact, locale }: SceneStageProps) {
   const medianIn = easeOut(frame, T.median, T.median + 18);
   const fill = easeOut(frame, T.median + 6, T.median + 40);
 
-  // The loop: from the measurement to the author's decision, then to the next variant.
+  // The loop: from the measurement to my decision, then to the next variant.
   const loop = compact
     ? { path: [[270, panel.y + panel.h], [270, 486]] as Pt[], decide: [270, 452] as Pt, variant: [270, 486] as Pt }
     : { path: [[cx(panel), panel.y + panel.h], [cx(panel), 388], [300, 388]] as Pt[], decide: [596, 388] as Pt, variant: [300, 388] as Pt };
@@ -451,7 +451,7 @@ export default defineScene({
     { at: T.checks, text: { fr: `Les contrôles portent sur ce qui est visible${NBSP}: nombre de pages, mots et nombres comptés, pied de page.`, en: "The checks cover what is visible: page count, words and numbers counted, footer and page numbering." } },
     { at: T.swap, text: { fr: `Mesure à chaud${NBSP}: un rendu de préchauffage non compté, puis l'ordre des moteurs s'inverse à chaque tour.`, en: "Warm measurement: one warmup render that does not count, then the engine order reverses on each round." } },
     { at: T.median, text: { fr: `Bulletin d'une page, médiane sur 12 rendus à chaud${NBSP}: 1${NBSP}127${NBSP}ms avec LaTeX, 141${NBSP}ms avec WeasyPrint.`, en: "One-page bulletin, median over 12 warm renders: 1,127 ms with LaTeX, 141 ms with WeasyPrint." } },
-    { at: T.loop, text: { fr: "Une variante est mesurée contre le rendu existant. L'auteur lit le résultat et décide du tour suivant.", en: "A variant is measured against the existing render. The author reads the result and decides the next round." } },
+    { at: T.loop, text: { fr: "Une variante est mesurée contre le rendu existant. Je lis le résultat et je décide du tour suivant.", en: "A variant is measured against the existing render. I read the result and decide the next round." } },
   ],
   Stage,
 });
