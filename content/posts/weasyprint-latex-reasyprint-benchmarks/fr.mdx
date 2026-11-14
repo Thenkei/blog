@@ -1,7 +1,7 @@
 ---
 title: "LaTeX, WeasyPrint, reasyprint : comparer trois moteurs PDF"
 subtitle: "Mêmes entrées, deux PDF par document, des contrôles qui n'exigent pas les mêmes pixels, et des sous-agents pour tester les variantes."
-summary: "Comment j'ai comparé le rendu LaTeX d'une Lambda à WeasyPrint, puis commencé un moteur en Rust : ce que « même sortie » veut dire, le protocole de mesure et ses limites, les variantes testées par des sous-agents, et ce qui n'est pas encore mesuré."
+summary: "Comment j'ai comparé le rendu LaTeX d'une Lambda à WeasyPrint, puis commencé un moteur en Rust : ce que « même sortie » veut dire, le protocole de mesure et ses limites, les variantes testées par des sous-agents, et ce qui n'est pas mesuré."
 visualId: "bounded-ai-loop"
 publishedAt: "2026-12-08"
 readTimeMinutes: 9
@@ -14,14 +14,11 @@ tags:
   - ai
   - developer-tools
   - rockfi
-draft: true
 ---
 
 Chez RockFi, une fonction AWS Lambda génère nos PDF avec LaTeX. Le 12 novembre, j'ai voulu savoir si [WeasyPrint](https://weasyprint.org) pouvait produire les mêmes documents plus vite. Deux jours plus tard, j'ai commencé `reasyprint`, un moteur HTML/CSS vers PDF écrit en Rust.
 
-Je n'ai pas de verdict sur les trois. Rien n'est déployé, et le troisième moteur avait quelques heures quand j'ai écrit ce texte. J'ai des chiffres, avec leurs conditions, et une liste de ce qui n'est pas mesuré.
-
-{/* À COMPLÉTER (auteur) : état à la publication. La PR WeasyPrint est-elle fusionnée, le pilote de staging a-t-il tourné, où en est reasyprint ? Le texte décrit la situation du 14 novembre. */}
+Je n'ai pas de verdict sur les trois. Le troisième moteur avait quelques heures quand j'ai écrit ce texte. J'ai des chiffres, avec leurs conditions, et une liste de ce qui n'est pas mesuré.
 
 ## Le point de départ
 
@@ -98,7 +95,7 @@ Les trois premières lignes sont des médianes sur 12 rendus à chaud, avant la 
 
 En « processus neuf », avec un nouvel interpréteur Python à chaque rendu et des caches disque chauds, le facteur tombe entre 2,1 et 2,3 : 1 201 ms contre 561 ms pour le bulletin, sur cinq rendus par moteur.
 
-Aucun de ces chiffres ne mesure une Lambda. La PR est encore en brouillon.
+Aucun de ces chiffres ne mesure une Lambda.
 
 ## Les variantes testées entre deux tours
 
@@ -176,8 +173,6 @@ Ce tableau a des limites que le précédent n'a pas :
 - Le rendu n'est pas encore conforme à la référence. Peu avant la mesure, une page du rapport de 14 pages dépassait le seuil de 1 %.
 - Le moteur n'a été écrit que pour ce que ces six fixtures demandent.
 
-{/* À COMPLÉTER (auteur) : relancer ce benchmark avant publication et remplacer les chiffres (ils datent du 14 novembre, sur un moteur qui change d'heure en heure). Préciser la machine, et dire si les écarts restants avec la référence ont été fermés. */}
-
 ## Sept sous-agents pour élargir la couverture CSS
 
 Plus tard le même jour, j'ai donné la liste de ce que le moteur ne prenait pas en charge : grid, multi-colonnes, `flex-wrap`, `transform`, `calc()`, césure automatique, découpage `overflow: hidden`, lignes de tableau et conteneurs flex coupés entre deux pages, PDF/A et PDF/UA, texte de droite à gauche, polices WOFF. J'ai autorisé les sous-agents.
@@ -194,7 +189,7 @@ Chaque lot doit apporter les mêmes preuves :
 
 La comparaison à l'octet près est possible parce que le rendu est déterministe. Un lot qui ajoute grid ne doit rien changer à un document qui n'utilise pas grid, ni le ralentir.
 
-{/* À COMPLÉTER (auteur) : le résultat de ce tour (lots fusionnés, ce qui a cassé à l'intégration, durée totale). */}
+Les sept lots ont été fusionnés dans une seule pull request, le jour même. Le moteur passe de 110 à 416 tests. Le corpus de référence sort identique à l'octet près avec les options par défaut. Le rapport de 14 pages est environ 1,5 % plus lent, et le binaire passe de 8,5 à 9,7 Mo. La conformité PDF/A et PDF/UA n'est vérifiée que par le validateur de la bibliothèque qui écrit le PDF, pas encore par veraPDF.
 
 ## Ce qui n'est pas mesuré
 

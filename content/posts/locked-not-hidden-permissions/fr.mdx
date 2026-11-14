@@ -11,7 +11,6 @@ tags:
   - security
   - dx
   - rockfi
-draft: true
 ---
 
 Dans le back office de RockFi, l'interface cache ce que les permissions d'un utilisateur refusent. Sans la permission de modifier une section, les boutons d'écriture ne sont pas rendus. Sans la permission d'en lire une autre, l'onglet ou la carte qui l'affiche disparaît.
@@ -20,9 +19,7 @@ L'utilisateur voit une page avec des morceaux en moins et aucune explication. Il
 
 Le déclencheur : je cherchais une section que je ne trouvais pas. Le problème venait finalement d'ailleurs, mais c'est ce qui m'a décidé à ouvrir cette pull request.
 
-J'ai ouvert une pull request qui change cette règle : ce que les permissions refusent reste affiché, verrouillé, avec le nom des groupes qui détiennent la permission. Au moment où j'écris, elle est ouverte et n'est pas fusionnée. Je ne peux donc rien dire de son effet sur les utilisateurs.
-
-{/* À COMPLÉTER (auteur) : état de la pull request à la date de publication (fusionnée telle quelle, modifiée, abandonnée) et adapter les temps du texte en conséquence. */}
+J'ai ouvert une pull request qui change cette règle : ce que les permissions refusent reste affiché, verrouillé, avec le nom des groupes qui détiennent la permission.
 
 Je parle ici du back office que RockFi utilise aujourd'hui. Nexus, que décrit la série [Outils internes à la pointe](../posts/internal-tools-are-a-product), était une proposition, et [une autre solution a été retenue](../posts/internal-tools-still-believe). Les noms de permissions et de groupes de cet article sont inventés, et le code est simplifié.
 
@@ -110,5 +107,3 @@ Une recommandation publique connue va dans l'autre sens pour les permissions. Da
 Dans notre back office, l'appartenance à un groupe se change dans les réglages, et le message affiché dit de demander l'accès à un administrateur. La réponse à sa question n'est donc pas « jamais ».
 
 La proposition ne prévoit aucune fonctionnalité dont l'existence devrait rester cachée. S'il en arrive une, il faudra l'écrire comme une exception de plus.
-
-{/* À COMPLÉTER (auteur) : comment les utilisateurs ont réagi une fois le changement en place (s'il l'est). Ne rien ajouter tant qu'il n'y a pas de retour réel. */}

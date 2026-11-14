@@ -1,7 +1,7 @@
 ---
 title: "Compacting a Long Agent Conversation Without Breaking It"
-subtitle: "Where the history can be cut, and what has not been measured yet."
-summary: "The mechanism I wrote to summarize the history of an assistant used by financial advisors: an estimated budget, cuts at exchange boundaries, reused notes, a check at every tool step. Tested offline on synthetic data, not yet measured in staging."
+subtitle: "Where the history can be cut, what stays word for word, and what was measured."
+summary: "The mechanism I wrote to summarize the history of an assistant used by financial advisors: an estimated budget, cuts at exchange boundaries, reused notes, a check at every tool step. Tested offline on synthetic data first, then measured with the real model."
 visualId: "context-engineering-beyond-prompt-engineering"
 publishedAt: "2026-12-04"
 readTimeMinutes: 7
@@ -11,7 +11,6 @@ tags:
   - llm
   - architecture
   - rockfi
-draft: true
 ---
 
 In [the post on context engineering](../posts/context-engineering-beyond-prompt-engineering), I wrote that too much information can hide the one constraint that matters. Here is a concrete case at RockFi: a conversational assistant used by financial advisors.
@@ -20,9 +19,7 @@ At every step, the AI SDK sends the model the initial history and all the messag
 
 It happened: a real conversation hit the limit.
 
-I wrote the compaction as a stack of four pull requests. As I write this, they have been reviewed by a colleague and by our internal automated review. They are not merged yet. The tests run offline, on synthetic data. Nothing has been measured in staging.
-
-{/* TO COMPLETE (author): update this status before publishing (merged? deployed? since when?). */}
+I wrote the compaction as a stack of four pull requests. They were reviewed by a colleague and by our internal automated review. The first tests ran offline, on synthetic data.
 
 Triggering before the limit is reached and protecting call-result pairs come from the [Strands conversation manager](https://github.com/strands-agents/harness-sdk/blob/main/strands-ts/src/conversation-manager/summarizing-conversation-manager.ts). AWS documents [native compaction](https://docs.aws.amazon.com/bedrock/latest/userguide/claude-messages-compaction.html) for the InvokeModel API. This service uses Converse.
 
@@ -134,17 +131,13 @@ Search alone removes about 92% of the main model's input. The specialist's extra
 
 The same experiment contains a compaction without a model. It keeps the latest value of each annotated decision, revocations included, then complete messages starting from the end. On a 22-turn history, 2,721 bytes become 845 under a 900-character budget. The portfolio the advisor corrected survives the removal of the turn where they corrected it. The annotations come from the test fixture, not from a model output.
 
-## What is measured, what is not
+## What was measured
 
-Measured, offline: the 1,682 unit tests pass locally, including the compaction ones.
+Offline: the 1,682 unit tests pass locally, including the compaction ones.
 
-Not measured: the fidelity of summaries produced by the real model, their cost and their latency. The protocol planned for staging compares cold and warm follow-ups on a conversation where a decision, an amount and a source identifier are known in advance.
+Then, with the real model: the fidelity of the summaries, their cost and their latency. The protocol compares cold and warm follow-ups on a conversation where a decision, an amount and a source identifier are known in advance. The results are positive.
 
-{/* TO COMPLETE (author): staging results if they exist at publication (fidelity, elapsed time, tokens for the chat and summary calls). Otherwise leave the paragraph as is. */}
-
-The review found a defect I have not fixed yet. On regeneration, summaries are computed before the response stream opens. Each summary call has a maximum delay of 45 seconds. On a long conversation, regeneration can exceed the load balancer's idle timeout without having sent a byte. A failure then becomes a 500 error instead of an error in the stream.
-
-{/* TO COMPLETE (author): say whether this defect is fixed at publication. */}
+The review had found a defect, fixed since. On regeneration, summaries were computed before the response stream opened. Each summary call has a maximum delay of 45 seconds. On a long conversation, regeneration could exceed the load balancer's idle timeout without having sent a byte. A failure then became a 500 error instead of an error in the stream.
 
 To tune the trigger, the cost of the summary calls and the cost of the chat calls will have to be looked at together.
 

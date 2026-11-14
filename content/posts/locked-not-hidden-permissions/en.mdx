@@ -11,7 +11,6 @@ tags:
   - security
   - dx
   - rockfi
-draft: true
 ---
 
 In RockFi's back office, the interface hides what a user's permissions refuse. Without the permission to edit a section, the write buttons are not rendered. Without the permission to read another one, the tab or card that shows it disappears.
@@ -20,9 +19,7 @@ The user sees a page with pieces missing and no explanation. They cannot tell a 
 
 The trigger: I was looking for a section I could not find. The cause turned out to be something else, but it is what made me open this pull request.
 
-I opened a pull request that changes this rule: what permissions refuse stays on the page, locked, with the names of the groups that hold the permission. As I write this, it is open and not merged. So I cannot say anything about its effect on users.
-
-{/* TO COMPLETE (author): state of the pull request on the publication date (merged as is, modified, dropped) and adjust the tenses of the text accordingly. */}
+I opened a pull request that changes this rule: what permissions refuse stays on the page, locked, with the names of the groups that hold the permission.
 
 I am talking here about the back office RockFi uses today. Nexus, described in the series [Internal Tools at the Edge](../posts/internal-tools-are-a-product), was a proposal, and [another solution was chosen](../posts/internal-tools-still-believe). The permission and group names in this article are made up, and the code is simplified.
 
@@ -110,5 +107,3 @@ One well-known public recommendation goes the other way for permissions. In "Hid
 In our back office, group membership is changed in the settings, and the message on screen says to ask an administrator for access. So the answer to his question is not "never".
 
 The proposal does not plan for any feature whose existence should stay hidden. If one comes up, it will have to be written as one more exception.
-
-{/* TO COMPLETE (author): how users reacted once the change was in place (if it is). Add nothing until there is real feedback. */}
