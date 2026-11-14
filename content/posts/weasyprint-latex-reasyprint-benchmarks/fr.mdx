@@ -4,7 +4,7 @@ subtitle: "Mêmes entrées, deux PDF par document, des contrôles qui n'exigent 
 summary: "Comment j'ai comparé le rendu LaTeX d'une Lambda à WeasyPrint, puis commencé un moteur en Rust : ce que « même sortie » veut dire, le protocole de mesure et ses limites, les variantes testées par des sous-agents, et ce qui n'est pas mesuré."
 visualId: "bounded-ai-loop"
 publishedAt: "2026-12-08"
-readTimeMinutes: 11
+readTimeMinutes: 13
 tags:
   - pdf
   - performance
@@ -237,12 +237,54 @@ Le tour a aussi produit une liaison Python, construite en wheels Linux pour x86_
 
 Le moteur est passé de 416 à 452 tests.
 
+## Un quatrième tour : des documents publics
+
+Les six documents de référence viennent de nos gabarits : noms de clients, contenu métier, polices sous licence. Ils ne peuvent pas quitter ma machine, donc la CI ne les a jamais vus et personne d'autre ne peut vérifier un chiffre mesuré dessus. J'ai demandé à la session d'arrêter de travailler dessus et d'écrire ses propres documents de benchmark, de plusieurs types, avec plusieurs gabarits.
+
+Elle a écrit un générateur pour dix types de documents, remplis de données inventées et composés en DejaVu : une facture, une lettre, un rapport de 21 pages avec couverture et graphiques, un grand livre de 51 pages et 2 600 lignes, une lettre d'information sur trois colonnes, un tableau de bord, un contrat, une page d'arabe et d'hébreu, un formulaire écrit pour PDF/UA, un catalogue de 48 fiches produit. Ils sont versionnés avec le code, la CI vérifie que le générateur les reproduit à l'octet près, et veraPDF valide les dix en PDF/A-2b et PDF/UA-1.
+
+Ces documents ont été écrits pour couvrir des fonctionnalités, pas réglés sur le moteur, et ils ont trouvé ce que les six n'avaient pas trouvé :
+
+- deux sauts de page forcés à la suite comptés comme deux, ce qui donnait une 22e page au rapport ;
+- les `::before` et `::after` d'un conteneur flex ou grid qui n'étaient pas placés comme des éléments ;
+- un flottant placé avant un bloc qui poussait ce bloc vers le bas ;
+- des bordures `double` dessinées en un seul trait ;
+- une couverture à fond perdu (`@page :first { margin: 0 }`) mise en page à la largeur des autres pages, ce qui coupait son titre ;
+- le grand livre de 2 600 lignes qui mettait 4,3 secondes à se mettre en page avec des bordures fusionnées, contre 0,1 seconde avec des bordures séparées : chaque bordure était cherchée dans une liste, ce qui est quadratique en nombre de cellules ;
+- chaque graphique contenant du texte qui relisait toutes les polices installées sur la machine, environ 570 ms par rendu, puis composait ses étiquettes en Times au lieu de la police du document.
+
+Un dernier sous-agent a écrit un fuzzer : un générateur de documents aléatoires mais plausibles, rendus de bout en bout, qui vérifie l'absence de panique, les mêmes octets au second rendu et une limite de temps. Sur environ 7 000 documents, trois ont suffi à casser quelque chose. Une marge `@page` plus grande que la page donnait 26 pages à un seul mot. Un `colspan` de 70 000 construisait une grille de 70 000 colonnes. Une police d'un milliard de points dans un bloc multicolonne prenait 7,5 secondes. La CI rend désormais 600 de ces documents à chaque pull request.
+
+Les temps sur le même Mac, médianes en millisecondes à chaud :
+
+| Document | Pages | WeasyPrint | reasyprint | Accélération | Pire page, pixels différents |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| facture | 2 | 118 | 3,2 | 37× | 0,48 % |
+| lettre | 1 | 30 | 3,7 | 8× | 3,9 % |
+| rapport | 21 | 625 | 24 | 26× | 3,8 % |
+| grand livre | 51 | 15 717 | 261 | 60× | 1,9 % |
+| lettre d'information | 6 | 566 | 13 | 43× | 21 % |
+| tableau de bord | 1 | 68 | 2,0 | 34× | 0,00 % |
+| contrat | 10 | 207 | 12 | 17× | 17 % |
+| multilingue | 1 | 35 | 3,2 | 11× | 0,30 % |
+| formulaire accessible | 2 | 39 | 2,5 | 16× | 5,0 % |
+| catalogue | 6 | 695 | 6,1 | 114× | 8,6 % |
+
+Le Mac était occupé par d'autres travaux. Les temps de WeasyPrint ont varié jusqu'à 2,6 fois entre deux mesures, et le tableau garde la plus rapide : les accélérations sont des minorants.
+
+Les deux moteurs donnent le même nombre de pages sur les dix documents. Trois d'entre eux placent chaque ligne de texte à moins d'un quart de point. Pour les autres, j'ai demandé une comparaison visuelle de chaque page, et j'ai repris chaque différence :
+
+- **Deux sont des bugs de reasyprint.** Dans la lettre d'information, un article dont les trois colonnes ne tiennent pas dans le reste de la page 1 passe en entier à la page 2 et laisse son titre seul en bas de page ; toutes les pages suivantes héritent du décalage. Dans le formulaire, un titre à côté d'un flottant est trop haut d'un point.
+- **Les autres sont des choix.** Les deux moteurs coupent les mots avec des dictionnaires différents (`sig-nal` contre `si-gnal`), et dans le contrat les lignes décalées finissent par déplacer un saut de page. reasyprint supprime l'espacement entre les rangées d'une grille à un saut de page, comme le demande la spécification CSS Grid. Il dessine les bordures fusionnées à l'intérieur des cellules plutôt qu'à cheval sur la ligne de la grille, et centre les cellules d'en-tête de tableau comme le font les navigateurs.
+
+Le moteur est passé de 452 à 510 tests.
+
 ## Ce qui n'est pas mesuré
 
 - La latence de bout en bout dans une Lambda déployée, à froid et à chaud, pour les trois moteurs. reasyprint n'a tourné que dans l'image Lambda, sur une machine de CI.
 - La mémoire de LaTeX et de WeasyPrint. reasyprint culmine à 14 Mo sur le rapport de 14 pages, sur mon Mac.
 - reasyprint sur le corpus de 52 documents.
 - reasyprint contre LaTeX dans les mêmes conditions. La comparaison plus haut est indirecte.
-- veraPDF sur les six documents de référence. Il n'a tourné que sur les deux documents de test.
+- veraPDF sur les six documents de référence. Il tourne sur les deux documents de test et les dix documents publics.
 
 La cible de reasyprint : remplacer LaTeX dans la Lambda et générer les PDF plus de 100 fois plus vite, avec la même qualité de sortie. Le facteur 100 est dépassé sur les six documents de la comparaison indirecte. Il reste à le mesurer dans une Lambda déployée, et à vérifier la qualité de sortie contre LaTeX.
