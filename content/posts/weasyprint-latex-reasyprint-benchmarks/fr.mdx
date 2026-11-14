@@ -151,18 +151,18 @@ Les premières références étaient des PDF de l'expérience précédente. Une 
 
 Le moteur affiche ses temps par étape : lecture, styles, mise en page, dessin. C'est ce qui a montré qu'un document passait environ 180 ms à charger toutes les polices du système pour une famille de secours. Cette recherche est maintenant différée jusqu'au premier caractère qui en a besoin.
 
-Un premier benchmark a tourné le jour même. Les six mêmes fichiers HTML, à chaud, premier rendu exclu :
+Un premier benchmark a tourné le jour même. Je l'ai relancé ensuite sur la version fusionnée après le tour à sept sous-agents décrit plus bas. Les six mêmes fichiers HTML, à chaud, premier rendu exclu, sur un Apple M3 :
 
-| Fixture | Pages | WeasyPrint 69.0 | reasyprint |
-| --- | ---: | ---: | ---: |
-| Bulletin | 1 | 20,5 ms | 1,9 ms |
-| Bulletin de 20 brèves | 2 | 43,0 ms | 3,5 ms |
-| Document avec tableau, graphique et image | 3 | 72,5 ms | 3,3 ms |
-| Proposition avec tableaux et graphique | 2 | 65,4 ms | 2,3 ms |
-| Note | 2 | 45,4 ms | 2,3 ms |
-| Rapport long | 14 | 304,8 ms | 12,8 ms |
+| Fixture | Pages | WeasyPrint 69.0 | reasyprint, première mesure | reasyprint, version fusionnée |
+| --- | ---: | ---: | ---: | ---: |
+| Bulletin | 1 | 20,5 ms | 1,9 ms | 1,6 ms |
+| Bulletin de 20 brèves | 2 | 43,0 ms | 3,5 ms | 3,2 ms |
+| Document avec tableau, graphique et image | 3 | 72,5 ms | 3,3 ms | 3,2 ms |
+| Proposition avec tableaux et graphique | 2 | 65,4 ms | 2,3 ms | 2,3 ms |
+| Note | 2 | 45,4 ms | 2,3 ms | 2,2 ms |
+| Rapport long | 14 | 304,8 ms | 12,8 ms | 11,7 ms |
 
-Côté WeasyPrint : médiane de 15 rendus, une configuration de polices réutilisée. Côté reasyprint : build release, médiane de 40 rendus avec le même moteur en mémoire.
+Côté WeasyPrint : médiane de 15 rendus, une configuration de polices réutilisée, mesurée une seule fois, avec la première mesure de reasyprint. Je ne l'ai pas remesuré. Côté reasyprint : build release, médiane de 40 rendus avec le même moteur en mémoire. Pour la version fusionnée, c'est la médiane de huit passes de 40 rendus, sur une machine qui faisait tourner d'autres processus pendant la mesure.
 
 Un recoupement : sur les trois types de documents présents dans les deux tableaux, WeasyPrint donnait 64, 309 et 45 ms dans le premier, et donne 65, 305 et 45 ms ici.
 
@@ -170,8 +170,8 @@ Ce tableau a des limites que le précédent n'a pas :
 
 - L'entrée est du HTML déjà généré. Avec LaTeX, le chronomètre partait du JSON. Les deux tableaux ne se lisent pas ensemble.
 - Les moteurs sont mesurés l'un après l'autre, sans alternance.
-- Le rendu n'est pas encore conforme à la référence. Peu avant la mesure, une page du rapport de 14 pages dépassait le seuil de 1 %.
-- Le moteur n'a été écrit que pour ce que ces six fixtures demandent.
+- Lors de la première mesure, le rendu n'était pas encore conforme à la référence : une page du rapport de 14 pages dépassait le seuil de 1 %.
+- La première version n'avait été écrite que pour ce que ces six fixtures demandent.
 
 ## Sept sous-agents pour élargir la couverture CSS
 

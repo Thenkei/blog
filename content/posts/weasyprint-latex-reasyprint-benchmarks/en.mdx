@@ -151,18 +151,18 @@ The first references were PDFs from the previous experiment. A fix to the width 
 
 The renderer prints its timings per stage: parsing, styles, layout, painting. That is what showed that one document spent about 180 ms loading every system font for a fallback family. That lookup is now deferred until the first character that needs it.
 
-A first benchmark ran the same day. The same six HTML files, warm, first render excluded:
+A first benchmark ran the same day. I ran it again later on the version merged after the seven-sub-agent round described below. The same six HTML files, warm, first render excluded, on an Apple M3:
 
-| Fixture | Pages | WeasyPrint 69.0 | reasyprint |
-| --- | ---: | ---: | ---: |
-| Bulletin | 1 | 20.5 ms | 1.9 ms |
-| Bulletin with 20 items | 2 | 43.0 ms | 3.5 ms |
-| Document with a table, a chart and an image | 3 | 72.5 ms | 3.3 ms |
-| Proposal with tables and a chart | 2 | 65.4 ms | 2.3 ms |
-| Note | 2 | 45.4 ms | 2.3 ms |
-| Long report | 14 | 304.8 ms | 12.8 ms |
+| Fixture | Pages | WeasyPrint 69.0 | reasyprint, first measurement | reasyprint, merged version |
+| --- | ---: | ---: | ---: | ---: |
+| Bulletin | 1 | 20.5 ms | 1.9 ms | 1.6 ms |
+| Bulletin with 20 items | 2 | 43.0 ms | 3.5 ms | 3.2 ms |
+| Document with a table, a chart and an image | 3 | 72.5 ms | 3.3 ms | 3.2 ms |
+| Proposal with tables and a chart | 2 | 65.4 ms | 2.3 ms | 2.3 ms |
+| Note | 2 | 45.4 ms | 2.3 ms | 2.2 ms |
+| Long report | 14 | 304.8 ms | 12.8 ms | 11.7 ms |
 
-On the WeasyPrint side: median of 15 renders, one reused font configuration. On the reasyprint side: release build, median of 40 renders with the same renderer in memory.
+On the WeasyPrint side: median of 15 renders, one reused font configuration, measured once, alongside reasyprint's first measurement. I did not measure it again. On the reasyprint side: release build, median of 40 renders with the same renderer in memory. For the merged version, it is the median of eight passes of 40 renders, on a machine that was running other processes during the measurement.
 
 One cross-check: on the three kinds of documents present in both tables, WeasyPrint gave 64, 309 and 45 ms in the first one, and gives 65, 305 and 45 ms here.
 
@@ -170,8 +170,8 @@ This table has limits that the previous one does not:
 
 - The input is HTML that has already been generated. With LaTeX, the timer started from the JSON. The two tables cannot be read together.
 - The engines are measured one after the other, without alternating.
-- The rendering does not match the reference yet. Shortly before the measurement, one page of the 14-page report exceeded the 1% threshold.
-- The renderer was only written for what these six fixtures need.
+- At the first measurement, the rendering did not match the reference yet: one page of the 14-page report exceeded the 1% threshold.
+- The first version had only been written for what these six fixtures need.
 
 ## Seven sub-agents to widen CSS coverage
 
