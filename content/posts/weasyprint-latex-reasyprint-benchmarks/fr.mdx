@@ -173,6 +173,25 @@ Ce tableau a des limites que le précédent n'a pas :
 - Lors de la première mesure, le rendu n'était pas encore conforme à la référence : une page du rapport de 14 pages dépassait le seuil de 1 %.
 - La première version n'avait été écrite que pour ce que ces six fixtures demandent.
 
+## reasyprint et LaTeX
+
+Je n'ai pas mesuré reasyprint et LaTeX ensemble. Les chiffres existent pourtant des deux côtés, sur les mêmes documents. Pour le bulletin, le bulletin de 20 brèves et le document avec tableau, les scripts partent des mêmes fichiers JSON. Pour les trois autres, les temps de WeasyPrint concordent d'une mesure à l'autre, ce qui indique les mêmes documents.
+
+LaTeX part du JSON. reasyprint part du HTML. J'ai donc mesuré à part la génération du HTML à partir du JSON, avec les gabarits Python de l'expérience WeasyPrint : moins d'une milliseconde par document, médiane de 40 appels. Le HTML produit est identique à celui des fixtures. La colonne reasyprint additionne cette génération et le rendu de la version fusionnée.
+
+| Document | Pages | LaTeX, du JSON au PDF | reasyprint, du JSON au PDF |
+| --- | ---: | ---: | ---: |
+| Bulletin | 1 | 1 127 ms | 2,1 ms |
+| Bulletin de 20 brèves | 2 | 1 143 ms | 4,0 ms |
+| Document avec tableau, graphique et image | 3 | 1 435 ms | 3,9 ms |
+| Proposition avec tableaux et graphique | 2 | 1 877 ms | 3,1 ms |
+| Note | 2 | 913 ms | 2,5 ms |
+| Rapport long | 14 | 3 566 ms | 12,7 ms |
+
+L'écart va d'un facteur 280 à 610 selon le document.
+
+Les deux colonnes n'ont pas les mêmes conditions. Les chiffres de LaTeX datent du 12 novembre, ceux de reasyprint du 14, sur le même Mac. Tectonic est relancé pour chaque document, comme dans la Lambda, alors que reasyprint garde le même moteur en mémoire entre deux rendus. Aucune des deux colonnes ne mesure une Lambda.
+
 ## Sept sous-agents pour élargir la couverture CSS
 
 Plus tard le même jour, j'ai donné la liste de ce que le moteur ne prenait pas en charge : grid, multi-colonnes, `flex-wrap`, `transform`, `calc()`, césure automatique, découpage `overflow: hidden`, lignes de tableau et conteneurs flex coupés entre deux pages, PDF/A et PDF/UA, texte de droite à gauche, polices WOFF. J'ai autorisé les sous-agents.
@@ -196,6 +215,6 @@ Les sept lots ont été fusionnés dans une seule pull request, le jour même. L
 - La latence de bout en bout sur Lambda, à froid et à chaud, pour LaTeX comme pour WeasyPrint.
 - La mémoire, pour les trois moteurs.
 - reasyprint sur le corpus de 52 documents.
-- reasyprint contre LaTeX. Sa seule référence est WeasyPrint.
+- reasyprint contre LaTeX dans les mêmes conditions. La comparaison plus haut est indirecte.
 
-La cible de reasyprint : remplacer LaTeX dans la Lambda et générer les PDF plus de 100 fois plus vite, avec la même qualité de sortie. Rien de cela n'est encore mesuré.
+La cible de reasyprint : remplacer LaTeX dans la Lambda et générer les PDF plus de 100 fois plus vite, avec la même qualité de sortie. Le facteur 100 est dépassé sur les six documents de la comparaison indirecte. Il reste à le mesurer dans une Lambda, et à vérifier la qualité de sortie contre LaTeX.
