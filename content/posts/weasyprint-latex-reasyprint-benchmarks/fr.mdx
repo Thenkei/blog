@@ -274,10 +274,12 @@ Le Mac était occupé par d'autres travaux. Les temps de WeasyPrint ont varié j
 
 Les deux moteurs donnent le même nombre de pages sur les dix documents. Trois d'entre eux placent chaque ligne de texte à moins d'un quart de point. Pour les autres, j'ai demandé une comparaison visuelle de chaque page, et j'ai repris chaque différence :
 
-- **Deux sont des bugs de reasyprint.** Dans la lettre d'information, un article dont les trois colonnes ne tiennent pas dans le reste de la page 1 passe en entier à la page 2 et laisse son titre seul en bas de page ; toutes les pages suivantes héritent du décalage. Dans le formulaire, un titre à côté d'un flottant est trop haut d'un point.
+- **Trois étaient des bugs de reasyprint.** Dans la lettre d'information, un article dont les trois colonnes ne tenaient pas dans le reste de la page 1 passait en entier à la page 2 et laissait son titre seul en bas de page. Celui-là est corrigé : les colonnes commencent maintenant en page 1. La lettre d'information dérive encore, pour une autre raison : en équilibrant les colonnes, WeasyPrint coupe un paragraphe entre deux colonnes là où reasyprint le passe en entier à la suivante. Dans le formulaire, un titre à côté d'un flottant est trop haut d'un point.
 - **Les autres sont des choix.** Les deux moteurs coupent les mots avec des dictionnaires différents (`sig-nal` contre `si-gnal`), et dans le contrat les lignes décalées finissent par déplacer un saut de page. reasyprint supprime l'espacement entre les rangées d'une grille à un saut de page, comme le demande la spécification CSS Grid. Il dessine les bordures fusionnées à l'intérieur des cellules plutôt qu'à cheval sur la ligne de la grille, et centre les cellules d'en-tête de tableau comme le font les navigateurs.
 
-Le moteur est passé de 452 à 510 tests.
+La mesure des temps a montré un dernier coût : dans un nouveau processus, tout graphique SVG contenant du texte faisait lire au moteur toutes les polices installées sur la machine, même quand le document déclarait les siennes. Il essaie maintenant d'abord les polices déclarées, et le temps CPU du rapport dans un nouveau processus passe de 177 à 50 ms, avec les mêmes octets.
+
+Le moteur est passé de 452 à 515 tests.
 
 ## Ce qui n'est pas mesuré
 
