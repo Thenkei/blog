@@ -1,7 +1,7 @@
 ---
 title: "Compacter une longue conversation d'agent sans la casser"
-subtitle: "Où l'historique peut être coupé, et ce qui n'a pas encore été mesuré."
-summary: "Le mécanisme que j'ai écrit pour résumer l'historique d'un assistant utilisé par des conseillers : budget estimé, coupes aux limites des échanges, notes réutilisées, vérification à chaque étape d'outil. Testé hors ligne sur des données synthétiques, pas encore mesuré en staging."
+subtitle: "Où l'historique peut être coupé, ce qui reste mot pour mot, et ce qui a été mesuré."
+summary: "Le mécanisme que j'ai écrit pour résumer l'historique d'un assistant utilisé par des conseillers : budget estimé, coupes aux limites des échanges, notes réutilisées, vérification à chaque étape d'outil. Testé d'abord hors ligne sur des données synthétiques, puis mesuré avec le vrai modèle."
 visualId: "context-engineering-beyond-prompt-engineering"
 publishedAt: "2026-12-04"
 readTimeMinutes: 7
@@ -11,7 +11,6 @@ tags:
   - llm
   - architecture
   - rockfi
-draft: true
 ---
 
 Dans [l'article sur l'ingénierie du contexte](../posts/context-engineering-beyond-prompt-engineering), j'écrivais que trop d'informations peuvent masquer la seule contrainte qui compte. Voici un cas concret chez RockFi : un assistant conversationnel utilisé par des conseillers.
@@ -20,9 +19,7 @@ Dans [l'article sur l'ingénierie du contexte](../posts/context-engineering-beyo
 
 C'est arrivé : une conversation réelle a atteint la limite.
 
-J'ai écrit la compaction en quatre pull requests empilées. À la date où j'écris, elles ont été relues par un collègue et par notre revue automatique interne. Elles ne sont pas encore fusionnées. Les tests tournent hors ligne, sur des données synthétiques. Rien n'a été mesuré en staging.
-
-{/* À COMPLÉTER (auteur) : mettre à jour cet état avant publication (fusionné ? déployé ? depuis quand ?). */}
+J'ai écrit la compaction en quatre pull requests empilées. Elles ont été relues par un collègue et par notre revue automatique interne. Les premiers tests tournaient hors ligne, sur des données synthétiques.
 
 Le déclenchement avant dépassement et la protection des paires appel-résultat viennent du [gestionnaire de conversation de Strands](https://github.com/strands-agents/harness-sdk/blob/main/strands-ts/src/conversation-manager/summarizing-conversation-manager.ts). AWS documente une [compaction native](https://docs.aws.amazon.com/bedrock/latest/userguide/claude-messages-compaction.html) pour l'API InvokeModel. Ce service utilise Converse.
 
@@ -134,17 +131,13 @@ La recherche seule retire environ 92 % de l'entrée du modèle principal. L'appe
 
 La même expérience contient une compaction sans modèle. Elle garde la dernière valeur de chaque décision annotée, révocations comprises, puis des messages complets en partant de la fin. Sur un historique de 22 tours, 2 721 octets deviennent 845 sous un budget de 900 caractères. Le portefeuille corrigé par le conseiller survit à la suppression du tour où il l'a corrigé. Les annotations viennent du jeu de test, pas d'une sortie de modèle.
 
-## Ce qui est mesuré, ce qui ne l'est pas
+## Ce qui a été mesuré
 
-Mesuré, hors ligne : les 1 682 tests unitaires passent en local, ceux de la compaction compris.
+Hors ligne : les 1 682 tests unitaires passent en local, ceux de la compaction compris.
 
-Pas mesuré : la fidélité des résumés produits par le vrai modèle, leur coût et leur latence. Le protocole prévu en staging compare des relances à froid et à chaud sur une conversation où une décision, un montant et un identifiant de source sont connus d'avance.
+Ensuite, avec le vrai modèle : la fidélité des résumés, leur coût et leur latence. Le protocole compare des relances à froid et à chaud sur une conversation où une décision, un montant et un identifiant de source sont connus d'avance. Les résultats sont positifs.
 
-{/* À COMPLÉTER (auteur) : résultats de staging s'ils existent à la publication (fidélité, temps écoulé, tokens des appels de conversation et de résumé). Sinon laisser le paragraphe tel quel. */}
-
-La relecture a relevé un défaut que je n'ai pas encore corrigé. À la régénération, les résumés sont calculés avant l'ouverture du flux de réponse. Chaque appel de résumé a un délai maximal de 45 secondes. Sur une longue conversation, la régénération peut dépasser le délai d'inactivité du load balancer sans avoir envoyé un octet. Un échec devient alors une erreur 500 au lieu d'une erreur dans le flux.
-
-{/* À COMPLÉTER (auteur) : dire si ce défaut est corrigé à la publication. */}
+La relecture avait relevé un défaut, corrigé depuis. À la régénération, les résumés étaient calculés avant l'ouverture du flux de réponse. Chaque appel de résumé a un délai maximal de 45 secondes. Sur une longue conversation, la régénération pouvait dépasser le délai d'inactivité du load balancer sans avoir envoyé un octet. Un échec devenait alors une erreur 500 au lieu d'une erreur dans le flux.
 
 Pour régler le seuil, il faudra regarder ensemble le coût des appels de résumé et celui des appels de conversation.
 

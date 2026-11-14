@@ -13,7 +13,6 @@ tags:
   - ci-cd
   - github-actions
   - rockfi
-draft: true
 ---
 
 Chaque pull request sur notre projet dbt lance une validation sur Snowflake. La CI crée un schéma pour le run, construit les modèles avec `--empty` et exécute les tests unitaires. Avec `--empty`, dbt exécute le SQL de chaque modèle mais limite les `ref` et les `source` à zéro ligne. Les [tests de données](../posts/data-platform-tests-as-contracts) tournent après le merge, sur les données de staging. La plateforme est celle de la série qui se termine par [cette rétrospective](../posts/data-platform-retrospective).

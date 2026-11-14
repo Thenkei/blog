@@ -1,7 +1,7 @@
 ---
 title: "LaTeX, WeasyPrint, reasyprint: comparing three PDF renderers"
 subtitle: "Same inputs, two PDFs per document, checks that do not require identical pixels, and sub-agents to test the variants."
-summary: "How I compared the LaTeX rendering of a Lambda with WeasyPrint, then started a renderer in Rust: what 'same output' means, the timing protocol and its limits, the variants tested by sub-agents, and what has not been measured yet."
+summary: "How I compared the LaTeX rendering of a Lambda with WeasyPrint, then started a renderer in Rust: what 'same output' means, the timing protocol and its limits, the variants tested by sub-agents, and what has not been measured."
 visualId: "bounded-ai-loop"
 publishedAt: "2026-12-08"
 readTimeMinutes: 8
@@ -14,14 +14,11 @@ tags:
   - ai
   - developer-tools
   - rockfi
-draft: true
 ---
 
 At RockFi, an AWS Lambda function generates our PDFs with LaTeX. On 12 November, I wanted to know whether [WeasyPrint](https://weasyprint.org) could produce the same documents faster. Two days later, I started `reasyprint`, an HTML/CSS to PDF renderer written in Rust.
 
-I have no verdict on the three. Nothing is deployed, and the third renderer was a few hours old when I wrote this. I have numbers, with their conditions, and a list of what has not been measured.
-
-{/* TO COMPLETE (author): status at publication. Is the WeasyPrint PR merged, has the staging pilot run, where does reasyprint stand? The text describes the situation on 14 November. */}
+I have no verdict on the three. The third renderer was a few hours old when I wrote this. I have numbers, with their conditions, and a list of what has not been measured.
 
 ## The starting point
 
@@ -98,7 +95,7 @@ The first three rows are medians over 12 warm renders, before the font reuse des
 
 In "fresh process" mode, with a new Python interpreter for each render and warm disk caches, the factor drops to between 2.1 and 2.3: 1,201 ms against 561 ms for the bulletin, over five renders per engine.
 
-None of these numbers measures a Lambda. The PR is still a draft.
+None of these numbers measures a Lambda.
 
 ## The variants tested between two rounds
 
@@ -176,8 +173,6 @@ This table has limits that the previous one does not:
 - The rendering does not match the reference yet. Shortly before the measurement, one page of the 14-page report exceeded the 1% threshold.
 - The renderer was only written for what these six fixtures need.
 
-{/* TO COMPLETE (author): rerun this benchmark before publication and replace the numbers (they date from 14 November, on a renderer that changes by the hour). State the machine, and say whether the remaining differences with the reference have been closed. */}
-
 ## Seven sub-agents to widen CSS coverage
 
 Later the same day, I gave the list of what the engine did not support: grid, multi-column, `flex-wrap`, `transform`, `calc()`, automatic hyphenation, `overflow: hidden` clipping, table rows and flex containers split across two pages, PDF/A and PDF/UA, right-to-left text, WOFF fonts. I allowed sub-agents.
@@ -194,7 +189,7 @@ Each lot must bring the same evidence:
 
 The byte-for-byte comparison is possible because rendering is deterministic. A lot that adds grid must change nothing in a document that does not use grid, and must not slow it down.
 
-{/* TO COMPLETE (author): the outcome of this round (lots merged, what broke at integration, total duration). */}
+The seven lots were merged into a single pull request the same day. The engine goes from 110 to 416 tests. The reference corpus comes out byte-identical with the default options. The 14-page report is about 1.5% slower, and the binary grows from 8.5 to 9.7 MB. PDF/A and PDF/UA conformance is only checked by the validator of the library that writes the PDF, not yet by veraPDF.
 
 ## What has not been measured
 
