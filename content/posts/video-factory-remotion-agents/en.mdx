@@ -22,7 +22,11 @@ These videos all come from the same place: a Git repository, `videos-factory`. T
 
 I think this tool is really good, and I want to explain what it does.
 
-The three films in this article come out of the factory. I had them produced for the occasion, for a product that does not exist: Ravito, a race-plan app for trail running. Our real films are about internal features, so I am not showing them here.
+<ArticleVideo id="video-factory-intro">
+  The factory in thirty seconds.
+</ArticleVideo>
+
+The films in this article come out of the factory. The one above introduces it. I had the three others produced for the occasion, for a product that does not exist: Ravito, a race-plan app for trail running. Our real films are about internal features, so I am not showing them here.
 
 <ArticleVideo id="video-factory-trailer">
   The trailer format: short phrases, hard cuts, two product details.
@@ -151,7 +155,7 @@ A new film starts with no music and no effects. The sound plan is written in `vi
 }
 ```
 
-Silence is a valid choice. The trailer and the release film in this article are silent: they are made to be read inside a page, and their export contains no audio stream. The explainer has a voice. I had it generated with ElevenLabs, with one voice for French and another for English.
+Silence is a valid choice. The Ravito trailer and the release film in this article are silent: they are made to be read inside a page, and their export contains no audio stream. The opening film has music, generated with ElevenLabs. The explainer has a voice. I had it generated with ElevenLabs, with one voice for French and another for English.
 
 When there is a voice, you provide one clip per scene. `npm run voice` normalises them to −18 LUFS, measures their duration, and rejects a clip that runs past its scene or overlaps another one. The music is lowered automatically under the narration.
 
@@ -170,7 +174,7 @@ A take name is never reused. If `v1` exists, you render `v2`. A failed take stay
 
 `verify` checks the codec, the resolution, the frame rate, the exact frame count against the timeline, the AAC track, an integrated loudness of −16 LUFS within 1, and a true peak under −1 dBFS. It then extracts two frames per scene, one in the middle and one on the reading hold, and assembles them into a contact sheet.
 
-Here are the main fields of the report for the trailer at the top of this article.
+Here are the main fields of the report for the Ravito trailer, earlier in this article.
 
 ```json
 {

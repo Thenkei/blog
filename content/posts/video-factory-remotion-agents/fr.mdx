@@ -22,7 +22,11 @@ Ces vidéos viennent toutes du même endroit : un dépôt Git, `videos-factory`.
 
 Je trouve cet outil vraiment bon, et je veux expliquer ce qu'il fait.
 
-Les trois films de cet article sortent de la fabrique. Je les ai fait produire pour l'occasion, pour un produit qui n'existe pas : Ravito, une application de plan de course pour le trail. Nos vrais films parlent de fonctionnalités internes, je ne les montre pas ici.
+<ArticleVideo id="video-factory-intro">
+  La fabrique en trente secondes.
+</ArticleVideo>
+
+Les films de cet article sortent de la fabrique. Celui du dessus la présente. Les trois autres, je les ai fait produire pour l'occasion, pour un produit qui n'existe pas : Ravito, une application de plan de course pour le trail. Nos vrais films parlent de fonctionnalités internes, je ne les montre pas ici.
 
 <ArticleVideo id="video-factory-trailer">
   Le format trailer : des phrases courtes, des coupes franches, deux détails du produit.
@@ -151,7 +155,7 @@ Un nouveau film démarre sans musique et sans effets. Le plan sonore s'écrit da
 }
 ```
 
-Le silence est un choix valide. Le trailer et le film de release de cet article sont muets : ils sont faits pour être lus dans une page, et leur export ne contient aucune piste audio. La vidéo explicative a une voix. Je l'ai fait générer avec ElevenLabs, avec une voix pour le français et une autre pour l'anglais.
+Le silence est un choix valide. Le trailer Ravito et le film de release de cet article sont muets : ils sont faits pour être lus dans une page, et leur export ne contient aucune piste audio. Le film d'ouverture a une musique, générée avec ElevenLabs. La vidéo explicative a une voix. Je l'ai fait générer avec ElevenLabs, avec une voix pour le français et une autre pour l'anglais.
 
 Quand il y a une voix, on dépose un clip par scène. `npm run voice` les normalise à −18 LUFS, mesure leur durée et refuse un clip qui dépasse sa scène ou en chevauche un autre. La musique baisse automatiquement sous la narration.
 
@@ -170,7 +174,7 @@ Un nom de prise ne se réutilise pas. Si `v1` existe, il faut rendre `v2`. Une p
 
 `verify` contrôle le codec, la résolution, la cadence, le nombre exact d'images par rapport à la timeline, la piste AAC, un niveau intégré de −16 LUFS à 1 près et une crête vraie sous −1 dBFS. Il extrait ensuite deux images par scène, une au milieu et une sur le temps de lecture, et les assemble en planche-contact.
 
-Voici l'essentiel du rapport du trailer en haut de cet article.
+Voici l'essentiel du rapport du trailer Ravito, plus haut dans cet article.
 
 ```json
 {

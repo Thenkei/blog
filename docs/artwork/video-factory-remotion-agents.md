@@ -22,10 +22,11 @@ Constraints: no lettering, no numbers, no logos, no watermarks, no readable text
 
 ## Films
 
-Three example films, produced with the factory the article describes, for a fictional product ("Ravito") and a fictional race. They contain no RockFi logo, product interface or data. The wordmark is a fictional one; the fonts are the factory's system fallbacks. The trailer and the release film are silent. The explainer is narrated since 2026-11-13.
+Four films, produced with the factory the article describes. Three are example films for a fictional product ("Ravito") and a fictional race; the opening trailer, added on 2026-11-14, is about the factory itself. None contains a RockFi logo, product interface or data. The wordmark of the Ravito films is a fictional one; the fonts are the factory's system fallbacks. The Ravito trailer and the release film are silent. The explainer is narrated since 2026-11-13. The opening trailer has music and no voice.
 
 | Article id | Factory folder | Takes | Length |
 | --- | --- | --- | --- |
+| `video-factory-intro` | `videos/blog-demo-intro` | `fr-v2`, `en-v2` | 29 s |
 | `video-factory-trailer` | `videos/blog-demo-trailer` | `fr-v2`, `en-v2` | 21.5 s |
 | `video-factory-release` | `videos/blog-demo-release` | `fr-v1`, `en-v1` | 25 s |
 | `video-factory-explainer` | `videos/blog-demo-explainer` (French), `videos/blog-demo-explainer-en` (English) | `fr-v3`, `en-v4` | 64.2 s, 60.3 s |
@@ -49,6 +50,30 @@ ffmpeg -ss <seconds> -i out/<take>/video.mp4 -frames:v 1 -vf "scale=1280:720:fla
 ```
 
 Poster times: trailer 12.5 s, release 16.5 s.
+
+### Opening trailer
+
+Requested by the author on 2026-11-14 as an introduction film, a trailer on the model of an internal RockFi trailer. Only the cut is borrowed: ink tension, one beat of silence, a reveal on the band entry, three proofs, a close on the final hit, on the bar grid of a 120 BPM track. The copy, the cards and the claims are written for this article from the factory's README, guides and scripts.
+
+The music is the same file as that internal trailer: one ElevenLabs Music generation of 2026-11-13, conformed to the grid, copied unchanged. No generation was run for this film. Two things are open before the article goes live, and both are the author's call: whether a public film should share its music with an internal one or get its own track, and whether the ElevenLabs plan covers public use.
+
+```sh
+npm run render -- blog-demo-intro fr-v3
+REMOTION_LOCALE=en npm run render -- blog-demo-intro en-v3
+npm run verify -- blog-demo-intro fr-v3
+```
+
+Both takes passed `verify` (870 frames, AAC, −16.1 LUFS, true peak −3.7 dBFS). The settled frames of every scene and the frames on the beats were inspected in both languages, and the track's silence, band entry and final hit were measured against the cuts. Nobody has watched or listened to them yet.
+
+The web files keep the audio at 128 kb/s, because it is music:
+
+```sh
+ffmpeg -i out/<take>/video.mp4 -vf "scale=1280:720:flags=lanczos" \
+  -c:v libx264 -preset slow -crf 25 -pix_fmt yuv420p -c:a aac -b:a 128k -movflags +faststart intro.<locale>.mp4
+ffmpeg -ss 11 -i out/<take>/video.mp4 -frames:v 1 -vf "scale=1280:720:flags=lanczos" -q:v 3 intro.<locale>.jpg
+```
+
+The poster is the reveal card, at 11 s. There is no caption file: the film has no speech.
 
 ### Narrated explainer
 
