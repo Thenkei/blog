@@ -280,9 +280,9 @@ Both engines give the same page count on all ten documents. Four of them place e
 
 Measuring the timings showed one more cost: in a new process, any SVG chart with text made the engine read every font installed on the machine, even when the document declared its fonts. It now tries the declared fonts first, and the report's new-process CPU time drops from 177 to 50 ms, with the same bytes.
 
-The same round mirrored grid columns under right-to-left text and added an optional page limit, so that a few kilobytes of HTML can no longer produce 100,000 pages.
+The same round mirrored grid columns under right-to-left text and added an optional page limit, so that a few kilobytes of HTML can no longer produce 100,000 pages. It also closed the last fragmentation gap on the list: columns nested inside other columns. Taller than a page, they lost content: a test document came out as 12 pages, 9 of them blank, with 1,553 of its 1,860 words missing. They now continue from one outer column to the next and across pages, every word once.
 
-The engine went from 452 to 531 tests.
+The engine went from 452 to 534 tests.
 
 ## What has not been measured
 

@@ -280,9 +280,9 @@ Les deux moteurs donnent le même nombre de pages sur les dix documents. Quatre 
 
 La mesure des temps a montré un dernier coût : dans un nouveau processus, tout graphique SVG contenant du texte faisait lire au moteur toutes les polices installées sur la machine, même quand le document déclarait les siennes. Il essaie maintenant d'abord les polices déclarées, et le temps CPU du rapport dans un nouveau processus passe de 177 à 50 ms, avec les mêmes octets.
 
-Le même tour a mis en miroir les colonnes de grille en texte de droite à gauche et ajouté une limite de pages optionnelle, pour que quelques kilo-octets de HTML ne puissent plus produire 100 000 pages.
+Le même tour a mis en miroir les colonnes de grille en texte de droite à gauche et ajouté une limite de pages optionnelle, pour que quelques kilo-octets de HTML ne puissent plus produire 100 000 pages. Il a aussi fermé le dernier trou de fragmentation de la liste : des colonnes imbriquées dans d'autres colonnes. Plus hautes qu'une page, elles perdaient du contenu : un document de test sortait en 12 pages, dont 9 blanches, avec 1 553 de ses 1 860 mots manquants. Elles passent maintenant d'une colonne extérieure à la suivante et d'une page à l'autre, chaque mot une fois.
 
-Le moteur est passé de 452 à 531 tests.
+Le moteur est passé de 452 à 534 tests.
 
 ## Ce qui n'est pas mesuré
 
