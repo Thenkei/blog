@@ -151,18 +151,18 @@ The first references were PDFs from the previous experiment. A fix to the width 
 
 The renderer prints its timings per stage: parsing, styles, layout, painting. That is what showed that one document spent about 180 ms loading every system font for a fallback family. That lookup is now deferred until the first character that needs it.
 
-A first benchmark ran the same day. The same six HTML files, warm, first render excluded:
+A first benchmark ran the same day. I ran it again later on the version merged after the seven-sub-agent round described below. The same six HTML files, warm, first render excluded, on an Apple M3:
 
-| Fixture | Pages | WeasyPrint 69.0 | reasyprint |
-| --- | ---: | ---: | ---: |
-| Bulletin | 1 | 20.5 ms | 1.9 ms |
-| Bulletin with 20 items | 2 | 43.0 ms | 3.5 ms |
-| Document with a table, a chart and an image | 3 | 72.5 ms | 3.3 ms |
-| Proposal with tables and a chart | 2 | 65.4 ms | 2.3 ms |
-| Note | 2 | 45.4 ms | 2.3 ms |
-| Long report | 14 | 304.8 ms | 12.8 ms |
+| Fixture | Pages | WeasyPrint 69.0 | reasyprint, first measurement | reasyprint, merged version |
+| --- | ---: | ---: | ---: | ---: |
+| Bulletin | 1 | 20.5 ms | 1.9 ms | 1.6 ms |
+| Bulletin with 20 items | 2 | 43.0 ms | 3.5 ms | 3.2 ms |
+| Document with a table, a chart and an image | 3 | 72.5 ms | 3.3 ms | 3.2 ms |
+| Proposal with tables and a chart | 2 | 65.4 ms | 2.3 ms | 2.3 ms |
+| Note | 2 | 45.4 ms | 2.3 ms | 2.2 ms |
+| Long report | 14 | 304.8 ms | 12.8 ms | 11.7 ms |
 
-On the WeasyPrint side: median of 15 renders, one reused font configuration. On the reasyprint side: release build, median of 40 renders with the same renderer in memory.
+On the WeasyPrint side: median of 15 renders, one reused font configuration, measured once, alongside reasyprint's first measurement. I did not measure it again. On the reasyprint side: release build, median of 40 renders with the same renderer in memory. For the merged version, it is the median of eight passes of 40 renders, on a machine that was running other processes during the measurement.
 
 One cross-check: on the three kinds of documents present in both tables, WeasyPrint gave 64, 309 and 45 ms in the first one, and gives 65, 305 and 45 ms here.
 
@@ -170,8 +170,27 @@ This table has limits that the previous one does not:
 
 - The input is HTML that has already been generated. With LaTeX, the timer started from the JSON. The two tables cannot be read together.
 - The engines are measured one after the other, without alternating.
-- The rendering does not match the reference yet. Shortly before the measurement, one page of the 14-page report exceeded the 1% threshold.
-- The renderer was only written for what these six fixtures need.
+- At the first measurement, the rendering did not match the reference yet: one page of the 14-page report exceeded the 1% threshold.
+- The first version had only been written for what these six fixtures need.
+
+## reasyprint and LaTeX
+
+I have not measured reasyprint and LaTeX together. The numbers exist on both sides, though, for the same documents. For the bulletin, the bulletin with 20 items and the document with a table, the scripts start from the same JSON files. For the other three, the WeasyPrint timings agree from one measurement to the other, which points to the same documents.
+
+LaTeX starts from the JSON. reasyprint starts from the HTML. So I measured the generation of the HTML from the JSON separately, with the Python templates of the WeasyPrint experiment: under one millisecond per document, median of 40 calls. The HTML it produces is identical to the fixtures. The reasyprint column adds this generation to the rendering time of the merged version.
+
+| Document | Pages | LaTeX, JSON to PDF | reasyprint, JSON to PDF |
+| --- | ---: | ---: | ---: |
+| Bulletin | 1 | 1,127 ms | 2.1 ms |
+| Bulletin with 20 items | 2 | 1,143 ms | 4.0 ms |
+| Document with a table, a chart and an image | 3 | 1,435 ms | 3.9 ms |
+| Proposal with tables and a chart | 2 | 1,877 ms | 3.1 ms |
+| Note | 2 | 913 ms | 2.5 ms |
+| Long report | 14 | 3,566 ms | 12.7 ms |
+
+The gap ranges from a factor of 280 to 610 depending on the document.
+
+The two columns do not share the same conditions. The LaTeX numbers date from 12 November, the reasyprint ones from 14 November, on the same Mac. Tectonic is relaunched for each document, as in the Lambda, while reasyprint keeps the same renderer in memory between two renders. Neither column measures a Lambda.
 
 ## Seven sub-agents to widen CSS coverage
 
@@ -196,6 +215,6 @@ The seven lots were merged into a single pull request the same day. The engine g
 - End-to-end latency on Lambda, cold and warm, for LaTeX as well as for WeasyPrint.
 - Memory, for all three renderers.
 - reasyprint on the corpus of 52 documents.
-- reasyprint against LaTeX. Its only reference is WeasyPrint.
+- reasyprint against LaTeX under the same conditions. The comparison above is indirect.
 
-The target for reasyprint: replace LaTeX in the Lambda and generate PDFs more than 100 times faster, with the same output quality. None of this is measured yet.
+The target for reasyprint: replace LaTeX in the Lambda and generate PDFs more than 100 times faster, with the same output quality. The factor of 100 is exceeded on the six documents of the indirect comparison. It remains to be measured in a Lambda, and the output quality remains to be checked against LaTeX.
