@@ -14,8 +14,14 @@ import "./styles/responsive.css";
 import "highlight.js/styles/github-dark.css";
 import App from "./app/App";
 import { installPreloadErrorRecovery } from "./app/preloadErrorRecovery";
+import { preloadHeroScene } from "./app/preloadHeroScene";
 
 installPreloadErrorRecovery();
+preloadHeroScene(
+  document.documentElement.dataset.theme,
+  window.location.pathname,
+  import.meta.env.BASE_URL,
+);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

@@ -16,13 +16,6 @@ export function RocketFlightJourney() {
             <stop offset="0.52" stopColor="#ca78ff" />
             <stop offset="1" stopColor="#ff9a6a" />
           </linearGradient>
-          <filter id="rocket-flight-glow" x="-25%" y="-25%" width="150%" height="150%">
-            <feGaussianBlur stdDeviation="5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
           <clipPath id="rocket-flight-reveal" clipPathUnits="userSpaceOnUse">
             <rect
               className="rocket-flight-reveal-clip"
@@ -35,12 +28,24 @@ export function RocketFlightJourney() {
         </defs>
 
         <path className="rocket-flight-ghost" d={ROCKET_FLIGHT_PATH} />
-        <path
-          className="rocket-flight-line"
-          d={ROCKET_FLIGHT_PATH}
-          clipPath="url(#rocket-flight-reveal)"
-          filter="url(#rocket-flight-glow)"
-        />
+        {/* The halo is three wide translucent strokes, not an SVG blur filter:
+            the line is redrawn on every scroll frame, and WebKit re-runs a
+            Gaussian blur over the whole stage in software each time. */}
+        <g clipPath="url(#rocket-flight-reveal)">
+          <path
+            className="rocket-flight-glow rocket-flight-glow-outer"
+            d={ROCKET_FLIGHT_PATH}
+          />
+          <path
+            className="rocket-flight-glow rocket-flight-glow-mid"
+            d={ROCKET_FLIGHT_PATH}
+          />
+          <path
+            className="rocket-flight-glow rocket-flight-glow-inner"
+            d={ROCKET_FLIGHT_PATH}
+          />
+          <path className="rocket-flight-line" d={ROCKET_FLIGHT_PATH} />
+        </g>
       </svg>
 
       <div className="rocket-arrival" aria-hidden="true">

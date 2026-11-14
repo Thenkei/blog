@@ -1,15 +1,12 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  getLoadedMountainScene,
+  loadMountainScene,
+} from "./parallax/loadMountainScene";
 import { useMultiplaneCamera } from "./parallax/useMultiplaneCamera";
 import { useRocketCamera } from "./parallax/useRocketCamera";
 import { RocketFlightJourney } from "./parallax/CinematicSceneArtwork";
 import type { ThemeMode } from "../../app/providers/ThemeProvider";
-
-// The scene carries its own geometry; other themes never need to download it.
-const MountainScene = lazy(() =>
-  import("./parallax/MountainScene").then((module) => ({
-    default: module.MountainScene,
-  })),
-);
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const COMPACT_LAYOUT_QUERY =
@@ -84,6 +81,35 @@ export function ParallaxHero({
   const mountainMode = themeMode === "mountain";
   const rocketMode = themeMode === "rocket";
 
+  // The scene carries its own geometry, so only Mountain visitors download
+  // it. It is held in state rather than behind `lazy` + Suspense: React delays
+  // the reveal of suspended content by about 300 ms, which showed as an empty
+  // stage even when the chunk was already there.
+  const [MountainScene, setMountainScene] = useState(getLoadedMountainScene);
+
+  useEffect(() => {
+    if (!mountainMode || MountainScene) {
+      return;
+    }
+
+    let cancelled = false;
+    loadMountainScene().then(
+      (scene) => {
+        if (!cancelled) {
+          setMountainScene(() => scene);
+        }
+      },
+      () => {
+        // The title stays on the plain stage; the chunk failure itself is
+        // handled by the preload-error recovery.
+      },
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mountainMode, MountainScene]);
+
   const { refresh: refreshMountainScene } = useMultiplaneCamera({
     shellRef: mountainShellRef,
     stageRef: mountainStageRef,
@@ -130,12 +156,12 @@ export function ParallaxHero({
             ref={mountainStageRef}
           >
             <div className="topographic-field" aria-hidden="true" />
-            <Suspense fallback={null}>
+            {MountainScene ? (
               <MountainScene
                 compact={isCompactLayout}
                 onReady={refreshMountainScene}
               />
-            </Suspense>
+            ) : null}
             {heroContent}
           </section>
         </div>

@@ -152,9 +152,12 @@
   animation: arrivalOrbitInner 6s linear infinite;
 }
 
+/* `backwards`, not `forwards`: the entrance holds its first frame during the
+   delay and then lets go. A `forwards` fill keeps the animation applied for
+   good, which pins every card on its own GPU layer and overrides the hover
+   transform. */
 .post-card {
-  opacity: 0;
-  animation: fadeInUp var(--motion-slow) var(--motion-ease-enter) forwards;
+  animation: fadeInUp var(--motion-slow) var(--motion-ease-enter) backwards;
 }
 
 .post-card:nth-child(1) {
@@ -194,8 +197,7 @@ article {
 }
 
 .toc {
-  opacity: 0;
-  animation: fadeInUp var(--motion-base) var(--motion-ease-enter) 0.16s forwards;
+  animation: fadeInUp var(--motion-base) var(--motion-ease-enter) 0.16s backwards;
 }
 
 .back-btn {
@@ -203,8 +205,7 @@ article {
 }
 
 .footer {
-  opacity: 0;
-  animation: fadeIn 0.72s var(--motion-ease-standard) 0.26s forwards;
+  animation: fadeIn 0.72s var(--motion-ease-standard) 0.26s backwards;
 }
 
 body,

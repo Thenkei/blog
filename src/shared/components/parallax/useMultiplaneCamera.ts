@@ -189,37 +189,68 @@ function measureTrail(stage: HTMLElement): TrailGeometry | null {
   };
 }
 
-function placeRunner(
-  stage: HTMLElement,
+type RunnerPose = {
+  placement: RunnerPlacement;
+  /** Share of the whole trail behind the runner, from 0 to 1. */
+  routeFraction: number;
+  stride: "a" | "b";
+};
+
+/**
+ * Where the runner stands for these camera values. Reads the trail geometry
+ * and writes nothing.
+ *
+ * Asking an SVG path for a point makes the browser bring style up to date
+ * first. A frame therefore locates the runner before it writes any camera
+ * variable: the other way round, every scroll frame paid for a second,
+ * synchronous style pass over the whole scene.
+ */
+function locateRunner(
   geometry: TrailGeometry | null,
   vars: MultiplaneCameraVars,
-) {
+): RunnerPose | null {
   if (!geometry) {
-    stage.style.setProperty("--route-fraction", vars.routeProgress.toFixed(4));
-    return;
+    return null;
   }
 
-  const { route, runner, total, entry } = geometry;
+  const { route, total, entry } = geometry;
   const length = entry + vars.routeProgress * (total - entry);
   const from = route.getPointAtLength(Math.max(0, length - 3));
   const to = route.getPointAtLength(Math.min(total, length + 3));
   const here = route.getPointAtLength(length);
-  const placement = computeRunnerPlacement({
-    x: here.x,
-    y: here.y,
-    dx: to.x - from.x,
-    dy: to.y - from.y,
-  });
 
-  runner.setAttribute(
+  return {
+    placement: computeRunnerPlacement({
+      x: here.x,
+      y: here.y,
+      dx: to.x - from.x,
+      dy: to.y - from.y,
+    }),
+    routeFraction: length / total,
+    stride: Math.floor(length / STRIDE_LENGTH) % 2 === 0 ? "a" : "b",
+  };
+}
+
+function drawRunner(
+  stage: HTMLElement,
+  geometry: TrailGeometry | null,
+  vars: MultiplaneCameraVars,
+  pose: RunnerPose | null,
+) {
+  if (!geometry || !pose) {
+    stage.style.setProperty("--route-fraction", vars.routeProgress.toFixed(4));
+    return;
+  }
+
+  const { placement } = pose;
+  geometry.runner.setAttribute(
     "transform",
     `translate(${placement.x.toFixed(1)} ${placement.y.toFixed(1)}) ` +
       `rotate(${placement.rotate.toFixed(1)}) ` +
       `scale(${(vars.runnerScale * placement.facing).toFixed(3)} ${vars.runnerScale.toFixed(3)})`,
   );
-  runner.dataset.stride =
-    Math.floor(length / STRIDE_LENGTH) % 2 === 0 ? "a" : "b";
-  stage.style.setProperty("--route-fraction", (length / total).toFixed(4));
+  geometry.runner.dataset.stride = pose.stride;
+  stage.style.setProperty("--route-fraction", pose.routeFraction.toFixed(4));
 }
 
 function applyStageVars(stage: HTMLElement, vars: MultiplaneCameraVars) {
@@ -261,7 +292,8 @@ export function useMultiplaneCamera({
 
     geometryRef.current = measureTrail(stage);
     if (lastVarsRef.current) {
-      placeRunner(stage, geometryRef.current, lastVarsRef.current);
+      const pose = locateRunner(geometryRef.current, lastVarsRef.current);
+      drawRunner(stage, geometryRef.current, lastVarsRef.current, pose);
     }
   }, [stageRef]);
 
@@ -285,8 +317,10 @@ export function useMultiplaneCamera({
       const vars = computeMultiplaneVars(progress, compactLayout, reducedMotion);
       geometryRef.current ??= measureTrail(stage);
       lastVarsRef.current = vars;
+      // Every read of the scene comes before the first write of the frame.
+      const pose = locateRunner(geometryRef.current, vars);
       applyStageVars(stage, vars);
-      placeRunner(stage, geometryRef.current, vars);
+      drawRunner(stage, geometryRef.current, vars, pose);
     },
     [compactLayout],
   );
