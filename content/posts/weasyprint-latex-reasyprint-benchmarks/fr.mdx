@@ -284,12 +284,68 @@ Le même tour a mis en miroir les colonnes de grille en texte de droite à gauch
 
 Le moteur est passé de 452 à 534 tests.
 
+## Un cinquième tour : une Lambda déployée
+
+Jusqu'ici, tous les chiffres Lambda venaient de l'image Lambda sur une machine de CI. Il en manque trois choses : le démarrage du runtime lui-même, le réglage de mémoire, et la part de CPU qui va avec. J'ai demandé une mesure dans de vraies fonctions, à froid et à chaud, à plusieurs réglages de mémoire.
+
+Mon utilisateur AWS ne pouvait pas créer de fonction. J'ai demandé le plus petit droit qui suffise, et la session l'a ouvert en pull request sur notre dépôt Terraform, pour staging seulement : créer, invoquer et supprimer les fonctions dont le nom commence par `reasyprint-bench-`, et leur passer un rôle qui ne peut qu'écrire leurs propres logs. Chaque droit expire de lui-même au bout de deux semaines. La revue de sécurité a refusé la première version, qui réutilisait le rôle de notre fonction PDF : une fonction dont on contrôle le code tourne avec les permissions de son rôle. J'ai mergé la seconde. Une autre pull request la retire, maintenant que la mesure est finie.
+
+La session a aussi demandé si Python était nécessaire. Elle a écrit un runtime Lambda natif : un exécutable Rust nommé `bootstrap`, sans interpréteur à démarrer. Son handler ne lit que les fichiers de son propre paquet, pour qu'un HTML envoyé par un appelant ne puisse pas charger comme image les identifiants de la fonction depuis `/proc/self/environ`. Trois déploiements ont été mesurés :
+
+- Rust, compilé contre la glibc dans Amazon Linux 2023, sur le runtime `provided.al2023` ;
+- le même code Rust, compilé en statique contre musl ;
+- Python 3.13 avec le wheel de reasyprint.
+
+Le protocole, pour chaque réglage de mémoire (512, 1024 et 1769 Mo, le réglage de notre fonction PDF, soit un vCPU entier) et chacun de trois documents publics (une facture de 2 pages, un rapport de 21, un grand livre de 51) :
+
+- 5 démarrages à froid. Chacun est forcé en donnant une nouvelle valeur à une variable d'environnement, ce qui fait jeter à Lambda ses environnements d'exécution. Les 135 mesures à froid ont toutes rapporté un temps d'initialisation : aucune n'a été servie à chaud par erreur.
+- 20 invocations à chaud du même environnement.
+- Les temps viennent de la ligne que Lambda écrit à la fin de chaque invocation : initialisation (à froid seulement), durée de l'invocation, mémoire maximale utilisée. Le handler renvoie aussi le temps de l'appel de rendu seul. Médianes.
+- Les fonctions sont supprimées à la fin de la mesure, y compris en cas d'échec.
+
+J'ai aussi chronométré l'aller-retour depuis mon portable, mais l'outil en ligne de commande d'AWS démarre un nouveau processus à chaque appel : ces chiffres mesurent l'outil plus que Lambda. Je les ai laissés de côté.
+
+À 1769 Mo, la première requête d'un nouvel environnement d'exécution :
+
+| Document | Moteur | Initialisation | Première invocation | Total | Mémoire |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Facture, 2 pages | Rust, glibc | 52 ms | 69 ms | 121 ms | 28 Mo |
+| | Python | 109 ms | 83 ms | 192 ms | 46 Mo |
+| Rapport, 21 pages | Rust, glibc | 52 ms | 124 ms | 176 ms | 33 Mo |
+| | Python | 110 ms | 135 ms | 245 ms | 52 Mo |
+| Grand livre, 51 pages | Rust, glibc | 52 ms | 787 ms | 839 ms | 140 Mo |
+| | Python | 105 ms | 814 ms | 919 ms | 169 Mo |
+
+À chaud, le rendu seul :
+
+| Document | Moteur | 512 Mo | 1024 Mo | 1769 Mo |
+| --- | --- | ---: | ---: | ---: |
+| Facture | Rust, glibc | 11,3 ms | 8,9 ms | 7,4 ms |
+| | Rust, musl | 36,9 ms | 12,9 ms | 14,0 ms |
+| | Python | 13,5 ms | 7,2 ms | 9,2 ms |
+| Rapport | Rust, glibc | 148 ms | 79 ms | 55 ms |
+| | Rust, musl | 260 ms | 130 ms | 77 ms |
+| | Python | 153 ms | 85 ms | 53 ms |
+| Grand livre | Rust, glibc | 2 177 ms | 1 022 ms | 605 ms |
+| | Rust, musl | 3 131 ms | 1 527 ms | 845 ms |
+| | Python | 2 145 ms | 1 034 ms | 607 ms |
+
+Ce que j'en retiens :
+
+- **Sans Python, le démarrage est deux fois plus court, le rendu n'est pas plus rapide.** 52 ms d'initialisation contre 105 à 110 ms. À chaud, les deux font tourner le même moteur compilé, et les temps sont dans le bruit l'un de l'autre.
+- **La version musl était 1,4 à 3,3 fois plus lente.** Même code, autre allocateur mémoire. La première version de la session était la statique, la plus simple à compiler depuis un Mac ; elle a soupçonné l'allocateur dès les premiers chiffres, et la mesure avec la glibc l'a confirmé.
+- **Dans Lambda, la mémoire règle le CPU.** De 512 à 1024 Mo, les longs documents se rendent deux fois plus vite, et 1769 Mo retire encore 40 % au grand livre.
+- **Une fonction déployée est environ deux fois plus lente que la machine de CI**, et plus lente que mon Mac : 55 ms pour le rapport, contre 27 ms sur la machine de CI et 24 ms sur le Mac. Les chiffres plus haut dans cet article ne sont pas ceux de Lambda.
+- **La première requête paie les polices :** 60 à 180 ms de plus qu'une requête à chaud.
+
+Le handler natif arrive avec dix tests à lui, dont la plupart vérifient ce qu'un HTML envoyé par un appelant n'a pas le droit de lire.
+
 ## Ce qui n'est pas mesuré
 
-- La latence de bout en bout dans une Lambda déployée, à froid et à chaud, pour les trois moteurs. reasyprint n'a tourné que dans l'image Lambda, sur une machine de CI.
-- La mémoire de LaTeX et de WeasyPrint. reasyprint culmine à 14 Mo sur le rapport de 14 pages, sur mon Mac.
+- La latence de bout en bout de LaTeX et de WeasyPrint dans une Lambda déployée. reasyprint y a maintenant été mesuré, sur trois documents ; pas les deux autres, donc la comparaison entre moteurs mélange encore un portable et Lambda.
+- La mémoire de LaTeX et de WeasyPrint. reasyprint culmine à 14 Mo sur le rapport de 14 pages sur mon Mac, et à 33 Mo pour le rapport public de 21 pages dans une Lambda déployée, processus compris.
 - reasyprint sur le corpus de 52 documents.
 - reasyprint contre LaTeX dans les mêmes conditions. La comparaison plus haut est indirecte.
 - veraPDF sur les six documents de référence. Il tourne sur les deux documents de test et les dix documents publics.
 
-La cible de reasyprint : remplacer LaTeX dans la Lambda et générer les PDF plus de 100 fois plus vite, avec la même qualité de sortie. Le facteur 100 est dépassé sur les six documents de la comparaison indirecte. Il reste à le mesurer dans une Lambda déployée, et à vérifier la qualité de sortie contre LaTeX.
+La cible de reasyprint : remplacer LaTeX dans la Lambda et générer les PDF plus de 100 fois plus vite, avec la même qualité de sortie. Le facteur 100 est dépassé sur les six documents de la comparaison indirecte. reasyprint a maintenant tourné dans une Lambda déployée ; LaTeX n'y a pas encore été mesuré de la même façon, et la qualité de sortie reste à vérifier contre LaTeX.

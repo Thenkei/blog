@@ -284,12 +284,68 @@ The same round mirrored grid columns under right-to-left text and added an optio
 
 The engine went from 452 to 534 tests.
 
+## A fifth round: a deployed Lambda
+
+Every Lambda number so far came from the Lambda image on a CI runner. That leaves out three things: the runtime's own start, the memory setting, and the share of CPU that comes with it. I asked for a measurement in real functions, cold and warm, at several memory settings.
+
+My AWS user could not create a function. I asked for the smallest grant that would do, and the session opened it as a pull request on our Terraform repository, for staging only: create, invoke and delete functions whose name starts with `reasyprint-bench-`, and pass them one role that can only write their own logs. Every grant expires on its own after two weeks. The security review rejected the first version, which reused the role of our PDF function: a function whose code you control runs with its role's permissions. I merged the second one. Another pull request removes it, now that the run is over.
+
+The session also asked whether Python was needed at all. It wrote a native Lambda runtime: a Rust executable named `bootstrap`, with no interpreter to start. Its handler only reads files of its own package, so HTML sent by a caller cannot load the function's credentials from `/proc/self/environ` as an image. Three deployments were measured:
+
+- Rust, built against glibc in Amazon Linux 2023, on the `provided.al2023` runtime;
+- the same Rust code, built statically against musl;
+- Python 3.13 with the reasyprint wheel.
+
+The protocol, for each memory setting (512, 1024 and 1769 MB, the setting of our PDF function, which is one full vCPU) and each of three public documents (an invoice of 2 pages, a report of 21, a ledger of 51):
+
+- 5 cold starts. Each is forced by giving an environment variable a new value, which makes Lambda discard its execution environments. All 135 cold samples reported an initialisation time, so none was served warm by mistake.
+- 20 warm invocations of the same environment.
+- The times come from the line Lambda writes at the end of every invocation: initialisation (cold only), invocation duration, maximum memory used. The handler also returns the time of the render call alone. Medians.
+- The functions are deleted at the end of the run, also on failure.
+
+I also timed the round trip from my laptop, but the AWS command-line tool starts a new process for every call, so those numbers measure the tool more than Lambda. I left them out.
+
+At 1769 MB, a new execution environment's first request:
+
+| Document | Engine | Initialisation | First invocation | Total | Memory |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Invoice, 2 pages | Rust, glibc | 52 ms | 69 ms | 121 ms | 28 MB |
+| | Python | 109 ms | 83 ms | 192 ms | 46 MB |
+| Report, 21 pages | Rust, glibc | 52 ms | 124 ms | 176 ms | 33 MB |
+| | Python | 110 ms | 135 ms | 245 ms | 52 MB |
+| Ledger, 51 pages | Rust, glibc | 52 ms | 787 ms | 839 ms | 140 MB |
+| | Python | 105 ms | 814 ms | 919 ms | 169 MB |
+
+Once warm, the render alone:
+
+| Document | Engine | 512 MB | 1024 MB | 1769 MB |
+| --- | --- | ---: | ---: | ---: |
+| Invoice | Rust, glibc | 11.3 ms | 8.9 ms | 7.4 ms |
+| | Rust, musl | 36.9 ms | 12.9 ms | 14.0 ms |
+| | Python | 13.5 ms | 7.2 ms | 9.2 ms |
+| Report | Rust, glibc | 148 ms | 79 ms | 55 ms |
+| | Rust, musl | 260 ms | 130 ms | 77 ms |
+| | Python | 153 ms | 85 ms | 53 ms |
+| Ledger | Rust, glibc | 2,177 ms | 1,022 ms | 605 ms |
+| | Rust, musl | 3,131 ms | 1,527 ms | 845 ms |
+| | Python | 2,145 ms | 1,034 ms | 607 ms |
+
+What I take from it:
+
+- **Without Python, the start is twice as short, the render is not faster.** 52 ms of initialisation against 105 to 110 ms. Once warm, both run the same compiled engine, and the times are within noise of each other.
+- **The musl build was 1.4 to 3.3 times slower.** Same code, different memory allocator. The session's first build was the static one, the easiest to build from a Mac; it suspected the allocator from the first numbers, and the glibc run confirmed it.
+- **In Lambda, memory sets the CPU.** From 512 to 1024 MB the long documents render twice as fast, and 1769 MB takes another 40% off the ledger.
+- **A deployed function is about twice as slow as the CI runner**, and slower than my Mac: 55 ms for the report, against 27 ms on the runner and 24 ms on the Mac. The numbers earlier in this article are not Lambda's.
+- **The first request pays for the fonts:** 60 to 180 ms more than a warm one.
+
+The native handler comes with ten tests of its own, most of them checking what HTML from a caller may not read.
+
 ## What has not been measured
 
-- End-to-end latency in a deployed Lambda, cold and warm, for all three renderers. reasyprint has only run in the Lambda image, on a CI runner.
-- Memory of LaTeX and WeasyPrint. reasyprint peaks at 14 MB on the 14-page report, on my Mac.
+- End-to-end latency of LaTeX and WeasyPrint in a deployed Lambda. reasyprint has now been measured in one, on three documents; the other two have not, so the comparison between renderers still mixes a laptop and Lambda.
+- Memory of LaTeX and WeasyPrint. reasyprint peaks at 14 MB on the 14-page report on my Mac, and at 33 MB for the 21-page public report in a deployed Lambda, process included.
 - reasyprint on the corpus of 52 documents.
 - reasyprint against LaTeX under the same conditions. The comparison above is indirect.
 - veraPDF on the six reference documents. It runs on the two test documents and the ten public ones.
 
-The target for reasyprint: replace LaTeX in the Lambda and generate PDFs more than 100 times faster, with the same output quality. The factor of 100 is exceeded on the six documents of the indirect comparison. It remains to be measured in a deployed Lambda, and the output quality remains to be checked against LaTeX.
+The target for reasyprint: replace LaTeX in the Lambda and generate PDFs more than 100 times faster, with the same output quality. The factor of 100 is exceeded on the six documents of the indirect comparison. reasyprint has now run in a deployed Lambda; LaTeX has not been measured the same way yet, and the output quality remains to be checked against LaTeX.
