@@ -138,7 +138,16 @@ main:focus {
   isolation: isolate;
   align-items: flex-start;
   justify-content: flex-start;
-  background: #071d2a;
+  /* Shown until the scene chunk has loaded: night sky over dark ground, so
+     the planes fade in over a picture that already looks like them. */
+  background: linear-gradient(
+    180deg,
+    #051521 0%,
+    #071d2a 34%,
+    #0e3746 56%,
+    #1a443d 78%,
+    #0c2724 100%
+  );
 }
 
 .mountain-camera-stage::after,
@@ -171,6 +180,7 @@ main:focus {
   inset: 0;
   pointer-events: none;
   will-change: transform;
+  animation: fadeIn var(--motion-slow) var(--motion-ease-standard);
 }
 
 .mountain-layer > svg {
@@ -181,6 +191,14 @@ main:focus {
   width: auto;
   height: 100%;
   overflow: visible;
+  /* The artwork runs 1500 units past the left of its viewBox for wide
+     screens. On a phone that is several screens of drawing nobody sees, and
+     it is repainted on every scroll frame. Paint only the stage plus the
+     margin the camera can travel: the left edge follows the viewport, the
+     bottom leaves room for the planes sliding up. */
+  clip-path: inset(
+    -10% -10% calc(-1 * max(14%, 120px)) calc(100% - 110vw)
+  );
 }
 
 .mountain-layer-sky {
@@ -398,6 +416,7 @@ main:focus {
 }
 
 .rocket-flight-ghost,
+.rocket-flight-glow,
 .rocket-flight-line {
   fill: none;
   vector-effect: non-scaling-stroke;
@@ -497,6 +516,8 @@ main:focus {
   height: 100svh;
   border-bottom: none;
   isolation: isolate;
+  /* Lets the ship place itself in stage units (cqw / cqh). */
+  container-type: size;
   background: #050817;
 }
 
@@ -551,10 +572,38 @@ main:focus {
   stroke-dasharray: 4 12;
 }
 
+.rocket-flight-glow,
 .rocket-flight-line {
+  --flight-line-width: clamp(2px, 0.28vw, 4.5px);
   stroke: url("#rocket-flight-gradient");
-  stroke-width: clamp(2px, 0.28vw, 4.5px);
+}
+
+.rocket-flight-line {
+  stroke-width: var(--flight-line-width);
   opacity: calc(0.28 + (var(--rocket-boost) * 0.72));
+}
+
+/* Halo of the line: each stroke is wider and fainter than the one inside it. */
+.rocket-flight-glow {
+  stroke-width: calc(var(--flight-line-width) * var(--flight-glow-spread));
+  opacity: calc(
+    (0.28 + (var(--rocket-boost) * 0.72)) * var(--flight-glow-strength)
+  );
+}
+
+.rocket-flight-glow-inner {
+  --flight-glow-spread: 2.4;
+  --flight-glow-strength: 0.2;
+}
+
+.rocket-flight-glow-mid {
+  --flight-glow-spread: 4.2;
+  --flight-glow-strength: 0.1;
+}
+
+.rocket-flight-glow-outer {
+  --flight-glow-spread: 6.5;
+  --flight-glow-strength: 0.06;
 }
 
 .rocket-flight-reveal-clip {
@@ -563,20 +612,24 @@ main:focus {
 
 .rocket-layer-ship {
   z-index: 8;
-  inset: auto;
-  left: calc(var(--rocket-x) * 1%);
-  top: calc(var(--rocket-y) * 1%);
+  inset: 0 auto auto 0;
   width: clamp(112px, 12vw, 178px);
   aspect-ratio: 420 / 520;
   opacity: var(--rocket-opacity);
   background-image: url("../assets/images/rocket_camera_ship.svg");
   background-size: contain;
   background-position: center;
-  transform: translate(-50%, -50%) rotate(calc(var(--rocket-rotate) * 1deg))
-    scale(var(--rocket-scale));
+  /* The flight is a transform, measured against the stage (cqw / cqh), so
+     moving the ship never asks for a layout. */
+  transform: translate3d(
+      calc(var(--rocket-x) * 1cqw - 50%),
+      calc(var(--rocket-y) * 1cqh - 50%),
+      0
+    )
+    rotate(calc(var(--rocket-rotate) * 1deg)) scale(var(--rocket-scale));
   transform-origin: center;
   filter: drop-shadow(0 14px 24px rgba(202, 120, 255, 0.28));
-  will-change: left, top, transform, opacity;
+  will-change: transform, opacity;
 }
 
 .rocket-layer-ship::after {
