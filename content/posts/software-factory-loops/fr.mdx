@@ -1,0 +1,75 @@
+---
+title: "Ce que j'appelle une Software Factory"
+subtitle: "Une boucle principale, des boucles autour, et un humain qui décide seulement là où sa décision compte."
+summary: "Pour moi, Software Factory est un mot qui rassemble les bonnes pratiques apparues depuis deux ans avec les agents : des agents, des skills et des petites boucles dans chaque étape du développement. La boucle principale, les boucles autour, et les moments où un humain doit décider."
+visualId: "bounded-ai-loop"
+publishedAt: "2026-12-11"
+readTimeMinutes: 5
+tags:
+  - ai
+  - agents
+  - engineering
+  - product
+  - rockfi
+---
+
+On parle aujourd'hui de Software Factory. Pour moi, c'est un mot qui rassemble des bonnes pratiques qui existent depuis environ deux ans, depuis que l'IA est devenue agentique.
+
+Concrètement, une Software Factory, ce sont des agents, des skills et des petites boucles, posés dans les différents projets et les différents processus qui composent le développement d'un logiciel dans une entreprise.
+
+<ArticleVideo id="software-factory-film">
+  La Software Factory en trente secondes.
+</ArticleVideo>
+
+## La boucle principale
+
+Développer un logiciel, c'est une suite d'étapes :
+
+1. la spécification produit ;
+2. la spécification technique ;
+3. l'implémentation ;
+4. la review ;
+5. le rollout ;
+6. la release ;
+7. les corrections, s'il y en a.
+
+Une fois la release faite, on repart sur le cycle suivant. C'est la boucle principale de la Software Factory.
+
+## Les boucles autour
+
+D'autres boucles tournent autour de celle-ci.
+
+La première part des logs. Une erreur en production déclenche automatiquement une correction et l'ouverture d'une pull request.
+
+La deuxième part des retours clients. Un tri qualifie chaque retour :
+
+- une amélioration va au produit, qui décide de la prioriser ou non ;
+- un bug est corrigé ou non selon sa criticité.
+
+## Des briques posées depuis un an et demi
+
+Si on a bien travaillé depuis que tout ça a commencé, on a déjà posé beaucoup de petites briques. Chez RockFi, ce sont par exemple [le Product OS](../posts/ai-human-judgment-rockfi), qui porte le contexte d'une étape à la suivante, ou [notre fabrique de vidéos](../posts/video-factory-remotion-agents). Ces briques sont les fondations. La Software Factory consiste à les assembler.
+
+## Ne plus micromanager ses agents
+
+Voici comment je la décrirais. En tant qu'ingénieur, je n'ai plus besoin de micromanager mes agents. Un agent orchestrateur me rend un contenu que je peux lire et sur lequel ma décision a de la valeur. Le reste du processus est automatisé.
+
+## Un exemple de bout en bout
+
+Avec le produit, on spécifie une fonctionnalité. On fait des workshops et du brainstorming, jusqu'à finaliser l'idéation produit et les spécifications qui vont avec.
+
+On donne ces spécifications à des agents. Ils construisent la fonctionnalité et la testent automatiquement en staging, avec une QA et un rapport de QA. Les bugs trouvés sont corrigés.
+
+Ensuite, un humain valide la qualité. Cela peut être une démo filmée par les agents, qui montre la fonctionnalité, ou un vrai test humain de différents scénarios.
+
+Puis on part en production.
+
+Pendant tout ce temps, les retours et la boucle QA, retour puis correction, tournent sans nous. Nous intervenons seulement en cas de besoin.
+
+## Quand un humain doit décider
+
+Prenons le pire scénario : une spécification incorrecte, qui oblige à changer une grande partie de l'architecture décidée au départ, pour des questions de performance par exemple. Là, il faut un accord humain. C'est la même chose pour les questions de coût.
+
+## Où nous en sommes
+
+Chez RockFi, nous sommes proches d'avoir cette Software Factory. Certains l'ont déjà en local. Il reste à la partager avec les différentes équipes.

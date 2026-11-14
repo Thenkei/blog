@@ -17,6 +17,7 @@ const editorialSlugs = [
   "stacked-prs-29-to-11",
   "compacting-long-agent-conversations",
   "weasyprint-latex-reasyprint-benchmarks",
+  "software-factory-loops",
   "nexus-in-two-days",
   "agent-battle-2026",
   "frontier-model-race-2026",

@@ -93,6 +93,18 @@ const ARTICLE_VIDEOS = {
     },
     sound: "voice",
   },
+  "software-factory-film": {
+    path: "software-factory/film",
+    title: {
+      en: "Short animated film: the Software Factory",
+      fr: "Petit film d’animation : la Software Factory",
+    },
+    description: {
+      en: "Music, no voice, 29 seconds. An engineer answers his agents’ questions until he disappears under the bubbles. Then the main loop turns, two loops attach to it (production errors, customer feedback), and an orchestrator agent brings him three decisions to stamp.",
+      fr: "Musique, sans voix, 29 secondes. Un ingénieur répond aux questions de ses agents jusqu’à disparaître sous les bulles. Puis la boucle principale tourne, deux boucles s’y accrochent (erreurs de production, retours clients), et un agent orchestrateur lui apporte trois décisions à tamponner.",
+    },
+    sound: "music",
+  },
 } as const satisfies Record<string, ArticleVideoCopy>;
 
 export type ArticleVideoId = keyof typeof ARTICLE_VIDEOS;

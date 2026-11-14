@@ -27,6 +27,11 @@ export const MOTION_STORIES = {
     en: ["Keep a two-way connection", "The backend restarts", "Spread reconnections over time"],
     fr: ["Garder une connexion bidirectionnelle", "Le backend redémarre", "Étaler les reconnexions"],
   },
+  "software-factory-loops": {
+    kind: "cycle",
+    en: ["Specify, build, test, release, repeat", "Logs and customer feedback start other loops", "A human decides where it matters"],
+    fr: ["Spécifier, construire, tester, livrer", "Logs et retours clients ouvrent des boucles", "L'humain décide là où ça compte"],
+  },
   "webkit-svg-filters-hero-performance": {
     kind: "flow",
     en: ["Chromium reports 60 fps on the Rocket hero", "WebKit runs the same scroll at 11 fps", "Three strokes replace the SVG blur"],

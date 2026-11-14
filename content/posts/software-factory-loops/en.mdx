@@ -1,0 +1,75 @@
+---
+title: "What I Call a Software Factory"
+subtitle: "One main loop, loops around it, and a human who decides only where the decision matters."
+summary: "To me, Software Factory is a word that gathers the good practices that appeared over the last two years with agents: agents, skills and small loops in every step of development. The main loop, the loops around it, and the moments where a human has to decide."
+visualId: "bounded-ai-loop"
+publishedAt: "2026-12-11"
+readTimeMinutes: 5
+tags:
+  - ai
+  - agents
+  - engineering
+  - product
+  - rockfi
+---
+
+People talk about Software Factories today. To me, it is a word that gathers good practices that have existed for about two years, since AI became agentic.
+
+In practice, a Software Factory is agents, skills and small loops, placed in the different projects and processes that make up software development in a company.
+
+<ArticleVideo id="software-factory-film">
+  The Software Factory in thirty seconds.
+</ArticleVideo>
+
+## The main loop
+
+Developing software is a sequence of steps:
+
+1. the product specification;
+2. the technical specification;
+3. the implementation;
+4. the review;
+5. the rollout;
+6. the release;
+7. the fixes, if there are any.
+
+Once the release is done, the next cycle starts. That is the main loop of the Software Factory.
+
+## The loops around it
+
+Other loops run around this one.
+
+The first starts from the logs. An error in production automatically triggers a fix and the opening of a pull request.
+
+The second starts from customer feedback. A triage qualifies each piece of feedback:
+
+- an improvement goes to product, which decides whether to prioritise it;
+- a bug is fixed or not depending on how critical it is.
+
+## Building blocks laid down over a year and a half
+
+If we have worked well since all this started, we have already laid down many small building blocks. At RockFi, examples are [the Product OS](../posts/ai-human-judgment-rockfi), which carries context from one step to the next, or [our video factory](../posts/video-factory-remotion-agents). These blocks are the foundations. The Software Factory is about putting them together.
+
+## No more micromanaging agents
+
+This is how I would describe it. As an engineer, I no longer need to micromanage my agents. An orchestrator agent gives me back content I can read and where my decision has value. The rest of the process is automated.
+
+## An example from end to end
+
+With product, we specify a feature. We run workshops and brainstorming, until the product ideation and the specifications that go with it are final.
+
+We give these specifications to agents. They build the feature and test it automatically in staging, with QA and a QA report. The bugs they find are fixed.
+
+Then a human validates the quality. It can be a demo filmed by the agents that shows the feature, or a real human test of several scenarios.
+
+Then we go to production.
+
+During all this time, the feedback and the QA loop, report then fix, run without us. We step in only when needed.
+
+## When a human has to decide
+
+Take the worst case: an incorrect specification that forces a change to a large part of the architecture decided at the start, for performance reasons for example. There, a human agreement is needed. The same goes for cost questions.
+
+## Where we are
+
+At RockFi, we are close to having this Software Factory. Some people already have it locally. What is left is to share it with the different teams.
