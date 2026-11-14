@@ -1,0 +1,135 @@
+---
+title: "29 pull requests empilées, fermées et refaites en 11"
+subtitle: "Le même refactoring découpé deux fois, avec les chiffres des deux empilements."
+summary: "En novembre, j'ai ouvert un refactoring NestJS en 29 pull requests empilées. Je les ai fermées le lendemain et rouvertes en 11, fusionnées le jour suivant. Lignes à relire, fichiers créés puis supprimés, ordre des PR : ce qui a changé entre les deux."
+visualId: "bounded-ai-loop"
+publishedAt: "2026-12-01"
+readTimeMinutes: 6
+tags:
+  - developer-tools
+  - engineering
+  - architecture
+  - agents
+  - rockfi
+draft: true
+---
+
+En novembre, chez RockFi, j'ai ouvert un refactoring en 29 pull requests empilées : chaque PR avait pour base la branche de la précédente. Le lendemain, je les ai toutes fermées et j'ai rouvert le même travail en 11 PR. Elles ont été fusionnées le jour suivant.
+
+En fermant les 29 premières, j'ai laissé le même commentaire sur chacune : même état final, plus les corrections de revue, redécoupé pour qu'aucune PR n'ajoute un fichier qu'une PR suivante supprime.
+
+La raison : la relecture humaine du premier empilement était trop longue.
+
+## Le refactoring
+
+Le service est une API NestJS qui gère des portefeuilles modèles. Les règles métier étaient dans des services qui lisaient et écrivaient aussi la base.
+
+Après le refactoring, chaque écriture passe par un use case : il charge un agrégat, appelle une de ses méthodes et sauvegarde. L'agrégat décide sans faire d'I/O et ses méthodes renvoient un `Result`. Sa racine porte un numéro de révision, qui sert de verrou optimiste pour tout ce qu'elle contient. Chaque endpoint de lecture a sa requête.
+
+## Le premier empilement suivait l'ordre du travail
+
+Les 29 PR sont dans l'ordre où j'ai écrit les commits. Elles ont été ouvertes en sept heures.
+
+Les PR 4, 6 et 8 passaient en use cases les documents, la validation d'une version et l'import de jeux de données. L'agrégat n'existait pas encore : la description de la PR 6 rangeait sa conception dans les suites à traiter dans d'autres PR. La PR 11 l'a introduit. Les PR 14 et 15 ont réécrit dessus l'import, la validation et les documents. La PR 16 a basculé les écritures. Les PR 17 à 20 ont supprimé l'ancien chemin, avec des fichiers créés par les PR 4 et 6. Les PR 28 et 29 ont supprimé l'import, que plus rien n'appelait.
+
+Quelqu'un qui relit dans l'ordre lit donc l'import deux fois, dans la PR 8 puis dans la PR 14, avant de le voir disparaître.
+
+## Les chiffres des deux empilements
+
+| Mesure | 29 PR | 11 PR |
+| --- | ---: | ---: |
+| Somme des diffs des PR (lignes ajoutées + supprimées) | 32 381 | 24 120 |
+| Diff final, de la base au sommet | 22 051 | 24 118 |
+| Fichiers créés par une PR puis supprimés par une autre | 24 | 0 |
+| Fichiers touchés par 3 PR ou plus | 45 | 4 |
+| Taille médiane d'une PR (lignes) | 928 | 1 429 |
+| Plus grosse PR (lignes) | 3 833 | 7 242 |
+
+Dans le premier empilement, il fallait lire 32 381 lignes de diff pour un changement qui en fait 22 051. L'écart, 10 330 lignes, est du travail qu'une PR fait et qu'une PR suivante défait. Les 24 fichiers créés puis supprimés viennent des PR 4, 6, 8 et 14. Dix sont des fichiers de test.
+
+Dans le second, l'écart est de deux lignes.
+
+<MotionScene id="pr-stack-churn" />
+
+Le second empilement n'est pas plus petit. Son diff final dépasse celui du premier de 2 067 lignes, parce qu'il contient les corrections de revue : les deux états finaux diffèrent de 3 600 lignes ajoutées et 2 665 supprimées, sur 150 fichiers. Ses PR sont plus grosses. Dans les deux diffs finaux, 2 624 lignes supprimées sont des fichiers de données.
+
+Ces chiffres se calculent avec git sur les branches, avant d'ouvrir les PR :
+
+```bash
+# Exemple simplifié : les branches de l'empilement, de la base au sommet.
+stack=(main stack/01 stack/02 stack/03)
+last=$((${#stack[@]} - 1))
+
+for ((i = 1; i <= last; i++)); do
+  git diff --shortstat "${stack[i-1]}" "${stack[i]}"   # à additionner
+  git diff --name-status "${stack[i-1]}" "${stack[i]}" >> touched.txt
+done
+
+# Diff final.
+git diff --shortstat "${stack[0]}" "${stack[last]}"
+
+# Fichiers créés par une PR puis supprimés par une autre.
+comm -12 \
+  <(awk '$1 == "A" {print $2}' touched.txt | sort -u) \
+  <(awk '$1 == "D" {print $2}' touched.txt | sort -u)
+```
+
+## L'ordre du second empilement
+
+1. Les fondations : erreurs de base de données typées, base de test construite à partir des migrations, documentation.
+2. Une première entité simple passée en use cases.
+3. La suppression de l'import : 1 ligne ajoutée, 3 877 supprimées.
+4. L'agrégat. Rien ne l'appelle.
+5. Son repository, avec la révision sur la racine. Pas branché.
+6. Les use cases d'édition, un par méthode de l'agrégat. Pas branchés.
+7. Les use cases de documents. Pas branchés.
+8. Les lectures, une requête par endpoint.
+9. La bascule : toutes les écritures passent par l'agrégat, l'ancien chemin est supprimé.
+10. Une seconde entité simple passée en use cases.
+11. Les référentiels en lecture seule, servis par des requêtes.
+
+### Le code mort part en premier
+
+L'import est supprimé en troisième position. L'agrégat arrive ensuite sans règles d'import. Dans le premier empilement, la PR 14 les lui avait ajoutées et la PR 29 les avait retirées.
+
+### Le nouveau code arrive sans être branché
+
+Les PR 4 à 7 ajoutent 5 870 lignes et en suppriment 22. Aucune route n'appelle ce code, et l'objectif de chaque description le dit. Le premier empilement avait déjà cette séquence, de la PR 11 à la PR 15.
+
+### La bascule tient dans une seule PR
+
+La PR 9 fait 7 242 lignes sur 59 fichiers, dont 5 504 lignes supprimées. Dans le premier empilement, la bascule et les suppressions occupaient cinq PR.
+
+La bascule elle-même ne se découpe pas. La révision est vérifiée et incrémentée à chaque sauvegarde :
+
+```sql
+-- Exemple simplifié.
+UPDATE portfolio
+SET revision = revision + 1
+WHERE id = $1 AND revision = $2;
+-- 0 ligne modifiée : une autre écriture est passée entre-temps, la sauvegarde est refusée.
+```
+
+Une écriture qui passe encore par l'ancien chemin n'incrémente pas la révision, et les autres ne la voient pas. Toutes les écritures doivent donc changer dans la même PR.
+
+La contrainte vaut aussi au déploiement. La description de cette PR demande de suspendre les écritures tant que d'anciennes instances tournent. Elle liste aussi trois changements de comportement.
+
+### Un fichier n'est presque plus repris après sa création
+
+Dans le premier empilement, 45 fichiers étaient touchés par trois PR ou plus. Dans le second, 4.
+
+Un collègue a poussé une correction sur une entité créée par la PR 2 du premier empilement. Son commit est dans la PR 24, qui modifiait de nouveau ces fichiers. Dans le second empilement, la même correction est dans la PR 2, celle qui crée l'entité.
+
+## Les durées
+
+Mes 11 commits du second empilement sont datés sur vingt minutes. Les 11 PR ont été ouvertes en 51 secondes. Dans le premier, 21 des 29 PR avaient été ouvertes en 2 h 18.
+
+Les deux empilements ont été produits avec des agents de code : Opus et Sol.
+
+Le premier empilement est resté ouvert 20 heures. Le second a été fusionné 24 heures après son ouverture.
+
+La relecture du premier a été longue. Celle du second a été très rapide : le découpage était meilleur et l'état final se lisait directement.
+
+Il reste quatre anciennes routes d'écriture, marquées dépréciées. Elles seront supprimées quand le back-office appellera les nouvelles.
+
+Depuis, je préfère ouvrir un empilement lisible, où chaque PR apporte quelque chose, plutôt qu'un empilement qui contient beaucoup de refactoring intermédiaire, donc du code supprimé plus loin dans le même empilement. C'est plus brutal, mais cela représente mieux les changements.

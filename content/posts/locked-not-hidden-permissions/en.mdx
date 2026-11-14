@@ -1,0 +1,114 @@
+---
+title: "Show what permissions refuse as locked"
+subtitle: "In an internal tool, a hidden feature looks missing. I propose keeping it visible, disabled, with the names of the groups that have access."
+summary: "In our back office, what a user is not allowed to do disappears from the page. A pull request proposes showing it locked, with the reason and the groups concerned. What it changes, what stays hidden, and what it does not solve for keyboard and screen-reader users."
+visualId: "internal-tools-as-product"
+publishedAt: "2026-11-24"
+readTimeMinutes: 6
+tags:
+  - product
+  - developer-tools
+  - security
+  - dx
+  - rockfi
+draft: true
+---
+
+In RockFi's back office, the interface hides what a user's permissions refuse. Without the permission to edit a section, the write buttons are not rendered. Without the permission to read another one, the tab or card that shows it disappears.
+
+The user sees a page with pieces missing and no explanation. They cannot tell a missing permission from a feature that is not deployed. They do not know whom to ask either.
+
+The trigger: I was looking for a section I could not find. The cause turned out to be something else, but it is what made me open this pull request.
+
+I opened a pull request that changes this rule: what permissions refuse stays on the page, locked, with the names of the groups that hold the permission. As I write this, it is open and not merged. So I cannot say anything about its effect on users.
+
+{/* TO COMPLETE (author): state of the pull request on the publication date (merged as is, modified, dropped) and adjust the tenses of the text accordingly. */}
+
+I am talking here about the back office RockFi uses today. Nexus, described in the series [Internal Tools at the Edge](../posts/internal-tools-are-a-product), was a proposal, and [another solution was chosen](../posts/internal-tools-still-believe). The permission and group names in this article are made up, and the code is simplified.
+
+## The current rule
+
+The project's rule has two parts. A write control is rendered only if the user has the permission to write. What the page lists but the user cannot open, a document or a sidebar entry, stays visible, disabled, with a lock icon and the reason. The project's UI guide justifies it this way: hidden, the element would look missing or broken.
+
+The pull request extends the second part to write controls and to sections.
+
+## Three components
+
+**The locked action.** A write button (save, create, add) stays in place, disabled. On hover, it shows the reason: "Reserved for the Operations group: ask an administrator for access."
+
+**The read-only notice.** The page writes the same reason once, as text, under its header: "Read-only. Changes are reserved for the Operations group." A card that depends on another permission has its own notice. On a list page, the reason fits on one line under the header actions.
+
+**The restricted section.** A tab or card the user is not allowed to read keeps its place and its title. Its content is replaced by a "Restricted access" block that names the groups.
+
+<MotionScene id="locked-instead-of-hidden" />
+
+These three components live in a single file, so that locking has the same form on every page. It is the argument for primitives in [Consistency Is a Default, Not a Convention](../posts/internal-tools-consistency-by-default).
+
+## How the button is disabled
+
+```tsx
+// Simplified example. The names are made up for the article.
+function LockedAction({ permission, children }: LockedActionProps) {
+  const { allows, reasonFor } = usePermissions();
+
+  if (allows(permission)) return <>{children}</>;
+
+  return (
+    <span title={reasonFor(permission)}>
+      <fieldset disabled style={{ display: "contents" }}>
+        {children}
+      </fieldset>
+    </span>
+  );
+}
+
+<LockedAction permission="orders.edit">
+  <Button onClick={save}>Save</Button>
+</LockedAction>
+```
+
+The component wraps its children in a `fieldset disabled`. The browser then disables every form control inside it. There is no need to clone the children to pass them a `disabled` prop, and each button keeps its own props.
+
+A disabled button receives no mouse events, so a `title` set on it would never show. The `span` around it carries the `title` instead.
+
+A `fieldset` does not disable links. When the action is a link to a creation page, the page itself renders a button in its place for users without the permission. The component does not do it for the page.
+
+## With a keyboard and with a screen reader
+
+The `title` only shows on hover. With a keyboard, a disabled button leaves the tab order and the `span` does not take focus. On a touch screen, there is no hover. The notice exists for these users: the reason is in the page, as text.
+
+The notice is not linked to the buttons. From reading the code, a screen reader that reaches a locked button announces it as unavailable, without the reason: the `title` is on another element, and no `aria-describedby` points to the notice. On a list page, the line under the actions has an id that the button does not reference. The user has to have read the reason elsewhere in the page. The pull request does not solve this.
+
+I have not tested with a keyboard or with a screen reader.
+
+The W3C's ARIA Authoring Practices Guide describes two conventions for a disabled control: remove it from the tab order with `disabled` when the neighbouring controls are enough to infer that it exists, or keep it focusable with `aria-disabled` when it has to stay discoverable. The locked buttons follow the first one. In menus, a locked entry carries `aria-disabled` and a lock icon in place of its own icon.
+
+## What stays hidden
+
+The actions on each row of a table (edit, delete, cancel) stay hidden from those who do not have them. A lock on every row would be noise, and the card's notice already says why.
+
+The home page only shows the user's own sections. It is a summary of their own work.
+
+An action that the object's state does not allow stays absent for everyone: nobody is offered the deletion of an order that is already validated. The status decides which actions exist. The user's groups only lock them.
+
+The new rule is written in the contribution guide and in the checklist that coding agents follow: nothing is hidden for lack of a permission, and row actions are the only hidden controls.
+
+## The server always refuses
+
+Locking is display. Every server function starts by checking the permission, and a refused call is logged with the user and the permissions it asked for. A disabled button adds no protection, and hiding it added none either. It is the principle I described for Nexus in [Governance You Cannot Forget](../posts/internal-tools-governance-by-construction): access control is on the server side, whether the screen thinks about it or not.
+
+The restricted section adds one precaution. Until the permissions are known, it renders nothing, so its content sends no request. Otherwise the page would ask for data the server is going to refuse. A test checks that the call is not sent for a user without the read permission.
+
+In the existing tests, the assertions "the button is absent" become "the button is disabled and the notice is visible".
+
+## What locking reveals
+
+Showing things locked tells every user that a feature exists and which groups hold it. For fields, I had argued for the same choice in the article on governance: mask the value rather than remove the column.
+
+One well-known public recommendation goes the other way for permissions. In "Hidden vs. Disabled In UX" (Smashing Magazine, 2024), Vitaly Friedman asks a question: will this user ever be able to interact with the element? If the answer is no, for example because of permissions, he advises hiding it. He advises disabling when you want the user to know that a feature exists but is unavailable, and explaining why.
+
+In our back office, group membership is changed in the settings, and the message on screen says to ask an administrator for access. So the answer to his question is not "never".
+
+The proposal does not plan for any feature whose existence should stay hidden. If one comes up, it will have to be written as one more exception.
+
+{/* TO COMPLETE (author): how users reacted once the change was in place (if it is). Add nothing until there is real feedback. */}

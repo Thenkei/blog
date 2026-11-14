@@ -1,0 +1,135 @@
+---
+title: "29 stacked pull requests, closed and redone as 11"
+subtitle: "The same refactor sliced twice, with the numbers for both stacks."
+summary: "In November I opened a NestJS refactor as 29 stacked pull requests. I closed them the next day and reopened the work as 11, merged the day after. Lines to read, files created then deleted, order of the PRs: what changed between the two."
+visualId: "bounded-ai-loop"
+publishedAt: "2026-12-01"
+readTimeMinutes: 6
+tags:
+  - developer-tools
+  - engineering
+  - architecture
+  - agents
+  - rockfi
+draft: true
+---
+
+In November, at RockFi, I opened a refactor as 29 stacked pull requests: each PR was based on the branch of the previous one. The next day I closed all of them and reopened the same work as 11 PRs. They were merged the day after.
+
+When I closed the first 29, I left the same comment on each: same end state, plus the review fixes, sliced again so that no PR adds a file a later PR removes.
+
+The reason: human review of the first stack took too long.
+
+## The refactor
+
+The service is a NestJS API that manages model portfolios. The business rules lived in services that also read and wrote the database.
+
+After the refactor, every write goes through a use case: it loads an aggregate, calls one of its methods and saves. The aggregate decides without doing I/O and its methods return a `Result`. Its root carries a revision number, used as an optimistic lock for everything it contains. Each read endpoint has its own query.
+
+## The first stack followed the order of the work
+
+The 29 PRs are in the order I wrote the commits. They were opened over seven hours.
+
+PRs 4, 6 and 8 moved documents, the approval of a version and the dataset import to use cases. The aggregate did not exist yet: the description of PR 6 listed its design among the follow-ups to handle in other PRs. PR 11 introduced it. PRs 14 and 15 rewrote the import, the approval and the documents on top of it. PR 16 switched the writes. PRs 17 to 20 removed the old path, along with files created by PRs 4 and 6. PRs 28 and 29 removed the import, which nothing called any more.
+
+Someone reviewing in order therefore reads the import twice, in PR 8 and again in PR 14, before seeing it disappear.
+
+## The numbers for both stacks
+
+| Measure | 29 PRs | 11 PRs |
+| --- | ---: | ---: |
+| Sum of the PR diffs (lines added + deleted) | 32,381 | 24,120 |
+| Final diff, from the base to the top | 22,051 | 24,118 |
+| Files created by one PR then deleted by another | 24 | 0 |
+| Files touched by 3 PRs or more | 45 | 4 |
+| Median PR size (lines) | 928 | 1,429 |
+| Largest PR (lines) | 3,833 | 7,242 |
+
+In the first stack, you had to read 32,381 lines of diff for a change of 22,051. The gap, 10,330 lines, is work that one PR does and a later PR undoes. The 24 files created then deleted come from PRs 4, 6, 8 and 14. Ten of them are test files.
+
+In the second, the gap is two lines.
+
+<MotionScene id="pr-stack-churn" />
+
+The second stack is not smaller. Its final diff is 2,067 lines larger than the first one's, because it contains the review fixes: the two end states differ by 3,600 lines added and 2,665 deleted, across 150 files. Its PRs are larger. In both final diffs, 2,624 deleted lines are data files.
+
+These numbers can be computed with git on the branches, before opening the PRs:
+
+```bash
+# Simplified example: the branches of the stack, from the base to the top.
+stack=(main stack/01 stack/02 stack/03)
+last=$((${#stack[@]} - 1))
+
+for ((i = 1; i <= last; i++)); do
+  git diff --shortstat "${stack[i-1]}" "${stack[i]}"   # to be summed
+  git diff --name-status "${stack[i-1]}" "${stack[i]}" >> touched.txt
+done
+
+# Final diff.
+git diff --shortstat "${stack[0]}" "${stack[last]}"
+
+# Files created by one PR then deleted by another.
+comm -12 \
+  <(awk '$1 == "A" {print $2}' touched.txt | sort -u) \
+  <(awk '$1 == "D" {print $2}' touched.txt | sort -u)
+```
+
+## The order of the second stack
+
+1. The foundations: typed database errors, a test database built from the migrations, documentation.
+2. A first simple entity moved to use cases.
+3. The removal of the import: 1 line added, 3,877 deleted.
+4. The aggregate. Nothing calls it.
+5. Its repository, with the revision on the root. Not wired.
+6. The authoring use cases, one per aggregate method. Not wired.
+7. The document use cases. Not wired.
+8. The reads, one query per endpoint.
+9. The switch: every write goes through the aggregate, the old path is removed.
+10. A second simple entity moved to use cases.
+11. The read-only reference data, served by queries.
+
+### Dead code goes first
+
+The import is removed in third position. The aggregate then arrives without import rules. In the first stack, PR 14 had added them to it and PR 29 had removed them.
+
+### New code arrives without being wired
+
+PRs 4 to 7 add 5,870 lines and delete 22. No route calls this code, and the objective of each description says so. The first stack already had this sequence, from PR 11 to PR 15.
+
+### The switch fits in a single PR
+
+PR 9 is 7,242 lines across 59 files, of which 5,504 lines are deletions. In the first stack, the switch and the removals took five PRs.
+
+The switch itself cannot be split. The revision is checked and incremented on every save:
+
+```sql
+-- Simplified example.
+UPDATE portfolio
+SET revision = revision + 1
+WHERE id = $1 AND revision = $2;
+-- 0 rows updated: another write got in first, the save is refused.
+```
+
+A write that still goes through the old path does not increment the revision, and the others do not see it. All the writes therefore have to change in the same PR.
+
+The constraint also applies at deployment. The description of this PR asks to pause writes for as long as old instances are running. It also lists three behaviour changes.
+
+### A file is almost never reworked after it is created
+
+In the first stack, 45 files were touched by three PRs or more. In the second, 4.
+
+A colleague pushed a fix to an entity created by PR 2 of the first stack. That commit is in PR 24, which modified those files again. In the second stack, the same fix is in PR 2, the one that creates the entity.
+
+## The durations
+
+My 11 commits in the second stack are dated within twenty minutes. The 11 PRs were opened in 51 seconds. In the first, 21 of the 29 PRs had been opened in 2 h 18.
+
+Both stacks were produced with coding agents: Opus and Sol.
+
+The first stack stayed open for 20 hours. The second was merged 24 hours after it was opened.
+
+Reviewing the first one was long. Reviewing the second was very fast: the slicing was better and the final state could be read directly.
+
+Four old write routes remain, marked deprecated. They will be removed once the back office calls the new ones.
+
+Since then, I prefer to open a readable stack, where each PR brings something, over a stack that contains a lot of intermediate refactoring, and so code that is deleted further up the same stack. It is more abrupt, but it represents the changes better.

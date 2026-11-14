@@ -1,0 +1,198 @@
+---
+title: "60 images par seconde dans Chromium, 11 dans WebKit"
+subtitle: "Un filtre SVG ralentissait le hero Rocket de ce blog sur téléphone, et Chromium ne le montrait pas."
+summary: "Le hero Rocket de ce blog saccadait au défilement sur téléphone et le hero Mountain affichait un fond vide au premier chargement. La mesure dans Chromium ne montrait rien. Dans WebKit, la cause était un flou SVG recalculé à chaque image."
+visualId: "unknown-unknowns-software-architecture"
+publishedAt: "2026-11-20"
+readTimeMinutes: 6
+tags:
+  - frontend
+  - performance
+  - webkit
+  - react
+  - engineering
+draft: true
+---
+
+La page d'accueil de ce blog a deux scènes qui suivent le défilement, une par thème : Mountain et Rocket. Sur téléphone, le hero Rocket saccadait pendant le défilement. Le hero Mountain, lui, affichait un fond bleu uni au premier chargement, puis la scène apparaissait d'un coup.
+
+Je les ai remarqués sur mon iPhone, en relisant un article.
+
+Les deux sont corrigés dans [la même PR](https://github.com/Thenkei/blog/pull/56). Le travail a été fait avec un agent de code.
+
+## Ce que Chromium mesurait
+
+Dans Chromium, avec une fenêtre de téléphone et un processeur ralenti quatre fois, le défilement du hero Rocket restait à environ 60 images par seconde. Avec cette seule mesure, j'aurais conclu qu'il n'y avait pas de problème.
+
+Deux PR récentes sur l'affichage mobile, [#49](https://github.com/Thenkei/blog/pull/49) et [#52](https://github.com/Thenkei/blog/pull/52), avaient été vérifiées dans Chromium sans interface. La description de la seconde précisait : « Not checked in Safari or Firefox. »
+
+Sur iPhone, Safari utilise WebKit, et la plupart des autres navigateurs aussi. Régler Chromium sur 390 pixels de large ne change pas son moteur de rendu.
+
+## La mesure dans WebKit
+
+Playwright fournit un WebKit qui se lance sur un ordinateur. La mesure est la même que dans Chromium : build de production, fenêtre de 390×844 à densité 3, défilement de la plage du hero dans un sens puis dans l'autre, et relevé de l'intervalle entre deux `requestAnimationFrame`.
+
+```js
+import { webkit } from "playwright";
+
+const browser = await webkit.launch();
+const context = await browser.newContext({
+  viewport: { width: 390, height: 844 },
+  deviceScaleFactor: 3,
+});
+// Le thème est lu dans localStorage avant le premier rendu.
+await context.addInitScript(() => {
+  localStorage.setItem("themeMode", "rocket");
+});
+
+const page = await context.newPage();
+await page.goto("http://localhost:4173/blog/", { waitUntil: "networkidle" });
+
+const intervals = await page.evaluate(
+  () =>
+    new Promise((resolve) => {
+      const shell = document.querySelector(".rocket-camera-shell");
+      const stage = document.querySelector(".rocket-camera-stage");
+      const start = window.scrollY + shell.getBoundingClientRect().top;
+      const range = shell.offsetHeight - stage.offsetHeight;
+      const durationMs = 6000;
+      const samples = [];
+      let first;
+      let previous;
+
+      const tick = (now) => {
+        first ??= now;
+        if (previous !== undefined) samples.push(now - previous);
+        previous = now;
+
+        const elapsed = now - first;
+        if (elapsed >= durationMs) {
+          resolve(samples);
+          return;
+        }
+
+        // Deux allers-retours sur la plage de défilement du hero.
+        const phase = ((elapsed / durationMs) * 2) % 1;
+        const progress = 1 - Math.abs(2 * phase - 1);
+        window.scrollTo(0, start + range * progress);
+        requestAnimationFrame(tick);
+      };
+
+      requestAnimationFrame(tick);
+    }),
+);
+
+const sorted = intervals.toSorted((a, b) => a - b);
+const median = sorted[Math.floor(sorted.length / 2)];
+console.log(`${Math.round(1000 / median)} images/s (intervalle médian)`);
+
+await browser.close();
+```
+
+Ce script est une version réduite de la mesure.
+
+À 60 images par seconde, l'intervalle est de 16,7 ms. Dans WebKit, le hero Rocket tournait à environ 11 images par seconde, soit près de 90 ms par image. La médiane de trois passages, celle du tableau plus bas, est à 12.
+
+Dans Playwright, le ralentissement du processeur et du réseau passe par le protocole DevTools, qui n'existe que pour Chromium. Les 11 images par seconde de WebKit sont donc mesurées sur un Mac, sans aucun ralentissement.
+
+## La cause : un filtre SVG sur la ligne de vol
+
+Pour isoler la cause sans modifier le code, la mesure est relancée après avoir injecté une règle CSS dans la page :
+
+```js
+await page.addStyleTag({
+  content: ".rocket-flight-line { filter: none; }",
+});
+```
+
+La ligne de vol de la fusée est un tracé SVG. Son halo venait d'un filtre :
+
+```tsx
+<filter id="rocket-flight-glow" x="-25%" y="-25%" width="150%" height="150%">
+  <feGaussianBlur stdDeviation="5" result="blur" />
+  <feMerge>
+    <feMergeNode in="blur" />
+    <feMergeNode in="SourceGraphic" />
+  </feMerge>
+</filter>
+```
+
+La ligne se dévoile avec le défilement, donc elle est redessinée à chaque image. À chaque fois, WebKit recalculait le flou gaussien sur toute la scène, sur le processeur. Chromium ne montrait pas ce coût.
+
+Je n'en fais pas une règle sur tous les filtres ni sur toutes les versions de WebKit : c'est ce qui a été mesuré sur cette page. Le bug WebKit [191197](https://bugs.webkit.org/show_bug.cgi?id=191197), « SVG filters crash on iOS and are slow in general », est ouvert depuis 2018.
+
+## Ce qui a remplacé le filtre
+
+Le halo est maintenant dessiné par trois traits translucides sous la ligne. Chacun est plus large et plus pâle que celui qu'il entoure :
+
+```css
+.rocket-flight-glow {
+  stroke-width: calc(var(--flight-line-width) * var(--flight-glow-spread));
+  opacity: calc(
+    (0.28 + (var(--rocket-boost) * 0.72)) * var(--flight-glow-strength)
+  );
+}
+
+.rocket-flight-glow-inner { --flight-glow-spread: 2.4; --flight-glow-strength: 0.2; }
+.rocket-flight-glow-mid { --flight-glow-spread: 4.2; --flight-glow-strength: 0.1; }
+.rocket-flight-glow-outer { --flight-glow-spread: 6.5; --flight-glow-strength: 0.06; }
+```
+
+Il y a quatre tracés au lieu d'un, et plus de filtre SVG. Le rendu n'est pas exactement le même : comparée à l'ancienne version, l'image diffère le long de la ligne de vol, et seulement là.
+
+<MotionScene id="webkit-filter-repaint" />
+
+Le vaisseau garde son `drop-shadow` et la flamme son `blur(5px)`. Ce sont des filtres CSS et ils n'ont pas été touchés.
+
+Dans la même PR, le vaisseau se déplace avec un `transform` exprimé en unités de la scène (`cqw` et `cqh`) au lieu de `left` et `top`. Son déplacement ne demande plus de calcul de mise en page.
+
+## Le flash du hero Mountain
+
+Au premier chargement, le hero Mountain montrait un fond bleu uni pendant environ 300 ms.
+
+La scène Mountain est un fichier JavaScript séparé, pour que les autres thèmes ne le téléchargent pas. Il n'était demandé qu'une fois la page d'accueil rendue, et cette page est elle-même chargée à la demande. WebKit n'ayant pas de limitation réseau dans Playwright, les réponses sont retardées à la main avec `page.route` pour reproduire un réseau lent.
+
+Le téléchargement n'était pas la seule cause. La scène était montée avec `lazy` et `Suspense`, et React retarde d'environ 300 ms l'affichage d'un contenu suspendu. Le fond vide restait visible même quand le fichier était déjà là. Ce délai fait l'objet d'[une issue ouverte sur React 19](https://github.com/react/react/issues/31819).
+
+Ce qui a changé :
+
+- La scène n'est plus derrière `lazy` et `Suspense`. Un module la charge une seule fois et garde le composant. Le hero le lit dans un état React : si le fichier est déjà arrivé, la scène est montée dans le même rendu que le hero.
+- Pour un visiteur en thème Mountain qui arrive sur la page d'accueil, le téléchargement démarre au lancement de l'application.
+- Le fond d'attente est un dégradé de ciel nocturne, et les plans de la scène apparaissent en fondu.
+
+```tsx
+const [MountainScene, setMountainScene] = useState(getLoadedMountainScene);
+```
+
+Après le correctif, on ne voit plus le fond d'attente. Il ne concerne que le premier affichage.
+
+## Les autres changements de la PR
+
+La mesure a montré d'autres coûts :
+
+- Les plans SVG de Mountain débordent de 1500 unités à gauche pour les écrans larges. Sur téléphone, cela fait plusieurs écrans de dessin invisible, repeints à chaque image. Un `clip-path` limite la peinture à la scène et à la marge que la caméra peut parcourir.
+- Le gestionnaire de défilement demandait la position du coureur sur le sentier (`getPointAtLength`) après avoir écrit les variables de la caméra. Cela forçait un second calcul de style par image. La lecture passe maintenant avant toute écriture.
+- Les cartes d'articles, le sommaire et le pied de page avaient une animation d'entrée en `forwards`. Chaque élément gardait sa couche de composition une fois l'animation finie. Avec `backwards`, la couche est libérée. Le soulèvement des cartes au survol, que le `forwards` écrasait, s'applique maintenant.
+
+## Les chiffres avant et après
+
+Build de production, fenêtre de 390×844 à densité 3, médiane de trois passages.
+
+| Défilement du hero | Avant | Après |
+|---|---|---|
+| Rocket, WebKit | 12 images/s, 100 % de CPU | 60 images/s, 46 % de CPU |
+| Mountain, WebKit | 44 à 60 images/s, 86 % de CPU | 60 images/s, 56 % de CPU |
+| Mountain, Chromium CPU ×4 : thread principal / rastérisation GPU | 2779 ms / 1169 ms | 2298 ms / 648 ms |
+| Couches composées sur la page d'accueil (Chromium) | 63 | 15 |
+
+Je ne sais plus quel outil a donné le pourcentage de CPU.
+
+Sur six formats d'écran, le rendu de Mountain diffère de moins de 0,02 % de la version précédente.
+
+Après déploiement, j'ai vérifié sur mon iPhone. Les deux problèmes ont disparu.
+
+## Ce que je mesure maintenant
+
+Quand un ralentissement ou un flash est signalé « sur mobile », je le reproduis d'abord dans WebKit. Chromium vient ensuite, pour le détail : son tracing sépare le temps du thread principal de celui de la rastérisation GPU.
+
+Ce que je retiens : les expériences et les mesures aident. Un agent de code les enchaîne très vite quand il peut fermer la boucle lui-même, c'est-à-dire relancer la mesure après chaque modification.

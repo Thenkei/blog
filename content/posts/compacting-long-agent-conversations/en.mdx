@@ -1,0 +1,151 @@
+---
+title: "Compacting a Long Agent Conversation Without Breaking It"
+subtitle: "Where the history can be cut, and what has not been measured yet."
+summary: "The mechanism I wrote to summarize the history of an assistant used by financial advisors: an estimated budget, cuts at exchange boundaries, reused notes, a check at every tool step. Tested offline on synthetic data, not yet measured in staging."
+visualId: "context-engineering-beyond-prompt-engineering"
+publishedAt: "2026-12-04"
+readTimeMinutes: 7
+tags:
+  - ai
+  - agents
+  - llm
+  - architecture
+  - rockfi
+draft: true
+---
+
+In [the post on context engineering](../posts/context-engineering-beyond-prompt-engineering), I wrote that too much information can hide the one constraint that matters. Here is a concrete case at RockFi: a conversational assistant used by financial advisors.
+
+At every step, the AI SDK sends the model the initial history and all the messages produced during the current turn. A long conversation can exceed the model's input window. Before that, every call pays again for tool results that are no longer useful.
+
+It happened: a real conversation hit the limit.
+
+I wrote the compaction as a stack of four pull requests. As I write this, they have been reviewed by a colleague and by our internal automated review. They are not merged yet. The tests run offline, on synthetic data. Nothing has been measured in staging.
+
+{/* TO COMPLETE (author): update this status before publishing (merged? deployed? since when?). */}
+
+Triggering before the limit is reached and protecting call-result pairs come from the [Strands conversation manager](https://github.com/strands-agents/harness-sdk/blob/main/strands-ts/src/conversation-manager/summarizing-conversation-manager.ts). AWS documents [native compaction](https://docs.aws.amazon.com/bedrock/latest/userguide/claude-messages-compaction.html) for the InvokeModel API. This service uses Converse.
+
+## What breaks when you cut anywhere
+
+Cutting the history at an arbitrary message can separate a tool call from its result. It can also remove the advisor's current request.
+
+So compaction only replaces complete exchanges, with a summary.
+
+## Estimating the size without a tokenizer
+
+Bedrock's tokenizer depends on the model. I use an estimate: the size of the text in UTF-8 bytes divided by three, plus eight per message. The provider's counts can differ.
+
+An attachment counts for a fixed amount. A 4 MB PDF weighs less than 100 tokens in this estimate, because native documents have their own page and size limits.
+
+The default trigger is 120,000 estimated tokens. It has to stay below the model's window to leave room for system instructions, tool schemas, the turn's sources and the 16,384 output tokens.
+
+This value is experimental. It depends on how advisors use the assistant.
+
+## Where a cut is allowed
+
+The plan starts with past turns. A cut only falls at the start of a turn, on a message from the advisor. Turns are grouped into batches from the start of the history, each about half the trigger. The plan stops when what remains is back under the trigger.
+
+When the advisor adds a short question, the split stays the same and the summary already produced is reused, until another batch is needed.
+
+If the current turn alone exceeds the budget, its older completed tool steps can be summarized too. The cut then falls between a tool result and the assistant's next message. A call is never separated from its results, including when several calls run in parallel.
+
+The current question and the latest tool exchange stay verbatim, even if they exceed the trigger.
+
+```text
+In the database                      Sent to the model
+-----------------------------------  ---------------------------
+turn 1  question                     summary of turns 1 and 2
+        call + result
+        answer
+turn 2  question
+        answer
+turn 3  current question             current question
+        call A + result A            summary of step A
+        calls B and C + results      calls B and C + results
+```
+
+<MotionScene id="conversation-compaction-cuts" />
+
+If the question and the latest exchange alone exceed the provider's window, compaction does not change that. The advisor gets the "context too long" error that already existed.
+
+## What is sent to the summary model
+
+The history to summarize can itself exceed the window of the model that summarizes it. I split it into fragments of 40,000 characters, in chronological order.
+
+Old tool results and documents can take up most of that input. A tool result is reduced to 4,000 characters: the beginning, the end, and an explicit mention that the middle is omitted. An attached file becomes one line with its name. The text of an extracted document is replaced by its hash and its length. A test checks that neither the file's content nor the document's reaches the summary request.
+
+The summary is a working note updated fragment by fragment. Each call receives the previous note and the next fragment. The instructions ask it to record the advisor's goal, decisions, corrections, open questions and source identifiers. Each fact is attributed to the person or tool that provided it. Dates, currencies, units and uncertainty are preserved. The instructions forbid inferring a figure or an authority to act from partial data.
+
+The model that summarizes has no business tools. The note and the fragment are presented to it as historical data whose instructions it must not follow.
+
+A long text-only history can require several sequential calls the first time.
+
+## Reusing a summary
+
+Rebuilding the whole note at every tool step or every follow-up adds latency and cost. Each note is stored under a key computed from everything that can change it.
+
+```ts
+// Illustrative: names and structure are simplified.
+const key = sha256(
+  JSON.stringify([advisorId, conversationId, model, instructions, previousNote, fragment]),
+);
+```
+
+The note is kept in memory for the turn and for 24 hours in Redis. If Redis does not answer within 500 ms, the model is called. If an answer was regenerated, the fragment changes and a new note is produced. Two advisors or two conversations do not share a note.
+
+If the summary fails or comes back invalid, the request ends with an error the client can retry. The oversized raw history is not sent in its place.
+
+The summary is never written to the messages table. PostgreSQL keeps the original messages and tool results for display, regeneration and audit.
+
+A note loses information. So the summary enters the conversation with a warning: this is historical data, and any financial figure must be checked against its source before it is reused. The system prompt got one more rule. If the source is missing, the assistant asks for it. A past or summarized action does not count as authorization to do it again.
+
+## Running the check again inside the tool loop
+
+The budget is checked before the first model call, on send and on regeneration. It is checked again before each following step, because tool results accumulate during the turn.
+
+A test runs this scenario through the real SDK loop and the Bedrock Converse serializer, with simulated model responses. The trigger is set to 500,000. The history contains an old tool result of 550,000 repeated words. The turn then executes two new tools.
+
+| Call | What the model receives |
+| --- | --- |
+| 1 | The summary of the old result and the new question |
+| 2 | The first new result, in full |
+| 3 | A note about the first result, and the second in full |
+
+At the end, persistence receives both complete results and no summary.
+
+Compaction runs before the prompt cache checkpoints are placed. Earlier work, already merged, removes the old history checkpoint at every step and puts one on the last message, to cover the latest tool result. Stable sources are placed before the advisor's history, with their own checkpoint. In the test, the last block of the third call is a one-hour cache checkpoint.
+
+Cache read rates in production and net savings are not verified. Neither is the effect of compaction on those reads. I expect a partial invalidation: the sources have their own cache point before the history, and the history is what the summary rewrites.
+
+## How much of a document the answering model needs
+
+Reports loaded during a turn also weigh on the context. I built a local experiment, separate from the service, to measure what the answering model needs. The document is a synthetic 24-page PDF. The questions are about a risk indicator, fees, and a maximum drawdown the document does not give.
+
+For the risk question, offline, with deterministic models:
+
+| Route | Bytes to the main model | Bytes to a second model |
+| --- | ---: | ---: |
+| Full extracted text | 45,940 | 0 |
+| Passages found by search | 3,751 | 0 |
+| Specialist that returns quotes | 1,235 | 2,643 |
+
+Search alone removes about 92% of the main model's input. The specialist's extra call has to be justified by quality, latency or price on representative questions. Three deterministic questions establish neither search quality nor answer accuracy.
+
+The same experiment contains a compaction without a model. It keeps the latest value of each annotated decision, revocations included, then complete messages starting from the end. On a 22-turn history, 2,721 bytes become 845 under a 900-character budget. The portfolio the advisor corrected survives the removal of the turn where they corrected it. The annotations come from the test fixture, not from a model output.
+
+## What is measured, what is not
+
+Measured, offline: the 1,682 unit tests pass locally, including the compaction ones.
+
+Not measured: the fidelity of summaries produced by the real model, their cost and their latency. The protocol planned for staging compares cold and warm follow-ups on a conversation where a decision, an amount and a source identifier are known in advance.
+
+{/* TO COMPLETE (author): staging results if they exist at publication (fidelity, elapsed time, tokens for the chat and summary calls). Otherwise leave the paragraph as is. */}
+
+The review found a defect I have not fixed yet. On regeneration, summaries are computed before the response stream opens. Each summary call has a maximum delay of 45 seconds. On a long conversation, regeneration can exceed the load balancer's idle timeout without having sent a byte. A failure then becomes a 500 error instead of an error in the stream.
+
+{/* TO COMPLETE (author): say whether this defect is fixed at publication. */}
+
+To tune the trigger, the cost of the summary calls and the cost of the chat calls will have to be looked at together.
+
+If I did it again, I would use the optimisations Claude models offer through Bedrock. I built a mechanism that does not depend on the model. That was a mistake: internally, we only use Claude models, through Bedrock. We keep the door open to other models, but we build more complicated things.

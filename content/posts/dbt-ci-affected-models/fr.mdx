@@ -1,0 +1,161 @@
+---
+title: "CI dbt : ne valider que ce qu'une PR touche"
+subtitle: "Sur Snowflake, avec state:modified, un manifeste de référence construit pendant le run et un cas à part pour les tests unitaires."
+summary: "Comment la validation dbt d'une pull request est passée de tout le projet aux modèles affectés : sélection par noms de fichiers, puis state:modified sans defer, modèles propriétaires des entrées YAML pour les tests unitaires, et validation complète pour les changements que la sélection ne sait pas lire."
+visualId: "backend-to-data-engineer-rockfi"
+publishedAt: "2026-11-27"
+readTimeMinutes: 7
+tags:
+  - data-engineering
+  - dbt
+  - snowflake
+  - testing
+  - ci-cd
+  - github-actions
+  - rockfi
+draft: true
+---
+
+Chaque pull request sur notre projet dbt lance une validation sur Snowflake. La CI crée un schéma pour le run, construit les modèles avec `--empty` et exécute les tests unitaires. Avec `--empty`, dbt exécute le SQL de chaque modèle mais limite les `ref` et les `source` à zéro ligne. Les [tests de données](../posts/data-platform-tests-as-contracts) tournent après le merge, sur les données de staging. La plateforme est celle de la série qui se termine par [cette rétrospective](../posts/data-platform-retrospective).
+
+Début novembre, la validation complète durait 8 min 41 s : 405 modèles et 384 tests unitaires.
+
+Deux raisons : l'attente sur chaque PR et les crédits Snowflake.
+
+## Première version : partir des noms de fichiers
+
+Sur les PR, dbt est d'abord passé de quatre à huit threads, et le job complet de 8 min 41 s à 5 min 59 s, avec les mêmes modèles et les mêmes tests. Le run sur main est resté à quatre threads : il traite de vraies données.
+
+Chez Forest Admin, nous avions [réparti les tests sur plusieurs jobs](../posts/scaling-ci-github-actions-forest-admin) pour raccourcir la CI. Ici, doubler les threads a donné 31 %. Il fallait ensuite exécuter moins de choses.
+
+Un script restreignait déjà certaines PR. Il lisait la liste des fichiers modifiés et en déduisait des modèles : `models/silver/stg_partner_contracts.sql` donnait `stg_partner_contracts`. Il construisait `@stg_partner_contracts` et lançait les tests unitaires sur ce même graphe.
+
+L'opérateur `@` sélectionne le modèle, ses descendants, et tous les ancêtres de ces descendants. Il est nécessaire pour construire : le schéma du run est vide au départ, et un descendant ne se construit pas sans ses autres parents. Pour les tests, il inclut aussi ceux de modèles qui ne sont là que pour servir d'entrée. Pour une seule entrée modifiée dans un fichier YAML partagé, ce sélecteur retenait 272 tests unitaires. Six étaient concernés : ceux du modèle et de trois de ses descendants.
+
+J'ai séparé les deux sélections : `@modele` pour construire, `modele+` pour tester.
+
+Restait le YAML. Un fichier décrit souvent plusieurs modèles et plusieurs tests unitaires, et son nom ne dit pas lesquels ont changé. Le script compare donc le fichier à sa version au merge base, entrée par entrée, et retient les modèles dont une entrée diffère.
+
+Cette comparaison a laissé passer un faux vert. Dans une fixture, remplacer la valeur attendue `1` par `true` ou `1.0` ne sélectionnait rien : pour Python, ces trois valeurs sont égales. Le script compare maintenant les entrées une fois sérialisées, ce qui distingue les types.
+
+Pour une modification SQL d'un seul modèle, le job construisait 50 modèles, passait 6 tests unitaires et durait 2 min 20 s.
+
+## Ce qui n'a pas suffi
+
+En revue, un collègue m'a demandé si j'avais envisagé le sélecteur natif `state:modified` plutôt que d'associer des fichiers à des modèles. Il avait ouvert deux semaines plus tôt une PR qui faisait exactement cela. Je ne l'avais pas vue.
+
+Sa PR contenait une mesure : rejoué sur les vingt derniers merges, le sélecteur par noms de fichiers de l'époque avait fini vingt fois en validation complète. Un seed, un YAML de sources, un renommage ou une ligne dans `dbt_project.yml` suffisait à tout relancer. Avec `@state:modified`, dix-neuf de ces vingt merges restaient restreints : environ 64 modèles en moyenne sur 405, 147 au pire.
+
+Ma première version réglait le cas des YAML de modèles et de tests. Une macro ou un seed modifié relançait toujours tout. Et l'ensemble reposait sur une convention : le nom du fichier est le nom du modèle.
+
+Avec `state:modified`, dbt compare le manifeste du projet à un manifeste de référence et sélectionne les nœuds nouveaux ou modifiés : SQL, configuration, contrat, macros en amont. D'après la documentation, une macro modifiée marque les ressources qui en dépendent, directement ou non.
+
+## Le manifeste de référence
+
+L'approche courante prend le manifeste d'un environnement déjà construit et ajoute `--defer` : les `ref` vers des modèles non sélectionnés, et absents du schéma courant, sont résolues dans cet environnement.
+
+Mon collègue avait écarté `--defer`. Environ un tiers des relations de notre environnement de staging n'étaient plus à jour. S'y référer aurait produit de faux échecs et de faux succès.
+
+Sa solution : construire le manifeste de référence dans le run lui-même. La CI extrait le merge base de la PR dans un worktree temporaire, y copie le profil du run et lance `dbt parse`.
+
+```bash
+# .github/workflows/dbt-validation.yml (extrait simplifié)
+BASE_SHA=$(git merge-base "$PR_BASE_SHA" HEAD)
+git worktree add --detach "$REF_DIR" "$BASE_SHA"
+cp profiles.yml "$REF_DIR/profiles.yml"
+
+cd "$REF_DIR"
+dbt deps
+dbt parse --vars "$DBT_VARS" --target-path "$STATE_DIR"
+```
+
+Le profil compte. Notre schéma de CI porte l'identifiant du run, et une variable dbt aussi. La documentation prévient que des configurations qui dépendent de l'environnement peuvent faire apparaître comme modifiés des nœuds que personne n'a touchés. Avec le même profil et les mêmes variables des deux côtés, `state:modified` ne rapporte que ce que la PR change. Sur le run mesuré par mon collègue, cette étape prenait 21 secondes.
+
+## Un sélecteur pour construire, un autre pour tester
+
+```bash
+# Construction, sans lire de données
+dbt seed --select "@state:modified" --state "$STATE_DIR"
+dbt run --empty --select "@state:modified" --state "$STATE_DIR"
+
+# Tests unitaires des modèles modifiés et de leurs descendants
+dbt test --resource-type unit_test --select "state:modified+" --state "$STATE_DIR"
+```
+
+Sans `--defer`, tout ce qu'un modèle sélectionné lit doit exister dans le schéma du run. `@state:modified` s'en charge. La documentation des tests unitaires pose la même contrainte : les parents directs du modèle testé doivent exister dans l'entrepôt, et elle recommande `--empty` pour les créer.
+
+Chaque run a son propre schéma, nommé d'après la branche et l'identifiant du run. Il est supprimé à la fin, même quand le job échoue.
+
+## Un test unitaire est un nœud à part
+
+```yaml
+# models/silver/_silver__unit_tests.yml (exemple simplifié)
+unit_tests:
+  - name: test_closed_contracts_are_excluded
+    model: int_active_contracts
+    given:
+      - input: ref('stg_partner_contracts')
+        rows:
+          - {contract_id: 'C1', status: 'closed'}
+          - {contract_id: 'C2', status: 'active'}
+    expect:
+      rows:
+        - {contract_id: 'C2'}
+```
+
+Dans le graphe dbt, ce test est un nœud distinct, rattaché à `int_active_contracts` par la clé `model`. Si je change une ligne de `given`, le SQL du modèle n'a pas bougé : le modèle n'est pas `state:modified`, et `state:modified+` ne part pas de lui. Ses descendants et leurs tests restent hors de la sélection. Si je supprime le test, il ne reste aucun nœud à sélectionner. La documentation ajoute un cas : changer `tags` ou `meta` dans le YAML ne déclenche pas `state:modified`, et `description` seulement si `persist_docs` est activé.
+
+J'ai donc gardé un morceau de la première version : la comparaison des entrées YAML avec le merge base. Elle donne les modèles propriétaires des entrées modifiées, par `name` pour une entrée de modèle et par `model` pour un test unitaire. Ces modèles s'ajoutent aux deux sélecteurs :
+
+```bash
+dbt run --empty --select "@state:modified @int_active_contracts" --state "$STATE_DIR"
+dbt test --resource-type unit_test \
+  --select "state:modified+ int_active_contracts+" --state "$STATE_DIR"
+```
+
+<MotionScene id="dbt-state-selection" />
+
+La seconde PR ajoute 175 lignes et en supprime 341.
+
+Pour une modification SQL d'un seul modèle, la sélection native a retenu 3 seeds, 50 modèles et les 6 tests attendus, et le job a duré 1 min 51 s. Pour une fixture seule, les 6 mêmes tests sont passés, en 1 min 55 s.
+
+## Quand la CI valide tout
+
+Le script ne restreint la validation que pour les changements qu'il sait lire. Les autres déclenchent la validation complète :
+
+- un fichier supprimé ou renommé ;
+- `dbt_project.yml`, les packages, le profil, les sélecteurs ;
+- un YAML qui contient autre chose que des modèles et des tests unitaires, par exemple des sources ;
+- une macro qui surcharge une macro de nommage, une matérialisation ou une macro propre à un adapter ;
+- un seed de 1 MiB ou plus, parce que dbt ne compare alors que son chemin ;
+- un fichier hors des modèles, des macros et des seeds, comme un snapshot ou un test singulier ;
+- le workflow de CI, le script de sélection, les dépendances Python ;
+- un merge base introuvable.
+
+Sur les macros : la documentation ne parle pas de celles que dbt appelle lui-même. Le script part du principe que dbt ne les suit pas.
+
+La validation complète a duré 6 min 02 s sur le dernier run mesuré, pour 405 modèles et 379 tests unitaires (des tests avaient été regroupés entre-temps).
+
+Une PR qui modifie la CI passe donc toujours par la validation complète. Elle ne teste pas son propre chemin restreint. Pour chacune des deux versions, j'ai ouvert une PR temporaire qui ne touchait qu'un modèle, comparé les identifiants des tests exécutés à ceux que j'attendais, puis fermé la PR.
+
+Chaque push sur main lance tout : tous les projets dbt du dépôt, la construction sur les données de staging, les tests unitaires et les tests de données, sauf ceux qui vérifient les données d'un environnement précis. Sur le run de vérification, cela faisait 1 628 tests de données et 384 tests unitaires, sans erreur, avec 21 avertissements. La PR de mon collègue restreignait aussi main à la sélection, avec un compromis qu'il avait noté : un modèle que le push ne touche pas n'est plus retesté en CI. J'ai gardé la validation complète sur main.
+
+Cela a changé depuis. Mon collègue a fusionné trois autres PR. Un push sur main ne construit plus que le lignage des modèles modifiés. Un échec précédent reste dans la sélection jusqu'à ce qu'un push le valide : sans cela, un push sans rapport remettrait main au vert sans rien corriger. Un YAML de sources, un test singulier ou un YAML de seeds ne déclenchent plus la validation complète, qui durait environ 20 minutes sur main. Rejoué sur les 150 derniers commits de main, le nombre de validations complètes passe de 77 à 15. La liste plus haut décrit l'état au moment de ma PR.
+
+Le workflow ne se déclenchait que pour les PR visant main. Il se déclenche maintenant pour toute PR et compare chacune au merge base de sa propre branche cible. Une PR empilée sur une autre ne valide que son propre diff.
+
+## Ce qui reste fragile
+
+La sélection suit les dépendances déclarées à dbt. Un modèle qui lit une table par son nom, sans `ref` ni `source`, n'apparaît pas dans le graphe comme consommateur. Ses tests restent hors de la PR.
+
+La documentation signale qu'un modèle qui utilise `var` ou `env_var` n'est pas forcément marqué modifié quand seule la valeur change. Chez nous, un changement de `dbt_project.yml` déclenche la validation complète. Une valeur changée hors du dépôt n'apparaît dans aucun diff.
+
+Je ne referais pas la première version par noms de fichiers. Le problème vient de la taille du projet : au départ, tout valider ne posait pas de souci.
+
+## Références techniques
+
+- [Sélecteur `state` et sous-sélecteurs de `state:modified`](https://docs.getdbt.com/reference/node-selection/methods#state)
+- [Limites connues de la comparaison d'état](https://docs.getdbt.com/reference/node-selection/state-comparison-caveats)
+- [Opérateurs de graphe `+` et `@`](https://docs.getdbt.com/reference/node-selection/graph-operators)
+- [Defer](https://docs.getdbt.com/reference/node-selection/defer)
+- [Tests unitaires dbt](https://docs.getdbt.com/docs/build/unit-tests)

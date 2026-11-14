@@ -1,0 +1,151 @@
+---
+title: "Compacter une longue conversation d'agent sans la casser"
+subtitle: "Où l'historique peut être coupé, et ce qui n'a pas encore été mesuré."
+summary: "Le mécanisme que j'ai écrit pour résumer l'historique d'un assistant utilisé par des conseillers : budget estimé, coupes aux limites des échanges, notes réutilisées, vérification à chaque étape d'outil. Testé hors ligne sur des données synthétiques, pas encore mesuré en staging."
+visualId: "context-engineering-beyond-prompt-engineering"
+publishedAt: "2026-12-04"
+readTimeMinutes: 7
+tags:
+  - ai
+  - agents
+  - llm
+  - architecture
+  - rockfi
+draft: true
+---
+
+Dans [l'article sur l'ingénierie du contexte](../posts/context-engineering-beyond-prompt-engineering), j'écrivais que trop d'informations peuvent masquer la seule contrainte qui compte. Voici un cas concret chez RockFi : un assistant conversationnel utilisé par des conseillers.
+
+À chaque étape, le AI SDK renvoie au modèle l'historique de départ et tous les messages produits pendant le tour en cours. Une longue conversation peut dépasser la fenêtre d'entrée du modèle. Avant cela, on repaie à chaque appel des résultats d'outils qui ne servent plus.
+
+C'est arrivé : une conversation réelle a atteint la limite.
+
+J'ai écrit la compaction en quatre pull requests empilées. À la date où j'écris, elles ont été relues par un collègue et par notre revue automatique interne. Elles ne sont pas encore fusionnées. Les tests tournent hors ligne, sur des données synthétiques. Rien n'a été mesuré en staging.
+
+{/* À COMPLÉTER (auteur) : mettre à jour cet état avant publication (fusionné ? déployé ? depuis quand ?). */}
+
+Le déclenchement avant dépassement et la protection des paires appel-résultat viennent du [gestionnaire de conversation de Strands](https://github.com/strands-agents/harness-sdk/blob/main/strands-ts/src/conversation-manager/summarizing-conversation-manager.ts). AWS documente une [compaction native](https://docs.aws.amazon.com/bedrock/latest/userguide/claude-messages-compaction.html) pour l'API InvokeModel. Ce service utilise Converse.
+
+## Ce qui casse quand on coupe n'importe où
+
+Couper l'historique à un message arbitraire peut séparer un appel d'outil de son résultat. Cela peut aussi supprimer la demande en cours du conseiller.
+
+La compaction ne remplace donc que des échanges complets, par un résumé.
+
+## Estimer la taille sans tokenizer
+
+Le tokenizer de Bedrock dépend du modèle. J'utilise une estimation : la taille du texte en octets UTF-8 divisée par trois, plus huit par message. Les compteurs du fournisseur peuvent donner autre chose.
+
+Une pièce jointe compte pour un forfait fixe. Un PDF de 4 Mo pèse moins de 100 tokens dans cette estimation, parce que les documents natifs ont leurs propres limites de pages et de taille.
+
+Le seuil par défaut est de 120 000 tokens estimés. Il doit rester sous la fenêtre du modèle pour laisser la place aux instructions système, aux schémas d'outils, aux sources du tour et aux 16 384 tokens de sortie.
+
+Cette valeur est expérimentale. Elle dépend de l'usage qu'en font les conseillers.
+
+## Où une coupe est permise
+
+Le plan commence par les tours passés. Une coupe ne tombe qu'au début d'un tour, sur un message du conseiller. Les tours sont regroupés en lots à partir du début de l'historique, chacun d'environ la moitié du seuil. Le plan s'arrête quand le reste repasse sous le seuil.
+
+Quand le conseiller ajoute une question courte, le découpage reste le même et le résumé déjà produit est réutilisé, jusqu'à ce qu'un nouveau lot soit nécessaire.
+
+Si le tour en cours dépasse le budget à lui seul, ses anciennes étapes d'outil terminées peuvent aussi être résumées. La coupe tombe alors entre un résultat d'outil et le message suivant de l'assistant. Un appel n'est jamais séparé de ses résultats, y compris quand plusieurs appels partent en parallèle.
+
+La question en cours et le dernier échange d'outil restent mot pour mot, même s'ils dépassent le seuil.
+
+```text
+Dans la base                         Envoyé au modèle
+-----------------------------------  ---------------------------
+tour 1  question                     résumé des tours 1 et 2
+        appel + résultat
+        réponse
+tour 2  question
+        réponse
+tour 3  question en cours            question en cours
+        appel A + résultat A         résumé de l'étape A
+        appels B et C + résultats    appels B et C + résultats
+```
+
+<MotionScene id="conversation-compaction-cuts" />
+
+Si la question et le dernier échange dépassent seuls la fenêtre du fournisseur, la compaction n'y change rien. Le conseiller reçoit l'erreur « contexte trop long » qui existait déjà.
+
+## Ce qui part au modèle de résumé
+
+L'historique à résumer peut lui-même dépasser la fenêtre du modèle qui résume. Je le découpe en fragments de 40 000 caractères, dans l'ordre chronologique.
+
+Les anciens résultats d'outils et les documents peuvent occuper l'essentiel de cette entrée. Un résultat d'outil est réduit à 4 000 caractères : le début, la fin, et une mention explicite que le milieu est omis. Un fichier joint devient une ligne avec son nom. Le texte d'un document extrait est remplacé par son empreinte et sa longueur. Un test vérifie que ni le contenu du fichier ni celui du document n'arrivent dans la requête de résumé.
+
+Le résumé est une note de travail mise à jour fragment par fragment. Chaque appel reçoit la note précédente et le fragment suivant. Les consignes demandent de noter l'objectif du conseiller, ses décisions, ses corrections, les questions ouvertes et les identifiants de sources. Chaque fait est attribué à la personne ou à l'outil qui l'a fourni. Les dates, les devises, les unités et l'incertitude sont conservées. Les consignes interdisent de déduire un chiffre ou une autorisation d'agir à partir de données partielles.
+
+Le modèle qui résume n'a aucun outil métier. La note et le fragment lui sont présentés comme des données historiques dont il ne doit suivre aucune instruction.
+
+Un long historique textuel peut demander plusieurs appels successifs la première fois.
+
+## Réutiliser un résumé
+
+Refaire toute la note à chaque étape d'outil ou à chaque relance ajoute de la latence et du coût. Chaque note est rangée sous une clé calculée à partir de tout ce qui peut la changer.
+
+```ts
+// Illustratif : noms et structure simplifiés.
+const key = sha256(
+  JSON.stringify([advisorId, conversationId, model, instructions, previousNote, fragment]),
+);
+```
+
+La note est gardée en mémoire pendant le tour et 24 heures dans Redis. Si Redis ne répond pas en 500 ms, le modèle est appelé. Si une réponse a été régénérée, le fragment change et une nouvelle note est produite. Deux conseillers ou deux conversations ne partagent pas de note.
+
+Si le résumé échoue ou revient invalide, la requête se termine par une erreur que le client peut relancer. L'historique brut trop long n'est pas envoyé à la place.
+
+Le résumé n'est jamais écrit dans la table des messages. PostgreSQL garde les messages et les résultats d'outils d'origine pour l'affichage, la régénération et l'audit.
+
+Une note perd de l'information. Le résumé arrive donc dans la conversation avec un avertissement : ce sont des données historiques, et tout chiffre financier doit être vérifié dans sa source avant d'être réutilisé. Le prompt système a reçu une règle de plus. Si la source manque, l'assistant la demande. Une action passée ou résumée ne vaut pas autorisation de la refaire.
+
+## Refaire le calcul dans la boucle d'outils
+
+Le budget est vérifié avant le premier appel au modèle, à l'envoi comme à la régénération. Il est vérifié de nouveau avant chaque étape suivante, parce que les résultats d'outils s'accumulent pendant le tour.
+
+Un test fait passer ce scénario par la vraie boucle du SDK et le sérialiseur Bedrock Converse, avec des réponses de modèle simulées. Le seuil est réglé à 500 000. L'historique contient un ancien résultat d'outil de 550 000 mots répétés. Le tour exécute ensuite deux nouveaux outils.
+
+| Appel | Ce que le modèle reçoit |
+| --- | --- |
+| 1 | Le résumé de l'ancien résultat et la nouvelle question |
+| 2 | Le premier nouveau résultat, en entier |
+| 3 | Une note sur le premier résultat, et le second en entier |
+
+À la fin, la persistance reçoit les deux résultats complets et aucun résumé.
+
+La compaction passe avant le placement des points de cache du prompt. Un travail précédent, déjà fusionné, retire à chaque étape l'ancien point de cache de l'historique et en pose un sur le dernier message, pour couvrir le dernier résultat d'outil. Les sources stables sont placées avant l'historique du conseiller, avec leur propre point. Dans le test, le dernier bloc du troisième appel est un point de cache d'une heure.
+
+Les taux de lecture du cache en production et l'économie nette ne sont pas vérifiés. L'effet de la compaction sur ces lectures non plus. Je m'attends à une invalidation partielle : les sources ont leur propre point de cache avant l'historique, et c'est l'historique que le résumé réécrit.
+
+## Combien de document faut-il au modèle qui répond
+
+Les rapports chargés pendant un tour pèsent aussi dans le contexte. J'ai monté une expérience locale, séparée du service, pour mesurer ce dont le modèle qui répond a besoin. Le document est un PDF synthétique de 24 pages. Les questions portent sur un indicateur de risque, des frais, et une perte maximale que le document ne donne pas.
+
+Pour la question sur le risque, hors ligne, avec des modèles déterministes :
+
+| Route | Octets vers le modèle principal | Octets vers un second modèle |
+| --- | ---: | ---: |
+| Texte extrait complet | 45 940 | 0 |
+| Passages retrouvés par recherche | 3 751 | 0 |
+| Spécialiste qui renvoie des citations | 1 235 | 2 643 |
+
+La recherche seule retire environ 92 % de l'entrée du modèle principal. L'appel supplémentaire du spécialiste doit se justifier par la qualité, la latence ou le prix sur des questions représentatives. Trois questions déterministes n'établissent ni la qualité de la recherche ni l'exactitude des réponses.
+
+La même expérience contient une compaction sans modèle. Elle garde la dernière valeur de chaque décision annotée, révocations comprises, puis des messages complets en partant de la fin. Sur un historique de 22 tours, 2 721 octets deviennent 845 sous un budget de 900 caractères. Le portefeuille corrigé par le conseiller survit à la suppression du tour où il l'a corrigé. Les annotations viennent du jeu de test, pas d'une sortie de modèle.
+
+## Ce qui est mesuré, ce qui ne l'est pas
+
+Mesuré, hors ligne : les 1 682 tests unitaires passent en local, ceux de la compaction compris.
+
+Pas mesuré : la fidélité des résumés produits par le vrai modèle, leur coût et leur latence. Le protocole prévu en staging compare des relances à froid et à chaud sur une conversation où une décision, un montant et un identifiant de source sont connus d'avance.
+
+{/* À COMPLÉTER (auteur) : résultats de staging s'ils existent à la publication (fidélité, temps écoulé, tokens des appels de conversation et de résumé). Sinon laisser le paragraphe tel quel. */}
+
+La relecture a relevé un défaut que je n'ai pas encore corrigé. À la régénération, les résumés sont calculés avant l'ouverture du flux de réponse. Chaque appel de résumé a un délai maximal de 45 secondes. Sur une longue conversation, la régénération peut dépasser le délai d'inactivité du load balancer sans avoir envoyé un octet. Un échec devient alors une erreur 500 au lieu d'une erreur dans le flux.
+
+{/* À COMPLÉTER (auteur) : dire si ce défaut est corrigé à la publication. */}
+
+Pour régler le seuil, il faudra regarder ensemble le coût des appels de résumé et celui des appels de conversation.
+
+Si c'était à refaire, j'utiliserais les optimisations que les modèles Claude proposent via Bedrock. J'ai construit un mécanisme indépendant du modèle. C'est une bêtise : en interne, nous n'utilisons que les modèles Claude, via Bedrock. Nous ne fermons pas la porte à d'autres modèles, mais nous construisons des choses plus compliquées.

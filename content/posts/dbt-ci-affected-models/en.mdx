@@ -1,0 +1,161 @@
+---
+title: "dbt CI: validate only what a pull request affects"
+subtitle: "On Snowflake, with state:modified, a reference manifest built during the run, and a separate case for unit tests."
+summary: "How the dbt validation of a pull request went from the whole project to the affected models: filename-based selection, then state:modified without defer, the owning models of YAML entries for unit tests, and full validation for the changes the selection cannot read."
+visualId: "backend-to-data-engineer-rockfi"
+publishedAt: "2026-11-27"
+readTimeMinutes: 7
+tags:
+  - data-engineering
+  - dbt
+  - snowflake
+  - testing
+  - ci-cd
+  - github-actions
+  - rockfi
+draft: true
+---
+
+Every pull request on our dbt project starts a validation on Snowflake. CI creates a schema for the run, builds the models with `--empty` and runs the unit tests. With `--empty`, dbt executes each model's SQL but limits every `ref` and `source` to zero rows. The [data tests](../posts/data-platform-tests-as-contracts) run after the merge, on staging data. The platform is the one from the series that ends with [this retrospective](../posts/data-platform-retrospective).
+
+In early November, full validation took 8 min 41 s: 405 models and 384 unit tests.
+
+Two reasons: the wait on every PR and the Snowflake credits.
+
+## First version: start from file names
+
+On PRs, dbt first went from four to eight threads, and the full job from 8 min 41 s to 5 min 59 s, with the same models and the same tests. The run on main stayed at four threads: it processes real data.
+
+At Forest Admin, we had [split the tests across several jobs](../posts/scaling-ci-github-actions-forest-admin) to shorten CI. Here, doubling the threads gave 31%. After that, the job had to run fewer things.
+
+A script already scoped some PRs. It read the list of changed files and derived models from it: `models/silver/stg_partner_contracts.sql` gave `stg_partner_contracts`. It built `@stg_partner_contracts` and ran the unit tests on that same graph.
+
+The `@` operator selects the model, its descendants, and all the ancestors of those descendants. It is needed for the build: the run's schema starts empty, and a descendant cannot be built without its other parents. For tests, it also includes those of models that are only there as inputs. For a single changed entry in a shared YAML file, that selector kept 272 unit tests. Six were relevant: those of the model and of three of its descendants.
+
+I split the two selections: `@model` to build, `model+` to test.
+
+That left YAML. A file often describes several models and several unit tests, and its name does not say which ones changed. So the script compares the file with its version at the merge base, entry by entry, and keeps the models with a differing entry.
+
+That comparison let a false green through. In a fixture, replacing the expected value `1` with `true` or `1.0` selected nothing: for Python, these three values are equal. The script now compares the entries once serialized, which distinguishes the types.
+
+For a SQL change to a single model, the job built 50 models, passed 6 unit tests and took 2 min 20 s.
+
+## What was not enough
+
+In review, a colleague asked whether I had considered the native `state:modified` selector instead of mapping files to models. Two weeks earlier, he had opened a PR that did exactly that. I had not seen it.
+
+His PR contained a measurement: replayed on the last twenty merges, the filename-based selector of the time had ended in full validation twenty times. A seed, a sources YAML, a rename or one line in `dbt_project.yml` was enough to rerun everything. With `@state:modified`, nineteen of those twenty merges stayed scoped: about 64 models on average out of 405, 147 at worst.
+
+My first version handled the YAML of models and tests. A changed macro or seed still reran everything. And the whole thing relied on a convention: the file name is the model name.
+
+With `state:modified`, dbt compares the project's manifest with a reference manifest and selects the new or modified nodes: SQL, configuration, contract, upstream macros. According to the documentation, a changed macro marks the resources that depend on it, directly or not.
+
+## The reference manifest
+
+The common approach takes the manifest of an environment that is already built and adds `--defer`: a `ref` to a model that is not selected, and absent from the current schema, is resolved in that environment.
+
+My colleague had ruled out `--defer`. About a third of the relations in our staging environment were no longer up to date. Referring to them would have produced false failures and false passes.
+
+His solution: build the reference manifest in the run itself. CI checks out the PR's merge base in a temporary worktree, copies the run's profile into it and runs `dbt parse`.
+
+```bash
+# .github/workflows/dbt-validation.yml (simplified excerpt)
+BASE_SHA=$(git merge-base "$PR_BASE_SHA" HEAD)
+git worktree add --detach "$REF_DIR" "$BASE_SHA"
+cp profiles.yml "$REF_DIR/profiles.yml"
+
+cd "$REF_DIR"
+dbt deps
+dbt parse --vars "$DBT_VARS" --target-path "$STATE_DIR"
+```
+
+The profile matters. Our CI schema carries the run identifier, and so does a dbt variable. The documentation warns that environment-dependent configurations can make nodes nobody touched appear as modified. With the same profile and the same variables on both sides, `state:modified` reports only what the PR changes. On the run my colleague measured, this step took 21 seconds.
+
+## One selector to build, another to test
+
+```bash
+# Build, without reading data
+dbt seed --select "@state:modified" --state "$STATE_DIR"
+dbt run --empty --select "@state:modified" --state "$STATE_DIR"
+
+# Unit tests of the modified models and their descendants
+dbt test --resource-type unit_test --select "state:modified+" --state "$STATE_DIR"
+```
+
+Without `--defer`, everything a selected model reads has to exist in the run's schema. `@state:modified` takes care of that. The unit test documentation sets the same constraint: the direct parents of the tested model must exist in the warehouse, and it recommends `--empty` to create them.
+
+Each run has its own schema, named after the branch and the run identifier. It is dropped at the end, even when the job fails.
+
+## A unit test is a separate node
+
+```yaml
+# models/silver/_silver__unit_tests.yml (simplified example)
+unit_tests:
+  - name: test_closed_contracts_are_excluded
+    model: int_active_contracts
+    given:
+      - input: ref('stg_partner_contracts')
+        rows:
+          - {contract_id: 'C1', status: 'closed'}
+          - {contract_id: 'C2', status: 'active'}
+    expect:
+      rows:
+        - {contract_id: 'C2'}
+```
+
+In the dbt graph, this test is a distinct node, attached to `int_active_contracts` by the `model` key. If I change a row in `given`, the model's SQL has not moved: the model is not `state:modified`, and `state:modified+` does not start from it. Its descendants and their tests stay out of the selection. If I delete the test, there is no node left to select. The documentation adds one case: changing `tags` or `meta` in YAML does not trigger `state:modified`, and `description` only does when `persist_docs` is enabled.
+
+So I kept one piece of the first version: the comparison of YAML entries with the merge base. It gives the owning models of the changed entries, by `name` for a model entry and by `model` for a unit test. Those models are added to both selectors:
+
+```bash
+dbt run --empty --select "@state:modified @int_active_contracts" --state "$STATE_DIR"
+dbt test --resource-type unit_test \
+  --select "state:modified+ int_active_contracts+" --state "$STATE_DIR"
+```
+
+<MotionScene id="dbt-state-selection" />
+
+The second PR adds 175 lines and removes 341.
+
+For a SQL change to a single model, the native selection kept 3 seeds, 50 models and the 6 expected tests, and the job took 1 min 51 s. For a fixture alone, the same 6 tests passed, in 1 min 55 s.
+
+## When CI validates everything
+
+The script only scopes validation for the changes it can read. The others trigger full validation:
+
+- a deleted or renamed file;
+- `dbt_project.yml`, the packages, the profile, the selectors;
+- a YAML file that contains anything other than models and unit tests, for example sources;
+- a macro that overrides a naming macro, a materialization or an adapter-specific macro;
+- a seed of 1 MiB or more, because dbt then compares only its path;
+- a file outside models, macros and seeds, such as a snapshot or a singular test;
+- the CI workflow, the selection script, the Python dependencies;
+- a merge base that cannot be found.
+
+On macros: the documentation does not mention the ones dbt calls itself. The script assumes dbt does not track them.
+
+Full validation took 6 min 02 s on the last measured run, for 405 models and 379 unit tests (some tests had been consolidated in the meantime).
+
+So a PR that changes CI always goes through full validation. It does not test its own scoped path. For each of the two versions, I opened a temporary PR that touched a single model, compared the IDs of the tests that ran with the ones I expected, then closed the PR.
+
+Every push to main runs everything: all the dbt projects in the repository, the build on staging data, the unit tests and the data tests, except those that check the data of a specific environment. On the verification run, that was 1,628 data tests and 384 unit tests, with no errors and 21 warnings. My colleague's PR also scoped main to the selection, with a trade-off he had noted: a model the push does not touch is no longer retested in CI. I kept full validation on main.
+
+This has changed since. My colleague merged three more PRs. A push to main now only builds the lineage of the changed models. An earlier failure stays in the selection until a push validates it: otherwise an unrelated push would turn main green without fixing anything. A sources YAML, a singular test or a seeds YAML no longer trigger the full validation, which took about 20 minutes on main. Replayed on the last 150 commits of main, the number of full validations goes from 77 to 15. The list above describes the state at the time of my PR.
+
+The workflow used to run only for PRs targeting main. It now runs for every PR and compares each one with the merge base of its own target branch. A PR stacked on another one validates only its own diff.
+
+## What remains fragile
+
+The selection follows the dependencies declared to dbt. A model that reads a table by name, without `ref` or `source`, does not appear in the graph as a consumer. Its tests stay out of the PR.
+
+The documentation notes that a model using `var` or `env_var` is not necessarily marked as modified when only the value changes. For us, a change to `dbt_project.yml` triggers full validation. A value changed outside the repository shows up in no diff.
+
+I would not write the filename-based first version again. The problem comes from the size of the project: at the start, validating everything was not an issue.
+
+## Technical references
+
+- [The `state` selector and the `state:modified` sub-selectors](https://docs.getdbt.com/reference/node-selection/methods#state)
+- [Known caveats of state comparison](https://docs.getdbt.com/reference/node-selection/state-comparison-caveats)
+- [Graph operators `+` and `@`](https://docs.getdbt.com/reference/node-selection/graph-operators)
+- [Defer](https://docs.getdbt.com/reference/node-selection/defer)
+- [dbt unit tests](https://docs.getdbt.com/docs/build/unit-tests)
