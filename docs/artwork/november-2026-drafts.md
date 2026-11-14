@@ -103,3 +103,49 @@ Subject: a print workshop bench at night with three small printing presses in a 
 Composition: the three presses read clearly from left to right, from oldest and heaviest to newest and smallest; the light table with the overlaid pages sits in the foreground centre; the subject occupies the central 75% with breathing room and works under a centred crop to a wide banner as well as a small card. One strong idea readable at thumbnail size: three machines printing the same page, compared with a stopwatch and a magnifying glass.
 
 Constraints: no lettering, no numbers, no logos, no watermarks, no readable text anywhere (papers, cards and screens carry only abstract marks). No recognisable characters or brands. No human faces in close-up.
+
+## What I Call a Software Factory
+
+Slug: `software-factory-loops`. Added on 2026-11-14, same process, 1672 × 941, first generation.
+
+### Final prompt
+
+Use case: stylized-concept. An original editorial blog cover, landscape 16:9, at least 1600x900, exactly 16:9.
+
+Art direction: a detailed inked editorial illustration, clean confident line work with light cross-hatching, flat colours with soft painterly shading, in the spirit of a European graphic novel. Night-time interior, warm lamp light against deep navy and teal shadows, a few small amber and teal light accents. Hand-made feel, not photorealistic, not glossy 3D, not a neon tech network.
+
+Subject: a small, tidy workshop at night seen slightly from above, organised as one large circular conveyor track on a long wooden workbench. Along the circle, seven small distinct stations follow each other, each run by one small, simple, friendly desk robot (no two alike, clearly machines, not humans): a drafting table with sketches, a table with technical drawings, an assembly bench, a magnifying-glass inspection stand, a small launch ramp, a shipping crate being sealed, a repair bench with a few tools. Two smaller side tracks branch off the big circle and rejoin it: one comes from a ticker of paper strips with small warning glyphs, the other from a small mailbox overflowing with envelopes, where a robot sorts letters into two trays. In the foreground, a person seen from behind, in a plain shirt, sits at a desk at the edge of the workbench with a single lit lamp, looking at one card a robot hands them; the circle keeps running without them.
+
+Composition: the big loop reads at once as a closed circle with the two side loops attached; the person is small and at the edge, not in the middle; the subject occupies the central 75% with breathing room and works under a centred crop to a wide banner as well as a small card. One strong idea readable at thumbnail size: a workshop of loops that runs on its own, with one person who only takes the decisions.
+
+Constraints: no lettering, no numbers, no logos, no watermarks, no readable text anywhere (papers, cards and screens carry only abstract marks). No recognisable characters or brands. No human faces in close-up.
+
+### Film
+
+Article id `software-factory-film`, embedded after the introduction in both locales. A short animated film requested by the author on 2026-11-14 (« let's go YOLO on the animation… a little animated film of 20–30 seconds », translated); the angle and the script were delegated, so there was no approval round.
+
+- Factory: `videos-factory` repository, branch `feat/blog-software-factory` (worktree `videos-factory-worktrees/blog-software-factory`, not pushed). Folders `videos/blog-software-factory` (French: scenes, art, fonts, score) and `videos/blog-software-factory-en` (English copy, script and voice; renders the French scenes).
+- Takes: `fr-v3`, `en-v3`, painted and voiced. 29.0 s, 870 frames, 30 fps, hard cuts on a 120 BPM grid. Earlier: `fr-v2` / `en-v2` (first version: flat SVG drawings, music only), `fr-v1` (failed `verify` on loudness).
+- What happens: an engineer at his desk answers the questions of robots that pop up one per beat, until the bubbles bury him and a white flag comes out (one beat of silence). The factory floor: a parcel rides the main loop past its seven stations; the camera pulls back to the two side loops (production error → fix and pull request; customer feedback → improvement or bug). An orchestrator robot hands the engineer cards; three close-ups of the rubber stamp coming down on the beat; he sips his coffee under the three stamped cards. Close on « Les boucles tournent. L'humain décide. ». The words come only from the article; no number, date or product name.
+- Art: painted, after the author's direction of 2026-11-14 (« use Codex and image generation to generate lots of images, plates, animate the plates where needed, or have successions of images that create the motion »). Generated with the Codex CLI's built-in image generation, from a model sheet of the cast and this article's cover as references: three plates (room wall, factory floor, desk close-up) and drawings on green, keyed out (the desk as a parallax layer, eight drawings of the engineer, three robots, two of the orchestrator, two of the stamp hand, bubbles, flag, parcels, letters, cards). 22 images generated for this version, 20 used in the film, one reference, one rejected; plus the room plate of the first version. Prompts, reference inputs and output hashes are in the factory folder (`art-requests/`, `assets.json`). Motion comes from camera moves and parallax on the plates, drawings swapped on the beat (and on threes for the stamp), and small painted riders on the belts. Remotion draws only the words, label pills, « OK » marks and glows. Type: the blog's Space Grotesk and Manrope (OFL). No RockFi logo, product, internal name or real person.
+- Voice: the engineer says three short lines in the author's cloned voice, « Moi même » (ElevenLabs, voice id `dGEvTTk26Y7U9tEw8kBI`, `eleven_multilingual_v2`, seed 1114), generated on 2026-11-14 at the author's request: « Oui. Non. Attends… Oui ! », « Moi, je lis. Et je décide. », « Le reste tourne sans moi. » / "Yes. No. Wait… Yes!", "Now I read. And I decide.", "The rest runs without me.". 75 + 69 characters billed, one generation per line. The music ducks under each line. In the first line his mouth follows the voice through drawings (a shouting drawing per spoken word, the shut-mouth drawing between words); the second line starts while a card hides his mouth and runs on over a close-up; the third is off screen.
+- Music: procedural and local (`audio/score.mjs` on the factory's DSP helpers, no samples, no service): a plucked ostinato that speeds up, one beat of digital silence (frames 225–239), the band on the reveal, three stamp thumps on frames 645, 675 and 705, a final hit on 780.
+
+```sh
+npm run voice -- blog-software-factory && npm run voice -- blog-software-factory-en
+node videos/blog-software-factory/audio/mouth.mjs blog-software-factory      # and blog-software-factory-en
+npm run take -- blog-software-factory fr-v3
+npm run take -- blog-software-factory-en en-v3
+node videos/blog-software-factory/captions.mjs blog-software-factory fr-v3   # out/fr-v3/captions.vtt
+```
+
+Web files in `src/assets/videos/posts/software-factory/`: `film.fr.mp4` and `film.en.mp4` (2.6 MB each, AAC 96 kb/s), posters about 150 KB, `film.fr.vtt` and `film.en.vtt` (three cues each, one per line). CRF 32: the painted plates under constant camera moves made CRF 28 files 4.1 MB, and CRF 32 still reads the smallest panel text at 720p. Poster at 25.5 s, the three stamped cards.
+
+```sh
+ffmpeg -i out/<take>/video.mp4 -vf "scale=1280:720:flags=lanczos" \
+  -c:v libx264 -preset slow -crf 32 -pix_fmt yuv420p -c:a aac -b:a 96k -movflags +faststart film.<locale>.mp4
+ffmpeg -ss 25.5 -i out/<take>/video.mp4 -frames:v 1 -vf "scale=1280:720:flags=lanczos" -q:v 5 film.<locale>.jpg
+cp out/<take>/captions.vtt film.<locale>.vtt
+```
+
+Verified: `verify` passed on both takes (H.264 1920 × 1080, 870 frames, AAC; −16.7 LUFS French, −16.5 English; true peak −1.5 dBTP). The review kit's 36 declared checks pass in each language (every on-screen line read by OCR on its frame and present in the script); no one-frame jump, no blank frame; the only silences are the designed one (225–240) and the end. Contact sheets and the frames of every beat and cut were looked at; the engineer's drawings were checked frame by frame against the measured voice over the first line. The web files measure −16.7 / −16.6 LUFS. A local transcript (whisper.cpp `small`) of each final mix has the three lines in order; it hears « Oui » as « Ouais », « je lis » as « joli » and "rest runs" as "restaurants". On the clips alone it hears « je lis » correctly and the two other slips again, so those come from the recognition, not from the music. Known compromises: the green despill turns the teal of keyed drawings slightly blue (the mug, the pull-request card), and in the last wide shot he sips from one mug while another stands on the desk. Not done: nobody has watched the film in real time or listened to it; no fresh reviewer agent was run.

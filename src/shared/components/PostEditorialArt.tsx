@@ -83,6 +83,12 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
       fr: "Un atelier d'imprimerie illustré, de nuit, avec trois presses alignées, d'une lourde presse en fonte à une petite presse à moitié montée, chacune imprimant la même page ; une personne vue de dos compare deux feuilles sur une table lumineuse avec une loupe et un chronomètre.",
     },
   },
+  "software-factory-loops": {
+    alt: {
+      en: "An illustrated workshop at night built around a large circular conveyor where small robots draw, assemble, inspect, launch, pack and repair; two side tracks bring in paper strips with warning signs and letters from a mailbox, and a person seen from behind sits at a desk at the edge, reading one card a robot hands them.",
+      fr: "Un atelier illustré, de nuit, organisé autour d'un grand convoyeur circulaire où de petits robots dessinent, assemblent, inspectent, lancent, emballent et réparent ; deux voies latérales apportent des bandes de papier marquées d'alertes et les lettres d'une boîte aux lettres, et une personne vue de dos, assise à un bureau au bord, lit une carte qu'un robot lui tend.",
+    },
+  },
   "nexus-in-two-days": {
     alt: {
       en: "An engineer seen from behind assembles a miniature Nexus engine in his hands, with stone bridges and glowing cyan and copper flows.",
