@@ -40,10 +40,6 @@ Cette comparaison a laissé passer un faux vert. Dans une fixture, remplacer la 
 
 Pour une modification SQL d'un seul modèle, le job construisait 50 modèles, passait 6 tests unitaires et durait 2 min 20 s.
 
-<ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
-
-{/* À COMPLÉTER (auteur) : figure provisoire, reprise d'un autre article pour satisfaire le test « une figure animée par article ». À remplacer par une scène dédiée une fois le texte relu. */}
-
 ## Ce qui n'a pas suffi
 
 En revue, un collègue m'a demandé si j'avais envisagé le sélecteur natif `state:modified` plutôt que d'associer des fichiers à des modèles. Il avait ouvert deux semaines plus tôt une PR qui faisait exactement cela. Je ne l'avais pas vue.
@@ -116,6 +112,8 @@ dbt run --empty --select "@state:modified @int_active_contracts" --state "$STATE
 dbt test --resource-type unit_test \
   --select "state:modified+ int_active_contracts+" --state "$STATE_DIR"
 ```
+
+<MotionScene id="dbt-state-selection" />
 
 La seconde PR ajoute 175 lignes et en supprime 341.
 

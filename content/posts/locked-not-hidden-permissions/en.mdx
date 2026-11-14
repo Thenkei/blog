@@ -32,10 +32,6 @@ The project's rule has two parts. A write control is rendered only if the user h
 
 The pull request extends the second part to write controls and to sections.
 
-<ArticleDiagram visualId="internal-tools-as-product" />
-
-{/* TO COMPLETE (author): placeholder figure, borrowed from another article to satisfy the "one motion figure per article" test. Replace it with a dedicated scene once the text is reviewed. */}
-
 ## Three components
 
 **The locked action.** A write button (save, create, add) stays in place, disabled. On hover, it shows the reason: "Reserved for the Operations group: ask an administrator for access."
@@ -43,6 +39,8 @@ The pull request extends the second part to write controls and to sections.
 **The read-only notice.** The page writes the same reason once, as text, under its header: "Read-only. Changes are reserved for the Operations group." A card that depends on another permission has its own notice. On a list page, the reason fits on one line under the header actions.
 
 **The restricted section.** A tab or card the user is not allowed to read keeps its place and its title. Its content is replaced by a "Restricted access" block that names the groups.
+
+<MotionScene id="locked-instead-of-hidden" />
 
 These three components live in a single file, so that locking has the same form on every page. It is the argument for primitives in [Consistency Is a Default, Not a Convention](../posts/internal-tools-consistency-by-default).
 

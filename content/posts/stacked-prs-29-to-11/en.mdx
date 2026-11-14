@@ -26,10 +26,6 @@ The service is a NestJS API that manages model portfolios. The business rules li
 
 After the refactor, every write goes through a use case: it loads an aggregate, calls one of its methods and saves. The aggregate decides without doing I/O and its methods return a `Result`. Its root carries a revision number, used as an optimistic lock for everything it contains. Each read endpoint has its own query.
 
-<ArticleDiagram visualId="bounded-ai-loop" />
-
-{/* TO COMPLETE (author): placeholder figure, borrowed from another article to satisfy the "one motion figure per article" test. Replace it with a dedicated scene once the text is reviewed. */}
-
 ## The first stack followed the order of the work
 
 The 29 PRs are in the order I wrote the commits. They were opened over seven hours.
@@ -52,6 +48,8 @@ Someone reviewing in order therefore reads the import twice, in PR 8 and again i
 In the first stack, you had to read 32,381 lines of diff for a change of 22,051. The gap, 10,330 lines, is work that one PR does and a later PR undoes. The 24 files created then deleted come from PRs 4, 6, 8 and 14. Ten of them are test files.
 
 In the second, the gap is two lines.
+
+<MotionScene id="pr-stack-churn" />
 
 The second stack is not smaller. Its final diff is 2,067 lines larger than the first one's, because it contains the review fixes: the two end states differ by 3,600 lines added and 2,665 deleted, across 150 files. Its PRs are larger. In both final diffs, 2,624 deleted lines are data files.
 

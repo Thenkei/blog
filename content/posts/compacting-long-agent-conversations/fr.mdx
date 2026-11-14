@@ -32,10 +32,6 @@ Couper l'historique à un message arbitraire peut séparer un appel d'outil de s
 
 La compaction ne remplace donc que des échanges complets, par un résumé.
 
-<ArticleDiagram visualId="context-engineering-beyond-prompt-engineering" />
-
-{/* À COMPLÉTER (auteur) : figure provisoire, reprise d'un autre article pour satisfaire le test « une figure animée par article ». À remplacer par une scène dédiée une fois le texte relu. */}
-
 ## Estimer la taille sans tokenizer
 
 Le tokenizer de Bedrock dépend du modèle. J'utilise une estimation : la taille du texte en octets UTF-8 divisée par trois, plus huit par message. Les compteurs du fournisseur peuvent donner autre chose.
@@ -68,6 +64,8 @@ tour 3  question en cours            question en cours
         appel A + résultat A         résumé de l'étape A
         appels B et C + résultats    appels B et C + résultats
 ```
+
+<MotionScene id="conversation-compaction-cuts" />
 
 Si la question et le dernier échange dépassent seuls la fenêtre du fournisseur, la compaction n'y change rien. Le conseiller reçoit l'erreur « contexte trop long » qui existait déjà.
 

@@ -28,10 +28,6 @@ Two recent PRs about the mobile display, [#49](https://github.com/Thenkei/blog/p
 
 On iPhone, Safari uses WebKit, and so do most other browsers. Setting Chromium to a width of 390 pixels does not change its rendering engine.
 
-<ArticleDiagram visualId="unknown-unknowns-software-architecture" />
-
-{/* TO COMPLETE (author): placeholder figure, borrowed from another article to satisfy the "one motion figure per article" test. Replace it with a dedicated scene once the text is reviewed. */}
-
 ## The measurement in WebKit
 
 Playwright ships a WebKit that runs on a computer. The measurement is the same as in Chromium: production build, 390×844 viewport at a device scale factor of 3, scrolling the hero range one way and then back, and recording the interval between two `requestAnimationFrame` calls.
@@ -143,6 +139,8 @@ The glow is now drawn by three translucent strokes under the line. Each one is w
 ```
 
 There are four paths instead of one, and no SVG filter any more. The result is not exactly the same: compared with the previous version, the image differs along the flight line, and only there.
+
+<MotionScene id="webkit-filter-repaint" />
 
 The ship keeps its `drop-shadow` and the flame its `blur(5px)`. Those are CSS filters and they were not touched.
 

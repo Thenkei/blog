@@ -37,10 +37,6 @@ The first one prepared the LaTeX reference. Before any timing, it checked that t
 
 The first answer arrived eleven minutes after my message, with six PDFs and a table of timings. Over the day, the main agent created ten sub-agents. I have described elsewhere [how we choose between one agent and several](../posts/agent-battle-2026).
 
-<ArticleDiagram visualId="bounded-ai-loop" />
-
-{/* TO COMPLETE (author): placeholder figure, borrowed from another article to satisfy the "one motion figure per article" test. Replace it with a dedicated scene once the text is reviewed. */}
-
 ## What "same output" means
 
 For WeasyPrint, the LaTeX templates were rewritten in HTML and CSS. Line wrapping can differ from one engine to the other, so the checks do not require pixel-identical pages. They cover what is visible:
@@ -69,6 +65,8 @@ Pixel equality is used when the engine does not change. Reusing fonts in WeasyPr
 One known difference is written into a test. When three sections of a template are empty, the LaTeX template prints two phantom entries and spills onto a second page. The WeasyPrint version fits on one page. The test expects two pages on one side and one on the other.
 
 The Linux CI renders 52 synthetic documents with both engines: 696 pages per engine, the same number of pages in each pair.
+
+<MotionScene id="pdf-engine-comparison" />
 
 ## The timing protocol
 

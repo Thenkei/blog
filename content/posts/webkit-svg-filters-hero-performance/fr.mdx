@@ -28,10 +28,6 @@ Deux PR récentes sur l'affichage mobile, [#49](https://github.com/Thenkei/blog/
 
 Sur iPhone, Safari utilise WebKit, et la plupart des autres navigateurs aussi. Régler Chromium sur 390 pixels de large ne change pas son moteur de rendu.
 
-<ArticleDiagram visualId="unknown-unknowns-software-architecture" />
-
-{/* À COMPLÉTER (auteur) : figure provisoire, reprise d'un autre article pour satisfaire le test « une figure animée par article ». À remplacer par une scène dédiée une fois le texte relu. */}
-
 ## La mesure dans WebKit
 
 Playwright fournit un WebKit qui se lance sur un ordinateur. La mesure est la même que dans Chromium : build de production, fenêtre de 390×844 à densité 3, défilement de la plage du hero dans un sens puis dans l'autre, et relevé de l'intervalle entre deux `requestAnimationFrame`.
@@ -143,6 +139,8 @@ Le halo est maintenant dessiné par trois traits translucides sous la ligne. Cha
 ```
 
 Il y a quatre tracés au lieu d'un, et plus de filtre SVG. Le rendu n'est pas exactement le même : comparée à l'ancienne version, l'image diffère le long de la ligne de vol, et seulement là.
+
+<MotionScene id="webkit-filter-repaint" />
 
 Le vaisseau garde son `drop-shadow` et la flamme son `blur(5px)`. Ce sont des filtres CSS et ils n'ont pas été touchés.
 

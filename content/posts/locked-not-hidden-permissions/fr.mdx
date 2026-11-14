@@ -32,10 +32,6 @@ La règle du projet a deux parties. Un contrôle d'écriture n'est rendu que si 
 
 La pull request étend la deuxième partie aux contrôles d'écriture et aux sections.
 
-<ArticleDiagram visualId="internal-tools-as-product" />
-
-{/* À COMPLÉTER (auteur) : figure provisoire, reprise d'un autre article pour satisfaire le test « une figure animée par article ». À remplacer par une scène dédiée une fois le texte relu. */}
-
 ## Trois composants
 
 **L'action verrouillée.** Un bouton d'écriture (enregistrer, créer, ajouter) reste à sa place, désactivé. Au survol, il affiche la raison : « Réservé au groupe Opérations : demandez l'accès à un administrateur. »
@@ -43,6 +39,8 @@ La pull request étend la deuxième partie aux contrôles d'écriture et aux sec
 **La notice de lecture seule.** La page écrit la même raison une fois, en texte, sous son en-tête : « Lecture seule. Les modifications sont réservées au groupe Opérations. » Une carte qui dépend d'une autre permission a sa propre notice. Sur une page de liste, la raison tient en une ligne sous les actions de l'en-tête.
 
 **La section à accès restreint.** Un onglet ou une carte que l'utilisateur n'a pas le droit de lire garde sa place et son titre. Son contenu est remplacé par un bloc « Accès restreint » qui nomme les groupes.
+
+<MotionScene id="locked-instead-of-hidden" />
 
 Ces trois composants sont dans un seul fichier, pour que le verrouillage ait la même forme sur toutes les pages. C'est l'argument des primitives dans [La cohérence par défaut, pas par convention](../posts/internal-tools-consistency-by-default).
 

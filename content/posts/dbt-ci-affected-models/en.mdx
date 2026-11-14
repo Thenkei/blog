@@ -40,10 +40,6 @@ That comparison let a false green through. In a fixture, replacing the expected 
 
 For a SQL change to a single model, the job built 50 models, passed 6 unit tests and took 2 min 20 s.
 
-<ArticleDiagram visualId="backend-to-data-engineer-rockfi" />
-
-{/* TO COMPLETE (author): placeholder figure, borrowed from another article to satisfy the "one motion figure per article" test. Replace it with a dedicated scene once the text is reviewed. */}
-
 ## What was not enough
 
 In review, a colleague asked whether I had considered the native `state:modified` selector instead of mapping files to models. Two weeks earlier, he had opened a PR that did exactly that. I had not seen it.
@@ -116,6 +112,8 @@ dbt run --empty --select "@state:modified @int_active_contracts" --state "$STATE
 dbt test --resource-type unit_test \
   --select "state:modified+ int_active_contracts+" --state "$STATE_DIR"
 ```
+
+<MotionScene id="dbt-state-selection" />
 
 The second PR adds 175 lines and removes 341.
 

@@ -37,10 +37,6 @@ Le premier a préparé la référence LaTeX. Avant tout chronométrage, il a vé
 
 La première réponse est arrivée onze minutes après mon message, avec six PDF et un tableau de temps. Sur la journée, l'agent principal a créé dix sous-agents. J'ai décrit ailleurs [comment nous choisissons entre un agent seul et plusieurs](../posts/agent-battle-2026).
 
-<ArticleDiagram visualId="bounded-ai-loop" />
-
-{/* À COMPLÉTER (auteur) : figure provisoire, reprise d'un autre article pour satisfaire le test « une figure animée par article ». À remplacer par une scène dédiée une fois le texte relu. */}
-
 ## Ce que « même sortie » veut dire
 
 Pour WeasyPrint, les modèles LaTeX ont été réécrits en HTML et CSS. Les retours à la ligne peuvent différer d'un moteur à l'autre, donc les contrôles n'exigent pas des pages identiques au pixel. Ils portent sur ce qui est visible :
@@ -69,6 +65,8 @@ L'égalité de pixels sert quand le moteur ne change pas. Réutiliser les police
 Une différence connue est écrite dans un test. Quand trois rubriques d'un modèle sont vides, le gabarit LaTeX imprime deux entrées fantômes et déborde sur une deuxième page. La version WeasyPrint tient sur une page. Le test attend deux pages d'un côté et une de l'autre.
 
 La CI Linux rend 52 documents synthétiques avec les deux moteurs : 696 pages par moteur, le même nombre de pages dans chaque paire.
+
+<MotionScene id="pdf-engine-comparison" />
 
 ## Le protocole de mesure
 

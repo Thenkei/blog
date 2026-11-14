@@ -26,10 +26,6 @@ Le service est une API NestJS qui gère des portefeuilles modèles. Les règles 
 
 Après le refactoring, chaque écriture passe par un use case : il charge un agrégat, appelle une de ses méthodes et sauvegarde. L'agrégat décide sans faire d'I/O et ses méthodes renvoient un `Result`. Sa racine porte un numéro de révision, qui sert de verrou optimiste pour tout ce qu'elle contient. Chaque endpoint de lecture a sa requête.
 
-<ArticleDiagram visualId="bounded-ai-loop" />
-
-{/* À COMPLÉTER (auteur) : figure provisoire, reprise d'un autre article pour satisfaire le test « une figure animée par article ». À remplacer par une scène dédiée une fois le texte relu. */}
-
 ## Le premier empilement suivait l'ordre du travail
 
 Les 29 PR sont dans l'ordre où j'ai écrit les commits. Elles ont été ouvertes en sept heures.
@@ -52,6 +48,8 @@ Quelqu'un qui relit dans l'ordre lit donc l'import deux fois, dans la PR 8 puis 
 Dans le premier empilement, il fallait lire 32 381 lignes de diff pour un changement qui en fait 22 051. L'écart, 10 330 lignes, est du travail qu'une PR fait et qu'une PR suivante défait. Les 24 fichiers créés puis supprimés viennent des PR 4, 6, 8 et 14. Dix sont des fichiers de test.
 
 Dans le second, l'écart est de deux lignes.
+
+<MotionScene id="pr-stack-churn" />
 
 Le second empilement n'est pas plus petit. Son diff final dépasse celui du premier de 2 067 lignes, parce qu'il contient les corrections de revue : les deux états finaux diffèrent de 3 600 lignes ajoutées et 2 665 supprimées, sur 150 fichiers. Ses PR sont plus grosses. Dans les deux diffs finaux, 2 624 lignes supprimées sont des fichiers de données.
 

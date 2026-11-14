@@ -32,10 +32,6 @@ Cutting the history at an arbitrary message can separate a tool call from its re
 
 So compaction only replaces complete exchanges, with a summary.
 
-<ArticleDiagram visualId="context-engineering-beyond-prompt-engineering" />
-
-{/* TO COMPLETE (author): placeholder figure, borrowed from another article to satisfy the "one motion figure per article" test. Replace it with a dedicated scene once the text is reviewed. */}
-
 ## Estimating the size without a tokenizer
 
 Bedrock's tokenizer depends on the model. I use an estimate: the size of the text in UTF-8 bytes divided by three, plus eight per message. The provider's counts can differ.
@@ -68,6 +64,8 @@ turn 3  current question             current question
         call A + result A            summary of step A
         calls B and C + results      calls B and C + results
 ```
+
+<MotionScene id="conversation-compaction-cuts" />
 
 If the question and the latest exchange alone exceed the provider's window, compaction does not change that. The advisor gets the "context too long" error that already existed.
 
