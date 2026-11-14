@@ -5,7 +5,7 @@ import { normalizeLocale } from "../routing";
 
 // Rendered films embedded in an article: `<ArticleVideo id="…">caption</ArticleVideo>`.
 // One MP4 and one poster per locale, because the on-screen copy is part of the film.
-// A narrated film also has one WebVTT caption file per locale, next to its MP4.
+// A film with a voice also has one WebVTT caption file per locale, next to its MP4.
 // Files live outside `src/assets/images/posts/` on purpose: they build into
 // `assets/videos/` (see vite.config.ts), which the service worker neither precaches
 // nor serves from its CacheFirst route, since that route does not answer the range
@@ -38,13 +38,27 @@ type ArticleVideoCopy = {
   /** What happens on screen, for readers who do not play it. */
   description: Record<PostLocale, string>;
   /**
-   * The film has a voice. It then starts with its sound on (it never autoplays, so the
-   * reader has pressed play) and needs a `.vtt` caption file per locale.
+   * What the film's audio track carries. Omitted: the film is silent and marked muted.
+   * With either value it starts with its sound on (it never autoplays, so the reader has
+   * pressed play). `voice` also needs a `.vtt` caption file per locale; `music` has no
+   * speech to caption.
    */
-  narrated?: boolean;
+  sound?: "music" | "voice";
 };
 
 const ARTICLE_VIDEOS = {
+  "video-factory-intro": {
+    path: "video-factory/intro",
+    title: {
+      en: "Opening trailer: a video factory in a Git repository",
+      fr: "Trailer d’ouverture : une fabrique de vidéos dans un dépôt Git",
+    },
+    description: {
+      en: "Music, no voice, 29 seconds. Dark title cards ask who edits the film a feature needs, then three cards answer: the files of one video folder, the six agents, and what the tooling measures and leaves to a person.",
+      fr: "Musique, sans voix, 29 secondes. Des cartons sombres demandent qui monte le film d’une fonctionnalité, puis trois cartes répondent : les fichiers d’un dossier de vidéo, les six agents, et ce que l’outil mesure ou laisse à une personne.",
+    },
+    sound: "music",
+  },
   "video-factory-trailer": {
     path: "video-factory/trailer",
     title: {
@@ -77,7 +91,7 @@ const ARTICLE_VIDEOS = {
       en: "Narrated, 60 seconds, with captions. A question, the files of one video folder, the six roles from story to review, then the checks the tooling runs and the two it leaves to a person.",
       fr: "Avec voix, 64 secondes, sous-titres disponibles. Une question, les fichiers d’un dossier de vidéo, les six rôles de l’histoire à la revue, puis les contrôles faits par l’outil et les deux qu’il laisse à une personne.",
     },
-    narrated: true,
+    sound: "voice",
   },
 } as const satisfies Record<string, ArticleVideoCopy>;
 
@@ -90,13 +104,14 @@ export function getArticleVideo(id: ArticleVideoId, locale: PostLocale) {
   const base = `/src/assets/videos/posts/${video.path}.${locale}`;
   const src = videoFiles[`${base}.mp4`];
   const poster = posterFiles[`${base}.jpg`];
-  const captions = video.narrated ? captionFiles[`${base}.vtt`] : undefined;
+  const narrated = video.sound === "voice";
+  const captions = narrated ? captionFiles[`${base}.vtt`] : undefined;
 
   if (!src || !poster) {
     throw new Error(`ArticleVideo: missing ${locale} media for "${id}"`);
   }
 
-  if (video.narrated && !captions) {
+  if (narrated && !captions) {
     throw new Error(`ArticleVideo: missing ${locale} captions for narrated film "${id}"`);
   }
 
@@ -104,7 +119,7 @@ export function getArticleVideo(id: ArticleVideoId, locale: PostLocale) {
     src,
     poster,
     captions,
-    narrated: video.narrated ?? false,
+    muted: video.sound === undefined,
     title: video.title[locale],
     description: video.description[locale],
   };
@@ -119,11 +134,11 @@ export function ArticleVideo({ id, children }: { id: ArticleVideoId; children?: 
     <figure className="post-visual article-video" aria-label={video.title} data-article-video={id}>
       {/* `preload="none"`: the poster is enough until the reader presses play. The key
           remounts the element on a language switch, so the other export is loaded.
-          Silent films are marked muted; a narrated one keeps its sound. */}
+          Silent films are marked muted; one with music or a voice keeps its sound. */}
       <video
         key={video.src}
         controls
-        muted={!video.narrated}
+        muted={video.muted}
         playsInline
         preload="none"
         poster={video.poster}

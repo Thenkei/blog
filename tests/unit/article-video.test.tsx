@@ -51,6 +51,26 @@ describe("ArticleVideo", () => {
     expect(getArticleVideo("video-factory-release", "en").captions).toBeUndefined();
   });
 
+  it("plays a film with music with its sound on and no caption track", async () => {
+    const { container, unmount } = render(<ArticleVideo id="video-factory-intro" />);
+
+    expect(container.querySelector("video")?.muted).toBe(false);
+    // No speech, so nothing to caption.
+    expect(container.querySelector("track")).toBeNull();
+    expect(getArticleVideo("video-factory-intro", "en").captions).toBeUndefined();
+    expect(container.querySelector("figcaption")?.textContent).toMatch(/Music, no voice, 29 seconds/);
+    unmount();
+
+    await i18n.changeLanguage("fr");
+    const french = render(<ArticleVideo id="video-factory-intro" />);
+
+    expect(french.container.querySelector("source")).toHaveAttribute(
+      "src",
+      expect.stringMatching(/intro\.fr\.mp4/),
+    );
+    expect(french.container.querySelector("figcaption")?.textContent).toMatch(/Musique, sans voix, 29 secondes/);
+  });
+
   it("plays a narrated film with its sound on and offers captions in the reader's language", async () => {
     const { container, unmount } = render(<ArticleVideo id="video-factory-explainer" />);
 
