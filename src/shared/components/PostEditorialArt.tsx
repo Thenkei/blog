@@ -47,6 +47,42 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
       fr: "Un bureau illustré avec un jeu de cartes et des dés, relié par des tracés lumineux à une salle de serveurs et de nombreuses fenêtres de navigateur au loin.",
     },
   },
+  "webkit-svg-filters-hero-performance": {
+    alt: {
+      en: "An illustrated desk at night with two identical phones side by side showing the same rocket: a smooth glowing trail on the left, a trail broken into separate dashes on the right, and a stopwatch between them.",
+      fr: "Un bureau illustré, de nuit, avec deux téléphones identiques côte à côte montrant la même fusée : une traînée lumineuse continue à gauche, une traînée hachée en tirets à droite, et un chronomètre entre les deux.",
+    },
+  },
+  "locked-not-hidden-permissions": {
+    alt: {
+      en: "An illustrated archive cabinet at night: most drawers glow half open, three are closed with a padlock and a paper tag, and a person seen from behind holds a lantern in front of a dark hole where a drawer is missing.",
+      fr: "Un meuble d'archives illustré, de nuit : la plupart des tiroirs sont entrouverts et éclairés, trois sont fermés par un cadenas avec une étiquette, et une personne vue de dos tient une lanterne devant le trou noir d'un tiroir manquant.",
+    },
+  },
+  "dbt-ci-affected-models": {
+    alt: {
+      en: "An illustrated workshop wall covered with a network of pipes and gauges, almost all dark; an engineer on a step stool turns one valve, and only the branch downstream of it glows amber.",
+      fr: "Un mur d'atelier illustré couvert d'un réseau de tuyaux et de manomètres presque entièrement éteint ; une personne sur un escabeau tourne une vanne, et seule la branche en aval s'éclaire en ambre.",
+    },
+  },
+  "stacked-prs-29-to-11": {
+    alt: {
+      en: "An illustrated desk at night with a tall, leaning stack of thin folders marked with red crosses and crumpled sheets at its base, and hands moving one sheet onto a short, neat stack of three thick binders.",
+      fr: "Un bureau illustré, de nuit, avec une haute pile penchée de chemises fines barrées de croix rouges, des feuilles froissées à son pied, et des mains qui déplacent une feuille vers une pile courte et nette de trois gros classeurs.",
+    },
+  },
+  "compacting-long-agent-conversations": {
+    alt: {
+      en: "An illustrated desk at night where a small robot cranks a brass press: a long paper ribbon covered in speech bubbles enters on the left and comes out as one compact card, while the last section of ribbon lies intact on the right.",
+      fr: "Un bureau illustré, de nuit, où un petit robot actionne une presse en laiton : un long ruban de papier couvert de bulles de dialogue entre à gauche et ressort en une seule carte compacte, tandis que la dernière section du ruban reste intacte à droite.",
+    },
+  },
+  "weasyprint-latex-reasyprint-benchmarks": {
+    alt: {
+      en: "An illustrated print workshop at night with three presses in a row, from a heavy cast-iron one to a small half-built one, each printing the same page; a person seen from behind compares two sheets on a light table with a magnifying glass and a stopwatch.",
+      fr: "Un atelier d'imprimerie illustré, de nuit, avec trois presses alignées, d'une lourde presse en fonte à une petite presse à moitié montée, chacune imprimant la même page ; une personne vue de dos compare deux feuilles sur une table lumineuse avec une loupe et un chronomètre.",
+    },
+  },
   "nexus-in-two-days": {
     alt: {
       en: "An engineer seen from behind assembles a miniature Nexus engine in his hands, with stone bridges and glowing cyan and copper flows.",
