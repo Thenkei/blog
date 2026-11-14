@@ -1,0 +1,208 @@
+---
+title: "LaTeX, WeasyPrint, reasyprint : comparer trois moteurs PDF"
+subtitle: "Mêmes entrées, deux PDF par document, des contrôles qui n'exigent pas les mêmes pixels, et des sous-agents pour tester les variantes."
+summary: "Comment j'ai comparé le rendu LaTeX d'une Lambda à WeasyPrint, puis commencé un moteur en Rust : ce que « même sortie » veut dire, le protocole de mesure et ses limites, les variantes testées par des sous-agents, et ce qui n'est pas encore mesuré."
+visualId: "bounded-ai-loop"
+publishedAt: "2026-12-08"
+readTimeMinutes: 9
+tags:
+  - pdf
+  - performance
+  - testing
+  - rust
+  - agents
+  - ai
+  - developer-tools
+  - rockfi
+draft: true
+---
+
+Chez RockFi, une fonction AWS Lambda génère nos PDF avec LaTeX. Le 12 novembre, j'ai voulu savoir si [WeasyPrint](https://weasyprint.org) pouvait produire les mêmes documents plus vite. Deux jours plus tard, j'ai commencé `reasyprint`, un moteur HTML/CSS vers PDF écrit en Rust.
+
+Je n'ai pas de verdict sur les trois. Rien n'est déployé, et le troisième moteur avait quelques heures quand j'ai écrit ce texte. J'ai des chiffres, avec leurs conditions, et une liste de ce qui n'est pas mesuré.
+
+{/* À COMPLÉTER (auteur) : état à la publication. La PR WeasyPrint est-elle fusionnée, le pilote de staging a-t-il tourné, où en est reasyprint ? Le texte décrit la situation du 14 novembre. */}
+
+## Le point de départ
+
+La Lambda reçoit du JSON, choisit un modèle de document et lance [Tectonic](https://tectonic-typesetting.github.io), un moteur LaTeX construit sur XeTeX. Tectonic est relancé pour chaque document, avec deux passes.
+
+Ma demande tenait en quelques lignes : comparer les deux variantes sur les mêmes entrées, viser le même niveau de qualité et une génération nettement plus rapide. J'y évoquais un test A/B pour plus tard. Pour commencer, comparer les deux sorties suffisait.
+
+## Un agent principal et des sous-agents
+
+J'ai lancé le travail dans Codex. L'agent principal a découpé la demande et démarré trois sous-agents en parallèle, chacun avec une tâche nommée. C'est ce que j'appelle un workflow ici : un agent distribue des tâches à d'autres, relit leurs résultats, puis me répond. Entre deux réponses, je lis et je décide du tour suivant.
+
+Le premier a préparé la référence LaTeX. Avant tout chronométrage, il a vérifié que les PDF compilés sur mon Mac reproduisaient ceux de la CI Linux : 18 pages, les mêmes pixels à 108 dpi. Le deuxième a monté un environnement Python isolé avec WeasyPrint 69.0 et une galerie qui aligne les pages des deux moteurs. Le troisième a réécrit en HTML et CSS le modèle de document général.
+
+La première réponse est arrivée onze minutes après mon message, avec six PDF et un tableau de temps. Sur la journée, l'agent principal a créé dix sous-agents. J'ai décrit ailleurs [comment nous choisissons entre un agent seul et plusieurs](../posts/agent-battle-2026).
+
+<ArticleDiagram visualId="bounded-ai-loop" />
+
+{/* À COMPLÉTER (auteur) : figure provisoire, reprise d'un autre article pour satisfaire le test « une figure animée par article ». À remplacer par une scène dédiée une fois le texte relu. */}
+
+## Ce que « même sortie » veut dire
+
+Pour WeasyPrint, les modèles LaTeX ont été réécrits en HTML et CSS. Les retours à la ligne peuvent différer d'un moteur à l'autre, donc les contrôles n'exigent pas des pages identiques au pixel. Ils portent sur ce qui est visible :
+
+- le même nombre de pages dans chaque paire de PDF ;
+- les mêmes mots, nombres, pourcentages et devises, comptés des deux côtés ;
+- le pied de page légal et la numérotation, page par page ;
+- les entrées du sommaire, qui doivent mener à la page où le chapitre commence.
+
+Le texte est extrait avec PyMuPDF, puis normalisé avant le comptage.
+
+```python
+# Illustratif : compter les jetons, sans tenir compte des retours à la ligne.
+def tokens(text):
+    text = unicodedata.normalize("NFKC", text).casefold()
+    return re.findall(r"-?\d+(?:[,.]\d+)?|[^\W\d_]+|[%€$]", text)
+
+missing = Counter(tokens(latex_text)) - Counter(tokens(weasy_text))
+extra = Counter(tokens(weasy_text)) - Counter(tokens(latex_text))
+```
+
+Compter ne suffit pas pour un tableau : un montant peut être présent et se trouver sur la mauvaise ligne. Des contrôles ciblés vérifient donc que chaque valeur est sur la même ligne que son libellé, à deux points près.
+
+L'égalité de pixels sert quand le moteur ne change pas. Réutiliser les polices dans WeasyPrint doit donner les mêmes pixels à 144 dpi qu'avant, et le test l'exige.
+
+Une différence connue est écrite dans un test. Quand trois rubriques d'un modèle sont vides, le gabarit LaTeX imprime deux entrées fantômes et déborde sur une deuxième page. La version WeasyPrint tient sur une page. Le test attend deux pages d'un côté et une de l'autre.
+
+La CI Linux rend 52 documents synthétiques avec les deux moteurs : 696 pages par moteur, le même nombre de pages dans chaque paire.
+
+## Le protocole de mesure
+
+Une mesure à chaud suit cette procédure : un rendu de préchauffage qui ne compte pas, puis des rendus en séquence dans le même interpréteur, en inversant l'ordre des moteurs à chaque tour.
+
+```python
+# Illustratif
+for engine in ENGINES:
+    render(engine)  # préchauffage, non compté
+for i in range(rounds):
+    for engine in (ENGINES if i % 2 == 0 else ENGINES[::-1]):
+        start = time.perf_counter_ns()
+        render(engine)
+        timings[engine].append((time.perf_counter_ns() - start) / 1e6)
+```
+
+Le chronomètre couvre la préparation du document, la composition et l'écriture du PDF sur le disque local. Tectonic est relancé à chaque document, comme dans la Lambda. WeasyPrint reste importé. Le démarrage de la Lambda et l'envoi vers S3 sont exclus.
+
+| Document | Pages | LaTeX | WeasyPrint | Facteur |
+| --- | ---: | ---: | ---: | ---: |
+| Bulletin | 1 | 1 127 ms | 141 ms | 8,0× |
+| Bulletin de 20 brèves | 2 | 1 143 ms | 165 ms | 6,9× |
+| Document avec tableau, graphique et image | 3 | 1 435 ms | 244 ms | 5,9× |
+| Proposition avec tableaux et graphique | 2 | 1 877 ms | 64 ms | 29,4× |
+| Rapport long | 14 | 3 566 ms | 309 ms | 11,6× |
+| Note | 2 | 913 ms | 45 ms | 20,4× |
+
+Les trois premières lignes sont des médianes sur 12 rendus à chaud, avant la réutilisation des polices décrite plus bas. Les trois suivantes sont des médianes sur cinq paires, polices réutilisées. Tout vient de mon Mac arm64, avec Python 3.12.16, Tectonic 0.15.0 et WeasyPrint 69.0. Les deux groupes n'ont pas les mêmes conditions et ne se comparent pas entre eux.
+
+En « processus neuf », avec un nouvel interpréteur Python à chaque rendu et des caches disque chauds, le facteur tombe entre 2,1 et 2,3 : 1 201 ms contre 561 ms pour le bulletin, sur cinq rendus par moteur.
+
+Aucun de ces chiffres ne mesure une Lambda. La PR est encore en brouillon.
+
+## Les variantes testées entre deux tours
+
+Après le premier résultat, j'ai demandé s'il y avait autre chose à essayer pour accélérer la génération. Les sous-agents ont mesuré quatre variantes, chacune contre le rendu existant.
+
+**Réutiliser la configuration de polices de WeasyPrint.** Sur mon Mac, le bulletin passe de 138 ms à 18 ms à chaud. J'ai demandé que cela fonctionne aussi sous Linux, l'environnement de la Lambda. Sur le runner Linux x86_64 de la CI, le deuxième rendu passe de 60,2 ms à 46,1 ms, en médiane sur six paires, et le premier ne change presque pas. C'est la mesure Linux qui figure dans la PR.
+
+**Compiler le bulletin en une seule passe LaTeX.** 649 ms au lieu de 1 119 ms, mêmes pixels à 144 dpi. Sur le document de trois pages, une seule passe imprime « Page 1 sur ?? » et perd des liens.
+
+**Précompiler le CSS.** 1,3 ms et 6,0 ms de moins selon le document.
+
+**Incorporer les polices en entier.** Les deux rendus ralentissent, le fichier grossit d'un facteur 12,5 à 13,4, et l'extraction de texte perd deux numéros de liste.
+
+La réutilisation des polices a été vérifiée par un autre sous-agent que celui qui l'avait écrite : texte et pixels, y compris quand le même processus génère d'autres documents entre deux rendus. C'est la même séparation que dans [notre fabrique de vidéos](../posts/video-factory-remotion-agents), où le relecteur n'a pas écrit le film.
+
+## Ce que la première comparaison avait raté
+
+Pendant ce tour, un sous-agent devait comparer les règles de calcul et de formatage des deux implémentations. Il a trouvé deux défauts.
+
+Le test de pagination utilisait un tableau synthétique de 95 lignes, dans un ancien format d'entrée. L'API actuelle exige un autre champ et refuse plus de 80 lignes. Sur un tableau valide de deux lignes, LaTeX produisait la page et le prototype WeasyPrint échouait. Le test validait un cas que l'appelant actuel ne peut pas envoyer.
+
+L'autre touchait un graphique : avec deux séries de la même catégorie, LaTeX attribuait deux couleurs et WeasyPrint une seule. Les deux défauts ont été corrigés et couverts par des tests sur le format actuel.
+
+J'ai ensuite élargi le périmètre à chaque tour : d'autres formats de documents, les modèles restants, enfin tous les documents du pilote de staging. Une proposition de deux pages a révélé un décalage de 20,5 points entre deux tableaux : LaTeX calculait en commun les largeurs de colonnes des tableaux de même structure, WeasyPrint dimensionnait chaque tableau séparément.
+
+Entre mon premier message et le dernier commit de la journée, il s'est écoulé environ trois heures vingt.
+
+## reasyprint, commencé le 14 novembre
+
+J'ai d'abord demandé à Claude Code si une version Rust ou TypeScript de WeasyPrint serait favorable en performance, et si c'était une bonne idée. La réponse : un gain probable, surtout en Rust, et sans doute une mauvaise idée si le but est de régler un problème de production. Ses ordres de grandeur étaient des estimations, je ne les reprends pas. J'ai demandé de tenter l'expérience en Rust.
+
+Pour la vitesse. La rapidité prime pour nos clients.
+
+La première version a été écrite par une seule session, sans sous-agents. Elle écrit le moteur et le compare en boucle à une référence.
+
+Le projet contient un analyseur CSS avec sa cascade, une mise en page pour les blocs, le texte, les tableaux et flexbox, la pagination et l'écriture du PDF. Il s'appuie sur des crates existantes : `scraper` pour lire le HTML, [`rustybuzz`](https://github.com/harfbuzz/rustybuzz) pour le shaping du texte, `usvg` pour les SVG et [`krilla`](https://github.com/LaurenzV/krilla) pour écrire le PDF. `krilla` ne fait pas de mise en page.
+
+Les fixtures sont six fichiers HTML, générés par les modèles WeasyPrint de l'expérience précédente. Les références sont les PDF que WeasyPrint 69.0 produit à partir de ces mêmes fichiers. L'entrée étant la même, je compare cette fois les pixels, avec une tolérance.
+
+```python
+# Adapté de scripts/compare.py
+diff = ImageChops.difference(ours, reference).convert("L")
+diff = diff.point(lambda v: 255 if v > tolerance else 0)  # 48 par défaut
+ratio = 100.0 * sum(diff.histogram()[255:]) / (ours.width * ours.height)
+failed |= ratio > threshold  # 1 % par page
+```
+
+Le script rasterise les deux PDF à 96 dpi et ignore les écarts de moins de 48 niveaux, pour ne pas compter l'anticrénelage. Il échoue si le nombre de pages diffère ou si une page dépasse 1 % de pixels différents.
+
+Un pourcentage de pixels ne dit pas pourquoi une page diffère. Un deuxième script extrait chaque fragment de texte des deux PDF avec sa position. Il signale ceux qui bougent de plus d'un demi-point et ceux qui n'existent que d'un côté.
+
+Les premières références étaient des PDF de l'expérience précédente. Une correction sur la largeur d'une espace fine insécable, faite contre elles, a été retirée après la comparaison avec les références régénérées.
+
+Le moteur affiche ses temps par étape : lecture, styles, mise en page, dessin. C'est ce qui a montré qu'un document passait environ 180 ms à charger toutes les polices du système pour une famille de secours. Cette recherche est maintenant différée jusqu'au premier caractère qui en a besoin.
+
+Un premier benchmark a tourné le jour même. Les six mêmes fichiers HTML, à chaud, premier rendu exclu :
+
+| Fixture | Pages | WeasyPrint 69.0 | reasyprint |
+| --- | ---: | ---: | ---: |
+| Bulletin | 1 | 20,5 ms | 1,9 ms |
+| Bulletin de 20 brèves | 2 | 43,0 ms | 3,5 ms |
+| Document avec tableau, graphique et image | 3 | 72,5 ms | 3,3 ms |
+| Proposition avec tableaux et graphique | 2 | 65,4 ms | 2,3 ms |
+| Note | 2 | 45,4 ms | 2,3 ms |
+| Rapport long | 14 | 304,8 ms | 12,8 ms |
+
+Côté WeasyPrint : médiane de 15 rendus, une configuration de polices réutilisée. Côté reasyprint : build release, médiane de 40 rendus avec le même moteur en mémoire.
+
+Un recoupement : sur les trois types de documents présents dans les deux tableaux, WeasyPrint donnait 64, 309 et 45 ms dans le premier, et donne 65, 305 et 45 ms ici.
+
+Ce tableau a des limites que le précédent n'a pas :
+
+- L'entrée est du HTML déjà généré. Avec LaTeX, le chronomètre partait du JSON. Les deux tableaux ne se lisent pas ensemble.
+- Les moteurs sont mesurés l'un après l'autre, sans alternance.
+- Le rendu n'est pas encore conforme à la référence. Peu avant la mesure, une page du rapport de 14 pages dépassait le seuil de 1 %.
+- Le moteur n'a été écrit que pour ce que ces six fixtures demandent.
+
+{/* À COMPLÉTER (auteur) : relancer ce benchmark avant publication et remplacer les chiffres (ils datent du 14 novembre, sur un moteur qui change d'heure en heure). Préciser la machine, et dire si les écarts restants avec la référence ont été fermés. */}
+
+## Sept sous-agents pour élargir la couverture CSS
+
+Plus tard le même jour, j'ai donné la liste de ce que le moteur ne prenait pas en charge : grid, multi-colonnes, `flex-wrap`, `transform`, `calc()`, césure automatique, découpage `overflow: hidden`, lignes de tableau et conteneurs flex coupés entre deux pages, PDF/A et PDF/UA, texte de droite à gauche, polices WOFF. J'ai autorisé les sous-agents.
+
+La session a découpé la liste en sept lots et lancé un sous-agent par lot, chacun dans son propre worktree git. Un document commun fixe les règles : rester dans son lot, ne pas committer, signaler tout changement sur un type partagé. La session principale fusionne ensuite les sept diffs.
+
+Chaque lot doit apporter les mêmes preuves :
+
+- tous les tests passent, y compris ceux du corpus de référence ;
+- `clippy` et `fmt` ne signalent rien ;
+- les six documents de référence sortent identiques à l'octet près à ce que le moteur produisait avant le lot, vérifiés par leur empreinte SHA-256 ;
+- le benchmark du rapport de 14 pages est donné avant et après ;
+- la fonctionnalité ajoutée a été rendue et regardée au moins une fois.
+
+La comparaison à l'octet près est possible parce que le rendu est déterministe. Un lot qui ajoute grid ne doit rien changer à un document qui n'utilise pas grid, ni le ralentir.
+
+{/* À COMPLÉTER (auteur) : le résultat de ce tour (lots fusionnés, ce qui a cassé à l'intégration, durée totale). */}
+
+## Ce qui n'est pas mesuré
+
+- La latence de bout en bout sur Lambda, à froid et à chaud, pour LaTeX comme pour WeasyPrint.
+- La mémoire, pour les trois moteurs.
+- reasyprint sur le corpus de 52 documents.
+- reasyprint contre LaTeX. Sa seule référence est WeasyPrint.
+
+La cible de reasyprint : remplacer LaTeX dans la Lambda et générer les PDF plus de 100 fois plus vite, avec la même qualité de sortie. Rien de cela n'est encore mesuré.

@@ -1,0 +1,200 @@
+---
+title: "60 frames per second in Chromium, 11 in WebKit"
+subtitle: "An SVG filter slowed down this blog's Rocket hero on phones, and Chromium did not show it."
+summary: "This blog's Rocket hero stuttered while scrolling on phones, and the Mountain hero showed an empty background on first load. The Chromium measurement showed nothing. In WebKit, the cause was an SVG blur recomputed on every frame."
+visualId: "unknown-unknowns-software-architecture"
+publishedAt: "2026-11-20"
+readTimeMinutes: 6
+tags:
+  - frontend
+  - performance
+  - webkit
+  - react
+  - engineering
+draft: true
+---
+
+The home page of this blog has two scenes that follow the scroll, one per theme: Mountain and Rocket. On phones, the Rocket hero stuttered while scrolling. The Mountain hero showed a flat blue background on first load, then the scene appeared all at once.
+
+I noticed both on my iPhone, while rereading an article.
+
+Both are fixed in [the same PR](https://github.com/Thenkei/blog/pull/56). The work was done with a coding agent.
+
+## What Chromium measured
+
+In Chromium, with a phone-sized viewport and the CPU slowed down four times, the Rocket hero scroll stayed at about 60 frames per second. With that measurement alone, I would have concluded there was no problem.
+
+Two recent PRs about the mobile display, [#49](https://github.com/Thenkei/blog/pull/49) and [#52](https://github.com/Thenkei/blog/pull/52), had been checked in headless Chromium. The description of the second one said: "Not checked in Safari or Firefox."
+
+On iPhone, Safari uses WebKit, and so do most other browsers. Setting Chromium to a width of 390 pixels does not change its rendering engine.
+
+<ArticleDiagram visualId="unknown-unknowns-software-architecture" />
+
+{/* TO COMPLETE (author): placeholder figure, borrowed from another article to satisfy the "one motion figure per article" test. Replace it with a dedicated scene once the text is reviewed. */}
+
+## The measurement in WebKit
+
+Playwright ships a WebKit that runs on a computer. The measurement is the same as in Chromium: production build, 390×844 viewport at a device scale factor of 3, scrolling the hero range one way and then back, and recording the interval between two `requestAnimationFrame` calls.
+
+```js
+import { webkit } from "playwright";
+
+const browser = await webkit.launch();
+const context = await browser.newContext({
+  viewport: { width: 390, height: 844 },
+  deviceScaleFactor: 3,
+});
+// The theme is read from localStorage before the first render.
+await context.addInitScript(() => {
+  localStorage.setItem("themeMode", "rocket");
+});
+
+const page = await context.newPage();
+await page.goto("http://localhost:4173/blog/", { waitUntil: "networkidle" });
+
+const intervals = await page.evaluate(
+  () =>
+    new Promise((resolve) => {
+      const shell = document.querySelector(".rocket-camera-shell");
+      const stage = document.querySelector(".rocket-camera-stage");
+      const start = window.scrollY + shell.getBoundingClientRect().top;
+      const range = shell.offsetHeight - stage.offsetHeight;
+      const durationMs = 6000;
+      const samples = [];
+      let first;
+      let previous;
+
+      const tick = (now) => {
+        first ??= now;
+        if (previous !== undefined) samples.push(now - previous);
+        previous = now;
+
+        const elapsed = now - first;
+        if (elapsed >= durationMs) {
+          resolve(samples);
+          return;
+        }
+
+        // Two round trips over the hero's scroll range.
+        const phase = ((elapsed / durationMs) * 2) % 1;
+        const progress = 1 - Math.abs(2 * phase - 1);
+        window.scrollTo(0, start + range * progress);
+        requestAnimationFrame(tick);
+      };
+
+      requestAnimationFrame(tick);
+    }),
+);
+
+const sorted = intervals.toSorted((a, b) => a - b);
+const median = sorted[Math.floor(sorted.length / 2)];
+console.log(`${Math.round(1000 / median)} fps (median interval)`);
+
+await browser.close();
+```
+
+This script is a reduced version of the measurement.
+
+At 60 frames per second, the interval is 16.7 ms. In WebKit, the Rocket hero ran at about 11 frames per second, which is close to 90 ms per frame. The median of three runs, the one in the table further down, is 12.
+
+In Playwright, CPU and network throttling go through the DevTools protocol, which only exists for Chromium. The 11 frames per second in WebKit are therefore measured on a Mac, with no throttling at all.
+
+## The cause: an SVG filter on the flight line
+
+To isolate the cause without changing the code, the measurement is run again after injecting a CSS rule into the page:
+
+```js
+await page.addStyleTag({
+  content: ".rocket-flight-line { filter: none; }",
+});
+```
+
+The rocket's flight line is an SVG path. Its glow came from a filter:
+
+```tsx
+<filter id="rocket-flight-glow" x="-25%" y="-25%" width="150%" height="150%">
+  <feGaussianBlur stdDeviation="5" result="blur" />
+  <feMerge>
+    <feMergeNode in="blur" />
+    <feMergeNode in="SourceGraphic" />
+  </feMerge>
+</filter>
+```
+
+The line is revealed as the page scrolls, so it is redrawn on every frame. Each time, WebKit recomputed the Gaussian blur over the whole stage, on the CPU. Chromium did not show that cost.
+
+I am not turning this into a rule about all filters or all WebKit versions: it is what was measured on this page. WebKit bug [191197](https://bugs.webkit.org/show_bug.cgi?id=191197), "SVG filters crash on iOS and are slow in general", has been open since 2018.
+
+## What replaced the filter
+
+The glow is now drawn by three translucent strokes under the line. Each one is wider and fainter than the one it surrounds:
+
+```css
+.rocket-flight-glow {
+  stroke-width: calc(var(--flight-line-width) * var(--flight-glow-spread));
+  opacity: calc(
+    (0.28 + (var(--rocket-boost) * 0.72)) * var(--flight-glow-strength)
+  );
+}
+
+.rocket-flight-glow-inner { --flight-glow-spread: 2.4; --flight-glow-strength: 0.2; }
+.rocket-flight-glow-mid { --flight-glow-spread: 4.2; --flight-glow-strength: 0.1; }
+.rocket-flight-glow-outer { --flight-glow-spread: 6.5; --flight-glow-strength: 0.06; }
+```
+
+There are four paths instead of one, and no SVG filter any more. The result is not exactly the same: compared with the previous version, the image differs along the flight line, and only there.
+
+The ship keeps its `drop-shadow` and the flame its `blur(5px)`. Those are CSS filters and they were not touched.
+
+In the same PR, the ship moves with a `transform` expressed in stage units (`cqw` and `cqh`) instead of `left` and `top`. Moving it no longer asks for a layout.
+
+## The Mountain hero flash
+
+On first load, the Mountain hero showed a flat blue background for about 300 ms.
+
+The Mountain scene is a separate JavaScript file, so that the other themes do not download it. It was only requested once the home page had rendered, and that page is itself loaded on demand. Since WebKit has no network throttling in Playwright, responses are delayed by hand with `page.route` to reproduce a slow network.
+
+The download was not the only cause. The scene was mounted with `lazy` and `Suspense`, and React delays the reveal of suspended content by about 300 ms. The empty background stayed visible even when the file was already there. That delay is the subject of [an open issue on React 19](https://github.com/react/react/issues/31819).
+
+What changed:
+
+- The scene is no longer behind `lazy` and `Suspense`. A module loads it once and keeps the component. The hero reads it from React state: if the file has already arrived, the scene is mounted in the same render as the hero.
+- For a visitor on the Mountain theme who lands on the home page, the download starts when the application boots.
+- The placeholder background is a night-sky gradient, and the planes of the scene fade in.
+
+```tsx
+const [MountainScene, setMountainScene] = useState(getLoadedMountainScene);
+```
+
+After the fix, the placeholder background is no longer visible. It only concerns the first paint.
+
+## The other changes in the PR
+
+The measurement showed other costs:
+
+- The Mountain SVG planes extend 1500 units past the left edge for wide screens. On a phone, that is several screens of invisible drawing, repainted on every frame. A `clip-path` limits painting to the stage and the margin the camera can travel.
+- The scroll handler asked for the runner's position on the trail (`getPointAtLength`) after writing the camera variables. That forced a second style pass per frame. The read now comes before any write.
+- Post cards, the table of contents and the footer had a `forwards` entrance animation. Each element kept its compositor layer once the animation was over. With `backwards`, the layer is released. The card hover lift, which `forwards` was overriding, now applies.
+
+## The numbers before and after
+
+Production build, 390×844 viewport at a device scale factor of 3, median of three runs.
+
+| Hero scroll | Before | After |
+|---|---|---|
+| Rocket, WebKit | 12 fps, 100% CPU | 60 fps, 46% CPU |
+| Mountain, WebKit | 44 to 60 fps, 86% CPU | 60 fps, 56% CPU |
+| Mountain, Chromium CPU ×4: main thread / GPU raster | 2779 ms / 1169 ms | 2298 ms / 648 ms |
+| Composited layers on the home page (Chromium) | 63 | 15 |
+
+I no longer know which tool gave the CPU percentage.
+
+Across six viewport shapes, the Mountain rendering differs from the previous version by less than 0.02%.
+
+After deployment, I checked on my iPhone. Both problems are gone.
+
+## What I measure now
+
+When lag or a flash is reported "on mobile", I reproduce it in WebKit first. Chromium comes second, for the detail: its tracing separates main-thread time from GPU raster time.
+
+What I take away: experiments and benchmarks help. A coding agent runs them very quickly when it can close the loop itself, that is, rerun the measurement after each change.

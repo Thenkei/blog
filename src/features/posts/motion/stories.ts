@@ -27,6 +27,36 @@ export const MOTION_STORIES = {
     en: ["Keep a two-way connection", "The backend restarts", "Spread reconnections over time"],
     fr: ["Garder une connexion bidirectionnelle", "Le backend redémarre", "Étaler les reconnexions"],
   },
+  "webkit-svg-filters-hero-performance": {
+    kind: "flow",
+    en: ["Chromium reports 60 fps on the Rocket hero", "WebKit runs the same scroll at 11 fps", "Three strokes replace the SVG blur"],
+    fr: ["Chromium annonce 60 images/s sur Rocket", "Le même défilement tourne à 11 dans WebKit", "Trois traits remplacent le flou SVG"],
+  },
+  "locked-not-hidden-permissions": {
+    kind: "choice",
+    en: ["A hidden button looks like a missing one", "Keep it visible, disabled, with the reason", "Permissions are still checked server-side"],
+    fr: ["Un bouton caché a l'air absent", "Le garder visible, désactivé, avec la raison", "Les droits restent vérifiés côté serveur"],
+  },
+  "dbt-ci-affected-models": {
+    kind: "flow",
+    en: ["Changed files map to models", "dbt compares state at the merge base", "Unknown changes validate everything"],
+    fr: ["Fichiers modifiés, modèles déduits", "dbt compare l'état au merge base", "Changement inconnu : tout valider"],
+  },
+  "stacked-prs-29-to-11": {
+    kind: "flow",
+    en: ["29 PRs in the order the work was done", "10,330 diff lines undone by later PRs", "11 PRs where no file is added then removed"],
+    fr: ["29 PR dans l'ordre où le travail s'est fait", "10 330 lignes de diff défaites ensuite", "11 PR sans fichier créé puis supprimé"],
+  },
+  "weasyprint-latex-reasyprint-benchmarks": {
+    kind: "cycle",
+    en: ["Render the same input with both engines", "Check pages, text and numbers, not pixels", "Sub-agents time each variant, then I decide"],
+    fr: ["Rendre la même entrée avec les deux moteurs", "Vérifier pages, texte, nombres, pas les pixels", "Des sous-agents mesurent, je choisis la suite"],
+  },
+  "compacting-long-agent-conversations": {
+    kind: "threshold",
+    en: ["History passes the estimated budget", "Complete older exchanges become a note", "Question and last tool result stay as is"],
+    fr: ["L'historique dépasse le budget estimé", "Les anciens échanges complets sont résumés", "La question et le dernier outil restent"],
+  },
   "nexus-in-two-days": {
     kind: "flow",
     en: ["Four and a half years at Forest Admin", "Describe the architecture, then each component", "A POC in four hours, a v0 in two days"],
