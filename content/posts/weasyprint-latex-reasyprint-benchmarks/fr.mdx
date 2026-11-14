@@ -4,7 +4,7 @@ subtitle: "Mêmes entrées, deux PDF par document, des contrôles qui n'exigent 
 summary: "Comment j'ai comparé le rendu LaTeX d'une Lambda à WeasyPrint, puis commencé un moteur en Rust : ce que « même sortie » veut dire, le protocole de mesure et ses limites, les variantes testées par des sous-agents, et ce qui n'est pas mesuré."
 visualId: "bounded-ai-loop"
 publishedAt: "2026-12-08"
-readTimeMinutes: 9
+readTimeMinutes: 11
 tags:
   - pdf
   - performance
@@ -153,16 +153,16 @@ Le moteur affiche ses temps par étape : lecture, styles, mise en page, dessin. 
 
 Un premier benchmark a tourné le jour même. Je l'ai relancé ensuite sur la version fusionnée après le tour à sept sous-agents décrit plus bas. Les six mêmes fichiers HTML, à chaud, premier rendu exclu, sur un Apple M3 :
 
-| Fixture | Pages | WeasyPrint 69.0 | reasyprint, première mesure | reasyprint, version fusionnée |
-| --- | ---: | ---: | ---: | ---: |
-| Bulletin | 1 | 20,5 ms | 1,9 ms | 1,6 ms |
-| Bulletin de 20 brèves | 2 | 43,0 ms | 3,5 ms | 3,2 ms |
-| Document avec tableau, graphique et image | 3 | 72,5 ms | 3,3 ms | 3,2 ms |
-| Proposition avec tableaux et graphique | 2 | 65,4 ms | 2,3 ms | 2,3 ms |
-| Note | 2 | 45,4 ms | 2,3 ms | 2,2 ms |
-| Rapport long | 14 | 304,8 ms | 12,8 ms | 11,7 ms |
+| Fixture | Pages | WeasyPrint 69.0 | reasyprint, première mesure | reasyprint, version fusionnée | reasyprint, après le troisième tour |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Bulletin | 1 | 20,5 ms | 1,9 ms | 1,6 ms | 1,5 ms |
+| Bulletin de 20 brèves | 2 | 43,0 ms | 3,5 ms | 3,2 ms | 2,5 ms |
+| Document avec tableau, graphique et image | 3 | 72,5 ms | 3,3 ms | 3,2 ms | 2,9 ms |
+| Proposition avec tableaux et graphique | 2 | 65,4 ms | 2,3 ms | 2,3 ms | 2,2 ms |
+| Note | 2 | 45,4 ms | 2,3 ms | 2,2 ms | 2,1 ms |
+| Rapport long | 14 | 304,8 ms | 12,8 ms | 11,7 ms | 10,8 ms |
 
-Côté WeasyPrint : médiane de 15 rendus, une configuration de polices réutilisée, mesurée une seule fois, avec la première mesure de reasyprint. Je ne l'ai pas remesuré. Côté reasyprint : build release, médiane de 40 rendus avec le même moteur en mémoire. Pour la version fusionnée, c'est la médiane de huit passes de 40 rendus, sur une machine qui faisait tourner d'autres processus pendant la mesure.
+Côté WeasyPrint : médiane de 15 rendus, une configuration de polices réutilisée, mesurée une seule fois, avec la première mesure de reasyprint. Je ne l'ai pas remesuré. Côté reasyprint : build release, médiane de 40 rendus avec le même moteur en mémoire. Pour la version fusionnée, c'est la médiane de huit passes de 40 rendus, sur une machine qui faisait tourner d'autres processus pendant la mesure. La dernière colonne vient du troisième tour, décrit plus bas : une passe de 40 rendus, avec une charge moyenne autour de 20.
 
 Un recoupement : sur les trois types de documents présents dans les deux tableaux, WeasyPrint donnait 64, 309 et 45 ms dans le premier, et donne 65, 305 et 45 ms ici.
 
@@ -210,11 +210,39 @@ La comparaison à l'octet près est possible parce que le rendu est déterminist
 
 Les sept lots ont été fusionnés dans une seule pull request, le jour même. Le moteur passe de 110 à 416 tests. Le corpus de référence sort identique à l'octet près avec les options par défaut. Le rapport de 14 pages est environ 1,5 % plus lent, et le binaire passe de 8,5 à 9,7 Mo. La conformité PDF/A et PDF/UA n'est vérifiée que par le validateur de la bibliothèque qui écrit le PDF, pas encore par veraPDF.
 
+## Un troisième tour : ce que la CI a trouvé
+
+En fin de journée, j'ai demandé à la session si elle voyait d'autres optimisations ou fonctionnalités à faire, et si oui de les faire et d'ouvrir les pull requests. Puis je lui ai demandé de tout fusionner une fois les vérifications au vert.
+
+Elle a lancé cinq sous-agents, chacun dans son worktree : deux bugs de mise en page repérés plus tôt et laissés ouverts, `min()` et `max()` qui mélangent pourcentages et longueurs, une passe de profilage, et une CI, que le projet n'avait pas. D'autres tours ont suivi, jusqu'à douze pull requests fusionnées. La règle n'a pas changé : les six documents de référence devaient sortir identiques à l'octet près, et c'est le cas après chaque fusion.
+
+C'est la CI qui a le plus appris :
+
+- **veraPDF, lancé pour la première fois.** Les deux documents de test ajoutés pour lui passent PDF/A-2b et PDF/UA-1. Jusque-là, la conformité n'était vérifiée que par la bibliothèque qui écrit le PDF.
+- **Un bug invisible sur mon Mac.** Sur la machine Linux de la CI, trois tests échouaient avec `NoFonts`, même après installation de DejaVu. La bibliothèque de polices associait `sans-serif` à Arial, ou à la première famille que préfère fontconfig, qu'elle soit installée ou non. Sur une image Linux qui n'a que DejaVu, ce à quoi ressemble une Lambda, tout document sans `@font-face` échouait. Sur macOS, Arial existe, donc rien ne se voyait.
+- **Un compilateur plus récent.** Le Rust de la CI avait six versions d'avance sur le mien, et son linter signalait du code que le mien acceptait. Deux fois.
+
+Le profilage a montré que le moteur de mise en forme du texte reconstruisait un plan à chaque appel, et qu'environ un tiers du texte mis en forme se répétait dans un même rendu : en-têtes de tableau, numéros de page, seconde passe de mise en page. Mettre les deux en cache fait passer la mise en page du rapport de 14 pages de 4,2 à 3,2 ms, avec les mêmes octets.
+
+Tout ce qu'un sous-agent a rendu n'a pas été fusionné tel quel. Un correctif des bordures de tableau fusionnées supprimait la bordure droite des lignes plus courtes que les autres. Le sous-agent l'a écrit dans son rapport, puis l'a corrigé avant l'ouverture de la pull request. Une option qui laisse le contenu des pages non compressé, 23 à 31 % plus rapide pour des fichiers 1,6 à 2,7 fois plus gros, n'était conforme que selon la bibliothèque PDF ; veraPDF la vérifie désormais aussi.
+
+Le tour a aussi produit une liaison Python, construite en wheels Linux pour x86_64 et arm64. La CI installe la wheel dans les images AWS Lambda Python, sur une machine GitHub. Un nouveau processus importe reasyprint et rend un document de test de trois pages, 10 fois, puis le même moteur le rend 30 fois. Médianes :
+
+| Image Lambda | Import | Premier rendu | Processus entier | Rendu à chaud |
+| --- | ---: | ---: | ---: | ---: |
+| Python 3.11, Amazon Linux 2 | 3,9 ms | 8,3 ms | 31,8 ms | 6,2 ms |
+| Python 3.13, Amazon Linux 2023 | 4,7 ms | 10,0 ms | 43,2 ms | 7,2 ms |
+
+« Processus entier » inclut le démarrage de Python lui-même, qu'une Lambda paie une fois par environnement d'exécution. C'est l'image Lambda, pas une fonction déployée : le réglage de mémoire, la part de CPU et le démarrage du runtime ne sont pas dans ces chiffres. Le document est un document de test, pas l'un des six.
+
+Le moteur est passé de 416 à 452 tests.
+
 ## Ce qui n'est pas mesuré
 
-- La latence de bout en bout sur Lambda, à froid et à chaud, pour LaTeX comme pour WeasyPrint.
-- La mémoire, pour les trois moteurs.
+- La latence de bout en bout dans une Lambda déployée, à froid et à chaud, pour les trois moteurs. reasyprint n'a tourné que dans l'image Lambda, sur une machine de CI.
+- La mémoire de LaTeX et de WeasyPrint. reasyprint culmine à 14 Mo sur le rapport de 14 pages, sur mon Mac.
 - reasyprint sur le corpus de 52 documents.
 - reasyprint contre LaTeX dans les mêmes conditions. La comparaison plus haut est indirecte.
+- veraPDF sur les six documents de référence. Il n'a tourné que sur les deux documents de test.
 
-La cible de reasyprint : remplacer LaTeX dans la Lambda et générer les PDF plus de 100 fois plus vite, avec la même qualité de sortie. Le facteur 100 est dépassé sur les six documents de la comparaison indirecte. Il reste à le mesurer dans une Lambda, et à vérifier la qualité de sortie contre LaTeX.
+La cible de reasyprint : remplacer LaTeX dans la Lambda et générer les PDF plus de 100 fois plus vite, avec la même qualité de sortie. Le facteur 100 est dépassé sur les six documents de la comparaison indirecte. Il reste à le mesurer dans une Lambda déployée, et à vérifier la qualité de sortie contre LaTeX.

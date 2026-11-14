@@ -4,7 +4,7 @@ subtitle: "Same inputs, two PDFs per document, checks that do not require identi
 summary: "How I compared the LaTeX rendering of a Lambda with WeasyPrint, then started a renderer in Rust: what 'same output' means, the timing protocol and its limits, the variants tested by sub-agents, and what has not been measured."
 visualId: "bounded-ai-loop"
 publishedAt: "2026-12-08"
-readTimeMinutes: 8
+readTimeMinutes: 10
 tags:
   - pdf
   - performance
@@ -153,16 +153,16 @@ The renderer prints its timings per stage: parsing, styles, layout, painting. Th
 
 A first benchmark ran the same day. I ran it again later on the version merged after the seven-sub-agent round described below. The same six HTML files, warm, first render excluded, on an Apple M3:
 
-| Fixture | Pages | WeasyPrint 69.0 | reasyprint, first measurement | reasyprint, merged version |
-| --- | ---: | ---: | ---: | ---: |
-| Bulletin | 1 | 20.5 ms | 1.9 ms | 1.6 ms |
-| Bulletin with 20 items | 2 | 43.0 ms | 3.5 ms | 3.2 ms |
-| Document with a table, a chart and an image | 3 | 72.5 ms | 3.3 ms | 3.2 ms |
-| Proposal with tables and a chart | 2 | 65.4 ms | 2.3 ms | 2.3 ms |
-| Note | 2 | 45.4 ms | 2.3 ms | 2.2 ms |
-| Long report | 14 | 304.8 ms | 12.8 ms | 11.7 ms |
+| Fixture | Pages | WeasyPrint 69.0 | reasyprint, first measurement | reasyprint, merged version | reasyprint, after the third round |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Bulletin | 1 | 20.5 ms | 1.9 ms | 1.6 ms | 1.5 ms |
+| Bulletin with 20 items | 2 | 43.0 ms | 3.5 ms | 3.2 ms | 2.5 ms |
+| Document with a table, a chart and an image | 3 | 72.5 ms | 3.3 ms | 3.2 ms | 2.9 ms |
+| Proposal with tables and a chart | 2 | 65.4 ms | 2.3 ms | 2.3 ms | 2.2 ms |
+| Note | 2 | 45.4 ms | 2.3 ms | 2.2 ms | 2.1 ms |
+| Long report | 14 | 304.8 ms | 12.8 ms | 11.7 ms | 10.8 ms |
 
-On the WeasyPrint side: median of 15 renders, one reused font configuration, measured once, alongside reasyprint's first measurement. I did not measure it again. On the reasyprint side: release build, median of 40 renders with the same renderer in memory. For the merged version, it is the median of eight passes of 40 renders, on a machine that was running other processes during the measurement.
+On the WeasyPrint side: median of 15 renders, one reused font configuration, measured once, alongside reasyprint's first measurement. I did not measure it again. On the reasyprint side: release build, median of 40 renders with the same renderer in memory. For the merged version, it is the median of eight passes of 40 renders, on a machine that was running other processes during the measurement. The last column comes from the third round, described below: one pass of 40 renders, with a load average around 20.
 
 One cross-check: on the three kinds of documents present in both tables, WeasyPrint gave 64, 309 and 45 ms in the first one, and gives 65, 305 and 45 ms here.
 
@@ -210,11 +210,39 @@ The byte-for-byte comparison is possible because rendering is deterministic. A l
 
 The seven lots were merged into a single pull request the same day. The engine goes from 110 to 416 tests. The reference corpus comes out byte-identical with the default options. The 14-page report is about 1.5% slower, and the binary grows from 8.5 to 9.7 MB. PDF/A and PDF/UA conformance is only checked by the validator of the library that writes the PDF, not yet by veraPDF.
 
+## A third round: what CI found
+
+At the end of the day, I asked the session whether it saw other optimisations or features worth doing, and if so to do them and open the pull requests. Then I asked it to merge everything once the checks were green.
+
+It started five sub-agents, each in its own worktree: two layout bugs noted earlier and left open, `min()` and `max()` mixing percentages and lengths, a profiling pass, and a CI, which the project did not have. Further rounds followed, until twelve pull requests were merged. The rule did not change: the six reference documents had to come out byte-identical, and they did after every merge.
+
+The CI is the part that taught the most:
+
+- **veraPDF, run for the first time.** The two test documents committed for it pass PDF/A-2b and PDF/UA-1. Until then, conformance was only checked by the library that writes the PDF.
+- **A bug invisible on my Mac.** On the Linux runner, three tests failed with `NoFonts`, even after installing DejaVu. The font library mapped `sans-serif` to Arial, or to the first family fontconfig prefers, whether or not it was installed. On a Linux image with DejaVu only, which is what a Lambda looks like, every document without `@font-face` failed. On macOS, Arial exists, so nothing showed.
+- **A newer compiler.** The runner's Rust was six versions ahead of mine, and its linter flagged code mine accepted. Twice.
+
+Profiling showed that the text shaper rebuilt a shaping plan on every call, and that about a third of the shaped text repeated within one render: table headers, page numbers, the second layout pass. Caching both brings layout of the 14-page report from 4.2 to 3.2 ms, with the same bytes.
+
+Not everything a sub-agent returned was merged as is. A fix to collapsed table borders removed the right border of rows shorter than the others. The sub-agent said so in its report, and went back to fix it before the pull request was opened. An option that leaves page content uncompressed, 23 to 31% faster for files 1.6 to 2.7 times larger, was conformant according to the PDF library only; veraPDF now checks it too.
+
+The round also produced a Python binding, built as Linux wheels for x86_64 and arm64. CI installs the wheel in the AWS Lambda Python images, on a GitHub runner. A new process imports reasyprint and renders a three-page test document, 10 times, then the same renderer renders it 30 times. Medians:
+
+| Lambda image | Import | First render | Whole process | Warm render |
+| --- | ---: | ---: | ---: | ---: |
+| Python 3.11, Amazon Linux 2 | 3.9 ms | 8.3 ms | 31.8 ms | 6.2 ms |
+| Python 3.13, Amazon Linux 2023 | 4.7 ms | 10.0 ms | 43.2 ms | 7.2 ms |
+
+"Whole process" includes starting Python itself, which a Lambda pays once per execution environment. This is the Lambda image, not a deployed function: the memory setting, the CPU share and the runtime's own start are not in these numbers. The document is a test document, not one of the six.
+
+The engine went from 416 to 452 tests.
+
 ## What has not been measured
 
-- End-to-end latency on Lambda, cold and warm, for LaTeX as well as for WeasyPrint.
-- Memory, for all three renderers.
+- End-to-end latency in a deployed Lambda, cold and warm, for all three renderers. reasyprint has only run in the Lambda image, on a CI runner.
+- Memory of LaTeX and WeasyPrint. reasyprint peaks at 14 MB on the 14-page report, on my Mac.
 - reasyprint on the corpus of 52 documents.
 - reasyprint against LaTeX under the same conditions. The comparison above is indirect.
+- veraPDF on the six reference documents. It has only run on the two test documents.
 
-The target for reasyprint: replace LaTeX in the Lambda and generate PDFs more than 100 times faster, with the same output quality. The factor of 100 is exceeded on the six documents of the indirect comparison. It remains to be measured in a Lambda, and the output quality remains to be checked against LaTeX.
+The target for reasyprint: replace LaTeX in the Lambda and generate PDFs more than 100 times faster, with the same output quality. The factor of 100 is exceeded on the six documents of the indirect comparison. It remains to be measured in a deployed Lambda, and the output quality remains to be checked against LaTeX.
