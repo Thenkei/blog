@@ -267,19 +267,22 @@ Timings on the same Mac, medians in milliseconds once warm:
 | dashboard | 1 | 68 | 2.0 | 34× | 0.00 % |
 | contract | 10 | 207 | 12 | 17× | 17 % |
 | multilingual | 1 | 35 | 3.2 | 11× | 0.30 % |
-| accessible | 2 | 39 | 2.5 | 16× | 5.0 % |
+| accessible | 2 | 39 | 2.5 | 16× | 0.20 % |
 | catalog | 6 | 695 | 6.1 | 114× | 8.6 % |
 
 The Mac was busy with other work. WeasyPrint's times moved by up to 2.6 times between two runs, and the table keeps the faster one, so the speed-ups are lower bounds.
 
-Both engines give the same page count on all ten documents. Three of them place every line of text within a quarter of a point. For the others, I asked for a visual comparison of every page, and went through each difference:
+Both engines give the same page count on all ten documents. Four of them place every line of text within three tenths of a point. For the others, I asked for a visual comparison of every page, and went through each difference:
 
-- **Three were reasyprint bugs.** In the newsletter, an article whose three columns did not fit the rest of page 1 moved whole to page 2 and left its heading alone at the bottom of the page. That one is fixed: the columns now start on page 1. The newsletter still drifts, for a second reason: when balancing columns, WeasyPrint splits a paragraph across two columns where reasyprint moves it whole to the next one. In the form, a heading beside a float is one point too tall.
+- **Two were reasyprint bugs, both fixed.** In the newsletter, an article whose three columns did not fit the rest of page 1 moved whole to page 2 and left its heading alone at the bottom of the page; its columns now start on page 1. In the form, a heading beside a float grew to the float's height, which pushed everything below it down by one point; the form now matches to the pixel or nearly (0.20 %).
+- **One looked like a bug and was not.** The newsletter still drifts by a line or two per article. The sub-agent sent to fix it came back without changing the engine: reasyprint balances columns at the shortest height that holds the content, as the specification asks, and WeasyPrint grows its height in coarse steps and settles a few points taller, which leaves room for two more lines at the bottom of a column. It added a test that locks the current behaviour in.
 - **The others are choices.** The two engines hyphenate with different dictionaries (`sig-nal` against `si-gnal`), and in the contract the shifted lines end up moving a page break. reasyprint drops a grid's row gap at a page break, as the CSS Grid specification asks. It draws collapsed borders inside the cells rather than astride the grid line, and centres table header cells as browsers do.
 
 Measuring the timings showed one more cost: in a new process, any SVG chart with text made the engine read every font installed on the machine, even when the document declared its fonts. It now tries the declared fonts first, and the report's new-process CPU time drops from 177 to 50 ms, with the same bytes.
 
-The engine went from 452 to 515 tests.
+The same round mirrored grid columns under right-to-left text and added an optional page limit, so that a few kilobytes of HTML can no longer produce 100,000 pages.
+
+The engine went from 452 to 531 tests.
 
 ## What has not been measured
 

@@ -267,19 +267,22 @@ Les temps sur le même Mac, médianes en millisecondes à chaud :
 | tableau de bord | 1 | 68 | 2,0 | 34× | 0,00 % |
 | contrat | 10 | 207 | 12 | 17× | 17 % |
 | multilingue | 1 | 35 | 3,2 | 11× | 0,30 % |
-| formulaire accessible | 2 | 39 | 2,5 | 16× | 5,0 % |
+| formulaire accessible | 2 | 39 | 2,5 | 16× | 0,20 % |
 | catalogue | 6 | 695 | 6,1 | 114× | 8,6 % |
 
 Le Mac était occupé par d'autres travaux. Les temps de WeasyPrint ont varié jusqu'à 2,6 fois entre deux mesures, et le tableau garde la plus rapide : les accélérations sont des minorants.
 
-Les deux moteurs donnent le même nombre de pages sur les dix documents. Trois d'entre eux placent chaque ligne de texte à moins d'un quart de point. Pour les autres, j'ai demandé une comparaison visuelle de chaque page, et j'ai repris chaque différence :
+Les deux moteurs donnent le même nombre de pages sur les dix documents. Quatre d'entre eux placent chaque ligne de texte à moins de trois dixièmes de point. Pour les autres, j'ai demandé une comparaison visuelle de chaque page, et j'ai repris chaque différence :
 
-- **Trois étaient des bugs de reasyprint.** Dans la lettre d'information, un article dont les trois colonnes ne tenaient pas dans le reste de la page 1 passait en entier à la page 2 et laissait son titre seul en bas de page. Celui-là est corrigé : les colonnes commencent maintenant en page 1. La lettre d'information dérive encore, pour une autre raison : en équilibrant les colonnes, WeasyPrint coupe un paragraphe entre deux colonnes là où reasyprint le passe en entier à la suivante. Dans le formulaire, un titre à côté d'un flottant est trop haut d'un point.
+- **Deux étaient des bugs de reasyprint, corrigés tous les deux.** Dans la lettre d'information, un article dont les trois colonnes ne tenaient pas dans le reste de la page 1 passait en entier à la page 2 et laissait son titre seul en bas de page ; ses colonnes commencent maintenant en page 1. Dans le formulaire, un titre à côté d'un flottant prenait la hauteur du flottant, ce qui décalait tout ce qui suit d'un point ; le formulaire correspond maintenant au pixel près ou presque (0,20 %).
+- **Un ressemblait à un bug et n'en était pas un.** La lettre d'information dérive encore d'une ligne ou deux par article. Le sous-agent envoyé pour le corriger est revenu sans toucher au moteur : reasyprint équilibre les colonnes à la plus petite hauteur qui contient le texte, comme le demande la spécification, et WeasyPrint augmente sa hauteur par paliers grossiers et s'arrête quelques points plus haut, ce qui laisse la place de deux lignes de plus en bas d'une colonne. Il a ajouté un test qui fige le comportement actuel.
 - **Les autres sont des choix.** Les deux moteurs coupent les mots avec des dictionnaires différents (`sig-nal` contre `si-gnal`), et dans le contrat les lignes décalées finissent par déplacer un saut de page. reasyprint supprime l'espacement entre les rangées d'une grille à un saut de page, comme le demande la spécification CSS Grid. Il dessine les bordures fusionnées à l'intérieur des cellules plutôt qu'à cheval sur la ligne de la grille, et centre les cellules d'en-tête de tableau comme le font les navigateurs.
 
 La mesure des temps a montré un dernier coût : dans un nouveau processus, tout graphique SVG contenant du texte faisait lire au moteur toutes les polices installées sur la machine, même quand le document déclarait les siennes. Il essaie maintenant d'abord les polices déclarées, et le temps CPU du rapport dans un nouveau processus passe de 177 à 50 ms, avec les mêmes octets.
 
-Le moteur est passé de 452 à 515 tests.
+Le même tour a mis en miroir les colonnes de grille en texte de droite à gauche et ajouté une limite de pages optionnelle, pour que quelques kilo-octets de HTML ne puissent plus produire 100 000 pages.
+
+Le moteur est passé de 452 à 531 tests.
 
 ## Ce qui n'est pas mesuré
 
