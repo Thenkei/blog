@@ -1,0 +1,17 @@
+WEBVTT
+
+1
+00:00:00.360 --> 00:00:04.440 line:5%
+I protected my table with a uniqueness constraint.
+
+2
+00:00:15.160 --> 00:00:18.680
+Duplicates?! But I have a uniqueness constraint!
+
+3
+00:00:20.907 --> 00:00:25.787
+Oh. By default, NULL is not equal to NULL.
+
+4
+00:00:26.507 --> 00:00:29.947
+NULLS NOT DISTINCT. And just like that!

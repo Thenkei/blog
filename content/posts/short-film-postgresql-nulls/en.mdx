@@ -1,0 +1,29 @@
+---
+title: "Short film: the doorman who can't tell NULLs apart"
+subtitle: "The NULL trap in a PostgreSQL unique index, told in 41 seconds."
+summary: "Second episode of the short films: a unique index lets duplicates through because, by default, PostgreSQL considers that NULL ≠ NULL. NULLS NOT DISTINCT fixes it."
+visualId: "postgresql-unique-nulls"
+publishedAt: "2026-12-18"
+readTimeMinutes: 1
+tags:
+  - postgresql
+  - database
+  - backend
+  - video
+seriesId: "short-films"
+seriesOrder: 3
+---
+
+In January, I wrote [a quick note about an `ON CONFLICT DO UPDATE`](../posts/postgresql-unique-nulls) that ignored obvious duplicates even though the table had a uniqueness constraint. One of the index's columns could be NULL, and by default, PostgreSQL considers that `NULL ≠ NULL`.
+
+Here is the same story in 41 seconds.
+
+<ArticleVideo id="short-film-nulls">
+  The NULL trap, second episode of the short films.
+</ArticleVideo>
+
+In the film, the unique index is a doorman. It recognises a duplicate when every value is there. When the reference is NULL, it lets in two `(value, NULL)` rows that it does not find identical, and the duplicates pile up.
+
+The fix is one line: add `NULLS NOT DISTINCT` to the unique index. The doorman then recognises the duplicate, and the upsert updates the row instead of adding one. It is available since PostgreSQL 15.
+
+The original article gives the complete index: [ON CONFLICT DO UPDATE with nullable columns](../posts/postgresql-unique-nulls).

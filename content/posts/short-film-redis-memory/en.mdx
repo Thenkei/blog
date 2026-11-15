@@ -1,0 +1,29 @@
+---
+title: "Short film: one Redis instance for everything"
+subtitle: "The Redis outage post-mortem, told in 44 seconds."
+summary: "First episode of the short films: the cache, the job queues, the sessions and the anti brute-force guard share one Redis instance, until the weekend the cache fills the memory."
+visualId: "redis-memory-exhaustion-post-mortem"
+publishedAt: "2026-12-16"
+readTimeMinutes: 1
+tags:
+  - redis
+  - backend
+  - devops
+  - video
+seriesId: "short-films"
+seriesOrder: 2
+---
+
+In 2021, I wrote the [post-mortem of an outage at Forest Admin](../posts/redis-memory-exhaustion-post-mortem). A single Redis instance held the cache, the job queues, the sessions and the anti brute-force guard. One weekend the cache filled the memory, and everything else went down with it.
+
+Here is the same story in 44 seconds.
+
+<ArticleVideo id="short-film-redis">
+  The Redis outage, first episode of the short films.
+</ArticleVideo>
+
+The film keeps the article's three causes: no alert on Redis memory, one instance for uses that had nothing to do with each other, and data that stayed too long. It also keeps the fixes: a separate instance for the cache, the queues and the sessions, shorter TTLs, stale data cleaned up and compressed payloads.
+
+The engineer's four lines come from the article: Redis was fast and reliable, no day looked abnormal, the cache was never meant to be critical, and data from deleted projects was not purged.
+
+The original article gives the context and the details of the fixes: [Post-Mortem: The Day Redis Reached its Limits](../posts/redis-memory-exhaustion-post-mortem).

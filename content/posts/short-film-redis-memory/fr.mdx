@@ -1,0 +1,29 @@
+---
+title: "Petit film : une seule instance Redis pour tout"
+subtitle: "Le post-mortem de la panne Redis, raconté en 44 secondes."
+summary: "Premier épisode des petits films : le cache, les files de jobs, les sessions et l'anti brute-force partagent une instance Redis, jusqu'au week-end où le cache remplit la mémoire."
+visualId: "redis-memory-exhaustion-post-mortem"
+publishedAt: "2026-12-16"
+readTimeMinutes: 1
+tags:
+  - redis
+  - backend
+  - devops
+  - video
+seriesId: "short-films"
+seriesOrder: 2
+---
+
+En 2021, j'ai écrit le [post-mortem d'une panne chez Forest Admin](../posts/redis-memory-exhaustion-post-mortem). Une seule instance Redis portait le cache, les files de jobs, les sessions et l'anti brute-force. Un week-end, le cache a rempli la mémoire, et tout le reste est tombé avec lui.
+
+Voici la même histoire en 44 secondes.
+
+<ArticleVideo id="short-film-redis">
+  La panne Redis, premier épisode des petits films.
+</ArticleVideo>
+
+Le film reprend les trois causes de l'article : aucune alerte sur la mémoire de Redis, une seule instance pour des usages qui n'avaient rien à voir entre eux, et des données qui restaient trop longtemps. Il reprend aussi les corrections : une instance séparée pour le cache, les files et les sessions, des TTL plus courts, le nettoyage des données obsolètes et la compression des payloads.
+
+Les quatre répliques de l'ingénieur viennent de l'article : Redis était rapide et fiable, aucune journée n'avait l'air anormale, le cache n'avait jamais été censé être critique, et les données des projets supprimés n'étaient pas effacées.
+
+L'article d'origine donne le contexte et le détail des corrections : [Post-mortem : le jour où Redis a atteint ses limites](../posts/redis-memory-exhaustion-post-mortem).
