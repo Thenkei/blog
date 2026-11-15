@@ -4,7 +4,7 @@ subtitle: "Same inputs, two PDFs per document, checks that do not require identi
 summary: "How I compared the LaTeX rendering of a Lambda with WeasyPrint, then started a renderer in Rust: what 'same output' means, the timing protocol and its limits, the variants tested by sub-agents, and what has not been measured."
 visualId: "bounded-ai-loop"
 publishedAt: "2026-12-08"
-readTimeMinutes: 10
+readTimeMinutes: 14
 tags:
   - pdf
   - performance
@@ -237,12 +237,115 @@ The round also produced a Python binding, built as Linux wheels for x86_64 and a
 
 The engine went from 416 to 452 tests.
 
+## A fourth round: public documents
+
+The six reference documents come from our templates: client names, business content, licensed fonts. They cannot leave my machine, so CI never saw them and no one else can check a number measured on them. I told the session to stop working on them and to write its own benchmark documents instead, several kinds, several templates.
+
+It wrote a generator for ten kinds of documents, filled with invented data and set in DejaVu: an invoice, a letter, a 21-page report with a cover and charts, a 51-page ledger of 2,600 rows, a three-column newsletter, a dashboard, a contract, a page of Arabic and Hebrew, a form written for PDF/UA, a catalogue of 48 product cards. They are committed with the code, CI checks that the generator still produces them byte for byte, and veraPDF validates all ten as PDF/A-2b and PDF/UA-1.
+
+These documents were written to cover features, not tuned to the engine, and they found what the six had not:
+
+- two forced page breaks in a row counted as two, which gave the report a 22nd page;
+- `::before` and `::after` of a flex or grid container not laid out as items;
+- a float placed before a block pushing that block down;
+- `double` borders drawn as a single line;
+- a full-bleed cover (`@page :first { margin: 0 }`) laid out at the width of the other pages, so its title wrapped;
+- the 2,600-row ledger taking 4.3 seconds to lay out with collapsed borders, against 0.1 seconds with separated ones: each border was looked up in a list, which is quadratic in the number of cells;
+- every chart with text rescanning all the fonts installed on the machine, about 570 ms per render, then setting its labels in Times instead of the document's font.
+
+A last sub-agent wrote a fuzzer: a generator of random but plausible documents, rendered end to end, that checks for no panic, the same bytes on a second render, and a time limit. Out of about 7,000 documents, three were enough to break something. One `@page` margin larger than the page gave one word 26 pages. A `colspan` of 70,000 built a grid of 70,000 columns. A one-billion-point font in a multi-column block took 7.5 seconds. CI now renders 600 such documents on every pull request.
+
+Timings on the same Mac, medians in milliseconds once warm:
+
+| Document | Pages | WeasyPrint | reasyprint | Speed-up | Worst page, pixels differing |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| invoice | 2 | 118 | 3.2 | 37× | 0.48 % |
+| letter | 1 | 30 | 3.7 | 8× | 3.9 % |
+| report | 21 | 625 | 24 | 26× | 3.8 % |
+| ledger | 51 | 15,717 | 261 | 60× | 1.9 % |
+| newsletter | 6 | 566 | 13 | 43× | 22 % |
+| dashboard | 1 | 68 | 2.0 | 34× | 0.00 % |
+| contract | 10 | 207 | 12 | 17× | 17 % |
+| multilingual | 1 | 35 | 3.2 | 11× | 0.30 % |
+| accessible | 2 | 39 | 2.5 | 16× | 0.20 % |
+| catalog | 6 | 695 | 6.1 | 114× | 8.6 % |
+
+The Mac was busy with other work. WeasyPrint's times moved by up to 2.6 times between two runs, and the table keeps the faster one, so the speed-ups are lower bounds.
+
+Both engines give the same page count on all ten documents. Four of them place every line of text within three tenths of a point. For the others, I asked for a visual comparison of every page, and went through each difference:
+
+- **Two were reasyprint bugs, both fixed.** In the newsletter, an article whose three columns did not fit the rest of page 1 moved whole to page 2 and left its heading alone at the bottom of the page; its columns now start on page 1. In the form, a heading beside a float grew to the float's height, which pushed everything below it down by one point; the form now matches to the pixel or nearly (0.20 %).
+- **One looked like a bug and was not.** The newsletter still drifts by a line or two per article. The sub-agent sent to fix it came back without changing the engine: reasyprint balances columns at the shortest height that holds the content, as the specification asks, and WeasyPrint grows its height in coarse steps and settles a few points taller, which leaves room for two more lines at the bottom of a column. It added a test that locks the current behaviour in.
+- **The others are choices.** The two engines hyphenate with different dictionaries (`sig-nal` against `si-gnal`), and in the contract the shifted lines end up moving a page break. reasyprint drops a grid's row gap at a page break, as the CSS Grid specification asks. It draws collapsed borders inside the cells rather than astride the grid line, and centres table header cells as browsers do.
+
+Measuring the timings showed one more cost: in a new process, any SVG chart with text made the engine read every font installed on the machine, even when the document declared its fonts. It now tries the declared fonts first, and the report's new-process CPU time drops from 177 to 50 ms, with the same bytes.
+
+The same round mirrored grid columns under right-to-left text and added an optional page limit, so that a few kilobytes of HTML can no longer produce 100,000 pages. It also closed the last fragmentation gap on the list: columns nested inside other columns. Taller than a page, they lost content: a test document came out as 12 pages, 9 of them blank, with 1,553 of its 1,860 words missing. They now continue from one outer column to the next and across pages, every word once.
+
+The engine went from 452 to 534 tests.
+
+## A fifth round: a deployed Lambda
+
+Every Lambda number so far came from the Lambda image on a CI runner. That leaves out three things: the runtime's own start, the memory setting, and the share of CPU that comes with it. I asked for a measurement in real functions, cold and warm, at several memory settings.
+
+My AWS user could not create a function. I asked for the smallest grant that would do, and the session opened it as a pull request on our Terraform repository, for staging only: create, invoke and delete functions whose name starts with `reasyprint-bench-`, and pass them one role that can only write their own logs. Every grant expires on its own after two weeks. The security review rejected the first version, which reused the role of our PDF function: a function whose code you control runs with its role's permissions. I merged the second one. Another pull request removes it, now that the run is over.
+
+The session also asked whether Python was needed at all. It wrote a native Lambda runtime: a Rust executable named `bootstrap`, with no interpreter to start. Its handler only reads files of its own package, so HTML sent by a caller cannot load the function's credentials from `/proc/self/environ` as an image. Three deployments were measured:
+
+- Rust, built against glibc in Amazon Linux 2023, on the `provided.al2023` runtime;
+- the same Rust code, built statically against musl;
+- Python 3.13 with the reasyprint wheel.
+
+The protocol, for each memory setting (512, 1024 and 1769 MB, the setting of our PDF function, which is one full vCPU) and each of three public documents (an invoice of 2 pages, a report of 21, a ledger of 51):
+
+- 5 cold starts. Each is forced by giving an environment variable a new value, which makes Lambda discard its execution environments. All 135 cold samples reported an initialisation time, so none was served warm by mistake.
+- 20 warm invocations of the same environment.
+- The times come from the line Lambda writes at the end of every invocation: initialisation (cold only), invocation duration, maximum memory used. The handler also returns the time of the render call alone. Medians.
+- The functions are deleted at the end of the run, also on failure.
+
+I also timed the round trip from my laptop, but the AWS command-line tool starts a new process for every call, so those numbers measure the tool more than Lambda. I left them out.
+
+At 1769 MB, a new execution environment's first request:
+
+| Document | Engine | Initialisation | First invocation | Total | Memory |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Invoice, 2 pages | Rust, glibc | 52 ms | 69 ms | 121 ms | 28 MB |
+| | Python | 109 ms | 83 ms | 192 ms | 46 MB |
+| Report, 21 pages | Rust, glibc | 52 ms | 124 ms | 176 ms | 33 MB |
+| | Python | 110 ms | 135 ms | 245 ms | 52 MB |
+| Ledger, 51 pages | Rust, glibc | 52 ms | 787 ms | 839 ms | 140 MB |
+| | Python | 105 ms | 814 ms | 919 ms | 169 MB |
+
+Once warm, the render alone:
+
+| Document | Engine | 512 MB | 1024 MB | 1769 MB |
+| --- | --- | ---: | ---: | ---: |
+| Invoice | Rust, glibc | 11.3 ms | 8.9 ms | 7.4 ms |
+| | Rust, musl | 36.9 ms | 12.9 ms | 14.0 ms |
+| | Python | 13.5 ms | 7.2 ms | 9.2 ms |
+| Report | Rust, glibc | 148 ms | 79 ms | 55 ms |
+| | Rust, musl | 260 ms | 130 ms | 77 ms |
+| | Python | 153 ms | 85 ms | 53 ms |
+| Ledger | Rust, glibc | 2,177 ms | 1,022 ms | 605 ms |
+| | Rust, musl | 3,131 ms | 1,527 ms | 845 ms |
+| | Python | 2,145 ms | 1,034 ms | 607 ms |
+
+What I take from it:
+
+- **Without Python, the start is twice as short, the render is not faster.** 52 ms of initialisation against 105 to 110 ms. Once warm, both run the same compiled engine, and the times are within noise of each other.
+- **The musl build was 1.4 to 3.3 times slower.** Same code, different memory allocator. The session's first build was the static one, the easiest to build from a Mac; it suspected the allocator from the first numbers, and the glibc run confirmed it.
+- **In Lambda, memory sets the CPU.** From 512 to 1024 MB the long documents render twice as fast, and 1769 MB takes another 40% off the ledger.
+- **A deployed function is about twice as slow as the CI runner**, and slower than my Mac: 55 ms for the report, against 27 ms on the runner and 24 ms on the Mac. The numbers earlier in this article are not Lambda's.
+- **The first request pays for the fonts:** 60 to 180 ms more than a warm one.
+
+The native handler comes with ten tests of its own, most of them checking what HTML from a caller may not read.
+
 ## What has not been measured
 
-- End-to-end latency in a deployed Lambda, cold and warm, for all three renderers. reasyprint has only run in the Lambda image, on a CI runner.
-- Memory of LaTeX and WeasyPrint. reasyprint peaks at 14 MB on the 14-page report, on my Mac.
+- End-to-end latency of LaTeX and WeasyPrint in a deployed Lambda. reasyprint has now been measured in one, on three documents; the other two have not, so the comparison between renderers still mixes a laptop and Lambda.
+- Memory of LaTeX and WeasyPrint. reasyprint peaks at 14 MB on the 14-page report on my Mac, and at 33 MB for the 21-page public report in a deployed Lambda, process included.
 - reasyprint on the corpus of 52 documents.
 - reasyprint against LaTeX under the same conditions. The comparison above is indirect.
-- veraPDF on the six reference documents. It has only run on the two test documents.
+- veraPDF on the six reference documents. It runs on the two test documents and the ten public ones.
 
-The target for reasyprint: replace LaTeX in the Lambda and generate PDFs more than 100 times faster, with the same output quality. The factor of 100 is exceeded on the six documents of the indirect comparison. It remains to be measured in a deployed Lambda, and the output quality remains to be checked against LaTeX.
+The target for reasyprint: replace LaTeX in the Lambda and generate PDFs more than 100 times faster, with the same output quality. The factor of 100 is exceeded on the six documents of the indirect comparison. reasyprint has now run in a deployed Lambda; LaTeX has not been measured the same way yet, and the output quality remains to be checked against LaTeX.
