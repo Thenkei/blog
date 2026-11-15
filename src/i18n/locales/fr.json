@@ -61,6 +61,8 @@
     "language": "Langue",
     "breadcrumb": "Fil d'Ariane",
     "scrollableTable": "Tableau, défile horizontalement",
+    "playGame": "Jouer ici",
+    "openGameInNewTab": "Ouvrir le jeu dans un nouvel onglet",
     "notFoundTitle": "Page introuvable",
     "notFoundText": "Cette adresse ne correspond à aucune page du blog.",
     "notFoundHome": "Voir tous les articles",
