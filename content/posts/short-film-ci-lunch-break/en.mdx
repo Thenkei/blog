@@ -1,0 +1,29 @@
+---
+title: "Short film: a CI longer than lunch"
+subtitle: "How we scaled our CI at Forest Admin, told in 45 seconds."
+summary: "Third episode of the short films: 45 minutes of tests on a single runner, the split across ten jobs, its failures, and the rules that made it hold."
+visualId: "scaling-ci-github-actions-forest-admin"
+publishedAt: "2026-12-21"
+readTimeMinutes: 1
+tags:
+  - ci-cd
+  - github-actions
+  - testing
+  - video
+seriesId: "short-films"
+seriesOrder: 4
+---
+
+In 2021, I described [how we scaled our CI at Forest Admin](../posts/scaling-ci-github-actions-forest-admin). With more than 95% test coverage, a single runner took 45 minutes to run the tests: longer than a lunch break.
+
+Here is the same story in 45 seconds.
+
+<ArticleVideo id="short-film-ci">
+  The CI that outlasted lunch, third episode of the short films.
+</ArticleVideo>
+
+The film keeps the three problems the article describes once the tests are split across ten jobs: a network blip on one worker fails the whole pipeline, a teardown that leaves a record behind makes one chunk flaky, and a reconciliation job has to wait for every chunk to assemble the coverage.
+
+It also keeps the two rules that made the split hold: leave no trace between tests, and spread the tests by execution time rather than by number of files.
+
+The original article gives the details of the GitHub Actions setup and of merging the reports: [Scaling CI at Forest Admin](../posts/scaling-ci-github-actions-forest-admin).

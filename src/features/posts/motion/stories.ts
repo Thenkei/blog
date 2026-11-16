@@ -32,6 +32,26 @@ export const MOTION_STORIES = {
     en: ["Specify, build, test, release, repeat", "Logs and customer feedback start other loops", "A human decides where it matters"],
     fr: ["Spécifier, construire, tester, livrer", "Logs et retours clients ouvrent des boucles", "L'humain décide là où ça compte"],
   },
+  "short-films-series": {
+    kind: "flow",
+    en: ["An older article from the blog", "Told in under a minute", "A short article links to the original"],
+    fr: ["Un ancien article du blog", "Raconté en moins d'une minute", "Un article court renvoie à l'original"],
+  },
+  "short-film-redis-memory": {
+    kind: "threshold",
+    en: ["One Redis instance for everything", "The cache fills the RAM one weekend", "Separate instances, shorter TTLs"],
+    fr: ["Une instance Redis pour tout", "Le cache remplit la RAM un week-end", "Instances séparées, TTL plus courts"],
+  },
+  "short-film-postgresql-nulls": {
+    kind: "choice",
+    en: ["A unique index on nullable columns", "By default, NULL ≠ NULL", "NULLS NOT DISTINCT catches the duplicate"],
+    fr: ["Un index unique, des colonnes nullables", "Par défaut, NULL ≠ NULL", "NULLS NOT DISTINCT voit le doublon"],
+  },
+  "short-film-ci-lunch-break": {
+    kind: "flow",
+    en: ["The CI outlasts the lunch break", "Split tests bring their own failures", "Split by execution time"],
+    fr: ["La CI dure plus que le déjeuner", "Le découpage apporte ses pannes", "Découper par temps d'exécution"],
+  },
   "webkit-svg-filters-hero-performance": {
     kind: "flow",
     en: ["Chromium reports 60 fps on the Rocket hero", "WebKit runs the same scroll at 11 fps", "Three strokes replace the SVG blur"],

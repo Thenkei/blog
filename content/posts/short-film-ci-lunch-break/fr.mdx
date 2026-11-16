@@ -1,0 +1,29 @@
+---
+title: "Petit film : une CI plus longue que la pause déjeuner"
+subtitle: "La mise à l'échelle de notre CI chez Forest Admin, racontée en 45 secondes."
+summary: "Troisième épisode des petits films : 45 minutes de tests sur un seul runner, le découpage sur dix jobs, ses pannes, et les règles qui l'ont fait tenir."
+visualId: "scaling-ci-github-actions-forest-admin"
+publishedAt: "2026-12-21"
+readTimeMinutes: 1
+tags:
+  - ci-cd
+  - github-actions
+  - testing
+  - video
+seriesId: "short-films"
+seriesOrder: 4
+---
+
+En 2021, j'ai raconté [comment nous avons mis notre CI à l'échelle chez Forest Admin](../posts/scaling-ci-github-actions-forest-admin). Avec plus de 95 % de couverture, un seul runner mettait 45 minutes à passer les tests : plus long qu'une pause déjeuner.
+
+Voici la même histoire en 45 secondes.
+
+<ArticleVideo id="short-film-ci">
+  La CI plus longue que la pause déjeuner, troisième épisode des petits films.
+</ArticleVideo>
+
+Le film reprend les trois problèmes de l'article une fois les tests découpés sur dix jobs : une perte réseau sur un worker fait échouer tout le pipeline, un teardown qui oublie un enregistrement rend un morceau instable, et il faut un job de réconciliation qui attend tous les morceaux pour assembler la couverture.
+
+Il reprend aussi les deux règles qui ont fait tenir le découpage : ne laisser aucune trace entre les tests, et répartir les tests par temps d'exécution plutôt que par nombre de fichiers.
+
+L'article d'origine donne le détail de la configuration GitHub Actions et de la fusion des rapports : [Mettre la CI à l'échelle chez Forest Admin](../posts/scaling-ci-github-actions-forest-admin).

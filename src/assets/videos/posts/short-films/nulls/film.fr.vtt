@@ -1,0 +1,17 @@
+WEBVTT
+
+1
+00:00:00.360 --> 00:00:04.440 line:5%
+J'ai protégé ma table avec une contrainte d'unicité.
+
+2
+00:00:15.080 --> 00:00:18.520
+Des doublons ?! Mais j'ai une contrainte d'unicité !
+
+3
+00:00:21.467 --> 00:00:26.027
+Ah. Par défaut, NULL est différent de NULL.
+
+4
+00:00:26.267 --> 00:00:28.943
+NULLS NOT DISTINCT. Et hop.

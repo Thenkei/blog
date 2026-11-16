@@ -139,7 +139,7 @@ npm run take -- blog-software-factory-en en-v3
 node videos/blog-software-factory/captions.mjs blog-software-factory fr-v3   # out/fr-v3/captions.vtt
 ```
 
-Web files in `src/assets/videos/posts/software-factory/`: `film.fr.mp4` and `film.en.mp4` (2.6 MB each, AAC 96 kb/s), posters about 150 KB, `film.fr.vtt` and `film.en.vtt` (three cues each, one per line). CRF 32: the painted plates under constant camera moves made CRF 28 files 4.1 MB, and CRF 32 still reads the smallest panel text at 720p. Poster at 25.5 s, the three stamped cards.
+Web files in `src/assets/videos/posts/software-factory/`: `film.fr.mp4` and `film.en.mp4` (first 2.6 MB each, AAC 96 kb/s; re-encoded on 2026-11-14 at the author's request to 540p, CRF 42, HE-AAC 32 kb/s, about 0.5 MB each, recipe in `short-films-series.md`), posters about 150 KB (now 540p, about 110 KB), `film.fr.vtt` and `film.en.vtt` (three cues each, one per line). CRF 32: the painted plates under constant camera moves made CRF 28 files 4.1 MB, and CRF 32 still reads the smallest panel text at 720p. Poster at 25.5 s, the three stamped cards.
 
 ```sh
 ffmpeg -i out/<take>/video.mp4 -vf "scale=1280:720:flags=lanczos" \

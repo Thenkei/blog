@@ -83,6 +83,30 @@ const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
       fr: "Un atelier d'imprimerie illustré, de nuit, avec trois presses alignées, d'une lourde presse en fonte à une petite presse à moitié montée, chacune imprimant la même page ; une personne vue de dos compare deux feuilles sur une table lumineuse avec une loupe et un chronomètre.",
     },
   },
+  "short-films-series": {
+    alt: {
+      en: "An illustrated workshop at night: an engineer cranks a small vintage film projector on a wooden workbench, and three small cream robots sit on stools watching the picture on a little framed screen, one of them holding popcorn.",
+      fr: "Un atelier illustré, de nuit : un ingénieur tourne la manivelle d'un petit projecteur de cinéma ancien posé sur un établi, et trois petits robots crème assis sur des tabourets regardent l'image sur un petit écran encadré, l'un d'eux tient du pop-corn.",
+    },
+  },
+  "short-film-ci-lunch-break": {
+    alt: {
+      en: "A painted night office: an engineer with a napkin tucked in his collar sits at a wooden desk and glances sideways at a small amber lamp that is still lit; beside him a little cream robot raises its arms next to a tall stack of papers tied with string.",
+      fr: "Un bureau peint, de nuit : un ingénieur, une serviette glissée dans le col, assis à un bureau en bois, jette un regard de côté vers une petite lampe orange toujours allumée ; à côté de lui, un petit robot crème lève les bras près d'une haute pile de papiers ficelée.",
+    },
+  },
+  "short-film-postgresql-nulls": {
+    alt: {
+      en: "A painted close-up at night: a cream robot doorman with a teal bow tie and a suspicious squint holds up two blank cards side by side to compare them, in front of an arched door open onto an archive room lit by lamps.",
+      fr: "Un gros plan peint, de nuit : un robot portier crème en nœud papillon sarcelle, l'œil soupçonneux, lève deux cartes vierges côte à côte pour les comparer, devant une porte en arc ouverte sur une salle d'archives éclairée par des lampes.",
+    },
+  },
+  "short-film-redis-memory": {
+    alt: {
+      en: "A painted wooden room lit by a single lamp, almost entirely filled by a huge cardboard box bursting with papers and files; three small cream robots squeezed at its feet, one pushing a cart of papers, one holding a ring of keys, one a guard with a padlock shield.",
+      fr: "Une pièce en bois peinte, éclairée par une seule lampe, presque entièrement remplie par un énorme carton qui déborde de papiers et de dossiers ; trois petits robots crème coincés à ses pieds, l'un pousse un chariot de papiers, l'autre tient un trousseau de clés, le troisième garde un bouclier à cadenas.",
+    },
+  },
   "software-factory-loops": {
     alt: {
       en: "An illustrated workshop at night built around a large circular conveyor where small robots draw, assemble, inspect, launch, pack and repair; two side tracks bring in paper strips with warning signs and letters from a mailbox, and a person seen from behind sits at a desk at the edge, reading one card a robot hands them.",

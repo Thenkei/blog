@@ -1,0 +1,29 @@
+---
+title: "Petit film : le portier qui ne reconnaît pas les NULL"
+subtitle: "Le piège de NULL dans un index unique PostgreSQL, raconté en 41 secondes."
+summary: "Deuxième épisode des petits films : un index unique laisse passer des doublons parce que, par défaut, PostgreSQL considère que NULL ≠ NULL. NULLS NOT DISTINCT règle le problème."
+visualId: "postgresql-unique-nulls"
+publishedAt: "2026-12-18"
+readTimeMinutes: 1
+tags:
+  - postgresql
+  - database
+  - backend
+  - video
+seriesId: "short-films"
+seriesOrder: 3
+---
+
+En janvier, j'ai écrit [un retour rapide sur un `ON CONFLICT DO UPDATE`](../posts/postgresql-unique-nulls) qui ignorait des doublons évidents, alors que la table avait une contrainte d'unicité. Une des colonnes de l'index pouvait être NULL, et par défaut, PostgreSQL considère que `NULL ≠ NULL`.
+
+Voici la même histoire en 41 secondes.
+
+<ArticleVideo id="short-film-nulls">
+  Le piège de NULL, deuxième épisode des petits films.
+</ArticleVideo>
+
+Dans le film, l'index unique est un portier. Il reconnaît un doublon quand toutes les valeurs sont là. Quand la référence est NULL, il laisse entrer deux lignes `(valeur, NULL)` qu'il ne trouve pas identiques, et les doublons s'empilent.
+
+La correction tient en une ligne : ajouter `NULLS NOT DISTINCT` à l'index unique. Le portier reconnaît alors le doublon, et l'upsert met à jour la ligne au lieu d'en créer une. C'est disponible depuis PostgreSQL 15.
+
+L'article d'origine donne l'index complet : [ON CONFLICT DO UPDATE et colonnes nullables : le piège de NULL](../posts/postgresql-unique-nulls).

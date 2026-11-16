@@ -209,7 +209,8 @@ what happens on screen, shown in the caption for readers who do not play it.
 
 The element uses `preload="none"`, so only the poster loads until the reader
 presses play; it never autoplays. Keep films short, silent or meaningful when
-muted, and around 720p. A film without a `sound` entry in the registry is
+muted, and small: the painted films are 540p, H.264 CRF 42 and HE-AAC 32 kb/s,
+about 15 KB per second, under 600 KB for 40 seconds (recipe in `docs/artwork/short-films-series.md`). A film without a `sound` entry in the registry is
 silent and marked muted. `sound: "music"` and `sound: "voice"` play with their
 sound on. A film with a voice also needs a `<name>.<locale>.vtt` caption file
 next to each MP4, offered as a captions track the reader turns on. They build into `assets/videos/`, which the service

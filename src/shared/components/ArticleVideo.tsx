@@ -105,6 +105,42 @@ const ARTICLE_VIDEOS = {
     },
     sound: "voice",
   },
+  "short-film-redis": {
+    path: "short-films/redis/film",
+    title: {
+      en: "Short film: one Redis instance for everything",
+      fr: "Petit film : une seule instance Redis pour tout",
+    },
+    description: {
+      en: "With voice, captions available, 40 seconds. Behind an engineer at his desk, a small room stands on a shelf: one Redis instance. Four tenants move in: the cache, the job queues, the sessions and the anti brute-force guard. Week after week the cache box grows while, behind the engineer sipping his coffee, the memory graph climbs. One weekend, at night, the graph spikes and an unplugged alarm bell stays silent. The cache swells, fills the room and crushes its neighbours; the engineer grabs his head. Then the cache, the queues and the sessions each get their own instance. A torch finds dusty boxes left by deleted projects, a robot sweeps them out, the TTLs get shorter and the cache box is vacuum-packed. Music, sound effects, and four short lines from the engineer.",
+      fr: "Avec voix, sous-titres disponibles, 40 secondes. Derrière un ingénieur à son bureau, une petite pièce est posée sur une étagère : une instance Redis. Quatre locataires y emménagent : le cache, les files de jobs, les sessions et l’anti brute-force. Semaine après semaine, la boîte du cache grossit pendant que, derrière l’ingénieur qui boit son café, la courbe de mémoire grimpe. Un week-end, la nuit, la courbe s’envole et une sonnette d’alarme débranchée reste muette. Le cache gonfle, remplit la pièce et écrase ses voisins ; l’ingénieur se prend la tête. Ensuite, le cache, les files et les sessions ont chacun leur instance. Une lampe torche éclaire des cartons poussiéreux laissés par des projets supprimés, un robot les balaie, les TTL raccourcissent et la boîte du cache est mise sous vide. Musique, bruitages, et quatre répliques courtes de l’ingénieur.",
+    },
+    sound: "voice",
+  },
+  "short-film-nulls": {
+    path: "short-films/nulls/film",
+    title: {
+      en: "Short film: the doorman who can’t tell NULLs apart",
+      fr: "Petit film : le portier qui ne reconnaît pas les NULL",
+    },
+    description: {
+      en: "With voice, captions available, 37 seconds. A doorman robot guards the door of an archive room, under a plaque reading UNIQUE INDEX (isin, provider_product_reference). It catches a full duplicate and stamps it ON CONFLICT DO UPDATE, then lets in robots whose reference is NULL: a room fills with identical robots and the rows spill off the board. The engineer loses an hour at his desk. In close-up, the doorman holds up two identical cards: to it, NULL ≠ NULL. The plaque gets NULLS NOT DISTINCT, the next robots are stamped and their row updated instead of added, and the engineer leans back. Music, sound effects, and four short lines from the engineer.",
+      fr: "Avec voix, sous-titres disponibles, 37 secondes. Un robot portier garde la porte d’une salle d’archives, sous une plaque UNIQUE INDEX (isin, provider_product_reference). Il reconnaît un doublon complet et le tamponne ON CONFLICT DO UPDATE, puis laisse entrer des robots dont la référence est NULL : une salle se remplit de robots identiques et les lignes débordent du tableau. L’ingénieur perd une heure à son bureau. En gros plan, le portier tient deux cartes identiques : pour lui, NULL ≠ NULL. La plaque reçoit NULLS NOT DISTINCT, les robots suivants sont tamponnés et leur ligne mise à jour au lieu d’être ajoutée, et l’ingénieur se renverse dans sa chaise. Musique, bruitages, et quatre répliques courtes de l’ingénieur.",
+    },
+    sound: "voice",
+  },
+  "short-film-ci": {
+    path: "short-films/ci/film",
+    title: {
+      en: "Short film: a CI longer than lunch",
+      fr: "Petit film : une CI plus longue que la pause déjeuner",
+    },
+    description: {
+      en: "With voice, captions available, 39 seconds. An engineer starts his CI on one runner and goes to lunch; the build lamp stays amber while he eats, and he comes back with a napkin in his collar. The tests are split across ten robots and he looks pleased with himself. Then worker 7 trips over node_modules and every lamp turns red, a little ghost haunts test_chunk_5 and he chases it down an aisle with a butterfly net. A robot waits for all ten shards to stitch them into one LCOV report. A broom clears the traces, the stacks are dealt again and every lamp turns green. Music, sound effects, and four short lines from the engineer.",
+      fr: "Avec voix, sous-titres disponibles, 39 secondes. Un ingénieur lance sa CI sur un seul runner et part déjeuner ; la lampe du build reste orange pendant qu’il mange, et il revient serviette au cou. Les tests sont répartis entre dix robots et il a l’air content de lui. Puis le worker 7 trébuche sur node_modules et toutes les lampes passent au rouge, un petit fantôme hante test_chunk_5 et il le poursuit dans une allée avec un filet à papillons. Un robot attend les dix morceaux pour les coudre en un rapport LCOV. Un balai efface les traces, les piles sont redistribuées et toutes les lampes passent au vert. Musique, bruitages, et quatre répliques courtes de l’ingénieur.",
+    },
+    sound: "voice",
+  },
 } as const satisfies Record<string, ArticleVideoCopy>;
 
 export type ArticleVideoId = keyof typeof ARTICLE_VIDEOS;

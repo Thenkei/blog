@@ -1,0 +1,49 @@
+---
+title: "Petits films : d'anciens articles en moins d'une minute"
+subtitle: "Une série de courts films d'animation, chacun tiré d'un article déjà publié sur ce blog."
+summary: "Après le film de la Software Factory, je reprends d'anciens articles du blog et je les raconte en moins d'une minute, avec les mêmes personnages. Ce qui ne change pas d'un épisode à l'autre, comment les films sont faits, et les trois premiers épisodes."
+visualId: "video-factory-remotion-agents"
+publishedAt: "2026-12-14"
+readTimeMinutes: 3
+tags:
+  - video
+  - remotion
+  - ai
+  - developer-tools
+seriesId: "short-films"
+seriesOrder: 1
+---
+
+Pour l'article [Ce que j'appelle une Software Factory](../posts/software-factory-loops), j'ai fait un petit film d'animation de 29 secondes. Un ingénieur répond aux questions de ses agents jusqu'à disparaître sous les bulles, puis des boucles tournent sans lui et il ne tamponne plus que trois décisions.
+
+<ArticleVideo id="software-factory-film">
+  Le film de la Software Factory, à l'origine de la série.
+</ArticleVideo>
+
+Ce format m'a plu, alors j'en fais une série. Chaque épisode reprend un article déjà publié sur ce blog et le raconte en vingt à quarante-cinq secondes. Il est publié dans un article très court, qui renvoie vers l'article d'origine.
+
+## Ce qui ne change pas d'un épisode à l'autre
+
+- **Les personnages.** Le même ingénieur et les mêmes robots crème, visière sombre et yeux orange, que dans le film de la Software Factory.
+- **Le décor.** L'atelier de nuit de la couverture du blog : ombres bleu marine et sarcelle, lumière de lampe chaude.
+- **Le son.** De la musique, des bruitages, et quelques répliques courtes de l'ingénieur, avec ma voix clonée. Chaque film se comprend aussi sans le son, et les répliques sont sous-titrées.
+- **Les mots.** Le texte à l'écran vient de l'article d'origine, les chiffres aussi. L'humour est dans les images et le rythme, pas dans le texte.
+- **La fin.** Les trois dernières secondes donnent le nom de la série, une phrase de l'article et l'article d'origine avec son année.
+
+## Comment les films sont faits
+
+Chaque film est un dossier dans [la fabrique de vidéos](../posts/video-factory-remotion-agents) : un brief, un storyboard, le texte à l'écran et les scènes.
+
+Les images sont peintes par un modèle de génération d'images, piloté par la ligne de commande de Codex. Il y a des décors, et des dessins de personnages et d'objets sur fond vert, qu'on détoure ensuite. La planche de personnages et la couverture du blog servent de référence à chaque image, pour que l'ingénieur ressemble à l'ingénieur d'un film à l'autre.
+
+Remotion anime ces images : mouvements de caméra sur les décors, dessins qui se remplacent sur le temps, petits objets qui se déplacent. Les mots à l'écran sont posés par Remotion, jamais par le modèle d'image. La musique est générée par un script, en local, sur une grille de tempo qui sert aussi au montage. Les bruitages viennent du modèle d'effets sonores d'ElevenLabs, à partir d'une courte description, et chacun est placé sur l'image où l'événement a lieu.
+
+Avant de livrer un film, la fabrique vérifie le volume sonore, lit chaque ligne de texte sur son image par OCR et cherche les images vides ou les sauts d'une image.
+
+## Les premiers épisodes
+
+1. [Une seule instance Redis pour tout](../posts/short-film-redis-memory), d'après [Post-mortem : le jour où Redis a atteint ses limites](../posts/redis-memory-exhaustion-post-mortem) (2021).
+2. [Le portier qui ne reconnaît pas les NULL](../posts/short-film-postgresql-nulls), d'après [ON CONFLICT DO UPDATE et colonnes nullables : le piège de NULL](../posts/postgresql-unique-nulls) (2026).
+3. [Une CI plus longue que la pause déjeuner](../posts/short-film-ci-lunch-break), d'après [Mettre la CI à l'échelle chez Forest Admin](../posts/scaling-ci-github-actions-forest-admin) (2021).
+
+Un film ne remplace pas l'article. Il montre l'idée principale et donne envie, ou non, de lire la suite.
