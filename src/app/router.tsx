@@ -6,7 +6,6 @@ import {
   Route,
   Routes,
   useLocation,
-  useNavigate,
   useParams,
 } from "react-router-dom";
 import { hasPostSlug, type PostLocale } from "../features/posts/content";
@@ -77,7 +76,6 @@ function LocaleLayout() {
   const { appliedTheme } = useTheme();
   const params = useParams();
   const location = useLocation();
-  const navigate = useNavigate();
   const locale = normalizeLocale(params.locale);
   const postAccess = appliedTheme === "rocket" ? "rocket" : "public";
 
@@ -91,20 +89,13 @@ function LocaleLayout() {
     document.documentElement.lang = locale;
   }, [i18n, locale]);
 
-  useEffect(() => {
-    const legacyPost = new URLSearchParams(location.search).get("post");
-    if (!legacyPost || !hasPostSlug(legacyPost, postAccess)) {
-      return;
-    }
-
-    const target = `/${locale}/posts/${legacyPost}`;
-    if (location.pathname !== target || location.search) {
-      void navigate(target, { replace: true });
-    }
-  }, [locale, location.pathname, location.search, navigate, postAccess]);
-
   if (!isLocale(params.locale)) {
     return <LocalePrefixRedirect />;
+  }
+
+  const legacyPost = new URLSearchParams(location.search).get("post");
+  if (legacyPost && hasPostSlug(legacyPost, postAccess)) {
+    return <Navigate replace to={`/${locale}/posts/${legacyPost}`} />;
   }
 
   return (
