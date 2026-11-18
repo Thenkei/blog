@@ -29,6 +29,12 @@ const jpegAssets = import.meta.glob<string>(
 );
 
 const EDITORIAL_ART_COPY: Record<string, EditorialArtCopy> = {
+  "a-week-of-browser-games": {
+    alt: {
+      en: "A pixel-art car drifts around a miniature track. Above it, two figures approach a lit doorway, a camera watches a house, and geometric outlines glow over the circuit.",
+      fr: "Une voiture en pixel art dérape sur un circuit miniature. Au-dessus, deux silhouettes avancent vers une porte éclairée, une caméra surveille une maison et des formes géométriques brillent au-dessus de la piste.",
+    },
+  },
   "accepting-being-a-nerd-2026": {
     alt: {
       en: "An illustrated desk at night with a stack of science and engineering books, a tablet showing a pendulum experiment, a small telescope and a model rocket, while distant fireworks light the window.",
