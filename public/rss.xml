@@ -5,6 +5,20 @@
 <link>https://thenkei.github.io/blog</link>
 <description>Engineering deep dives, architecture notes, and backend lessons.</description>
 <item>
+<title>Three little games and a return to Jokarikara</title>
+<link>https://thenkei.github.io/blog/en/posts/a-week-of-browser-games</link>
+<guid>https://thenkei.github.io/blog/en/posts/a-week-of-browser-games</guid>
+<description>Ned takes his gran’s car racing, my clones lend a hand in Parahydox, and the neighbours come home after dark in Putrid Swarm. I also went back to Jokarikara.</description>
+<pubDate>Wed, 18 Nov 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+<title>A Video Factory in a Git Repository</title>
+<link>https://thenkei.github.io/blog/en/posts/video-factory-remotion-agents</link>
+<guid>https://thenkei.github.io/blog/en/posts/video-factory-remotion-agents</guid>
+<description>At RockFi, a video is a folder in a Git repository. You open it in Claude Code or Codex, give a brief, and get back a mastered MP4 with its verification report. What the factory does, with three example films.</description>
+<pubDate>Tue, 17 Nov 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
 <title>WebSockets: from Under the Limit to 30,000 users at Forest</title>
 <link>https://thenkei.github.io/blog/en/posts/websockets-games-to-30000-connections</link>
 <guid>https://thenkei.github.io/blog/en/posts/websockets-games-to-30000-connections</guid>

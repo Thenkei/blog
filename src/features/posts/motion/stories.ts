@@ -12,6 +12,11 @@ type LocalizedStory = Record<PostLocale, MotionStory["beats"]> & {
 // Each sequence is a compact explanation of the article's own argument.
 // Keep both locales in sync when adding or changing a published article.
 export const MOTION_STORIES = {
+  "a-week-of-browser-games": {
+    kind: "flow",
+    en: ["Stand on the pressure plate", "Rewind and let the clone hold it", "Walk through the open door"],
+    fr: ["Monter sur la plaque", "Rembobiner et laisser le clone dessus", "Franchir la porte ouverte"],
+  },
   "accepting-being-a-nerd-2026": {
     kind: "flow",
     en: ["I read science, engineering and tech", "I watch channels like Veritasium", "I accept it: I am a nerd"],
